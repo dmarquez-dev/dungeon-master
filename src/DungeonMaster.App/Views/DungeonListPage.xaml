@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:DungeonMaster.App.Converters"
+    xmlns:dto="clr-namespace:DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;assembly=DungeonMaster.Application"
+    x:Class="DungeonMaster.App.Views.DungeonListPage"
+    Title="Dungeons">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:NotNullConverter x:Key="NotNullConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="16" RowSpacing="8">
+
+        <!-- Error label -->
+        <Label
+            Grid.Row="0"
+            Text="{Binding ErrorMessage}"
+            TextColor="Red"
+            IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
+
+        <!-- Dungeon list -->
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding Dungeons}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="dto:DungeonSummaryDto">
+                    <Grid
+                        ColumnDefinitions="*,Auto"
+                        Padding="0,4">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2">
+                            <Label
+                                Text="{Binding Name}"
+                                FontAttributes="Bold"
+                                FontSize="16" />
+                            <Label
+                                Text="{Binding Description}"
+                                FontSize="13"
+                                TextColor="Gray"
+                                IsVisible="{Binding Description, Converter={StaticResource NotNullConverter}}" />
+                        </VerticalStackLayout>
+                        <Button
+                            Grid.Column="1"
+                            Text="Delete"
+                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteDungeonCommand}"
+                            CommandParameter="{Binding Id}"
+                            VerticalOptions="Center" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- New dungeon name entry -->
+        <Entry
+            Grid.Row="2"
+            Text="{Binding NewDungeonName}"
+            Placeholder="New dungeon name" />
+
+        <!-- Create button -->
+        <Button
+            Grid.Row="3"
+            Text="Create"
+            Command="{Binding CreateDungeonCommand}" />
+
+    </Grid>
+
+</ContentPage>

@@ -1,0 +1,32 @@
+# Build output
+bin/
+obj/
+
+# NuGet
+.nuget/
+*.nupkg
+packages/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# JetBrains Rider
+.idea/
+
+# MAUI / mobile build artifacts
+**/*.DS_Store
+**/google-services.json
+**/GoogleService-Info.plist
+
+# SQLite databases created at runtime
+*.db
+*.db-shm
+*.db-wal
+
+# OS
+Thumbs.db
+Desktop.ini
