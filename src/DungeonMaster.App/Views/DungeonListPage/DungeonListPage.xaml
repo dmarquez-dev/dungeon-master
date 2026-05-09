@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
+    xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
+    xmlns:dto="clr-namespace:DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;assembly=DungeonMaster.Application"
+    xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
+    x:Class="DungeonMaster.App.Views.DungeonListPage"
+    x:DataType="vm:DungeonListViewModel"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource DMBackground}">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,12" RowSpacing="10">
+
+        <!-- Banner -->
+        <controls:DmFlagBanner Grid.Row="0" Title="Dungeons" />
+
+        <!-- Error -->
+        <Label
+            Grid.Row="1"
+            Text="{Binding ErrorMessage}"
+            FontFamily="EBGaramondRegular"
+            FontSize="16"
+            TextColor="{StaticResource DMDestructive}"
+            IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
+
+        <!-- Search bar -->
+        <controls:DmSearchBar
+            Grid.Row="2"
+            SearchText="{Binding SearchText, Mode=TwoWay}" />
+
+        <!-- Section divider -->
+        <controls:DmDivider Grid.Row="3" />
+
+        <!-- Dungeon list -->
+        <Grid Grid.Row="4">
+            <CollectionView
+                ItemsSource="{Binding FilteredDungeons}"
+                EmptyView="No dungeons found.">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="dto:DungeonSummaryDto">
+                        <controls:DmCard
+                            Title="{Binding Name}"
+                            Subtitle="{Binding Description}">
+                            <controls:DmCard.TrailingContent>
+                                <Button
+                                    Text="&#xEA65;"
+                                    FontFamily="RpgAwesome"
+                                    FontSize="20"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource DMDestructive}"
+                                    CornerRadius="3"
+                                    Padding="8,4"
+                                    CommandParameter="{Binding Id}"
+                                    Clicked="OnDeleteClicked"
+                                    ToolTipProperties.Text="Delete dungeon">
+                                    <Button.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Button.Behaviors>
+                                </Button>
+                            </controls:DmCard.TrailingContent>
+                        </controls:DmCard>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Floating action button -->
+            <Button
+                x:Name="FabButton"
+                Text="+"
+                FontSize="24"
+                WidthRequest="52"
+                HeightRequest="52"
+                CornerRadius="26"
+                Padding="0"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="0,0,4,4"
+                BackgroundColor="{StaticResource DMGold}"
+                TextColor="{StaticResource DMBackground}"
+                Clicked="OnCreateClicked">
+                <Button.GestureRecognizers>
+                    <PointerGestureRecognizer
+                        PointerEntered="OnFabPointerEntered"
+                        PointerExited="OnFabPointerExited" />
+                </Button.GestureRecognizers>
+                <Button.Behaviors>
+                    <behaviors:HandCursorBehavior />
+                </Button.Behaviors>
+                <Button.Shadow>
+                    <Shadow Brush="{StaticResource DMGoldBrush}"
+                            Offset="0,2"
+                            Radius="8"
+                            Opacity="0" />
+                </Button.Shadow>
+            </Button>
+        </Grid>
+
+    </Grid>
+</ContentPage>

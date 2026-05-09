@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
+    xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
+    x:Class="DungeonMaster.App.Views.CreateDungeonPopup"
+    x:TypeArguments="x:Boolean"
+    BackgroundColor="Transparent"
+    Margin="0"
+    Padding="0"
+    CanBeDismissedByTappingOutsideOfPopup="False">
+
+    <controls:DmPopup x:Name="Chrome" Title="New Dungeon">
+        <controls:DmPopup.Body>
+            <VerticalStackLayout Spacing="14">
+
+                <!-- Error -->
+                <Label
+                    Text="{Binding ErrorMessage}"
+                    FontFamily="EBGaramondRegular"
+                    FontSize="14"
+                    TextColor="{StaticResource DMDestructive}"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
+
+                <!-- Name field -->
+                <VerticalStackLayout Spacing="4">
+                    <Label
+                        Text="NAME *"
+                        FontFamily="CinzelRegular"
+                        FontSize="13"
+                        CharacterSpacing="1.5"
+                        TextColor="{StaticResource DMInkMuted}" />
+                    <Border
+                        StrokeShape="RoundRectangle 3"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource DMScrollBorderBrush}"
+                        BackgroundColor="Transparent"
+                        Padding="10,4">
+                        <Entry
+                            Text="{Binding Name, Mode=TwoWay}"
+                            FontFamily="EBGaramondRegular"
+                            FontSize="16"
+                            TextColor="{StaticResource DMInk}"
+                            BackgroundColor="Transparent"
+                            PlaceholderColor="{StaticResource DMInkMuted}"
+                            Placeholder="Enter dungeon name" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Description field -->
+                <VerticalStackLayout Spacing="4">
+                    <Label
+                        Text="DESCRIPTION"
+                        FontFamily="CinzelRegular"
+                        FontSize="13"
+                        CharacterSpacing="1.5"
+                        TextColor="{StaticResource DMInkMuted}" />
+                    <Border
+                        StrokeShape="RoundRectangle 3"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource DMScrollBorderBrush}"
+                        BackgroundColor="Transparent"
+                        Padding="10,4">
+                        <Editor
+                            Text="{Binding Description, Mode=TwoWay}"
+                            FontFamily="EBGaramondItalic"
+                            FontSize="16"
+                            TextColor="{StaticResource DMInk}"
+                            BackgroundColor="Transparent"
+                            PlaceholderColor="{StaticResource DMInkMuted}"
+                            Placeholder="Optional — a sentence about this place"
+                            HeightRequest="72"
+                            AutoSize="Disabled" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Buttons -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button
+                        Grid.Column="0"
+                        Text="CANCEL"
+                        Command="{Binding CancelCommand}"
+                        FontFamily="CinzelRegular"
+                        FontSize="13"
+                        CharacterSpacing="1"
+                        BackgroundColor="{StaticResource DMNeutralSurface}"
+                        TextColor="{StaticResource DMInk}"
+                        BorderColor="{StaticResource DMNeutralBorder}"
+                        BorderWidth="1.5"
+                        CornerRadius="3">
+                        <Button.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Button.Behaviors>
+                    </Button>
+                    <Button
+                        Grid.Column="1"
+                        Text="CREATE"
+                        Style="{StaticResource DmConfirmButton}"
+                        Command="{Binding CreateCommand}"
+                        FontFamily="CinzelRegular"
+                        FontSize="13"
+                        CharacterSpacing="1"
+                        BackgroundColor="{StaticResource DMConfirm}"
+                        TextColor="{StaticResource DMConfirmText}"
+                        CornerRadius="3">
+                        <Button.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Button.Behaviors>
+                    </Button>
+                </Grid>
+
+            </VerticalStackLayout>
+        </controls:DmPopup.Body>
+    </controls:DmPopup>
+
+</toolkit:Popup>

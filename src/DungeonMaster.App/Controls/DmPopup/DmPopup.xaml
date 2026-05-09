@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DungeonMaster.App.Controls.DmPopup"
+    x:Name="Root">
+
+    <Border
+        StrokeShape="RoundRectangle 4"
+        Stroke="{StaticResource DMScrollBorderBrush}"
+        StrokeThickness="2"
+        MinimumWidthRequest="300"
+        MaximumWidthRequest="420">
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />
+                <GradientStop Color="{StaticResource DMParchmentDark}" Offset="1.0" />
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid RowDefinitions="Auto,*,Auto">
+
+            <!-- Header bar -->
+            <Grid Grid.Row="0" Padding="14,10">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <Label
+                    Text="{Binding Title, Source={x:Reference Root}}"
+                    FontFamily="CinzelDecorative"
+                    FontSize="18"
+                    TextColor="{StaticResource DMInk}"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center" />
+            </Grid>
+
+            <!-- Body content slot -->
+            <ContentView x:Name="BodyPresenter" Grid.Row="1" Padding="18,14" />
+
+            <!-- Bottom scroll bar -->
+            <BoxView Grid.Row="2" HeightRequest="5">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+        </Grid>
+    </Border>
+</ContentView>

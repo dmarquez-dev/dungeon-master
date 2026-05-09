@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="DungeonMaster.App.Controls.DmDivider">
+
+    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
+
+        <BoxView Grid.Column="0" HeightRequest="1" VerticalOptions="Center">
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="Transparent" Offset="0.0" />
+                    <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+
+        <Label
+            Grid.Column="1"
+            Text="&#xE97D;"
+            FontFamily="RpgAwesome"
+            FontSize="14"
+            TextColor="{StaticResource DMScrollGoldLight}"
+            VerticalOptions="Center" />
+
+        <BoxView Grid.Column="2" HeightRequest="1" VerticalOptions="Center">
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
+                    <GradientStop Color="Transparent" Offset="1.0" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+
+    </Grid>
+</ContentView>
