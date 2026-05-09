@@ -56,6 +56,11 @@
 		
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
+		<MauiFont Include="Resources\Fonts\Cinzel-Regular.ttf" />
+		<MauiFont Include="Resources\Fonts\Cinzel-SemiBold.ttf" />
+		<MauiFont Include="Resources\Fonts\CinzelDecorative-Regular.ttf" />
+		<MauiFont Include="Resources\Fonts\EBGaramond-Regular.ttf" />
+		<MauiFont Include="Resources\Fonts\EBGaramond-Italic.ttf" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />

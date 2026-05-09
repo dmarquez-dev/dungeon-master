@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+    x:Class="DungeonMaster.App.Controls.DmFlagBanner"
+    x:Name="Root">
+
+    <Grid HeightRequest="40" Margin="0,0,0,8">
+
+        <!-- Banner gradient background -->
+        <BoxView CornerRadius="0">
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop Color="{StaticResource DMBackground}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource DMBannerEdge}" Offset="0.06" />
+                    <GradientStop Color="{StaticResource DMBannerCenter}" Offset="0.35" />
+                    <GradientStop Color="{StaticResource DMBannerCenter}" Offset="0.65" />
+                    <GradientStop Color="{StaticResource DMBannerEdge}" Offset="0.94" />
+                    <GradientStop Color="{StaticResource DMBackground}" Offset="1.0" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+
+        <!-- Title label -->
+        <Label
+            Text="{Binding Title, Source={x:Reference Root}}"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            FontFamily="CinzelDecorative"
+            FontSize="20"
+            CharacterSpacing="2"
+            TextColor="{StaticResource DMTextPrimary}" />
+
+    </Grid>
+</ContentView>

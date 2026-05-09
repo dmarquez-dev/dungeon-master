@@ -30,3 +30,6 @@ packages/
 # OS
 Thumbs.db
 Desktop.ini
+
+# Brainstorm mockups (visual companion)
+.superpowers/

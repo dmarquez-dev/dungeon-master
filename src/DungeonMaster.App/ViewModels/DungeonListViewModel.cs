@@ -2,100 +2,80 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
-using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 
 namespace DungeonMaster.App.ViewModels;
 
 /// <summary>
-///		Provides data and commands for the dungeon list view.
-///		Loads, creates, and deletes dungeons via the application dispatcher.
+///     Provides data and commands for the dungeon list view.
+///     Loads and deletes dungeons; search-filters the displayed list client-side.
 /// </summary>
-public partial class DungeonListViewModel(
-	AppDispatcher dispatcher)
-		: ObservableObject
+public partial class DungeonListViewModel(AppDispatcher dispatcher) : ObservableObject
 {
-	/// <summary>
-	///		Gets the collection of dungeon summaries displayed in the list.
-	/// </summary>
-	public ObservableCollection<DungeonSummaryDto> Dungeons { get; } = [];
+    private readonly ObservableCollection<DungeonSummaryDto> _allDungeons = [];
 
-	/// <summary>
-	///		Gets or sets the name entered by the user for a new dungeon.
-	/// </summary>
-	[ObservableProperty]
-	public partial string NewDungeonName { get; set; } = string.Empty;
+    /// <summary>
+    ///     The filtered subset of <see cref="_allDungeons"/> shown in the list.
+    ///     Updated whenever <see cref="SearchText"/> changes or the list reloads.
+    /// </summary>
+    public ObservableCollection<DungeonSummaryDto> FilteredDungeons { get; } = [];
 
-	/// <summary>
-	///		Gets or sets the current error message, or <see langword="null"/> when no error is present.
-	/// </summary>
-	[ObservableProperty]
-	public partial string? ErrorMessage { get; set; }
+    /// <summary>
+    ///     Gets or sets the current search text. Setting this re-filters <see cref="FilteredDungeons"/>.
+    /// </summary>
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
 
-	/// <summary>
-	///		Loads the list of dungeons from the application layer and repopulates <see cref="Dungeons"/>.
-	/// </summary>
-	[RelayCommand]
-	public async Task LoadDungeonsAsync()
-	{
-		var dungeons = await dispatcher.QueryAsync<IReadOnlyList<DungeonSummaryDto>>(
-			new GetDungeonsQuery(),
-			CancellationToken.None);
+    /// <summary>
+    ///     Gets or sets the current error message, or <see langword="null"/> when no error is present.
+    /// </summary>
+    [ObservableProperty]
+    public partial string? ErrorMessage { get; set; }
 
-		Dungeons.Clear();
+    partial void OnSearchTextChanged(string value) => ApplyFilter(value);
 
-		foreach (var dungeon in dungeons)
-		{
-			Dungeons.Add(dungeon);
-		}
+    private void ApplyFilter(string search)
+    {
+        FilteredDungeons.Clear();
+        var matches = string.IsNullOrWhiteSpace(search)
+            ? _allDungeons
+            : _allDungeons.Where(d =>
+                d.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
 
-		ErrorMessage = null;
-	}
+        foreach (var dungeon in matches)
+            FilteredDungeons.Add(dungeon);
+    }
 
-	/// <summary>
-	///		Creates a new dungeon using <see cref="NewDungeonName"/> and reloads the list on success.
-	/// </summary>
-	[RelayCommand]
-	private async Task CreateDungeonAsync()
-	{
-		var result = await dispatcher.SendAsync<Guid>(
-			new CreateDungeonCommand(
-				NewDungeonName,
-				null),
-			CancellationToken.None);
+    /// <summary>
+    ///     Loads all dungeons and resets the search filter.
+    /// </summary>
+    [RelayCommand]
+    public async Task LoadDungeonsAsync()
+    {
+        var dungeons = await dispatcher.QueryAsync<IReadOnlyList<DungeonSummaryDto>>(
+            new GetDungeonsQuery(), CancellationToken.None);
 
-		if (result.IsSuccess)
-		{
-			NewDungeonName = string.Empty;
-			await LoadDungeonsAsync();
-		}
-		else
-		{
-			ErrorMessage = result.Error;
-		}
-	}
+        _allDungeons.Clear();
+        foreach (var dungeon in dungeons)
+            _allDungeons.Add(dungeon);
 
-	/// <summary>
-	///		Deletes the dungeon with the specified <paramref name="id"/> and reloads the list on success.
-	/// </summary>
-	/// <param name="id">
-	///		The unique identifier of the dungeon to delete.
-	/// </param>
-	[RelayCommand]
-	private async Task DeleteDungeonAsync(Guid id)
-	{
-		var result = await dispatcher.SendAsync<bool>(
-			new DeleteDungeonCommand(id),
-			CancellationToken.None);
+        ApplyFilter(SearchText);
+        ErrorMessage = null;
+    }
 
-		if (result.IsSuccess)
-		{
-			await LoadDungeonsAsync();
-		}
-		else
-		{
-			ErrorMessage = result.Error;
-		}
-	}
+    /// <summary>
+    ///     Deletes the dungeon with the specified <paramref name="id"/> and reloads the list.
+    /// </summary>
+    [RelayCommand]
+    private async Task DeleteDungeonAsync(Guid id)
+    {
+        var result = await dispatcher.SendAsync<bool>(
+            new DeleteDungeonCommand(id), CancellationToken.None);
+
+        if (result.IsSuccess)
+            await LoadDungeonsAsync();
+        else
+            ErrorMessage = result.Error;
+    }
 }

@@ -41,4 +41,56 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- ═══════════════════════════════════════
+         DungeonMaster Design Tokens
+         Dark Tavern layer (#1A1208 background)
+    ═══════════════════════════════════════ -->
+    <Color x:Key="DMBackground">#1A1208</Color>
+    <Color x:Key="DMGold">#C4862A</Color>
+    <Color x:Key="DMTextPrimary">#F5E4B0</Color>
+    <Color x:Key="DMTextMuted">#A08050</Color>
+
+    <!-- Card surface: rgba(139,94,26,0.18) = #2E8B5E1A in #AARRGGBB -->
+    <Color x:Key="DMCardSurface">#2E8B5E1A</Color>
+    <!-- Card surface hover: rgba(139,94,26,0.32) = #528B5E1A -->
+    <Color x:Key="DMCardSurfaceHover">#528B5E1A</Color>
+    <!-- Card border: rgba(196,134,42,0.30) = #4DC4862A -->
+    <Color x:Key="DMCardBorder">#4DC4862A</Color>
+    <!-- Card border hover: rgba(196,134,42,0.65) = #A6C4862A -->
+    <Color x:Key="DMCardBorderHover">#A6C4862A</Color>
+
+    <!-- Banner gradient ends -->
+    <Color x:Key="DMBannerEdge">#7A4F12</Color>
+    <Color x:Key="DMBannerCenter">#B8781E</Color>
+
+    <!-- ═══════════════════════════════════════
+         Illuminated Manuscript layer (parchment)
+    ═══════════════════════════════════════ -->
+    <Color x:Key="DMParchmentLight">#F5E8C8</Color>
+    <Color x:Key="DMParchmentDark">#ECD8A0</Color>
+    <Color x:Key="DMScrollGoldLight">#C8A040</Color>
+    <Color x:Key="DMScrollGoldDark">#B08828</Color>
+    <Color x:Key="DMInk">#2C1A08</Color>
+    <Color x:Key="DMInkMuted">#7A5030</Color>
+    <Color x:Key="DMScrollBorder">#8B5E1A</Color>
+
+    <!-- Action semantics -->
+    <Color x:Key="DMConfirm">#2D5C1A</Color>
+    <Color x:Key="DMConfirmText">#D4EDB0</Color>
+    <Color x:Key="DMDestructive">#8B2020</Color>
+    <Color x:Key="DMDestructiveText">#F5D0D0</Color>
+    <!-- Neutral button: rgba(120,80,20,0.12) = #1F785014 -->
+    <Color x:Key="DMNeutralSurface">#1F785014</Color>
+    <Color x:Key="DMNeutralBorder">#5A3010</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="DMBackgroundBrush" Color="{StaticResource DMBackground}" />
+    <SolidColorBrush x:Key="DMGoldBrush" Color="{StaticResource DMGold}" />
+    <SolidColorBrush x:Key="DMCardSurfaceBrush" Color="{StaticResource DMCardSurface}" />
+    <SolidColorBrush x:Key="DMCardSurfaceHoverBrush" Color="{StaticResource DMCardSurfaceHover}" />
+    <SolidColorBrush x:Key="DMCardBorderBrush" Color="{StaticResource DMCardBorder}" />
+    <SolidColorBrush x:Key="DMCardBorderHoverBrush" Color="{StaticResource DMCardBorderHover}" />
+    <SolidColorBrush x:Key="DMScrollBorderBrush" Color="{StaticResource DMScrollBorder}" />
+    <SolidColorBrush x:Key="DMNeutralBorderBrush" Color="{StaticResource DMNeutralBorder}" />
 </ResourceDictionary>
