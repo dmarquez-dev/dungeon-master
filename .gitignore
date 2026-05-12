@@ -33,3 +33,7 @@ Desktop.ini
 
 # Brainstorm mockups (visual companion)
 .superpowers/
+
+# Claude Code artifacts
+.claude/
+docs/superpowers/

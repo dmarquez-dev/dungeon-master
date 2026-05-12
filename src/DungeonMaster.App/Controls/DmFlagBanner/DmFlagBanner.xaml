@@ -1,12 +1,13 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+    xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     x:Class="DungeonMaster.App.Controls.DmFlagBanner"
     x:Name="Root">
 
-    <Grid HeightRequest="40" Margin="0,0,0,8">
+    <Grid HeightRequest="44" Margin="0,0,0,8">
 
         <!-- Banner gradient background -->
         <BoxView CornerRadius="0">
@@ -22,15 +23,29 @@
             </BoxView.Background>
         </BoxView>
 
-        <!-- Title label -->
+        <!-- Static title label (default) -->
         <Label
+            x:Name="TitleLabel"
             Text="{Binding Title, Source={x:Reference Root}}"
             HorizontalOptions="Center"
             VerticalOptions="Center"
             FontFamily="CinzelDecorative"
-            FontSize="20"
+            FontSize="24"
             CharacterSpacing="2"
             TextColor="{StaticResource DMTextPrimary}" />
+
+        <!-- Inline editor (shown when IsEditable=True) -->
+        <controls:DmInlineEditor
+            x:Name="TitleEditor"
+            IsVisible="False"
+            HorizontalOptions="Fill"
+            VerticalOptions="Center"
+            Margin="24,0"
+            FontFamily="CinzelDecorative"
+            FontSize="24"
+            TextHorizontalAlignment="Center"
+            AcceptsReturn="False"
+            TextCommitted="OnTitleCommitted" />
 
     </Grid>
 </ContentView>

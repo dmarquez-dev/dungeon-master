@@ -5,16 +5,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace DungeonMaster.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-///		EF Core entity type configuration for <see cref="Dungeon"/>.
-///		Defines table mapping, key, and column constraints.
+///		Configures the EF Core entity mapping for <see cref="Dungeon"/>.
 /// </summary>
-public sealed class DungeonConfiguration : IEntityTypeConfiguration<Dungeon>
+public sealed class DungeonConfiguration
+	: IEntityTypeConfiguration<Dungeon>
 {
 	/// <summary>
-	///		Configures the <see cref="Dungeon"/> entity schema.
+	///		Applies the column mappings, constraints, and relationships for the Dungeons table.
 	/// </summary>
 	/// <param name="builder">
-	///		The builder used to configure the entity type.
+	///		The builder used to configure the <see cref="Dungeon"/> entity type.
 	/// </param>
 	public void Configure(EntityTypeBuilder<Dungeon> builder)
 	{
@@ -43,5 +43,17 @@ public sealed class DungeonConfiguration : IEntityTypeConfiguration<Dungeon>
 		builder.Property(dungeon =>
 			dungeon.LastModified)
 			.IsRequired();
+
+		builder.HasMany(dungeon =>
+			dungeon.Floors)
+			.WithOne()
+			.HasForeignKey(floor =>
+				floor.DungeonId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.Navigation(dungeon =>
+			dungeon.Floors)
+			.HasField("_floors")
+			.UsePropertyAccessMode(PropertyAccessMode.Field);
 	}
 }

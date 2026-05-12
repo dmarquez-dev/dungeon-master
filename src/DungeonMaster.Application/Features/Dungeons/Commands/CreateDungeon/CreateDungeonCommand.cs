@@ -3,13 +3,13 @@ using DungeonMaster.Application.Common.Dispatch;
 namespace DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 
 /// <summary>
-///		Command that creates a new dungeon and returns the newly assigned identifier.
+///		Command that creates a new dungeon with the given name and optional description.
 /// </summary>
 /// <param name="Name">
-///		The display name of the dungeon.
+///		The display name for the new dungeon.
 /// </param>
 /// <param name="Description">
-///		An optional description of the dungeon.
+///		An optional short description of the dungeon.
 /// </param>
 public record CreateDungeonCommand(
 	string Name,

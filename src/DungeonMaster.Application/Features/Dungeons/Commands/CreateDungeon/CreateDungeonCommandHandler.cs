@@ -1,25 +1,18 @@
 using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Common.Results;
+using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Domain.Entities.Dungeon;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 
 /// <summary>
-///		Handles <see cref="CreateDungeonCommand"/> by constructing and persisting a new <see cref="Dungeon"/> entity.
+///		Handles the <see cref="CreateDungeonCommand"/> by creating and persisting a new dungeon aggregate.
 /// </summary>
 public sealed class CreateDungeonCommandHandler(
-	IDungeonRepository dungeonRepository)
+	IDungeonWriteRepository writeRepository)
 		: ICommandHandler<CreateDungeonCommand, Guid>
 {
-	/// <summary>
-	///		Creates a new dungeon from the command data, persists it, and returns its identifier.
-	/// </summary>
-	/// <param name="command">
-	///		The command carrying the dungeon name and optional description.
-	/// </param>
-	/// <param name="ct">
-	///		A token that may signal cancellation.
-	/// </param>
+	/// <inheritdoc/>
 	public async Task<Result<Guid>> HandleAsync(
 		CreateDungeonCommand command,
 		CancellationToken ct)
@@ -28,7 +21,7 @@ public sealed class CreateDungeonCommandHandler(
 			command.Name,
 			command.Description);
 
-		await dungeonRepository.AddAsync(
+		await writeRepository.AddAsync(
 			dungeon,
 			ct);
 

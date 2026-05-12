@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
+    xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
+    xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
+    x:Class="DungeonMaster.App.Views.DungeonDetailPage"
+    x:DataType="vm:DungeonDetailViewModel"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource DMBackground}">
+
+    <Grid RowDefinitions="Auto,*" Padding="16,12" RowSpacing="0">
+
+        <!-- Top bar -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+            <Button
+                Grid.Column="0"
+                Text="&#x2190; Back"
+                FontFamily="EBGaramondRegular"
+                FontSize="20"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource DMScrollGoldLight}"
+                Padding="0,4"
+                Clicked="OnBackClicked">
+                <Button.Behaviors>
+                    <behaviors:HandCursorBehavior />
+                </Button.Behaviors>
+            </Button>
+
+            <HorizontalStackLayout
+                Grid.Column="1"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Spacing="6">
+                <Label
+                    Text="&#xEA75;"
+                    FontFamily="RpgAwesome"
+                    FontSize="14"
+                    TextColor="{StaticResource DMTextMuted}"
+                    VerticalOptions="Center" />
+                <Label
+                    Text="DUNGEON EDITOR"
+                    FontFamily="CinzelRegular"
+                    FontSize="12"
+                    CharacterSpacing="1.5"
+                    TextColor="{StaticResource DMTextMuted}"
+                    VerticalOptions="Center" />
+            </HorizontalStackLayout>
+
+            <Grid Grid.Column="2">
+                <Button
+                    Text="&#xE97D;  Start Session"
+                    FontFamily="RpgAwesome"
+                    FontSize="17"
+                    BackgroundColor="{StaticResource DMConfirm}"
+                    TextColor="{StaticResource DMConfirmText}"
+                    CornerRadius="3"
+                    Padding="12,6"
+                    IsEnabled="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
+                    <Button.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Button.Behaviors>
+                    <Button.Triggers>
+                        <DataTrigger TargetType="Button"
+                            Binding="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}"
+                            Value="False">
+                            <Setter Property="Opacity" Value="0.35" />
+                        </DataTrigger>
+                    </Button.Triggers>
+                </Button>
+                <!-- Transparent overlay carries tooltip when button is disabled -->
+                <BoxView
+                    BackgroundColor="Transparent"
+                    IsVisible="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}, ConverterParameter=Invert}"
+                    ToolTipProperties.Text="Add at least one floor before starting a session"
+                    InputTransparent="False" />
+            </Grid>
+        </Grid>
+
+        <!-- 2-column layout -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="16">
+
+            <!-- LEFT COLUMN -->
+            <ScrollView Grid.Column="0">
+                <VerticalStackLayout Spacing="10" Padding="0,0,0,16">
+
+                    <!-- Editable flag banner (dungeon name) -->
+                    <controls:DmFlagBanner
+                        x:Name="TitleBanner"
+                        IsEditable="True"
+                        Title="{Binding Dungeon.Name}"
+                        TextCommitted="OnDungeonNameCommitted" />
+
+                    <!-- Description -->
+                    <controls:DmInlineEditor
+                        x:Name="DescriptionEditor"
+                        FontFamily="EBGaramondItalic"
+                        FontSize="20"
+                        Placeholder="Add a description..."
+                        TextCommitted="OnDescriptionCommitted" />
+
+                    <!-- Notes -->
+                    <controls:DmInlineEditor
+                        x:Name="NotesEditor"
+                        FontFamily="EBGaramondRegular"
+                        FontSize="17"
+                        Placeholder="DM notes..."
+                        TextCommitted="OnNotesCommitted" />
+
+                    <!-- Divider -->
+                    <controls:DmDivider />
+
+                    <!-- Map placeholder -->
+                    <Border
+                        BackgroundColor="{StaticResource DMBackground}"
+                        Stroke="{StaticResource DMCardBorderBrush}"
+                        StrokeShape="RoundRectangle 4"
+                        HeightRequest="220"
+                        Margin="0,4,0,0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnContentAreaTapped" />
+                        </Border.GestureRecognizers>
+                        <Grid>
+                            <GraphicsView x:Name="MapPlaceholderGraphics" />
+                            <VerticalStackLayout
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                Spacing="6">
+                                <Label
+                                    Text="&#xEAD4;"
+                                    FontFamily="RpgAwesome"
+                                    FontSize="38"
+                                    TextColor="{StaticResource DMTextMuted}"
+                                    HorizontalOptions="Center" />
+                                <Label
+                                    Text="Floor map — coming soon"
+                                    FontFamily="EBGaramondItalic"
+                                    FontSize="17"
+                                    TextColor="{StaticResource DMTextMuted}"
+                                    HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <!-- RIGHT SIDEBAR -->
+            <Grid Grid.Column="1" RowDefinitions="Auto,*" BackgroundColor="Transparent">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSidebarTapped" />
+                </Grid.GestureRecognizers>
+
+                <!-- Sidebar header -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                    <Label
+                        Grid.Column="0"
+                        Text="FLOORS"
+                        FontFamily="CinzelRegular"
+                        FontSize="17"
+                        CharacterSpacing="1"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Column="1"
+                        Text="+ Add Floor"
+                        FontFamily="EBGaramondRegular"
+                        FontSize="18"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        BackgroundColor="Transparent"
+                        Padding="4,2"
+                        Clicked="OnAddFloorClicked">
+                        <Button.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Button.Behaviors>
+                    </Button>
+                </Grid>
+
+                <!-- Floor list (built in code-behind) -->
+                <ScrollView Grid.Row="1">
+                    <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
+                </ScrollView>
+
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

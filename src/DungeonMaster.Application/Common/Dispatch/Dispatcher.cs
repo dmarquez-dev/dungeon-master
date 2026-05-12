@@ -4,8 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace DungeonMaster.Application.Common.Dispatch;
 
 /// <summary>
-///		Routes commands and queries to their registered handlers, composing registered <see cref="IPipelineBehavior{TCommand,TResult}"/> instances around command handlers.
-///		Handler and behavior instances are resolved from the DI container per dispatch call.
+///		Routes commands and queries to their registered handlers, passing commands through the behavior pipeline.
 /// </summary>
 public sealed class Dispatcher(
 	IServiceProvider serviceProvider)
@@ -63,6 +62,7 @@ public sealed class Dispatcher(
 				typeof(TResult));
 
 		dynamic handler = serviceProvider.GetRequiredService(handlerType);
+
 		return await (Task<TResult>)handler.HandleAsync(
 			(dynamic)query,
 			ct);

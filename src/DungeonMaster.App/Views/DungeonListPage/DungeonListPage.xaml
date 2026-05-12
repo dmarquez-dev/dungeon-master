@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -13,27 +13,22 @@
 
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,12" RowSpacing="10">
 
-        <!-- Banner -->
         <controls:DmFlagBanner Grid.Row="0" Title="Dungeons" />
 
-        <!-- Error -->
         <Label
             Grid.Row="1"
             Text="{Binding ErrorMessage}"
             FontFamily="EBGaramondRegular"
-            FontSize="16"
+            FontSize="18"
             TextColor="{StaticResource DMDestructive}"
             IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
-        <!-- Search bar -->
         <controls:DmSearchBar
             Grid.Row="2"
             SearchText="{Binding SearchText, Mode=TwoWay}" />
 
-        <!-- Section divider -->
         <controls:DmDivider Grid.Row="3" />
 
-        <!-- Dungeon list -->
         <Grid Grid.Row="4">
             <CollectionView
                 ItemsSource="{Binding FilteredDungeons}"
@@ -46,33 +41,88 @@
                         <controls:DmCard
                             Title="{Binding Name}"
                             Subtitle="{Binding Description}">
+                            <controls:DmCard.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnCardTapped" />
+                            </controls:DmCard.GestureRecognizers>
                             <controls:DmCard.TrailingContent>
-                                <Button
-                                    Text="&#xEA65;"
-                                    FontFamily="RpgAwesome"
-                                    FontSize="20"
-                                    BackgroundColor="Transparent"
-                                    TextColor="{StaticResource DMDestructive}"
-                                    CornerRadius="3"
-                                    Padding="8,4"
-                                    CommandParameter="{Binding Id}"
-                                    Clicked="OnDeleteClicked"
-                                    ToolTipProperties.Text="Delete dungeon">
-                                    <Button.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Button.Behaviors>
-                                </Button>
+                                <HorizontalStackLayout Spacing="4">
+
+                                    <!-- Edit / Plan button -->
+                                    <Button
+                                        Text="&#xEA75;"
+                                        FontFamily="RpgAwesome"
+                                        FontSize="20"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{StaticResource DMScrollGoldLight}"
+                                        CornerRadius="3"
+                                        Padding="8,4"
+                                        CommandParameter="{Binding Id}"
+                                        Clicked="OnEditClicked"
+                                        ToolTipProperties.Text="Edit dungeon">
+                                        <Button.Behaviors>
+                                            <behaviors:HandCursorBehavior />
+                                        </Button.Behaviors>
+                                    </Button>
+
+                                    <!-- Start Session button -->
+                                    <Grid>
+                                        <Button
+                                            Text="&#xE97D;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="20"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{StaticResource DMConfirm}"
+                                            CornerRadius="3"
+                                            Padding="8,4"
+                                            CommandParameter="{Binding Id}"
+                                            IsEnabled="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
+                                            <Button.Behaviors>
+                                                <behaviors:HandCursorBehavior />
+                                            </Button.Behaviors>
+                                            <Button.Triggers>
+                                                <DataTrigger TargetType="Button"
+                                                    Binding="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}}"
+                                                    Value="False">
+                                                    <Setter Property="Opacity" Value="0.35" />
+                                                </DataTrigger>
+                                            </Button.Triggers>
+                                        </Button>
+                                        <!-- Transparent overlay carries tooltip when button is disabled -->
+                                        <BoxView
+                                            BackgroundColor="Transparent"
+                                            IsVisible="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}, ConverterParameter=Invert}"
+                                            ToolTipProperties.Text="Add at least one floor before starting a session"
+                                            InputTransparent="False" />
+                                    </Grid>
+
+                                    <!-- Delete button -->
+                                    <Button
+                                        Text="&#xE916;"
+                                        FontFamily="RpgAwesome"
+                                        FontSize="20"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{StaticResource DMDestructive}"
+                                        CornerRadius="3"
+                                        Padding="8,4"
+                                        CommandParameter="{Binding Id}"
+                                        Clicked="OnDeleteClicked"
+                                        ToolTipProperties.Text="Delete dungeon">
+                                        <Button.Behaviors>
+                                            <behaviors:HandCursorBehavior />
+                                        </Button.Behaviors>
+                                    </Button>
+
+                                </HorizontalStackLayout>
                             </controls:DmCard.TrailingContent>
                         </controls:DmCard>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <!-- Floating action button -->
             <Button
                 x:Name="FabButton"
                 Text="+"
-                FontSize="24"
+                FontSize="26"
                 WidthRequest="52"
                 HeightRequest="52"
                 CornerRadius="26"

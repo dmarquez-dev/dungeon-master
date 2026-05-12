@@ -1,20 +1,21 @@
+using DungeonMaster.Domain.Entities.Floor;
+
 namespace DungeonMaster.Domain.Entities.Dungeon;
 
 /// <summary>
-///		Represents a dungeon in a D&D campaign.
-///		Serves as the root aggregate for dungeon management.
-///		Floors and rooms are added in future iterations.
+///		Represents a dungeon in the campaign world, containing floors and their areas.
 /// </summary>
 public sealed partial class Dungeon : Entity
 {
-	// Required by EF Core for entity hydration.
+	private readonly List<Floor.Floor> _floors = [];
+
 	private Dungeon() { }
 
 	/// <summary>
 	///		Initializes a new <see cref="Dungeon"/> with the given name and optional description.
 	/// </summary>
 	/// <param name="name">
-	///		The display name. Must not be null or whitespace.
+	///		The display name of the dungeon. Must not be null or whitespace.
 	/// </param>
 	/// <param name="description">
 	///		An optional description of the dungeon.
@@ -37,4 +38,15 @@ public sealed partial class Dungeon : Entity
 	///		Gets the optional description of the dungeon.
 	/// </summary>
 	public string? Description { get; private set; }
+
+	/// <summary>
+	///		Gets the optional notes associated with the dungeon.
+	/// </summary>
+	public string? Notes { get; private set; }
+
+	/// <summary>
+	///		Gets the read-only list of floors belonging to this dungeon.
+	/// </summary>
+	public IReadOnlyList<Floor.Floor> Floors =>
+		_floors.AsReadOnly();
 }
