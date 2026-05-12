@@ -1,14 +1,12 @@
 namespace DungeonMaster.Domain.Entities;
 
 /// <summary>
-///		Base class for all domain entities.
-///		Provides a stable unique identifier and audit timestamps.
-///		Subclasses must expose a private parameterless constructor for EF Core hydration.
+///		Base class for all domain entities, providing identity and audit timestamps.
 /// </summary>
 public abstract class Entity
 {
 	/// <summary>
-	///		Gets the unique identifier assigned at creation.
+	///		Gets the unique identifier for this entity.
 	/// </summary>
 	public Guid Id { get; private set; } = Guid.NewGuid();
 
@@ -18,12 +16,12 @@ public abstract class Entity
 	public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
 
 	/// <summary>
-	///		Gets the UTC timestamp of the most recent modification.
+	///		Gets the UTC timestamp when this entity was last modified.
 	/// </summary>
 	public DateTimeOffset LastModified { get; private set; } = DateTimeOffset.UtcNow;
 
 	/// <summary>
-	///		Updates <see cref="LastModified"/> to the current UTC time.
+	///		Updates the <see cref="LastModified"/> timestamp to the current UTC time.
 	/// </summary>
 	protected void Touch() =>
 		LastModified = DateTimeOffset.UtcNow;

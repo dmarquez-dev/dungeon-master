@@ -5,14 +5,14 @@ using FluentValidation;
 namespace DungeonMaster.Application.Common.Behaviors;
 
 /// <summary>
-///		A pipeline behavior that runs all registered <see cref="IValidator{T}"/> instances for the command before passing control to the handler.
-///		Returns a validation failure immediately if any rule fails — the handler is never invoked.
+///		Pipeline behavior that runs all registered validators for a command before passing it to the handler.
+///		Returns a validation failure result if any validator reports errors.
 /// </summary>
 /// <typeparam name="TCommand">
-///		The command type.
+///		The command type being validated.
 /// </typeparam>
 /// <typeparam name="TResult">
-///		The result type.
+///		The type of the value returned by the command on success.
 /// </typeparam>
 public sealed class ValidationBehavior<TCommand, TResult>(
 	IEnumerable<IValidator<TCommand>> validators)

@@ -62,43 +62,50 @@ public static class MauiProgram
 
 		// Strip WinUI native border/focus chrome from all Entry and Editor controls
 		// so our themed Border wrappers render cleanly without the platform's purple focus ring
-		Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("DmNativeStyle", (handler, _) =>
-		{
-#if WINDOWS
-			if (handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox tb)
+		Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping(
+			"DmNativeStyle",
+			(handler, _) =>
 			{
-				tb.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-				tb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-			}
-#endif
-		});
-
-		Microsoft.Maui.Handlers.EditorHandler.Mapper.AppendToMapping("DmNativeStyle", (handler, _) =>
-		{
 #if WINDOWS
-			if (handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox tb)
-			{
-				tb.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-				tb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-				tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-			}
+				if (handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox tb)
+				{
+					tb.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+					tb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+				}
 #endif
-		});
+			});
 
-		var dbPath = Path.Combine(
-			FileSystem.AppDataDirectory,
-			"dungeon-master.db");
+		Microsoft.Maui.Handlers.EditorHandler.Mapper.AppendToMapping(
+			"DmNativeStyle",
+			(handler, _) =>
+			{
+#if WINDOWS
+				if (handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox tb)
+				{
+					tb.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+					tb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+				}
+#endif
+			});
+
+		var dbFolder = Path.Combine(
+			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			"DungeonMaster");
+		Directory.CreateDirectory(dbFolder);
+
+		var dbPath = Path.Combine(dbFolder, "dungeon-master.db");
 		var connectionString = $"Data Source={dbPath}";
 
 		builder.Services.AddApplicationServices();
@@ -108,6 +115,8 @@ public static class MauiProgram
 		builder.Services.AddTransient<DungeonListPage>();
 		builder.Services.AddTransient<CreateDungeonViewModel>();
 		builder.Services.AddTransient<CreateDungeonPopup>();
+		builder.Services.AddTransient<DungeonDetailViewModel>();
+		builder.Services.AddTransient<DungeonDetailPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();
@@ -115,11 +124,7 @@ public static class MauiProgram
 
 		var app = builder.Build();
 
-		using (var scope = app.Services.CreateScope())
-		{
-			var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-			db.Database.EnsureCreated();
-		}
+		app.Services.MigrateDatabase();
 
 		return app;
 	}

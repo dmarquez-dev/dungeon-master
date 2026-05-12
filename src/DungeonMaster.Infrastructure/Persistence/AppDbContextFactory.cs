@@ -4,19 +4,19 @@ using Microsoft.EntityFrameworkCore.Design;
 namespace DungeonMaster.Infrastructure.Persistence;
 
 /// <summary>
-///		Design-time factory for <see cref="AppDbContext"/>.
-///		Used exclusively by <c>dotnet ef</c> tooling to create migrations and update the database.
+///		Creates <see cref="AppDbContext"/> instances at design time for EF Core tooling such as migrations.
 /// </summary>
-public sealed class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+public sealed class AppDbContextFactory
+	: IDesignTimeDbContextFactory<AppDbContext>
 {
 	/// <summary>
-	///		Creates a new <see cref="AppDbContext"/> pointed at <c>dungeon-master.db</c> in the current directory.
+	///		Creates a new <see cref="AppDbContext"/> configured with a local SQLite database for design-time operations.
 	/// </summary>
 	/// <param name="args">
-	///		Arguments passed by the EF Core tooling; not used.
+	///		Command-line arguments passed by the EF Core tooling. Not used.
 	/// </param>
 	/// <returns>
-	///		A configured <see cref="AppDbContext"/> instance.
+	///		A fully configured <see cref="AppDbContext"/> instance.
 	/// </returns>
 	public AppDbContext CreateDbContext(string[] args)
 	{

@@ -5,5 +5,11 @@ namespace DungeonMaster.App.Controls;
 /// </summary>
 public partial class DmDivider : ContentView
 {
-    public DmDivider() => InitializeComponent();
+	/// <summary>
+	///		Initializes a new instance of <see cref="DmDivider"/> and loads the XAML component tree.
+	/// </summary>
+	public DmDivider()
+	{
+		InitializeComponent();
+	}
 }

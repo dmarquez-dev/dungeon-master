@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <toolkit:Popup
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -19,7 +19,7 @@
                 <Label
                     x:Name="MessageLabel"
                     FontFamily="EBGaramondRegular"
-                    FontSize="16"
+                    FontSize="18"
                     TextColor="{StaticResource DMInk}"
                     LineBreakMode="WordWrap" />
 
@@ -28,7 +28,7 @@
                         x:Name="CancelButton"
                         Grid.Column="0"
                         FontFamily="CinzelRegular"
-                        FontSize="13"
+                        FontSize="15"
                         CharacterSpacing="1"
                         BackgroundColor="{StaticResource DMNeutralSurface}"
                         TextColor="{StaticResource DMInk}"
@@ -44,7 +44,7 @@
                         x:Name="ConfirmButton"
                         Grid.Column="1"
                         FontFamily="CinzelRegular"
-                        FontSize="13"
+                        FontSize="15"
                         CharacterSpacing="1"
                         CornerRadius="3"
                         Clicked="OnConfirm">

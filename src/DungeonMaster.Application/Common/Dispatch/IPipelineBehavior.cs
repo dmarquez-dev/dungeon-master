@@ -3,30 +3,32 @@ using DungeonMaster.Application.Common.Results;
 namespace DungeonMaster.Application.Common.Dispatch;
 
 /// <summary>
-///		Defines a behavior that wraps command dispatch with cross-cutting logic such as validation or logging.
-///		Behaviors are composed in registration order.
+///		Defines a pipeline stage that wraps command handling with cross-cutting behavior.
 /// </summary>
 /// <typeparam name="TCommand">
-///		The command type.
+///		The command type this behavior applies to.
 /// </typeparam>
 /// <typeparam name="TResult">
-///		The result type.
+///		The type of the value returned by the command on success.
 /// </typeparam>
 public interface IPipelineBehavior<in TCommand, TResult>
 	where TCommand : ICommand<TResult>
 {
 	/// <summary>
-	///		Executes cross-cutting logic and delegates to <paramref name="next"/> to continue the pipeline.
+	///		Executes the behavior and invokes the next stage in the pipeline.
 	/// </summary>
 	/// <param name="command">
-	///		The command being dispatched.
+	///		The command being processed.
 	/// </param>
 	/// <param name="next">
-	///		A delegate that invokes the next step in the pipeline.
+	///		A delegate that invokes the next stage in the pipeline.
 	/// </param>
 	/// <param name="ct">
-	///		A token that may signal cancellation.
+	///		Token used to cancel the operation.
 	/// </param>
+	/// <returns>
+	///		A <see cref="Result{TResult}"/> representing the outcome of the pipeline execution.
+	/// </returns>
 	Task<Result<TResult>> HandleAsync(
 		TCommand command,
 		Func<Task<Result<TResult>>> next,

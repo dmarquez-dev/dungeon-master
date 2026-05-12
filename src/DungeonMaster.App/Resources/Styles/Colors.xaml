@@ -85,12 +85,8 @@
     <Color x:Key="DMNeutralBorder">#5A3010</Color>
 
     <!-- Brushes -->
-    <SolidColorBrush x:Key="DMBackgroundBrush" Color="{StaticResource DMBackground}" />
     <SolidColorBrush x:Key="DMGoldBrush" Color="{StaticResource DMGold}" />
-    <SolidColorBrush x:Key="DMCardSurfaceBrush" Color="{StaticResource DMCardSurface}" />
-    <SolidColorBrush x:Key="DMCardSurfaceHoverBrush" Color="{StaticResource DMCardSurfaceHover}" />
     <SolidColorBrush x:Key="DMCardBorderBrush" Color="{StaticResource DMCardBorder}" />
     <SolidColorBrush x:Key="DMCardBorderHoverBrush" Color="{StaticResource DMCardBorderHover}" />
     <SolidColorBrush x:Key="DMScrollBorderBrush" Color="{StaticResource DMScrollBorder}" />
-    <SolidColorBrush x:Key="DMNeutralBorderBrush" Color="{StaticResource DMNeutralBorder}" />
 </ResourceDictionary>

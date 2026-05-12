@@ -1,10 +1,11 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <toolkit:Popup
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
+    xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
     x:Class="DungeonMaster.App.Views.CreateDungeonPopup"
     x:TypeArguments="x:Boolean"
     BackgroundColor="Transparent"
@@ -20,7 +21,7 @@
                 <Label
                     Text="{Binding ErrorMessage}"
                     FontFamily="EBGaramondRegular"
-                    FontSize="14"
+                    FontSize="16"
                     TextColor="{StaticResource DMDestructive}"
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
@@ -29,7 +30,7 @@
                     <Label
                         Text="NAME *"
                         FontFamily="CinzelRegular"
-                        FontSize="13"
+                        FontSize="15"
                         CharacterSpacing="1.5"
                         TextColor="{StaticResource DMInkMuted}" />
                     <Border
@@ -41,7 +42,7 @@
                         <Entry
                             Text="{Binding Name, Mode=TwoWay}"
                             FontFamily="EBGaramondRegular"
-                            FontSize="16"
+                            FontSize="18"
                             TextColor="{StaticResource DMInk}"
                             BackgroundColor="Transparent"
                             PlaceholderColor="{StaticResource DMInkMuted}"
@@ -54,7 +55,7 @@
                     <Label
                         Text="DESCRIPTION"
                         FontFamily="CinzelRegular"
-                        FontSize="13"
+                        FontSize="15"
                         CharacterSpacing="1.5"
                         TextColor="{StaticResource DMInkMuted}" />
                     <Border
@@ -66,7 +67,7 @@
                         <Editor
                             Text="{Binding Description, Mode=TwoWay}"
                             FontFamily="EBGaramondItalic"
-                            FontSize="16"
+                            FontSize="18"
                             TextColor="{StaticResource DMInk}"
                             BackgroundColor="Transparent"
                             PlaceholderColor="{StaticResource DMInkMuted}"
@@ -83,7 +84,7 @@
                         Text="CANCEL"
                         Command="{Binding CancelCommand}"
                         FontFamily="CinzelRegular"
-                        FontSize="13"
+                        FontSize="15"
                         CharacterSpacing="1"
                         BackgroundColor="{StaticResource DMNeutralSurface}"
                         TextColor="{StaticResource DMInk}"
@@ -100,10 +101,8 @@
                         Style="{StaticResource DmConfirmButton}"
                         Command="{Binding CreateCommand}"
                         FontFamily="CinzelRegular"
-                        FontSize="13"
+                        FontSize="15"
                         CharacterSpacing="1"
-                        BackgroundColor="{StaticResource DMConfirm}"
-                        TextColor="{StaticResource DMConfirmText}"
                         CornerRadius="3">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />

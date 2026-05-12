@@ -1,27 +1,27 @@
 namespace DungeonMaster.Application.Common.Results;
 
 /// <summary>
-///		Categorizes the kind of failure a <see cref="Result{T}"/> represents.
+///		Categorizes the type of error returned by an operation.
 /// </summary>
 public enum ErrorCategory
 {
 	/// <summary>
-	///		The request contained invalid or missing data.
+	///		The request failed because one or more inputs did not pass validation.
 	/// </summary>
 	Validation,
 
 	/// <summary>
-	///		The requested resource was not found.
+	///		The requested resource could not be found.
 	/// </summary>
 	NotFound,
 
 	/// <summary>
-	///		The operation conflicts with existing state.
+	///		The operation could not be completed because of a conflict with existing data.
 	/// </summary>
 	Conflict,
 
 	/// <summary>
-	///		The caller does not have permission to perform the operation.
+	///		The caller is not authenticated and cannot perform this operation.
 	/// </summary>
 	Unauthorized,
 }

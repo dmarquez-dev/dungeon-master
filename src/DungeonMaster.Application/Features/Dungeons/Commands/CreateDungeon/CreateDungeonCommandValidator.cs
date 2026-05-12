@@ -3,13 +3,13 @@ using FluentValidation;
 namespace DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 
 /// <summary>
-///		Validates <see cref="CreateDungeonCommand"/> before it reaches the handler.
+///		Validates a <see cref="CreateDungeonCommand"/> before it is handled.
 /// </summary>
 public sealed class CreateDungeonCommandValidator
 	: AbstractValidator<CreateDungeonCommand>
 {
 	/// <summary>
-	///		Initializes a new instance and registers all validation rules.
+	///		Initializes a new instance of <see cref="CreateDungeonCommandValidator"/> with rules for all command fields.
 	/// </summary>
 	public CreateDungeonCommandValidator()
 	{
