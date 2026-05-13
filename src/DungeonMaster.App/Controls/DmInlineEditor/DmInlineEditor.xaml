@@ -6,7 +6,7 @@
     x:Class="DungeonMaster.App.Controls.DmInlineEditor"
     x:Name="Root">
 
-    <!-- FocusBorder lights up gold when the editor is active.
+    <!-- FocusBorder: subtle gold border on hover, full gold glow on focus.
          No BackgroundColor set — a null WinUI background is not hit-testable,
          preventing phantom click capture over the layout area. -->
     <Border
@@ -15,6 +15,11 @@
         StrokeShape="RoundRectangle 3"
         StrokeThickness="1"
         Padding="2,1">
+        <Border.GestureRecognizers>
+            <PointerGestureRecognizer
+                PointerEntered="OnPointerEntered"
+                PointerExited="OnPointerExited" />
+        </Border.GestureRecognizers>
 
         <Grid>
             <Label
@@ -33,12 +38,14 @@
 
             <!--
                 Entry: used when AcceptsReturn=False (names, titles — single-line).
-                Entry aligns with Label out of the box; Completed fires on Enter (no \r hack).
-                IsVisible=False removes it from the tab/focus cycle when inactive.
+                Opacity/InputTransparent/IsTabStop control visibility so the control always
+                participates in layout measurement, keeping the Border height stable between
+                hover (label shown) and focus (entry shown) states.
             -->
             <Entry
                 x:Name="EditEntry"
-                IsVisible="False"
+                Opacity="0"
+                InputTransparent="True"
                 VerticalOptions="Center"
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"
@@ -51,11 +58,12 @@
 
             <!--
                 Editor: used when AcceptsReturn=True (description, notes — multi-line).
-                IsVisible=False removes it from the tab/focus cycle when inactive.
+                Same opacity-based visibility as Entry above.
             -->
             <Editor
                 x:Name="EditEditor"
-                IsVisible="False"
+                Opacity="0"
+                InputTransparent="True"
                 AutoSize="TextChanges"
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"

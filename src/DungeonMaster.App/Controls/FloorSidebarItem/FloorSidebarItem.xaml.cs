@@ -1,4 +1,5 @@
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
 
@@ -8,12 +9,12 @@ namespace DungeonMaster.App.Controls;
 /// </summary>
 public partial class FloorSidebarItem : ContentView
 {
-	private static readonly Color _surfaceNormal = Color.FromArgb("#2E8B5E1A"); // DMCardSurface
-	private static readonly Color _surfaceHover  = Color.FromArgb("#528B5E1A"); // DMCardSurfaceHover
-	private static readonly Color _surfaceActive  = Color.FromArgb("#6A8B5E1A"); // slightly more opaque for expanded state
+	private static readonly Color _surfaceNormal = DmColors.FloorSurfaceNormal;
+	private static readonly Color _surfaceHover  = DmColors.FloorSurfaceHover;
+	private static readonly Color _surfaceActive  = DmColors.FloorSurfaceActive;
 
-	private static readonly SolidColorBrush _borderNormal = new(Color.FromArgb("#4DC4862A")); // DMCardBorder
-	private static readonly SolidColorBrush _borderActive = new(Color.FromArgb("#A6C4862A")); // DMCardBorderHover
+	private static readonly SolidColorBrush _borderNormal = DmColors.FloorBorderNormal;
+	private static readonly SolidColorBrush _borderActive = DmColors.FloorBorderActive;
 
 	/// <summary>
 	///		Identifies the <see cref="Floor"/> bindable property.
@@ -63,24 +64,29 @@ public partial class FloorSidebarItem : ContentView
 	public event EventHandler<FloorDto>? DeleteRequested;
 
 	/// <summary>
-	///		Raised when the user commits a new name for this floor.
-	/// </summary>
-	public event EventHandler<string?>? NameCommitted;
-
-	/// <summary>
 	///		Raised when the user requests a new area to be added to this floor.
 	/// </summary>
 	public event EventHandler? AddAreaRequested;
 
 	/// <summary>
-	///		Raised when the user commits a new name for an area on this floor.
-	/// </summary>
-	public event EventHandler<(AreaDto Area, string Name)>? AreaNameCommitted;
-
-	/// <summary>
 	///		Raised when the user requests deletion of an area on this floor.
 	/// </summary>
 	public event EventHandler<AreaDto>? AreaDeleteRequested;
+
+	/// <summary>
+	///		Raised when the user taps an area item to enter area edit context.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaSelectRequested;
+
+	/// <summary>
+	///     Raised when the pointer enters an area item in this floor.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaHoverStarted;
+
+	/// <summary>
+	///     Raised when the pointer exits an area item in this floor.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaHoverEnded;
 
 	private bool _isExpanded;
 	private bool _suppressCardTap;
@@ -95,13 +101,11 @@ public partial class FloorSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		Initializes a new instance of <see cref="FloorSidebarItem"/>, loads the XAML component tree,
-	///		and subscribes to the floor name editor's label-tapped event.
+	///		Initializes a new instance of <see cref="FloorSidebarItem"/> and loads the XAML component tree.
 	/// </summary>
 	public FloorSidebarItem()
 	{
 		InitializeComponent();
-		FloorNameEditor.LabelTapped += OnFloorNameEditorLabelTapped;
 	}
 
 	private void Populate(FloorDto? floor)
@@ -112,8 +116,7 @@ public partial class FloorSidebarItem : ContentView
 		}
 
 		FloorNumberLabel.Text = $"Floor {floor.Number} -";
-		FloorNameEditor.Text = floor.Name ?? string.Empty;
-		FloorNameEditor.Placeholder = "name";
+		FloorNameLabel.Text = floor.Name ?? string.Empty;
 
 		RebuildAreas(floor);
 	}
@@ -127,15 +130,17 @@ public partial class FloorSidebarItem : ContentView
 			var item = new AreaSidebarItem { Area = area };
 			item.DeleteRequested += (_, deletedArea) =>
 				AreaDeleteRequested?.Invoke(this, deletedArea);
-			item.NameCommitted += (_, name) =>
-				AreaNameCommitted?.Invoke(this, (area, name));
+			item.SelectRequested += (_, selectedArea) =>
+				AreaSelectRequested?.Invoke(this, selectedArea);
+			item.HoverStarted += (_, hoveredArea) => AreaHoverStarted?.Invoke(this, hoveredArea);
+			item.HoverEnded += (_, hoveredArea) => AreaHoverEnded?.Invoke(this, hoveredArea);
 			AreaContainer.Children.Add(item);
 		}
 	}
 
 	/// <summary>
-	///		Auto-expands this item and focuses the floor name editor.
-	///		Called after a new floor is added to the list.
+	///		Auto-expands this item and fires <see cref="SelectRequested"/>.
+	///		Called after a new floor is added; the toolbar name editor is focused by the page.
 	/// </summary>
 	public void FocusNameEditor()
 	{
@@ -145,7 +150,27 @@ public partial class FloorSidebarItem : ContentView
 		}
 
 		SelectRequested?.Invoke(this, EventArgs.Empty);
-		FloorNameEditor.ActivateEditor();
+	}
+
+	/// <summary>
+	///		Updates the floor name label text in place without a full rebuild.
+	/// </summary>
+	public void UpdateFloorName(string name) =>
+		FloorNameLabel.Text = name;
+
+	/// <summary>
+	///		Updates the area name label for the matching child area item.
+	/// </summary>
+	public void UpdateAreaName(Guid areaId, string name)
+	{
+		foreach (var child in AreaContainer.Children)
+		{
+			if (child is AreaSidebarItem item && item.Area?.Id == areaId)
+			{
+				item.UpdateAreaName(name);
+				return;
+			}
+		}
 	}
 
 	/// <summary>
@@ -162,17 +187,21 @@ public partial class FloorSidebarItem : ContentView
 		SetExpanded(true);
 
 	/// <summary>
-	///		Commits any in-progress edits in the floor name editor and all child area editors.
+	///		No-op — floor and area name editing moved to the map toolbar.
 	/// </summary>
-	public void TryCommitActiveEditor()
-	{
-		FloorNameEditor.TryCommit();
+	public void TryCommitActiveEditor() { }
 
+	/// <summary>
+	///		Sets the editing visual state for a child area item by ID.
+	/// </summary>
+	public void SetAreaEditing(Guid areaId, bool editing)
+	{
 		foreach (var child in AreaContainer.Children)
 		{
-			if (child is AreaSidebarItem area)
+			if (child is AreaSidebarItem item && item.Area?.Id == areaId)
 			{
-				area.TryCommitActiveEditor();
+				item.SetEditing(editing);
+				return;
 			}
 		}
 	}
@@ -208,15 +237,6 @@ public partial class FloorSidebarItem : ContentView
 	private void OnDragHandleTapped(object? sender, TappedEventArgs e) =>
 		_suppressCardTap = true;
 
-	private void OnFloorNameEditorLabelTapped(object? sender, EventArgs e)
-	{
-		if (!_isExpanded)
-		{
-			SetExpanded(true);
-			SelectRequested?.Invoke(this, EventArgs.Empty);
-		}
-	}
-
 	private void OnPointerEntered(object? sender, PointerEventArgs e)
 	{
 		if (!_isExpanded)
@@ -248,9 +268,6 @@ public partial class FloorSidebarItem : ContentView
 			DeleteRequested?.Invoke(this, Floor);
 		}
 	}
-
-	private void OnFloorNameCommitted(object? sender, string? name) =>
-		NameCommitted?.Invoke(this, name);
 
 	private void OnAddAreaClicked(object? sender, EventArgs e) =>
 		AddAreaRequested?.Invoke(this, EventArgs.Empty);

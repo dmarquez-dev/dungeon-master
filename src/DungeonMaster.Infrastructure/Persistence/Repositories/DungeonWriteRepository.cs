@@ -30,7 +30,14 @@ public sealed class DungeonWriteRepository(
 
 	/// <inheritdoc/>
 	public async Task UpdateAsync(Dungeon dungeon, CancellationToken ct)
-		=> await dbContext.SaveChangesAsync(ct);
+	{
+		if (dbContext.Entry(dungeon).State is EntityState.Detached)
+		{
+			dbContext.Attach(dungeon);
+		}
+
+		await dbContext.SaveChangesAsync(ct);
+	}
 
 	/// <inheritdoc/>
 	public async Task DeleteAsync(Guid id, CancellationToken ct)

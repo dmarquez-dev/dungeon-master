@@ -21,14 +21,17 @@ public class UpdateDungeonCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithExistingDungeon_UpdatesAndReturnsSuccess()
     {
+        // Arrange
         var dungeon = new Dungeon("Old Name", "Old Desc");
         _writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
         _writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         var command = new UpdateDungeonCommand(dungeon.Id, "New Name", "New Desc", "My Notes");
 
+        // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         dungeon.Name.Should().Be("New Name");
         dungeon.Notes.Should().Be("My Notes");
@@ -38,11 +41,14 @@ public class UpdateDungeonCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithNonExistentId_ReturnsNotFoundFailure()
     {
+        // Arrange
         _writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
 
+        // Act
         var result = await _handler.HandleAsync(
             new UpdateDungeonCommand(Guid.NewGuid(), "Name", null, null), CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
     }

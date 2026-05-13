@@ -15,6 +15,7 @@ public sealed class DungeonReadRepository(
 	/// <inheritdoc/>
 	public async Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken ct)
 		=> await dbContext.Dungeons
+			.AsNoTracking()
 			.Select(dungeon =>
 				new DungeonSummaryDto(
 					dungeon.Id,
@@ -28,6 +29,7 @@ public sealed class DungeonReadRepository(
 	/// <inheritdoc/>
 	public async Task<DungeonDetailDto?> GetDetailAsync(Guid id, CancellationToken ct)
 		=> await dbContext.Dungeons
+			.AsNoTracking()
 			.Where(dungeon =>
 				dungeon.Id == id)
 			.Select(dungeon =>
@@ -54,7 +56,9 @@ public sealed class DungeonReadRepository(
 											area.Id,
 											area.Name,
 											area.Description,
-											area.Notes))
+											area.Notes,
+											area.Origin,
+											area.Outline))
 									.ToList()))
 						.ToList()))
 			.FirstOrDefaultAsync(ct);

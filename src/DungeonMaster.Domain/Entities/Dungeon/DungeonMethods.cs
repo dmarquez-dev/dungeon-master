@@ -1,5 +1,6 @@
 using DungeonMaster.Domain.Entities.Area;
 using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.ValueObjects;
 
 namespace DungeonMaster.Domain.Entities.Dungeon;
 
@@ -23,9 +24,11 @@ public sealed partial class Dungeon
 		string? notes)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
 		Name = name;
 		Description = description;
 		Notes = notes;
+
 		Touch();
 	}
 
@@ -47,6 +50,7 @@ public sealed partial class Dungeon
 
 		_floors.Add(floor);
 		Touch();
+
 		return floor;
 	}
 
@@ -58,7 +62,8 @@ public sealed partial class Dungeon
 	/// </param>
 	public void RemoveFloor(Guid floorId)
 	{
-		var floor = _floors.FirstOrDefault(floor => floor.Id == floorId);
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
 
 		if (floor is null)
 		{
@@ -68,7 +73,8 @@ public sealed partial class Dungeon
 		_floors.Remove(floor);
 
 		var sorted = _floors
-			.OrderBy(floor => floor.Number)
+			.OrderBy(floor =>
+				floor.Number)
 			.ToList();
 
 		for (var i = 0; i < sorted.Count; i++)
@@ -92,7 +98,8 @@ public sealed partial class Dungeon
 		Guid floorId,
 		int newNumber)
 	{
-		var floor = _floors.FirstOrDefault(floor => floor.Id == floorId);
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
 
 		if (floor is null)
 		{
@@ -113,14 +120,16 @@ public sealed partial class Dungeon
 
 		if (newNumber < oldNumber)
 		{
-			foreach (var shifted in _floors.Where(floor => floor.Number >= newNumber && floor.Number < oldNumber))
+			foreach (var shifted in _floors.Where(floor =>
+				floor.Number >= newNumber && floor.Number < oldNumber))
 			{
 				shifted.UpdateNumber(shifted.Number + 1);
 			}
 		}
 		else
 		{
-			foreach (var shifted in _floors.Where(floor => floor.Number > oldNumber && floor.Number <= newNumber))
+			foreach (var shifted in _floors.Where(floor =>
+				floor.Number > oldNumber && floor.Number <= newNumber))
 			{
 				shifted.UpdateNumber(shifted.Number - 1);
 			}
@@ -147,8 +156,15 @@ public sealed partial class Dungeon
 		string? name,
 		string? notes)
 	{
-		var floor = _floors.FirstOrDefault(floor => floor.Id == floorId);
-		floor?.UpdateDetails(name, notes);
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return;
+		}
+
+		floor.UpdateDetails(name, notes);
 		Touch();
 	}
 
@@ -175,11 +191,13 @@ public sealed partial class Dungeon
 		string name,
 		string? description)
 	{
-		var floor = _floors.FirstOrDefault(floor => floor.Id == floorId)
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId)
 			?? throw new InvalidOperationException($"Floor {floorId} not found.");
 
 		var area = floor.AddArea(name, description);
 		Touch();
+
 		return area;
 	}
 
@@ -196,8 +214,15 @@ public sealed partial class Dungeon
 		Guid floorId,
 		Guid areaId)
 	{
-		var floor = _floors.FirstOrDefault(floor => floor.Id == floorId);
-		floor?.RemoveArea(areaId);
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return;
+		}
+
+		floor.RemoveArea(areaId);
 		Touch();
 	}
 
@@ -226,14 +251,57 @@ public sealed partial class Dungeon
 		string? description,
 		string? notes)
 	{
-		var floor = _floors.FirstOrDefault(floor => floor.Id == floorId);
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
 
-		floor?.UpdateArea(
+		if (floor is null)
+		{
+			return;
+		}
+
+		floor.UpdateArea(
 			areaId,
 			name,
 			description,
 			notes);
 
+		Touch();
+	}
+
+	/// <summary>
+	///		Updates the tile-grid origin and outline path of the specified area on the given floor.
+	///		Has no effect if the floor or area identifier is not found.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor that owns the area.
+	/// </param>
+	/// <param name="areaId">
+	///		The unique identifier of the area to update.
+	/// </param>
+	/// <param name="origin">
+	///		The new tile-grid origin point for the area.
+	/// </param>
+	/// <param name="outline">
+	///		The new ordered list of path segments that form the closed outline polygon.
+	/// </param>
+	public void UpdateAreaOutline(
+		Guid floorId,
+		Guid areaId,
+		TilePoint origin,
+		IReadOnlyList<PathSegment> outline)
+	{
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return;
+		}
+
+		floor.UpdateAreaOutline(
+			areaId,
+			origin,
+			outline);
 		Touch();
 	}
 }

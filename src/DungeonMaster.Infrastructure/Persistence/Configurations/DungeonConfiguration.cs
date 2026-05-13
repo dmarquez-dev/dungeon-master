@@ -37,6 +37,10 @@ public sealed class DungeonConfiguration
 			.HasMaxLength(2000);
 
 		builder.Property(dungeon =>
+			dungeon.Notes)
+			.HasMaxLength(4000);
+
+		builder.Property(dungeon =>
 			dungeon.CreatedAt)
 			.IsRequired();
 
