@@ -50,10 +50,22 @@ public partial class DungeonDetailPage : ContentPage
 	private Guid? _draggingAreaId;
 	private TilePoint? _moveGrabTile;
 
+	// Pan tool anchor (screen space)
+	private PointF? _panAnchorScreen;
+
+	// Keyboard guard — suppresses tool shortcuts while a text field is focused.
+	// Value is read only inside #if WINDOWS; the pragma suppresses the CS0414 on other targets.
+#pragma warning disable CS0414
+	private bool _isTextInputFocused;
+#pragma warning restore CS0414
+
 #if WINDOWS
 	[System.Runtime.InteropServices.DllImport("user32.dll")]
 	private static extern short GetAsyncKeyState(int vKey);
 #endif
+
+	private const float ZoomStep = 0.1f;
+	private const float ZoomSnapThreshold = 0.05f;
 
 	private bool HasPendingChanges =>
 		_pendingMoveOffsets.Count > 0
@@ -74,15 +86,150 @@ public partial class DungeonDetailPage : ContentPage
 
 		viewModel.PropertyChanged += OnViewModelPropertyChanged;
 		viewModel.Floors.CollectionChanged += OnFloorsChanged;
+
+		// Suppress keyboard shortcuts while any inline editor is focused
+		DescriptionEditor.Focused += (_, _) => _isTextInputFocused = true;
+		DescriptionEditor.Unfocused += (_, _) => _isTextInputFocused = false;
+		NotesEditor.Focused += (_, _) => _isTextInputFocused = true;
+		NotesEditor.Unfocused += (_, _) => _isTextInputFocused = false;
+		FloorNameToolbarEditor.Focused += (_, _) => _isTextInputFocused = true;
+		FloorNameToolbarEditor.Unfocused += (_, _) => _isTextInputFocused = false;
+		AreaNameToolbarEditor.Focused += (_, _) => _isTextInputFocused = true;
+		AreaNameToolbarEditor.Unfocused += (_, _) => _isTextInputFocused = false;
+	}
+
+	/// <inheritdoc/>
+	protected override void OnAppearing()
+	{
+		base.OnAppearing();
+		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
+		AttachKeyDown();
 	}
 
 	/// <inheritdoc/>
 	protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
 	{
 		base.OnNavigatedFrom(args);
+		DetachKeyDown();
+		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
+		DetachScrollZoom();
 		_viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 		_viewModel.Floors.CollectionChanged -= OnFloorsChanged;
 	}
+
+	// ─── Keyboard shortcuts ─────────────────────────────────────────────────────
+
+	private void AttachKeyDown()
+	{
+#if WINDOWS
+		if (Window?.Handler?.PlatformView is Microsoft.UI.Xaml.Window winUiWindow)
+		{
+			winUiWindow.Content.KeyDown += OnWindowKeyDown;
+		}
+#endif
+	}
+
+	private void DetachKeyDown()
+	{
+#if WINDOWS
+		if (Window?.Handler?.PlatformView is Microsoft.UI.Xaml.Window winUiWindow)
+		{
+			winUiWindow.Content.KeyDown -= OnWindowKeyDown;
+		}
+#endif
+	}
+
+#if WINDOWS
+	private void OnWindowKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+	{
+		if (_isTextInputFocused)
+		{
+			return;
+		}
+
+		switch (e.Key)
+		{
+			case Windows.System.VirtualKey.D:
+				SetActiveTool(MapTool.Draw);
+				break;
+			case Windows.System.VirtualKey.M:
+				SetActiveTool(MapTool.Move);
+				break;
+			case Windows.System.VirtualKey.H:
+				SetActiveTool(MapTool.Pan);
+				break;
+			case Windows.System.VirtualKey.P:
+				SetActiveTool(MapTool.Place);
+				break;
+		}
+
+		if (e.Key == Windows.System.VirtualKey.Number0)
+		{
+			var ctrlState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(
+				Windows.System.VirtualKey.Control);
+			if (ctrlState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down))
+			{
+				ResetViewport();
+			}
+		}
+	}
+#endif
+
+	// ─── Zoom controls ──────────────────────────────────────────────────────────
+
+	private void OnZoomInClicked(object? sender, EventArgs e) =>
+		ApplyZoom(_drawable.ZoomLevel + ZoomStep);
+
+	private void OnZoomOutClicked(object? sender, EventArgs e) =>
+		ApplyZoom(_drawable.ZoomLevel - ZoomStep);
+
+	private void ApplyZoom(float raw)
+	{
+		if (Math.Abs(raw - 1.0f) < ZoomSnapThreshold)
+			raw = 1.0f;
+		_drawable.ZoomLevel = Math.Clamp(raw, 0.25f, 4.0f);
+		MapCanvas.Invalidate();
+	}
+
+	private void ResetViewport()
+	{
+		_drawable.ZoomLevel = 1.0f;
+		_drawable.PanOffset = PointF.Zero;
+		MapCanvas.Invalidate();
+	}
+
+	private void OnMapCanvasHandlerChanged(object? sender, EventArgs e)
+	{
+		DetachScrollZoom();
+		AttachScrollZoom();
+	}
+
+	private void AttachScrollZoom()
+	{
+#if WINDOWS
+		if (MapCanvas.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement el)
+			el.PointerWheelChanged += OnMapScrollWheel;
+#endif
+	}
+
+	private void DetachScrollZoom()
+	{
+#if WINDOWS
+		if (MapCanvas.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement el)
+			el.PointerWheelChanged -= OnMapScrollWheel;
+#endif
+	}
+
+#if WINDOWS
+	private void OnMapScrollWheel(object sender,
+		Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+	{
+		var delta = e.GetCurrentPoint((Microsoft.UI.Xaml.UIElement)sender)
+					  .Properties.MouseWheelDelta;
+		var direction = delta > 0 ? 1f : -1f;
+		ApplyZoom(_drawable.ZoomLevel + direction * ZoomStep);
+	}
+#endif
 
 	private void OnViewModelPropertyChanged(
 		object? sender,
@@ -270,23 +417,40 @@ public partial class DungeonDetailPage : ContentPage
 	private void OnDiscardClicked(object? sender, EventArgs e) =>
 		DiscardPendingChanges();
 
-	private void OnToolDrawClicked(object? sender, EventArgs e)
+	private void SetActiveTool(MapTool tool)
 	{
-		_viewModel.ActiveTool = MapTool.Draw;
-		_drawState = _viewModel.DrawingSession.IsActive ? DrawState.Drawing : DrawState.DrawingReady;
+		_viewModel.ActiveTool = tool;
+
+		switch (tool)
+		{
+			case MapTool.Draw:
+				_drawState = _viewModel.DrawingSession.IsActive ? DrawState.Drawing : DrawState.DrawingReady;
+				break;
+			case MapTool.Move:
+			case MapTool.Pan:
+			case MapTool.Place:
+				if (_drawState == DrawState.Drawing)
+				{
+					AbortInProgressDraw();
+				}
+				_drawState = DrawState.Idle;
+				break;
+		}
+
 		UpdateToolbarButtonState();
 	}
 
-	private void OnToolMoveClicked(object? sender, EventArgs e)
-	{
-		_viewModel.ActiveTool = MapTool.Move;
-		if (_drawState == DrawState.Drawing)
-		{
-			AbortInProgressDraw();
-		}
-		_drawState = DrawState.Idle;
-		UpdateToolbarButtonState();
-	}
+	private void OnToolDrawClicked(object? sender, TappedEventArgs e) =>
+		SetActiveTool(MapTool.Draw);
+
+	private void OnToolMoveClicked(object? sender, TappedEventArgs e) =>
+		SetActiveTool(MapTool.Move);
+
+	private void OnToolPanClicked(object? sender, TappedEventArgs e) =>
+		SetActiveTool(MapTool.Pan);
+
+	private void OnToolPlaceClicked(object? sender, TappedEventArgs e) =>
+		SetActiveTool(MapTool.Place);
 
 	private void OnAreaContextBackClicked(object? sender, EventArgs e)
 	{
@@ -376,8 +540,8 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		var isDrawActive = _viewModel.ActiveTool == MapTool.Draw;
 		var isMoveActive = _viewModel.ActiveTool == MapTool.Move;
-		_ = _viewModel.ActiveTool == MapTool.Pan; // Pan placeholder
-		_ = _viewModel.ActiveTool == MapTool.Place; // Place placeholder
+		var isPanActive = _viewModel.ActiveTool == MapTool.Pan;
+		var isPlaceActive = _viewModel.ActiveTool == MapTool.Place;
 
 		var activeColor = DmColors.Gold;
 		var mutedColor = DmColors.GoldMuted;
@@ -393,6 +557,12 @@ public partial class DungeonDetailPage : ContentPage
 			ToolMoveBorder.Stroke = isMoveActive ? activeBrush : transparentBrush;
 			ToolMoveIcon.TextColor = isMoveActive ? activeColor : mutedColor;
 			ToolMoveLabel.TextColor = isMoveActive ? activeColor : mutedColor;
+
+			ToolPanBorder.Stroke = isPanActive ? activeBrush : transparentBrush;
+			ToolPanLabel.TextColor = isPanActive ? activeColor : mutedColor;
+
+			ToolPlaceBorder.Stroke = isPlaceActive ? activeBrush : transparentBrush;
+			ToolPlaceLabel.TextColor = isPlaceActive ? activeColor : mutedColor;
 		}
 		else
 		{
@@ -555,15 +725,22 @@ public partial class DungeonDetailPage : ContentPage
 		}
 #endif
 
+		if (_viewModel.ActiveTool == MapTool.Pan)
+		{
+			_panAnchorScreen = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
+			return;
+		}
+
 		var point = e.Touches.FirstOrDefault();
+		var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
 
 		if (_viewModel.ActiveTool == MapTool.Move && _selectedFloorId is not null)
 		{
-			var hit = HitTestArea(point);
+			var hit = HitTestArea(canvasPoint);
 			if (hit is not null)
 			{
 				_draggingAreaId = hit.Id;
-				_moveGrabTile = TileCoordinateHelper.SnapToGrid(point.X, point.Y, _drawable.TileSize);
+				_moveGrabTile = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
 				_drawable.DragPreviewAreaId = hit.Id;
 				_drawable.DragPreviewDelta = new TilePoint(0, 0);
 				_isMoveDragging = true;
@@ -577,7 +754,7 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		var snapped = TileCoordinateHelper.SnapToGrid(point.X, point.Y, _drawable.TileSize);
+		var snapped = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
 		var result = _viewModel.DrawingSession.PlaceVertex(snapped);
 
 		if (result == DrawSessionResult.Added)
@@ -602,11 +779,12 @@ public partial class DungeonDetailPage : ContentPage
 	private void OnMapMoveHover(object? sender, TouchEventArgs e)
 	{
 		var point = e.Touches.FirstOrDefault();
+		var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
 		var needsInvalidate = false;
 
 		if (_drawState == DrawState.Drawing)
 		{
-			_drawable.PhantomEnd = new PointF(point.X, point.Y);
+			_drawable.PhantomEnd = canvasPoint;
 			needsInvalidate = true;
 		}
 
@@ -615,7 +793,7 @@ public partial class DungeonDetailPage : ContentPage
 			&& _selectedFloorId is not null
 			&& _viewModel.ActiveTool == MapTool.Move)
 		{
-			var hit = HitTestArea(point);
+			var hit = HitTestArea(canvasPoint);
 			var newId = hit?.Id;
 			if (newId != _drawable.HoveredAreaId)
 			{
@@ -654,11 +832,24 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void OnMapDragInteraction(object? sender, TouchEventArgs e)
 	{
+		if (_viewModel.ActiveTool == MapTool.Pan && _panAnchorScreen is PointF anchor)
+		{
+			var current = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
+			var delta = new PointF(current.X - anchor.X, current.Y - anchor.Y);
+			_drawable.PanOffset = new PointF(
+				_drawable.PanOffset.X + delta.X,
+				_drawable.PanOffset.Y + delta.Y);
+			_panAnchorScreen = current;
+			MapCanvas.Invalidate();
+			return;
+		}
+
 		if (_viewModel.ActiveTool == MapTool.Move && _isMoveDragging
 			&& _moveGrabTile is not null && _draggingAreaId is not null)
 		{
 			var point = e.Touches.FirstOrDefault();
-			var currentTile = TileCoordinateHelper.SnapToGrid(point.X, point.Y, _drawable.TileSize);
+			var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
+			var currentTile = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
 			var dragDelta = new TilePoint(
 				currentTile.Col - _moveGrabTile.Col,
 				currentTile.Row - _moveGrabTile.Row);
@@ -677,13 +868,20 @@ public partial class DungeonDetailPage : ContentPage
 		if (_drawState == DrawState.Drawing)
 		{
 			var point = e.Touches.FirstOrDefault();
-			_drawable.PhantomEnd = new PointF(point.X, point.Y);
+			var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
+			_drawable.PhantomEnd = canvasPoint;
 			MapCanvas.Invalidate();
 		}
 	}
 
 	private void OnMapEndInteraction(object? sender, TouchEventArgs e)
 	{
+		if (_viewModel.ActiveTool == MapTool.Pan)
+		{
+			_panAnchorScreen = null;
+			return;
+		}
+
 		if (_viewModel.ActiveTool == MapTool.Move && _isMoveDragging && _draggingAreaId is not null)
 		{
 			// Fold the live drag delta into the persistent pending offset

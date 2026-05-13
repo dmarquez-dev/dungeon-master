@@ -195,7 +195,7 @@
 
                             <!-- Floor context: name input + drawing tools -->
                             <Grid x:Name="FloorContextToolbar" IsVisible="True"
-                                  ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+                                  ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
 
                                 <controls:DmInlineEditor
                                     x:Name="FloorNameToolbarEditor"
@@ -215,7 +215,8 @@
                                     Stroke="{StaticResource DMScrollGoldLight}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 3"
-                                    Padding="8,4">
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Draw (D)">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnToolDrawClicked" />
                                     </Border.GestureRecognizers>
@@ -249,7 +250,7 @@
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
-                                    ToolTipProperties.Text="Move area outline">
+                                    ToolTipProperties.Text="Move (M)">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnToolMoveClicked" />
                                     </Border.GestureRecognizers>
@@ -267,6 +268,60 @@
                                         <Label
                                             x:Name="ToolMoveLabel"
                                             Text="Move"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="15"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Pan tool -->
+                                <Border
+                                    x:Name="ToolPanBorder"
+                                    Grid.Column="3"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Pan (H)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolPanClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolPanLabel"
+                                            Text="Pan"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="15"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Place tool -->
+                                <Border
+                                    x:Name="ToolPlaceBorder"
+                                    Grid.Column="4"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Place (P)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolPlaceLabel"
+                                            Text="Place"
                                             FontFamily="EBGaramondRegular"
                                             FontSize="15"
                                             TextColor="{StaticResource DMTextMuted}"
@@ -441,20 +496,58 @@
                     </Grid>
                 </Border>
 
-                <!-- Map canvas -->
-                <GraphicsView
-                    x:Name="MapCanvas"
-                    Grid.Row="1"
-                    StartInteraction="OnMapStartInteraction"
-                    DragInteraction="OnMapDragInteraction"
-                    EndInteraction="OnMapEndInteraction"
-                    MoveHoverInteraction="OnMapMoveHover"
-                    EndHoverInteraction="OnMapEndHover">
-                    <GraphicsView.GestureRecognizers>
-                        <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnMapDoubleTapped" />
-                        <TapGestureRecognizer Buttons="Secondary" Tapped="OnMapSecondaryTapped" />
-                    </GraphicsView.GestureRecognizers>
-                </GraphicsView>
+                <!-- Map canvas + zoom overlay -->
+                <Grid Grid.Row="1">
+                    <GraphicsView
+                        x:Name="MapCanvas"
+                        StartInteraction="OnMapStartInteraction"
+                        DragInteraction="OnMapDragInteraction"
+                        EndInteraction="OnMapEndInteraction"
+                        MoveHoverInteraction="OnMapMoveHover"
+                        EndHoverInteraction="OnMapEndHover">
+                        <GraphicsView.GestureRecognizers>
+                            <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnMapDoubleTapped" />
+                            <TapGestureRecognizer Buttons="Secondary" Tapped="OnMapSecondaryTapped" />
+                        </GraphicsView.GestureRecognizers>
+                    </GraphicsView>
+                    <VerticalStackLayout
+                        HorizontalOptions="End"
+                        VerticalOptions="Start"
+                        Margin="0,8,8,0"
+                        Spacing="2"
+                        InputTransparent="False">
+                        <Button x:Name="ZoomInButton"
+                                Text="+"
+                                WidthRequest="32" HeightRequest="32"
+                                FontSize="16"
+                                Clicked="OnZoomInClicked"
+                                BackgroundColor="#1A1610"
+                                TextColor="#C8A040"
+                                BorderColor="#4a3a1a"
+                                BorderWidth="1"
+                                CornerRadius="3"
+                                Padding="0">
+                            <Button.Behaviors>
+                                <behaviors:HandCursorBehavior />
+                            </Button.Behaviors>
+                        </Button>
+                        <Button x:Name="ZoomOutButton"
+                                Text="−"
+                                WidthRequest="32" HeightRequest="32"
+                                FontSize="16"
+                                Clicked="OnZoomOutClicked"
+                                BackgroundColor="#1A1610"
+                                TextColor="#C8A040"
+                                BorderColor="#4a3a1a"
+                                BorderWidth="1"
+                                CornerRadius="3"
+                                Padding="0">
+                            <Button.Behaviors>
+                                <behaviors:HandCursorBehavior />
+                            </Button.Behaviors>
+                        </Button>
+                    </VerticalStackLayout>
+                </Grid>
             </Grid>
 
             <!-- RIGHT SIDEBAR -->

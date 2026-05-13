@@ -54,10 +54,13 @@
         </Grid>
 
         <Border.GestureRecognizers>
-            <PointerGestureRecognizer
-                PointerEntered="OnPointerEntered"
-                PointerExited="OnPointerExited" />
             <TapGestureRecognizer Tapped="OnItemTapped" />
         </Border.GestureRecognizers>
+
+        <Border.Behaviors>
+            <behaviors:HoverOrLongPressBehavior
+                HoverEntered="OnHoverEntered"
+                HoverExited="OnHoverExited" />
+        </Border.Behaviors>
     </Border>
 </ContentView>

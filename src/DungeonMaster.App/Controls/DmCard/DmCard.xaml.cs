@@ -1,3 +1,5 @@
+using DungeonMaster.App.Behaviors;
+
 namespace DungeonMaster.App.Controls;
 
 /// <summary>
@@ -84,13 +86,13 @@ public partial class DmCard : ContentView
 
 	private void WireHover()
 	{
-		var gesture = new PointerGestureRecognizer();
-		gesture.PointerEntered += OnPointerEntered;
-		gesture.PointerExited += OnPointerExited;
-		GestureRecognizers.Add(gesture);
+		var behavior = new HoverOrLongPressBehavior();
+		behavior.HoverEntered += OnHoverEntered;
+		behavior.HoverExited += OnHoverExited;
+		Behaviors.Add(behavior);
 	}
 
-	private void OnPointerEntered(object? sender, PointerEventArgs e)
+	private void OnHoverEntered(object? sender, EventArgs e)
 	{
 		Microsoft.Maui.Controls.VisualStateManager.GoToState(CardBorder, "PointerOver");
 		TrailingPresenter.IsVisible = true;
@@ -99,7 +101,7 @@ public partial class DmCard : ContentView
 #endif
 	}
 
-	private void OnPointerExited(object? sender, PointerEventArgs e)
+	private void OnHoverExited(object? sender, EventArgs e)
 	{
 		Microsoft.Maui.Controls.VisualStateManager.GoToState(CardBorder, "Normal");
 		TrailingPresenter.IsVisible = false;

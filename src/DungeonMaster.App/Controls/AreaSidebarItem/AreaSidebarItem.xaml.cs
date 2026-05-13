@@ -69,7 +69,7 @@ public partial class AreaSidebarItem : ContentView
 		AreaNameLabel.Text = area.Name;
 	}
 
-	private void OnPointerEntered(object? sender, PointerEventArgs e)
+	private void OnHoverEntered(object? sender, EventArgs e)
 	{
 		DeleteButton.IsVisible = true;
 		if (!_isSelected)
@@ -82,7 +82,7 @@ public partial class AreaSidebarItem : ContentView
 		}
 	}
 
-	private void OnPointerExited(object? sender, PointerEventArgs e)
+	private void OnHoverExited(object? sender, EventArgs e)
 	{
 		DeleteButton.IsVisible = false;
 		if (!_isSelected)
