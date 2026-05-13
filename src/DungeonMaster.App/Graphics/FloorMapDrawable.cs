@@ -72,20 +72,32 @@ public sealed class FloorMapDrawable : IDrawable
     /// </summary>
     public float TileSize { get; set; } = 40f;
 
+    /// <summary>Zoom multiplier. Clamped to [0.25, 4.0]. Default 1.0.</summary>
+    public float ZoomLevel { get; set; } = 1.0f;
+
+    /// <summary>Viewport pan offset in screen pixels. Default (0,0).</summary>
+    public PointF PanOffset { get; set; } = PointF.Zero;
+
     /// <inheritdoc/>
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
+        canvas.SaveState();
+        canvas.Translate(PanOffset.X, PanOffset.Y);
+        canvas.Scale(ZoomLevel, ZoomLevel);
+
         DrawGrid(canvas, dirtyRect);
 
-        if (Floor is null)
-            return;
+        if (Floor is not null)
+        {
+            if (ActiveAreaId is not null)
+                DrawAreasEditMode(canvas);
+            else
+                DrawAreasViewMode(canvas);
 
-        if (ActiveAreaId is not null)
-            DrawAreasEditMode(canvas);
-        else
-            DrawAreasViewMode(canvas);
+            DrawInProgressOverlay(canvas);
+        }
 
-        DrawInProgressOverlay(canvas);
+        canvas.RestoreState();
     }
 
     private void DrawGrid(ICanvas canvas, RectF dirtyRect)
@@ -198,6 +210,11 @@ public sealed class FloorMapDrawable : IDrawable
 
         canvas.DrawPath(path);
     }
+
+    /// <summary>Converts a screen-space point to canvas-space by inverting the viewport transform.</summary>
+    public PointF ScreenToCanvas(PointF screen) =>
+        new((screen.X - PanOffset.X) / ZoomLevel,
+            (screen.Y - PanOffset.Y) / ZoomLevel);
 
     private void DrawInProgressOverlay(ICanvas canvas)
     {
