@@ -376,6 +376,8 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		var isDrawActive = _viewModel.ActiveTool == MapTool.Draw;
 		var isMoveActive = _viewModel.ActiveTool == MapTool.Move;
+		_ = _viewModel.ActiveTool == MapTool.Pan; // Pan placeholder
+		_ = _viewModel.ActiveTool == MapTool.Place; // Place placeholder
 
 		var activeColor = DmColors.Gold;
 		var mutedColor = DmColors.GoldMuted;

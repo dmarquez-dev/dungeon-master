@@ -10,4 +10,10 @@ public enum MapTool
 
 	/// <summary>Move tool — drag area outlines to new positions.</summary>
 	Move,
+
+	/// <summary>Pan tool — drag to pan the map view (keyboard shortcut H).</summary>
+	Pan,
+
+	/// <summary>Place tool — click to place entities on the map (keyboard shortcut P).</summary>
+	Place,
 }
