@@ -1,15 +1,18 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
+using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateFloor;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.Domain.ValueObjects;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 
 namespace DungeonMaster.App.ViewModels;
@@ -42,6 +45,29 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	/// </summary>
 	[ObservableProperty]
 	public partial string? DungeonNotes { get; set; }
+
+	/// <summary>
+	///		Gets or sets the identifier of the floor currently selected in the sidebar.
+	/// </summary>
+	[ObservableProperty]
+	public partial Guid? SelectedFloorId { get; set; }
+
+	/// <summary>
+	///		Gets or sets the identifier of the area currently being edited in draw mode.
+	/// </summary>
+	[ObservableProperty]
+	public partial Guid? EditingAreaId { get; set; }
+
+	/// <summary>
+	///		Gets or sets the active drawing tool on the map canvas.
+	/// </summary>
+	[ObservableProperty]
+	public partial MapTool ActiveTool { get; set; } = MapTool.Draw;
+
+	/// <summary>
+	///		Gets the draw session that tracks in-progress vertices for the current area edit.
+	/// </summary>
+	public MapDrawingSession DrawingSession { get; } = new();
 
 	/// <summary>
 	///		Gets the observable collection of floors belonging to the current dungeon.
@@ -238,6 +264,69 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.Name,
 				existing?.Description,
 				existing?.Notes),
+			CancellationToken.None);
+	}
+
+	/// <summary>
+	///		Persists the in-progress drawn outline for the specified area and resets the drawing session.
+	/// </summary>
+	/// <param name="args">
+	///		A tuple containing the floor identifier, area identifier, and the tile-grid origin point.
+	/// </param>
+	[RelayCommand]
+	private async Task SaveOutlineAsync((Guid FloorId, Guid AreaId, TilePoint Origin) args)
+	{
+		var outline = DrawingSession.BuildOutline();
+
+		await dispatcher.SendAsync<bool>(
+			new UpdateAreaOutlineCommand(
+				_dungeonId,
+				args.FloorId,
+				args.AreaId,
+				args.Origin,
+				outline),
+			CancellationToken.None);
+
+		DrawingSession.Reset();
+	}
+
+	/// <summary>
+	///     Persists a moved area outline using an explicit origin and outline (bypasses DrawingSession).
+	/// </summary>
+	[RelayCommand]
+	private async Task MoveAreaAsync((Guid FloorId, Guid AreaId, TilePoint NewOrigin, IReadOnlyList<PathSegment> NewOutline) args)
+	{
+		await dispatcher.SendAsync<bool>(
+			new UpdateAreaOutlineCommand(
+				_dungeonId,
+				args.FloorId,
+				args.AreaId,
+				args.NewOrigin,
+				args.NewOutline),
+			CancellationToken.None);
+	}
+
+	/// <summary>
+	///     Creates a new area on the specified floor and immediately saves its outline in one operation.
+	///     Used for draw-to-spawn: the area is added to the DB then its outline is written atomically.
+	/// </summary>
+	[RelayCommand]
+	private async Task AddAreaWithOutlineAsync((Guid FloorId, TilePoint Origin, IReadOnlyList<PathSegment> Outline) args)
+	{
+		var result = await dispatcher.SendAsync<Guid>(
+			new AddAreaCommand(_dungeonId, args.FloorId, "New Area", null),
+			CancellationToken.None);
+
+		if (!result.IsSuccess || result.Value == Guid.Empty)
+			return;
+
+		await dispatcher.SendAsync<bool>(
+			new UpdateAreaOutlineCommand(
+				_dungeonId,
+				args.FloorId,
+				result.Value,
+				args.Origin,
+				args.Outline),
 			CancellationToken.None);
 	}
 }
