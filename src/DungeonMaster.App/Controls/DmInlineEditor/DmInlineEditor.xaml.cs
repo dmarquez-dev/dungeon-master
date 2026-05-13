@@ -1,3 +1,4 @@
+using DungeonMaster.App.Theme;
 using MauiApplication = Microsoft.Maui.Controls.Application;
 
 namespace DungeonMaster.App.Controls;
@@ -150,6 +151,8 @@ public partial class DmInlineEditor : ContentView
 		set => SetValue(AcceptsReturnProperty, value);
 	}
 
+	private bool _isEditing;
+
 	/// <summary>
 	///		Initializes a new instance of <see cref="DmInlineEditor"/> and loads the XAML component tree.
 	/// </summary>
@@ -163,18 +166,19 @@ public partial class DmInlineEditor : ContentView
 	/// </summary>
 	public void ActivateEditor()
 	{
-		DisplayLabel.IsVisible = false;
+		DisplayLabel.Opacity = 0;
+		DisplayLabel.InputTransparent = true;
 
 		if (!AcceptsReturn)
 		{
 			EditEntry.Text = Text;
-			EditEntry.IsVisible = true;
+			ShowInput(EditEntry);
 			EditEntry.Focus();
 		}
 		else
 		{
 			EditEditor.Text = Text;
-			EditEditor.IsVisible = true;
+			ShowInput(EditEditor);
 			EditEditor.Focus();
 		}
 	}
@@ -184,14 +188,25 @@ public partial class DmInlineEditor : ContentView
 	/// </summary>
 	public void TryCommit()
 	{
-		if (EditEntry.IsVisible)
+		if (_isEditing)
 		{
-			EditEntry.Unfocus();
+			if (!AcceptsReturn)
+				EditEntry.Unfocus();
+			else
+				EditEditor.Unfocus();
 		}
-		else if (EditEditor.IsVisible)
-		{
-			EditEditor.Unfocus();
-		}
+	}
+
+	private static void ShowInput(VisualElement input)
+	{
+		input.Opacity = 1;
+		input.InputTransparent = false;
+	}
+
+	private static void HideInput(VisualElement input)
+	{
+		input.Opacity = 0;
+		input.InputTransparent = true;
 	}
 
 	private void ApplyTextAlignment(TextAlignment alignment)
@@ -217,11 +232,35 @@ public partial class DmInlineEditor : ContentView
 		ActivateEditor();
 	}
 
+	private void OnPointerEntered(object? sender, PointerEventArgs e)
+	{
+		if (!_isEditing)
+		{
+			var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
+			FocusBorder.Stroke = gold;
+			FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
+			FocusBorder.Shadow = new Shadow
+			{
+				Brush = new SolidColorBrush(gold),
+				Offset = new Point(0, 0),
+				Radius = 10,
+				Opacity = 0.4f
+			};
+		}
+	}
+
+	private void OnPointerExited(object? sender, PointerEventArgs e)
+	{
+		if (!_isEditing)
+			ClearFocusGlow();
+	}
+
 	private void OnInputFocused(object? sender, FocusEventArgs e)
 	{
+		_isEditing = true;
 		var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
 		FocusBorder.Stroke = gold;
-		FocusBorder.BackgroundColor = Color.FromArgb("#08C4862A");
+		FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
 		FocusBorder.Shadow = new Shadow
 		{
 			Brush = new SolidColorBrush(gold),
@@ -239,16 +278,18 @@ public partial class DmInlineEditor : ContentView
 	{
 		ClearFocusGlow();
 		Commit(EditEntry.Text);
-		EditEntry.IsVisible = false;
-		DisplayLabel.IsVisible = true;
+		HideInput(EditEntry);
+		DisplayLabel.Opacity = 1;
+		DisplayLabel.InputTransparent = false;
 	}
 
 	private void OnEditorUnfocused(object? sender, FocusEventArgs e)
 	{
 		ClearFocusGlow();
 		Commit(EditEditor.Text);
-		EditEditor.IsVisible = false;
-		DisplayLabel.IsVisible = true;
+		HideInput(EditEditor);
+		DisplayLabel.Opacity = 1;
+		DisplayLabel.InputTransparent = false;
 	}
 
 	private void Commit(string? value)
@@ -260,6 +301,7 @@ public partial class DmInlineEditor : ContentView
 
 	private void ClearFocusGlow()
 	{
+		_isEditing = false;
 		FocusBorder.Stroke = Colors.Transparent;
 		FocusBorder.ClearValue(VisualElement.BackgroundColorProperty);
 		FocusBorder.ClearValue(VisualElement.ShadowProperty);

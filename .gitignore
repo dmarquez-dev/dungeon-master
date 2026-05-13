@@ -1,6 +1,7 @@
 # Build output
 bin/
 obj/
+build_output.txt
 
 # NuGet
 .nuget/

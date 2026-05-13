@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.ValueObjects;
 
 namespace DungeonMaster.Domain.Entities.Floor;
 
@@ -66,7 +66,8 @@ public sealed partial class Floor
 	/// </param>
 	internal void RemoveArea(Guid areaId)
 	{
-		var area = _areas.FirstOrDefault(area => area.Id == areaId);
+		var area = _areas.FirstOrDefault(area =>
+			area.Id == areaId);
 
 		if (area is null)
 		{
@@ -98,13 +99,50 @@ public sealed partial class Floor
 		string? description,
 		string? notes)
 	{
-		var area = _areas.FirstOrDefault(area => area.Id == areaId);
+		var area = _areas.FirstOrDefault(area =>
+			area.Id == areaId);
 
-		area?.Update(
+		if (area is null)
+		{
+			return;
+		}
+
+		area.Update(
 			name,
 			description,
 			notes);
+		Touch();
+	}
 
+	/// <summary>
+	///		Updates the tile-grid origin and outline path of the specified area on this floor.
+	///		Has no effect if no area with the given identifier exists.
+	/// </summary>
+	/// <param name="areaId">
+	///		The unique identifier of the area to update.
+	/// </param>
+	/// <param name="origin">
+	///		The new tile-grid origin point for the area.
+	/// </param>
+	/// <param name="outline">
+	///		The new ordered list of path segments that form the closed outline polygon.
+	/// </param>
+	internal void UpdateAreaOutline(
+		Guid areaId,
+		TilePoint origin,
+		IReadOnlyList<PathSegment> outline)
+	{
+		var area = _areas.FirstOrDefault(area =>
+			area.Id == areaId);
+
+        if (area is null)
+        {
+            return;
+        }
+
+        area.SetOutline(
+			origin,
+			outline);
 		Touch();
 	}
 }

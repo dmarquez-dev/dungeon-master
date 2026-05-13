@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -10,9 +10,9 @@
     Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource DMBackground}">
 
-    <Grid RowDefinitions="Auto,*" Padding="16,12" RowSpacing="0">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
-        <!-- Top bar -->
+        <!-- Row 0: Top nav bar -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
             <Button
                 Grid.Column="0"
@@ -78,73 +78,384 @@
             </Grid>
         </Grid>
 
-        <!-- 2-column layout -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,300" ColumnSpacing="16">
+        <!-- Row 1: Full-width DmFlagBanner + centered bookmark tab -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,Auto">
+            <controls:DmFlagBanner
+                x:Name="TitleBanner"
+                Grid.Row="0"
+                IsEditable="True"
+                Title="{Binding Dungeon.Name}"
+                TextCommitted="OnDungeonNameCommitted" />
 
-            <!-- LEFT COLUMN -->
-            <ScrollView Grid.Column="0">
-                <VerticalStackLayout Spacing="10" Padding="0,0,0,16">
+            <Border
+                x:Name="LoreBookmarkTab"
+                Grid.Row="1"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Margin="0,-8,0,0"
+                Stroke="{StaticResource DMScrollGoldLight}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 0,0,8,8"
+                Padding="0">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="#3A2510" Offset="0.0" />
+                        <GradientStop Color="#1A0C05" Offset="0.25" />
+                        <GradientStop Color="#080402" Offset="0.5" />
+                        <GradientStop Color="#1A0C05" Offset="0.75" />
+                        <GradientStop Color="#3A2510" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnLoreBookmarkTapped" />
+                </Border.GestureRecognizers>
+                <Border.Behaviors>
+                    <behaviors:HandCursorBehavior />
+                </Border.Behaviors>
+                <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="8" Padding="16,5,16,8">
+                    <Label
+                        Grid.Column="0"
+                        Text="&#xEA8F;"
+                        FontFamily="RpgAwesome"
+                        FontSize="10"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        VerticalOptions="Center" />
+                    <Label
+                        x:Name="LoreBookmarkLabel"
+                        Grid.Column="1"
+                        Text="LORE &amp; NOTES  &#x25BE;"
+                        FontFamily="CinzelRegular"
+                        FontSize="13"
+                        CharacterSpacing="1.2"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        VerticalOptions="Center" />
+                    <Label
+                        Grid.Column="2"
+                        Text="&#xEA8F;"
+                        FontFamily="RpgAwesome"
+                        FontSize="10"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        VerticalOptions="Center"
+                        ScaleX="-1" />
+                </Grid>
+            </Border>
+        </Grid>
 
-                    <!-- Editable flag banner (dungeon name) -->
-                    <controls:DmFlagBanner
-                        x:Name="TitleBanner"
-                        IsEditable="True"
-                        Title="{Binding Dungeon.Name}"
-                        TextCommitted="OnDungeonNameCommitted" />
+        <!-- Row 2: Lore drawer (collapsed by default) -->
+        <Grid
+            x:Name="LoreDrawer"
+            Grid.Row="2"
+            IsVisible="False">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnLoreDrawerTapped" />
+            </Grid.GestureRecognizers>
+            <VerticalStackLayout Spacing="6" Padding="0,8,0,0">
+                <!-- Description -->
+                <controls:DmInlineEditor
+                    x:Name="DescriptionEditor"
+                    Opacity="0.65"
+                    FontFamily="EBGaramondItalic"
+                    FontSize="20"
+                    Placeholder="Add a description..."
+                    TextCommitted="OnDescriptionCommitted" />
 
-                    <!-- Description -->
-                    <controls:DmInlineEditor
-                        x:Name="DescriptionEditor"
-                        FontFamily="EBGaramondItalic"
-                        FontSize="20"
-                        Placeholder="Add a description..."
-                        TextCommitted="OnDescriptionCommitted" />
+                <!-- Notes -->
+                <controls:DmInlineEditor
+                    x:Name="NotesEditor"
+                    FontFamily="EBGaramondRegular"
+                    FontSize="17"
+                    Placeholder="DM notes..."
+                    TextCommitted="OnNotesCommitted" />
+            </VerticalStackLayout>
+        </Grid>
 
-                    <!-- Notes -->
-                    <controls:DmInlineEditor
-                        x:Name="NotesEditor"
-                        FontFamily="EBGaramondRegular"
-                        FontSize="17"
-                        Placeholder="DM notes..."
-                        TextCommitted="OnNotesCommitted" />
+        <!-- Row 3: Decorative divider between lore section and map -->
+        <controls:DmDivider
+            Grid.Row="3"
+            Margin="0,6,0,4" />
 
-                    <!-- Divider -->
-                    <controls:DmDivider />
+        <!-- Row 4: Map canvas (left) | Floors sidebar (right) -->
+        <Grid Grid.Row="4" ColumnDefinitions="*,300" ColumnSpacing="16">
 
-                    <!-- Map placeholder -->
-                    <Border
-                        BackgroundColor="{StaticResource DMBackground}"
+            <!-- LEFT COLUMN: toolbar (edit mode only) + map canvas -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,*">
+
+                <!-- Map toolbar (hidden until a floor is selected) -->
+                <Border x:Name="MapToolbar" Grid.Row="0" IsVisible="False"
+                        BackgroundColor="{StaticResource DMCardSurface}"
                         Stroke="{StaticResource DMCardBorderBrush}"
-                        StrokeShape="RoundRectangle 4"
-                        HeightRequest="220"
-                        Margin="0,4,0,0">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnContentAreaTapped" />
-                        </Border.GestureRecognizers>
-                        <Grid>
-                            <GraphicsView x:Name="MapPlaceholderGraphics" />
-                            <VerticalStackLayout
-                                HorizontalOptions="Center"
-                                VerticalOptions="Center"
-                                Spacing="6">
-                                <Label
-                                    Text="&#xEAD4;"
-                                    FontFamily="RpgAwesome"
-                                    FontSize="38"
-                                    TextColor="{StaticResource DMTextMuted}"
-                                    HorizontalOptions="Center" />
-                                <Label
-                                    Text="Floor map — coming soon"
-                                    FontFamily="EBGaramondItalic"
-                                    FontSize="17"
-                                    TextColor="{StaticResource DMTextMuted}"
-                                    HorizontalOptions="Center" />
-                            </VerticalStackLayout>
-                        </Grid>
-                    </Border>
+                        StrokeShape="RoundRectangle 3"
+                        StrokeThickness="1"
+                        Padding="6,4"
+                        Margin="0,0,0,4">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
 
-                </VerticalStackLayout>
-            </ScrollView>
+                        <!-- Left: context-switching area -->
+                        <Grid Grid.Column="0">
+
+                            <!-- Floor context: name input + drawing tools -->
+                            <Grid x:Name="FloorContextToolbar" IsVisible="True"
+                                  ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+
+                                <controls:DmInlineEditor
+                                    x:Name="FloorNameToolbarEditor"
+                                    Grid.Column="0"
+                                    FontFamily="CinzelSemiBold"
+                                    FontSize="15"
+                                    AcceptsReturn="False"
+                                    Placeholder="Floor name..."
+                                    TextCommitted="OnFloorNameToolbarCommitted"
+                                    VerticalOptions="Center" />
+
+                                <!-- Draw tool — active by default -->
+                                <Border
+                                    x:Name="ToolDrawBorder"
+                                    Grid.Column="1"
+                                    BackgroundColor="Transparent"
+                                    Stroke="{StaticResource DMScrollGoldLight}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolDrawClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolDrawIcon"
+                                            Text="&#xEA75;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMScrollGoldLight}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolDrawLabel"
+                                            Text="Draw"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="15"
+                                            TextColor="{StaticResource DMScrollGoldLight}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Move tool -->
+                                <Border
+                                    x:Name="ToolMoveBorder"
+                                    Grid.Column="2"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Move area outline">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolMoveClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolMoveIcon"
+                                            Text="&#x2194;"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="15"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolMoveLabel"
+                                            Text="Move"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="15"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                            </Grid>
+
+                            <!-- Area context: back + area name + redraw -->
+                            <Grid x:Name="AreaContextToolbar" IsVisible="False"
+                                  ColumnDefinitions="Auto,*,Auto" ColumnSpacing="4">
+
+                                <Button
+                                    Grid.Column="0"
+                                    Text="&#x25C4; Floor"
+                                    FontFamily="EBGaramondRegular"
+                                    FontSize="17"
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource DMScrollGoldLight}"
+                                    BorderColor="Transparent"
+                                    BorderWidth="1"
+                                    CornerRadius="3"
+                                    Padding="8,4"
+                                    Clicked="OnAreaContextBackClicked">
+                                    <Button.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Button.Behaviors>
+                                </Button>
+
+                                <controls:DmInlineEditor
+                                    x:Name="AreaNameToolbarEditor"
+                                    Grid.Column="1"
+                                    FontFamily="EBGaramondRegular"
+                                    FontSize="17"
+                                    AcceptsReturn="False"
+                                    Placeholder="Area name..."
+                                    TextCommitted="OnAreaNameToolbarCommitted"
+                                    VerticalOptions="Center" />
+
+                                <!-- Redraw tool -->
+                                <Border
+                                    x:Name="ToolRedrawBorder"
+                                    Grid.Column="2"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Redraw area outline">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolRedrawClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolRedrawIcon"
+                                            Text="&#xEA75;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolRedrawLabel"
+                                            Text="Redraw"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="15"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                            </Grid>
+
+                        </Grid>
+
+                        <!-- Right: always-visible Undo / Save / Discard -->
+                        <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+
+                            <Button
+                                x:Name="UndoButton"
+                                Text="&#x21A9; Undo"
+                                FontFamily="EBGaramondRegular"
+                                FontSize="15"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource DMScrollGoldLight}"
+                                BorderColor="Transparent"
+                                BorderWidth="1"
+                                CornerRadius="3"
+                                Padding="8,4"
+                                IsEnabled="False"
+                                Opacity="0.35"
+                                ToolTipProperties.Text="Undo last vertex"
+                                Clicked="OnUndoClicked">
+                                <Button.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Button.Behaviors>
+                            </Button>
+
+                            <Border
+                                x:Name="SaveButton"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                Opacity="0.4"
+                                InputTransparent="True"
+                                ToolTipProperties.Text="Save changes">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnSaveClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="SaveIcon"
+                                        Text="&#xEA34;"
+                                        FontFamily="RpgAwesome"
+                                        FontSize="17"
+                                        TextColor="{StaticResource DMTextMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="SaveLabel"
+                                        Text="Save"
+                                        FontFamily="EBGaramondRegular"
+                                        FontSize="15"
+                                        TextColor="{StaticResource DMTextMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <Border
+                                x:Name="DiscardButton"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                Opacity="0.4"
+                                InputTransparent="True"
+                                ToolTipProperties.Text="Discard changes">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDiscardClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="DiscardIcon"
+                                        Text="&#xE955;"
+                                        FontFamily="RpgAwesome"
+                                        FontSize="17"
+                                        TextColor="{StaticResource DMTextMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="DiscardLabel"
+                                        Text="Discard"
+                                        FontFamily="EBGaramondRegular"
+                                        FontSize="15"
+                                        TextColor="{StaticResource DMTextMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
+
+                        </HorizontalStackLayout>
+
+                    </Grid>
+                </Border>
+
+                <!-- Map canvas -->
+                <GraphicsView
+                    x:Name="MapCanvas"
+                    Grid.Row="1"
+                    StartInteraction="OnMapStartInteraction"
+                    DragInteraction="OnMapDragInteraction"
+                    EndInteraction="OnMapEndInteraction"
+                    MoveHoverInteraction="OnMapMoveHover"
+                    EndHoverInteraction="OnMapEndHover">
+                    <GraphicsView.GestureRecognizers>
+                        <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnMapDoubleTapped" />
+                        <TapGestureRecognizer Buttons="Secondary" Tapped="OnMapSecondaryTapped" />
+                    </GraphicsView.GestureRecognizers>
+                </GraphicsView>
+            </Grid>
 
             <!-- RIGHT SIDEBAR -->
             <Grid Grid.Column="1" RowDefinitions="Auto,*" BackgroundColor="Transparent">

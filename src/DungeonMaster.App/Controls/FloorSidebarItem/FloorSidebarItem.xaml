@@ -42,14 +42,13 @@
                     TextColor="{StaticResource DMTextMuted}"
                     VerticalOptions="Center" />
 
-                <!-- Floor custom name inline editor -->
-                <controls:DmInlineEditor
-                    x:Name="FloorNameEditor"
+                <!-- Floor custom name (display only — edited via toolbar) -->
+                <Label
+                    x:Name="FloorNameLabel"
                     Grid.Column="2"
                     FontFamily="CinzelSemiBold"
                     FontSize="16"
-                    AcceptsReturn="False"
-                    TextCommitted="OnFloorNameCommitted"
+                    TextColor="{StaticResource DMScrollGoldLight}"
                     VerticalOptions="Center" />
 
                 <!-- Hover-revealed delete button -->

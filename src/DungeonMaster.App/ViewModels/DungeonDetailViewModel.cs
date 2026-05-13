@@ -86,7 +86,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	{
 		if (query.TryGetValue("id", out var val) && Guid.TryParse(val?.ToString(), out var id))
 		{
-			LoadDungeonCommand.ExecuteAsync(id);
+			_ = LoadDungeonCommand.ExecuteAsync(id);
 		}
 	}
 

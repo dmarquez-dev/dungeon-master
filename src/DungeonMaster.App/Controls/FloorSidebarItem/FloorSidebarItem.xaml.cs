@@ -1,4 +1,5 @@
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
 
@@ -8,12 +9,12 @@ namespace DungeonMaster.App.Controls;
 /// </summary>
 public partial class FloorSidebarItem : ContentView
 {
-	private static readonly Color _surfaceNormal = Color.FromArgb("#2E8B5E1A"); // DMCardSurface
-	private static readonly Color _surfaceHover  = Color.FromArgb("#528B5E1A"); // DMCardSurfaceHover
-	private static readonly Color _surfaceActive  = Color.FromArgb("#6A8B5E1A"); // slightly more opaque for expanded state
+	private static readonly Color _surfaceNormal = DmColors.FloorSurfaceNormal;
+	private static readonly Color _surfaceHover  = DmColors.FloorSurfaceHover;
+	private static readonly Color _surfaceActive  = DmColors.FloorSurfaceActive;
 
-	private static readonly SolidColorBrush _borderNormal = new(Color.FromArgb("#4DC4862A")); // DMCardBorder
-	private static readonly SolidColorBrush _borderActive = new(Color.FromArgb("#A6C4862A")); // DMCardBorderHover
+	private static readonly SolidColorBrush _borderNormal = DmColors.FloorBorderNormal;
+	private static readonly SolidColorBrush _borderActive = DmColors.FloorBorderActive;
 
 	/// <summary>
 	///		Identifies the <see cref="Floor"/> bindable property.

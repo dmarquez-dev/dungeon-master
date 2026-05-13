@@ -46,8 +46,7 @@ namespace DungeonMaster.Infrastructure.Migrations
 
                     b.Property<string>("Outline")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("Outline");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -77,6 +76,7 @@ namespace DungeonMaster.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Notes")
+                        .HasMaxLength(4000)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

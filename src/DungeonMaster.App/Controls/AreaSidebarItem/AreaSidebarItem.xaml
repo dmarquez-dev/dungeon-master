@@ -23,14 +23,13 @@
                    TextColor="{StaticResource DMTextMuted}"
                    VerticalOptions="Center" />
 
-            <!-- Area name inline editor -->
-            <controls:DmInlineEditor
-                x:Name="AreaNameEditor"
+            <!-- Area name (display only — edited via toolbar) -->
+            <Label
+                x:Name="AreaNameLabel"
                 Grid.Column="1"
                 FontFamily="EBGaramondRegular"
                 FontSize="17"
-                AcceptsReturn="False"
-                TextCommitted="OnAreaNameCommitted"
+                TextColor="{StaticResource DMScrollGoldLight}"
                 VerticalOptions="Center" />
 
             <!-- Hover-revealed delete button -->
@@ -58,6 +57,7 @@
             <PointerGestureRecognizer
                 PointerEntered="OnPointerEntered"
                 PointerExited="OnPointerExited" />
+            <TapGestureRecognizer Tapped="OnItemTapped" />
         </Border.GestureRecognizers>
     </Border>
 </ContentView>

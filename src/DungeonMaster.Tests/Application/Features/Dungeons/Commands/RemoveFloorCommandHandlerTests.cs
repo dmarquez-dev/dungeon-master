@@ -21,13 +21,16 @@ public class RemoveFloorCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithExistingFloor_RemovesFloorAndReturnsSuccess()
     {
+        // Arrange
         var dungeon = new Dungeon("Test Dungeon");
         var floor = dungeon.AddFloor("Entry");
         _writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
         _writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
+        // Act
         var result = await _handler.HandleAsync(new RemoveFloorCommand(dungeon.Id, floor.Id), CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeTrue();
         dungeon.Floors.Should().BeEmpty();
     }
@@ -35,11 +38,14 @@ public class RemoveFloorCommandHandlerTests
     [Fact]
     public async Task HandleAsync_WithNonExistentDungeon_ReturnsNotFoundFailure()
     {
+        // Arrange
         _writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
 
+        // Act
         var result = await _handler.HandleAsync(
             new RemoveFloorCommand(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
 
+        // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
     }

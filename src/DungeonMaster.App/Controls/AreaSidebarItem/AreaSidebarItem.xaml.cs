@@ -1,4 +1,5 @@
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
 
@@ -73,7 +74,7 @@ public partial class AreaSidebarItem : ContentView
 		DeleteButton.IsVisible = true;
 		if (!_isSelected)
 		{
-			ItemBorder.BackgroundColor = Color.FromArgb("#10C8A040");
+			ItemBorder.BackgroundColor = DmColors.GoldHoverTint;
 		}
 		if (Area is not null)
 		{
@@ -130,9 +131,9 @@ public partial class AreaSidebarItem : ContentView
 
 		if (editing)
 		{
-			ItemBorder.Stroke = new SolidColorBrush(Color.FromArgb("#C8A040"));
+			ItemBorder.Stroke = new SolidColorBrush(DmColors.AreaSelectedBorder);
 			ItemBorder.StrokeThickness = 1;
-			ItemBorder.BackgroundColor = Color.FromArgb("#18C8A040");
+			ItemBorder.BackgroundColor = DmColors.AreaSelectedTint;
 		}
 		else
 		{
