@@ -25,9 +25,21 @@ public partial class AreaSidebarItem : ContentView
 	public event EventHandler<AreaDto>? DeleteRequested;
 
 	/// <summary>
-	///		Raised when the user commits a new name for the area.
+	///		Raised when the user taps this area to enter area edit context.
 	/// </summary>
-	public event EventHandler<string>? NameCommitted;
+	public event EventHandler<AreaDto>? SelectRequested;
+
+	/// <summary>
+	///     Raised when the pointer enters this area item.
+	/// </summary>
+	public event EventHandler<AreaDto>? HoverStarted;
+
+	/// <summary>
+	///     Raised when the pointer exits this area item.
+	/// </summary>
+	public event EventHandler<AreaDto>? HoverEnded;
+
+	private bool _isSelected;
 
 	/// <summary>
 	///		Gets or sets the area data displayed and edited by this item.
@@ -53,14 +65,42 @@ public partial class AreaSidebarItem : ContentView
 			return;
 		}
 
-		AreaNameEditor.Text = area.Name;
+		AreaNameLabel.Text = area.Name;
 	}
 
-	private void OnPointerEntered(object? sender, PointerEventArgs e) =>
+	private void OnPointerEntered(object? sender, PointerEventArgs e)
+	{
 		DeleteButton.IsVisible = true;
+		if (!_isSelected)
+		{
+			ItemBorder.BackgroundColor = Color.FromArgb("#10C8A040");
+		}
+		if (Area is not null)
+		{
+			HoverStarted?.Invoke(this, Area);
+		}
+	}
 
-	private void OnPointerExited(object? sender, PointerEventArgs e) =>
+	private void OnPointerExited(object? sender, PointerEventArgs e)
+	{
 		DeleteButton.IsVisible = false;
+		if (!_isSelected)
+		{
+			ItemBorder.BackgroundColor = Colors.Transparent;
+		}
+		if (Area is not null)
+		{
+			HoverEnded?.Invoke(this, Area);
+		}
+	}
+
+	private void OnItemTapped(object? sender, TappedEventArgs e)
+	{
+		if (Area is not null)
+		{
+			SelectRequested?.Invoke(this, Area);
+		}
+	}
 
 	private void OnDeleteClicked(object? sender, EventArgs e)
 	{
@@ -71,16 +111,35 @@ public partial class AreaSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		Commits any in-progress name edit without requiring user interaction.
+	///		Updates the displayed area name label.
 	/// </summary>
-	public void TryCommitActiveEditor() =>
-		AreaNameEditor.TryCommit();
+	public void UpdateAreaName(string name) =>
+		AreaNameLabel.Text = name;
 
-	private void OnAreaNameCommitted(object? sender, string? name)
+	/// <summary>
+	///		No-op — area name editing moved to the map toolbar.
+	/// </summary>
+	public void TryCommitActiveEditor() { }
+
+	/// <summary>
+	///		Sets the selected/editing visual state (gold border and subtle background).
+	/// </summary>
+	public void SetEditing(bool editing)
 	{
-		if (!string.IsNullOrWhiteSpace(name))
+		_isSelected = editing;
+
+		if (editing)
 		{
-			NameCommitted?.Invoke(this, name);
+			ItemBorder.Stroke = new SolidColorBrush(Color.FromArgb("#C8A040"));
+			ItemBorder.StrokeThickness = 1;
+			ItemBorder.BackgroundColor = Color.FromArgb("#18C8A040");
+		}
+		else
+		{
+			ItemBorder.Stroke = new SolidColorBrush(Colors.Transparent);
+			ItemBorder.StrokeThickness = 0;
+			ItemBorder.BackgroundColor = Colors.Transparent;
 		}
 	}
+
 }
