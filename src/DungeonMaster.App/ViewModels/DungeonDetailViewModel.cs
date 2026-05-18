@@ -4,7 +4,10 @@ using CommunityToolkit.Mvvm.Input;
 using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
+using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
+using DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
+using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
@@ -12,6 +15,7 @@ using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateFloor;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.Domain.Entities.Area;
 using DungeonMaster.Domain.ValueObjects;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 
@@ -62,7 +66,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	///		Gets or sets the active drawing tool on the map canvas.
 	/// </summary>
 	[ObservableProperty]
-	public partial MapTool ActiveTool { get; set; } = MapTool.Draw;
+	public partial MapTool ActiveTool { get; set; } = MapTool.Pan;
 
 	/// <summary>
 	///		Gets the draw session that tracks in-progress vertices for the current area edit.
@@ -307,6 +311,28 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
+	///     Persists a moved area outline. Placed objects are stored in area-relative coordinates
+	///     so they require no position updates when their containing area moves.
+	/// </summary>
+	public async Task MoveAreaWithObjectsAsync(
+		Guid floorId,
+		Guid areaId,
+		TilePoint newOrigin,
+		IReadOnlyList<PathSegment> newOutline)
+	{
+		await dispatcher.SendAsync<bool>(
+			new UpdateAreaOutlineCommand(
+				_dungeonId,
+				floorId,
+				areaId,
+				newOrigin,
+				newOutline),
+			CancellationToken.None);
+
+		await LoadDungeonAsync(_dungeonId);
+	}
+
+	/// <summary>
 	///     Creates a new area on the specified floor and immediately saves its outline in one operation.
 	///     Used for draw-to-spawn: the area is added to the DB then its outline is written atomically.
 	/// </summary>
@@ -328,5 +354,69 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.Origin,
 				args.Outline),
 			CancellationToken.None);
+	}
+
+	/// <summary>
+	///     Places a new object on the specified area and reloads the dungeon detail.
+	/// </summary>
+	[RelayCommand]
+	private async Task AddPlacedObjectAsync(
+		(Guid FloorId, Guid AreaId, ObjectKind Kind, CanvasPoint Position, ObjectRotation Rotation) args)
+	{
+		await dispatcher.SendAsync<Guid>(
+			new AddPlacedObjectCommand(
+				_dungeonId,
+				args.FloorId,
+				args.AreaId,
+				args.Kind,
+				args.Position,
+				args.Rotation),
+			CancellationToken.None);
+
+		await LoadDungeonAsync(_dungeonId);
+	}
+
+	/// <summary>
+	///     Removes a placed object from the specified area and reloads the dungeon detail.
+	/// </summary>
+	public async Task RemovePlacedObjectAsync(
+		Guid dungeonId,
+		Guid floorId,
+		Guid areaId,
+		Guid objectId)
+	{
+		await dispatcher.SendAsync<bool>(
+			new RemovePlacedObjectCommand(
+				dungeonId,
+				floorId,
+				areaId,
+				objectId),
+			CancellationToken.None);
+
+		await LoadDungeonAsync(dungeonId);
+	}
+
+	/// <summary>
+	///     Updates the position and rotation of a placed object and reloads the dungeon detail.
+	/// </summary>
+	public async Task UpdatePlacedObjectAsync(
+		Guid dungeonId,
+		Guid floorId,
+		Guid areaId,
+		Guid objectId,
+		CanvasPoint position,
+		ObjectRotation rotation)
+	{
+		await dispatcher.SendAsync<bool>(
+			new UpdatePlacedObjectCommand(
+				dungeonId,
+				floorId,
+				areaId,
+				objectId,
+				position,
+				rotation),
+			CancellationToken.None);
+
+		await LoadDungeonAsync(dungeonId);
 	}
 }

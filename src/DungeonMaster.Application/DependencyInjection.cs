@@ -2,15 +2,18 @@ using DungeonMaster.Application.Common.Behaviors;
 using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
+using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
+using DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateFloor;
+using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 using FluentValidation;
@@ -87,6 +90,15 @@ public static class ApplicationServiceCollectionExtensions
 		services.AddScoped<
 			ICommandHandler<UpdateAreaOutlineCommand, bool>,
 			UpdateAreaOutlineCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<AddPlacedObjectCommand, Guid>,
+			AddPlacedObjectCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<RemovePlacedObjectCommand, bool>,
+			RemovePlacedObjectCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<UpdatePlacedObjectCommand, bool>,
+			UpdatePlacedObjectCommandHandler>();
 
 		return services;
 	}

@@ -29,7 +29,7 @@
                 TextColor="{StaticResource DMTextPrimary}"
                 VerticalOptions="Center">
                 <Label.Behaviors>
-                    <behaviors:HandCursorBehavior />
+                    <behaviors:HandCursorBehavior Shape="IBeam" />
                 </Label.Behaviors>
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnLabelTapped" />

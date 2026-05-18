@@ -5,4 +5,72 @@
     xmlns:maui="using:Microsoft.Maui"
     xmlns:local="using:DungeonMaster.App.WinUI">
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Scrollbar thumb — gold palette -->
+            <SolidColorBrush x:Key="ScrollBarThumbFillBrush"              Color="#664a3820" />
+            <SolidColorBrush x:Key="ScrollBarThumbFillBrushPointerOver"   Color="#C8A040" />
+            <SolidColorBrush x:Key="ScrollBarThumbFillBrushPressed"       Color="#F5E4B0" />
+            <SolidColorBrush x:Key="ScrollBarThumbFillBrushDisabled"      Color="#332a2010" />
+
+            <!-- Text selection highlight — amber/parchment instead of system purple -->
+            <SolidColorBrush x:Key="TextControlSelectionHighlightColor"   Color="#664a3820" />
+
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- Parchment ComboBox/Picker theme — same values for Light and Dark
+                     so the dropdown always matches the palette regardless of system theme. -->
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ComboBoxDropDownBackground"                      Color="#EDD8A0" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush"                     Color="#9A7820" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground"                 Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocused"          Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForeground"                          Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver"               Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundSelected"                  Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedUnfocused"         Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundPressed"                   Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundDisabled"                  Color="#9A8060" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackground"                          Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver"               Color="#D6BE82" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed"                   Color="#B89A60" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected"                  Color="#C8AC78" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver"       Color="#D6BE82" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedUnfocused"         Color="#C8AC78" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="ComboBoxDropDownBackground"                      Color="#EDD8A0" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush"                     Color="#9A7820" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground"                 Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocused"          Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForeground"                          Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver"               Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundSelected"                  Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedUnfocused"         Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundPressed"                   Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundDisabled"                  Color="#9A8060" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackground"                          Color="Transparent" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver"               Color="#D6BE82" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed"                   Color="#B89A60" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected"                  Color="#C8AC78" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver"       Color="#D6BE82" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedUnfocused"         Color="#C8AC78" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="ComboBoxDropDownBackground"                      Color="#EDD8A0" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush"                     Color="#9A7820" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground"                 Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocused"          Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForeground"                          Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver"               Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundSelected"                  Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedUnfocused"         Color="#5C3E10" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver"               Color="#D6BE82" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected"                  Color="#C8AC78" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver"       Color="#D6BE82" />
+                    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedUnfocused"         Color="#C8AC78" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
 </maui:MauiWinUIApplication>

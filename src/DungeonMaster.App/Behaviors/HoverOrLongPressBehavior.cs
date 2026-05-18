@@ -4,7 +4,6 @@ public sealed class HoverOrLongPressBehavior : Behavior<View>
 {
 	private const int LongPressMs = 450;
 
-	private View? _view;
 	private PointerGestureRecognizer? _pointer;
 	private System.Timers.Timer? _longPressTimer;
 	private bool _touching;
@@ -16,8 +15,6 @@ public sealed class HoverOrLongPressBehavior : Behavior<View>
 	protected override void OnAttachedTo(View bindable)
 	{
 		base.OnAttachedTo(bindable);
-		_view = bindable;
-
 		_pointer = new PointerGestureRecognizer();
 		_pointer.PointerEntered += OnPointerEntered;
 		_pointer.PointerExited += OnPointerExited;
@@ -42,7 +39,6 @@ public sealed class HoverOrLongPressBehavior : Behavior<View>
 			_pointer = null;
 		}
 
-		_view = null;
 		base.OnDetachingFrom(bindable);
 	}
 

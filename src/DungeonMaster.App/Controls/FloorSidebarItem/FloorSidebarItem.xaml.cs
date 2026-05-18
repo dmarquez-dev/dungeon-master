@@ -69,11 +69,6 @@ public partial class FloorSidebarItem : ContentView
 	public event EventHandler? AddAreaRequested;
 
 	/// <summary>
-	///		Raised when the user requests deletion of an area on this floor.
-	/// </summary>
-	public event EventHandler<AreaDto>? AreaDeleteRequested;
-
-	/// <summary>
 	///		Raised when the user taps an area item to enter area edit context.
 	/// </summary>
 	public event EventHandler<AreaDto>? AreaSelectRequested;
@@ -128,12 +123,12 @@ public partial class FloorSidebarItem : ContentView
 		foreach (var area in floor.Areas)
 		{
 			var item = new AreaSidebarItem { Area = area };
-			item.DeleteRequested += (_, deletedArea) =>
-				AreaDeleteRequested?.Invoke(this, deletedArea);
 			item.SelectRequested += (_, selectedArea) =>
 				AreaSelectRequested?.Invoke(this, selectedArea);
-			item.HoverStarted += (_, hoveredArea) => AreaHoverStarted?.Invoke(this, hoveredArea);
-			item.HoverEnded += (_, hoveredArea) => AreaHoverEnded?.Invoke(this, hoveredArea);
+			item.HoverStarted += (_, hoveredArea) =>
+				AreaHoverStarted?.Invoke(this, hoveredArea);
+			item.HoverEnded += (_, hoveredArea) =>
+				AreaHoverEnded?.Invoke(this, hoveredArea);
 			AreaContainer.Children.Add(item);
 		}
 	}
@@ -217,7 +212,8 @@ public partial class FloorSidebarItem : ContentView
 		FloorBorder.Stroke = expanded ? _borderActive : _borderNormal;
 	}
 
-	// Card tap only expands — collapsing happens via single-select (clicking another floor).
+	// Card tap expands when collapsed, or fires SelectRequested when already expanded.
+	// The page uses SelectRequested to exit area context when the floor card is re-tapped.
 	// Delete and drag handle suppress this to avoid unexpected expansion on hover-revealed controls.
 	private void OnCardTapped(object? sender, TappedEventArgs e)
 	{
@@ -230,8 +226,8 @@ public partial class FloorSidebarItem : ContentView
 		if (!_isExpanded)
 		{
 			SetExpanded(true);
-			SelectRequested?.Invoke(this, EventArgs.Empty);
 		}
+		SelectRequested?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void OnDragHandleTapped(object? sender, TappedEventArgs e) =>

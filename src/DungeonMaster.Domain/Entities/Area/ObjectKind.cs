@@ -2,26 +2,50 @@ namespace DungeonMaster.Domain.Entities.Area;
 
 public enum ObjectKind
 {
-    // Wall category (default snap: edge)
+    // ── Doors (wall-snap) ────────────────────────────────────────────────────
     DoorWood,
     DoorIron,
     DoorPortcullis,
     Arch,
     Window,
 
-    // Floor category (default snap: center)
+    // ── Furniture ────────────────────────────────────────────────────────────
     TableRound,
     TableRect,
+    TableEnd,
+    Desk,
     Chair,
-    Chest,
-    Barrel,
-    Crate,
-    Torch,
-    Brazier,
-    Fountain,
-    Altar,
+    Armchair,
+    Bench,
+    Stool,
     Throne,
     Bed,
     StairsUp,
-    StairsDown
+    StairsDown,
+
+    // ── Storage ──────────────────────────────────────────────────────────────
+    Chest,
+    Barrel,
+    Crate,
+    Bookshelf,
+    Dresser,
+    Shelf,
+    Vase,
+    WickerBasket,
+
+    // ── Lighting ─────────────────────────────────────────────────────────────
+    Torch,
+    Brazier,
+    Lantern,
+    Chandelier,
+    Candle,
+
+    // ── Decoration ───────────────────────────────────────────────────────────
+    Fountain,
+    Altar,
+    Statue,
+    Rug,
+    Cauldron,
+    Oven,
+    WeaponRack,
 }

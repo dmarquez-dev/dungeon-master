@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DungeonMaster.App.Views.DungeonDetail.SecondaryPaletteView">
+
+    <Border BackgroundColor="#EDD8A0"
+            Stroke="#8B5E1A"
+            StrokeThickness="1"
+            Padding="8"
+            WidthRequest="272"
+            HorizontalOptions="Start">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="4" />
+        </Border.StrokeShape>
+        <VerticalStackLayout Spacing="4">
+
+            <Grid ColumnDefinitions="*,Auto">
+                <Label x:Name="TitleLabel"
+                       Grid.Column="0"
+                       FontFamily="EBGaramondRegular"
+                       FontSize="13"
+                       TextColor="#5C3E10"
+                       TextTransform="Uppercase"
+                       CharacterSpacing="0.8"
+                       VerticalOptions="Center" />
+                <Button x:Name="CloseButton"
+                        Grid.Column="1"
+                        Text="✕"
+                        FontSize="12"
+                        TextColor="#7A5030"
+                        BackgroundColor="Transparent"
+                        Padding="0"
+                        WidthRequest="22" HeightRequest="22"
+                        Clicked="OnCloseClicked" />
+            </Grid>
+
+            <ScrollView x:Name="ScrollArea"
+                        Orientation="Vertical"
+                        VerticalScrollBarVisibility="Always"
+                        MaximumHeightRequest="200">
+                <Grid x:Name="ObjectGrid"
+                      ColumnSpacing="4"
+                      RowSpacing="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition Width="48" />
+                        <ColumnDefinition Width="48" />
+                    </Grid.ColumnDefinitions>
+                </Grid>
+            </ScrollView>
+
+        </VerticalStackLayout>
+    </Border>
+</ContentView>

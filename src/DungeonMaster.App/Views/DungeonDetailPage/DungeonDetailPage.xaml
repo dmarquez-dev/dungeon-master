@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
+    xmlns:palette="clr-namespace:DungeonMaster.App.Views.DungeonDetail"
     x:Class="DungeonMaster.App.Views.DungeonDetailPage"
     x:DataType="vm:DungeonDetailViewModel"
     Shell.NavBarIsVisible="False"
@@ -50,13 +51,13 @@
 
             <Grid Grid.Column="2">
                 <Button
-                    Text="&#xE97D;  Start Session"
-                    FontFamily="RpgAwesome"
-                    FontSize="17"
+                    Text="Start Session"
+                    FontFamily="EBGaramondRegular"
+                    FontSize="20"
                     BackgroundColor="{StaticResource DMConfirm}"
                     TextColor="{StaticResource DMConfirmText}"
                     CornerRadius="3"
-                    Padding="12,6"
+                    Padding="36,6,12,6"
                     IsEnabled="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
                     <Button.Behaviors>
                         <behaviors:HandCursorBehavior />
@@ -69,6 +70,15 @@
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
+                <!-- Crossed-sword icon overlaid on the left of the button -->
+                <Label Text="&#xE97D;"
+                       FontFamily="RpgAwesome"
+                       FontSize="16"
+                       TextColor="{StaticResource DMConfirmText}"
+                       HorizontalOptions="Start"
+                       VerticalOptions="Center"
+                       Margin="12,0,0,0"
+                       InputTransparent="True" />
                 <!-- Transparent overlay carries tooltip when button is disabled -->
                 <BoxView
                     BackgroundColor="Transparent"
@@ -195,7 +205,7 @@
 
                             <!-- Floor context: name input + drawing tools -->
                             <Grid x:Name="FloorContextToolbar" IsVisible="True"
-                                  ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                                  ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
 
                                 <controls:DmInlineEditor
                                     x:Name="FloorNameToolbarEditor"
@@ -216,14 +226,14 @@
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
-                                    ToolTipProperties.Text="Draw (D)">
+                                    ToolTipProperties.Text="Draw area (D)">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnToolDrawClicked" />
                                     </Border.GestureRecognizers>
                                     <Border.Behaviors>
                                         <behaviors:HandCursorBehavior />
                                     </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
                                         <Label
                                             x:Name="ToolDrawIcon"
                                             Text="&#xEA75;"
@@ -233,9 +243,9 @@
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolDrawLabel"
-                                            Text="Draw"
+                                            Text="D"
                                             FontFamily="EBGaramondRegular"
-                                            FontSize="15"
+                                            FontSize="13"
                                             TextColor="{StaticResource DMScrollGoldLight}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
@@ -250,26 +260,94 @@
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
-                                    ToolTipProperties.Text="Move (M)">
+                                    ToolTipProperties.Text="Move areas (M)">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnToolMoveClicked" />
                                     </Border.GestureRecognizers>
                                     <Border.Behaviors>
                                         <behaviors:HandCursorBehavior />
                                     </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
                                         <Label
                                             x:Name="ToolMoveIcon"
-                                            Text="&#x2194;"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="15"
+                                            Text="&#xE9D9;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
                                             TextColor="{StaticResource DMTextMuted}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolMoveLabel"
-                                            Text="Move"
+                                            Text="M"
                                             FontFamily="EBGaramondRegular"
-                                            FontSize="15"
+                                            FontSize="13"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Select tool — click an area on the map to enter it -->
+                                <Border
+                                    x:Name="ToolSelectBorder"
+                                    Grid.Column="3"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Select area (S)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolSelectClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolSelectIcon"
+                                            Text="&#xE9B6;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolSelectLabel"
+                                            Text="S"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="13"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Erase tool — delete an area by clicking it on the canvas -->
+                                <Border
+                                    x:Name="ToolEraseBorder"
+                                    Grid.Column="4"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Erase area (E)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolEraseClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolEraseIcon"
+                                            Text="&#xE936;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolEraseLabel"
+                                            Text="E"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
@@ -278,52 +356,32 @@
                                 <!-- Pan tool -->
                                 <Border
                                     x:Name="ToolPanBorder"
-                                    Grid.Column="3"
+                                    Grid.Column="5"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
-                                    ToolTipProperties.Text="Pan (H)">
+                                    ToolTipProperties.Text="Pan / scroll (H)">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnToolPanClicked" />
                                     </Border.GestureRecognizers>
                                     <Border.Behaviors>
                                         <behaviors:HandCursorBehavior />
                                     </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
                                         <Label
-                                            x:Name="ToolPanLabel"
-                                            Text="Pan"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="15"
+                                            x:Name="ToolPanIcon"
+                                            Text="&#xEA78;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
                                             TextColor="{StaticResource DMTextMuted}"
                                             VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                                <!-- Place tool -->
-                                <Border
-                                    x:Name="ToolPlaceBorder"
-                                    Grid.Column="4"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Place (P)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
                                         <Label
-                                            x:Name="ToolPlaceLabel"
-                                            Text="Place"
+                                            x:Name="ToolPanLabel"
+                                            Text="H"
                                             FontFamily="EBGaramondRegular"
-                                            FontSize="15"
+                                            FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
@@ -331,9 +389,9 @@
 
                             </Grid>
 
-                            <!-- Area context: back + area name + redraw -->
+                            <!-- Area context: back + area name + redraw + place + pan -->
                             <Grid x:Name="AreaContextToolbar" IsVisible="False"
-                                  ColumnDefinitions="Auto,*,Auto" ColumnSpacing="4">
+                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="4">
 
                                 <Button
                                     Grid.Column="0"
@@ -362,23 +420,91 @@
                                     TextCommitted="OnAreaNameToolbarCommitted"
                                     VerticalOptions="Center" />
 
-                                <!-- Redraw tool -->
+                                <!-- Place tool (area context only — objects belong to areas) -->
                                 <Border
-                                    x:Name="ToolRedrawBorder"
+                                    x:Name="ToolPlaceBorder"
                                     Grid.Column="2"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
-                                    ToolTipProperties.Text="Redraw area outline">
+                                    ToolTipProperties.Text="Place objects (P)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolPlaceIcon"
+                                            Text="&#xE9B8;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolPlaceLabel"
+                                            Text="P"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="13"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Pan tool (area context) -->
+                                <Border
+                                    x:Name="ToolPanAreaBorder"
+                                    Grid.Column="3"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Pan / scroll (H)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolPanClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolPanAreaIcon"
+                                            Text="&#xEA78;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolPanAreaLabel"
+                                            Text="H"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="13"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Redraw tool -->
+                                <Border
+                                    x:Name="ToolRedrawBorder"
+                                    Grid.Column="4"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Redraw area outline (D)">
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnToolRedrawClicked" />
                                     </Border.GestureRecognizers>
                                     <Border.Behaviors>
                                         <behaviors:HandCursorBehavior />
                                     </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
                                         <Label
                                             x:Name="ToolRedrawIcon"
                                             Text="&#xEA75;"
@@ -388,9 +514,9 @@
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolRedrawLabel"
-                                            Text="Redraw"
+                                            Text="D"
                                             FontFamily="EBGaramondRegular"
-                                            FontSize="15"
+                                            FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
@@ -423,81 +549,13 @@
                                 </Button.Behaviors>
                             </Button>
 
-                            <Border
-                                x:Name="SaveButton"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
-                                Opacity="0.4"
-                                InputTransparent="True"
-                                ToolTipProperties.Text="Save changes">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnSaveClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="SaveIcon"
-                                        Text="&#xEA34;"
-                                        FontFamily="RpgAwesome"
-                                        FontSize="17"
-                                        TextColor="{StaticResource DMTextMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="SaveLabel"
-                                        Text="Save"
-                                        FontFamily="EBGaramondRegular"
-                                        FontSize="15"
-                                        TextColor="{StaticResource DMTextMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                            <Border
-                                x:Name="DiscardButton"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
-                                Opacity="0.4"
-                                InputTransparent="True"
-                                ToolTipProperties.Text="Discard changes">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDiscardClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="DiscardIcon"
-                                        Text="&#xE955;"
-                                        FontFamily="RpgAwesome"
-                                        FontSize="17"
-                                        TextColor="{StaticResource DMTextMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="DiscardLabel"
-                                        Text="Discard"
-                                        FontFamily="EBGaramondRegular"
-                                        FontSize="15"
-                                        TextColor="{StaticResource DMTextMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
                         </HorizontalStackLayout>
 
                     </Grid>
                 </Border>
 
                 <!-- Map canvas + zoom overlay -->
-                <Grid Grid.Row="1">
+                <Grid x:Name="MapOverlay" Grid.Row="1">
                     <GraphicsView
                         x:Name="MapCanvas"
                         StartInteraction="OnMapStartInteraction"
@@ -513,40 +571,122 @@
                     <VerticalStackLayout
                         HorizontalOptions="End"
                         VerticalOptions="Start"
-                        Margin="0,8,8,0"
+                        Margin="0,8,12,0"
                         Spacing="2"
                         InputTransparent="False">
-                        <Button x:Name="ZoomInButton"
-                                Text="+"
-                                WidthRequest="32" HeightRequest="32"
-                                FontSize="16"
-                                Clicked="OnZoomInClicked"
-                                BackgroundColor="#1A1610"
-                                TextColor="#C8A040"
-                                BorderColor="#4a3a1a"
-                                BorderWidth="1"
-                                CornerRadius="3"
-                                Padding="0">
-                            <Button.Behaviors>
+                        <!-- Zoom in — upward triangle -->
+                        <Grid WidthRequest="42" HeightRequest="36">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnZoomInClicked" />
+                            </Grid.GestureRecognizers>
+                            <Grid.Behaviors>
                                 <behaviors:HandCursorBehavior />
-                            </Button.Behaviors>
-                        </Button>
-                        <Button x:Name="ZoomOutButton"
-                                Text="−"
-                                WidthRequest="32" HeightRequest="32"
-                                FontSize="16"
-                                Clicked="OnZoomOutClicked"
-                                BackgroundColor="#1A1610"
-                                TextColor="#C8A040"
-                                BorderColor="#4a3a1a"
-                                BorderWidth="1"
-                                CornerRadius="3"
-                                Padding="0">
-                            <Button.Behaviors>
+                            </Grid.Behaviors>
+                            <Polygon Points="21,1 41,35 1,35"
+                                     Fill="#3D2E12"
+                                     Stroke="#C8A040"
+                                     StrokeThickness="1"
+                                     HorizontalOptions="Fill"
+                                     VerticalOptions="Fill" />
+                            <Label Text="+"
+                                   FontSize="20"
+                                   TextColor="#F5E4B0"
+                                   WidthRequest="42"
+                                   HorizontalOptions="Fill"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalOptions="End"
+                                   Margin="0,0,0,0" />
+                        </Grid>
+                        <Label x:Name="ZoomPercentLabel"
+                               Text="100%"
+                               FontFamily="EBGaramondRegular"
+                               FontSize="15"
+                               TextColor="#F5E4B0"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center"
+                               WidthRequest="42" />
+                        <!-- Zoom out — downward triangle -->
+                        <Grid WidthRequest="42" HeightRequest="36">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnZoomOutClicked" />
+                            </Grid.GestureRecognizers>
+                            <Grid.Behaviors>
                                 <behaviors:HandCursorBehavior />
-                            </Button.Behaviors>
-                        </Button>
+                            </Grid.Behaviors>
+                            <Polygon Points="1,1 41,1 21,35"
+                                     Fill="#3D2E12"
+                                     Stroke="#C8A040"
+                                     StrokeThickness="1"
+                                     HorizontalOptions="Fill"
+                                     VerticalOptions="Fill" />
+                            <Label Text="−"
+                                   FontSize="20"
+                                   TextColor="#F5E4B0"
+                                   WidthRequest="42"
+                                   HorizontalOptions="Fill"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalOptions="Start"
+                                   Margin="0,0,0,0" />
+                        </Grid>
                     </VerticalStackLayout>
+                    <palette:ObjectPaletteView
+                        x:Name="ObjectPalette"
+                        HorizontalOptions="Start"
+                        VerticalOptions="End"
+                        Margin="8,0,0,8"
+                        IsVisible="False" />
+                    <!-- Object action popup: rotate CCW, rotate CW, delete -->
+                    <Border x:Name="ObjectActionPopup"
+                            IsVisible="False"
+                            BackgroundColor="#1A1610"
+                            Stroke="#4a3a1a"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 3"
+                            Padding="4"
+                            HorizontalOptions="Start"
+                            VerticalOptions="Start">
+                        <HorizontalStackLayout Spacing="2">
+                            <Border x:Name="PopupBtnCCW"
+                                    WidthRequest="36" HeightRequest="36"
+                                    BackgroundColor="Transparent"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 2">
+                                <Label Text="↺"
+                                       FontSize="22"
+                                       TextColor="#C8A040"
+                                       Rotation="-90"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True" />
+                            </Border>
+                            <Border x:Name="PopupBtnCW"
+                                    WidthRequest="36" HeightRequest="36"
+                                    BackgroundColor="Transparent"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 2">
+                                <Label Text="↻"
+                                       FontSize="22"
+                                       TextColor="#C8A040"
+                                       Rotation="90"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True" />
+                            </Border>
+                            <Border x:Name="PopupBtnDelete"
+                                    WidthRequest="36" HeightRequest="36"
+                                    BackgroundColor="Transparent"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 2">
+                                <Label Text="&#xE9FC;"
+                                       FontFamily="RpgAwesome"
+                                       FontSize="22"
+                                       TextColor="#CC3030"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True" />
+                            </Border>
+                        </HorizontalStackLayout>
+                    </Border>
                 </Grid>
             </Grid>
 

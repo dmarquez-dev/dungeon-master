@@ -16,4 +16,10 @@ public enum MapTool
 
 	/// <summary>Place tool — click to place entities on the map (keyboard shortcut P).</summary>
 	Place,
+
+	/// <summary>Select tool — click an area on the map to enter its edit context (keyboard shortcut S).</summary>
+	Select,
+
+	/// <summary>Erase tool — click an area on the map to delete it (keyboard shortcut E).</summary>
+	Erase,
 }

@@ -30,13 +30,6 @@
             </VisualStateGroupList>
         </VisualStateManager.VisualStateGroups>
 
-        <Border.Shadow>
-            <Shadow Brush="{StaticResource DMGoldBrush}"
-                    Offset="0,2"
-                    Radius="6"
-                    Opacity="0" />
-        </Border.Shadow>
-
         <Grid ColumnDefinitions="*,Auto">
             <VerticalStackLayout Grid.Column="0" Spacing="3">
                 <Label

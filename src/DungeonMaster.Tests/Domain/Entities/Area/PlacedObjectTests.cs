@@ -10,28 +10,35 @@ public class PlacedObjectTests
     public void Constructor_SetsAllProperties()
     {
         var areaId = Guid.NewGuid();
-        var pos = new TilePoint(3, 5);
+        var pos = new CanvasPoint(120f, 200f);
 
-        var obj = new PlacedObject(areaId, ObjectKind.DoorWood, pos, SnapAnchor.East, ObjectRotation.CW90);
+        var obj = new PlacedObject(
+            areaId,
+            ObjectKind.DoorWood,
+            pos,
+            ObjectRotation.CW90);
 
         obj.Id.Should().NotBeEmpty();
         obj.AreaId.Should().Be(areaId);
         obj.Kind.Should().Be(ObjectKind.DoorWood);
         obj.Position.Should().Be(pos);
-        obj.Anchor.Should().Be(SnapAnchor.East);
         obj.Rotation.Should().Be(ObjectRotation.CW90);
     }
 
     [Fact]
-    public void Update_ChangesPositionAnchorAndRotation()
+    public void Update_ChangesPositionAndRotation()
     {
-        var obj = new PlacedObject(Guid.NewGuid(), ObjectKind.Chair, new TilePoint(1, 1), SnapAnchor.Center, ObjectRotation.None);
-        var newPos = new TilePoint(4, 2);
+        var obj = new PlacedObject(
+            Guid.NewGuid(),
+            ObjectKind.Chair,
+            new CanvasPoint(40f, 40f),
+            ObjectRotation.None);
 
-        obj.Update(newPos, SnapAnchor.North, ObjectRotation.CW180);
+        var newPos = new CanvasPoint(160f, 80f);
+
+        obj.Update(newPos, ObjectRotation.CW180);
 
         obj.Position.Should().Be(newPos);
-        obj.Anchor.Should().Be(SnapAnchor.North);
         obj.Rotation.Should().Be(ObjectRotation.CW180);
     }
 }

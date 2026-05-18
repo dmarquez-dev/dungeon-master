@@ -12,29 +12,37 @@ public class AreaObjectMethodsTests
     {
         var dungeon = new DomainDungeon("Test");
         var floor = dungeon.AddFloor(null);
-        return dungeon.AddArea(floor.Id, "A1", null);
+        return dungeon.AddArea(
+            floor.Id,
+            "A1",
+            null);
     }
 
     [Fact]
     public void AddObject_ReturnsPlacedObjectWithCorrectProperties()
     {
         var area = CreateArea();
-        var pos = new TilePoint(2, 3);
+        var pos = new CanvasPoint(80f, 120f);
 
-        var obj = area.AddObject(ObjectKind.Chair, pos, SnapAnchor.Center, ObjectRotation.None);
+        var obj = area.AddObject(
+            ObjectKind.Chair,
+            pos,
+            ObjectRotation.None);
 
         obj.Kind.Should().Be(ObjectKind.Chair);
         obj.Position.Should().Be(pos);
-        obj.Anchor.Should().Be(SnapAnchor.Center);
         obj.Rotation.Should().Be(ObjectRotation.None);
-        area.Objects.Should().ContainSingle(o => o.Id == obj.Id);
+        area.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
     }
 
     [Fact]
     public void RemoveObject_RemovesById()
     {
         var area = CreateArea();
-        var obj = area.AddObject(ObjectKind.Barrel, new TilePoint(1, 1), SnapAnchor.Center, ObjectRotation.None);
+        var obj = area.AddObject(
+            ObjectKind.Barrel,
+            new CanvasPoint(40f, 40f),
+            ObjectRotation.None);
 
         area.RemoveObject(obj.Id);
 
@@ -52,17 +60,23 @@ public class AreaObjectMethodsTests
     }
 
     [Fact]
-    public void UpdateObject_ChangesPositionAnchorAndRotation()
+    public void UpdateObject_ChangesPositionAndRotation()
     {
         var area = CreateArea();
-        var obj = area.AddObject(ObjectKind.Throne, new TilePoint(0, 0), SnapAnchor.Center, ObjectRotation.None);
-        var newPos = new TilePoint(5, 5);
+        var obj = area.AddObject(
+            ObjectKind.Throne,
+            new CanvasPoint(0f, 0f),
+            ObjectRotation.None);
 
-        area.UpdateObject(obj.Id, newPos, SnapAnchor.North, ObjectRotation.CW90);
+        var newPos = new CanvasPoint(200f, 200f);
 
-        var updated = area.Objects.Single(o => o.Id == obj.Id);
+        area.UpdateObject(
+            obj.Id,
+            newPos,
+            ObjectRotation.CW90);
+
+        var updated = area.Objects.Single(placedObject => placedObject.Id == obj.Id);
         updated.Position.Should().Be(newPos);
-        updated.Anchor.Should().Be(SnapAnchor.North);
         updated.Rotation.Should().Be(ObjectRotation.CW90);
     }
 }

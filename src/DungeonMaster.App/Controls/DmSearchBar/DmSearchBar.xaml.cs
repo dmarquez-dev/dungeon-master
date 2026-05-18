@@ -38,20 +38,10 @@ public partial class DmSearchBar : ContentView
 	private void OnSearchFocused(object? sender, FocusEventArgs e)
 	{
 		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DMCardBorderHoverBrush"];
-
-		if (SearchBorder.Shadow is Shadow shadow)
-		{
-			shadow.Opacity = 0.35f;
-		}
 	}
 
 	private void OnSearchUnfocused(object? sender, FocusEventArgs e)
 	{
 		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DMCardBorderBrush"];
-
-		if (SearchBorder.Shadow is Shadow shadow)
-		{
-			shadow.Opacity = 0f;
-		}
 	}
 }

@@ -14,7 +14,7 @@
         StrokeThickness="0"
         Padding="4,3">
 
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
 
             <!-- Diamond bullet -->
             <Label Grid.Column="0"
@@ -31,25 +31,6 @@
                 FontSize="17"
                 TextColor="{StaticResource DMScrollGoldLight}"
                 VerticalOptions="Center" />
-
-            <!-- Hover-revealed delete button -->
-            <Button
-                x:Name="DeleteButton"
-                Grid.Column="2"
-                Text="&#xE916;"
-                FontFamily="RpgAwesome"
-                FontSize="16"
-                BackgroundColor="Transparent"
-                TextColor="{StaticResource DMDestructive}"
-                Padding="4,2"
-                CornerRadius="2"
-                IsVisible="False"
-                Clicked="OnDeleteClicked"
-                ToolTipProperties.Text="Delete area">
-                <Button.Behaviors>
-                    <behaviors:HandCursorBehavior />
-                </Button.Behaviors>
-            </Button>
 
         </Grid>
 
