@@ -151,6 +151,12 @@ public partial class DmInlineEditor : ContentView
 		set => SetValue(AcceptsReturnProperty, value);
 	}
 
+	/// <summary>Raised when the internal input control gains focus.</summary>
+	public event EventHandler? EditingStarted;
+
+	/// <summary>Raised when the internal input control loses focus.</summary>
+	public event EventHandler? EditingEnded;
+
 	private bool _isEditing;
 
 	/// <summary>
@@ -191,9 +197,13 @@ public partial class DmInlineEditor : ContentView
 		if (_isEditing)
 		{
 			if (!AcceptsReturn)
+			{
 				EditEntry.Unfocus();
+			}
 			else
+			{
 				EditEditor.Unfocus();
+			}
 		}
 	}
 
@@ -239,6 +249,7 @@ public partial class DmInlineEditor : ContentView
 			var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
 			FocusBorder.Stroke = gold;
 			FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
+#if !WINDOWS
 			FocusBorder.Shadow = new Shadow
 			{
 				Brush = new SolidColorBrush(gold),
@@ -246,21 +257,26 @@ public partial class DmInlineEditor : ContentView
 				Radius = 10,
 				Opacity = 0.4f
 			};
+#endif
 		}
 	}
 
 	private void OnPointerExited(object? sender, PointerEventArgs e)
 	{
 		if (!_isEditing)
+		{
 			ClearFocusGlow();
+		}
 	}
 
 	private void OnInputFocused(object? sender, FocusEventArgs e)
 	{
 		_isEditing = true;
+		EditingStarted?.Invoke(this, EventArgs.Empty);
 		var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
 		FocusBorder.Stroke = gold;
 		FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
+#if !WINDOWS
 		FocusBorder.Shadow = new Shadow
 		{
 			Brush = new SolidColorBrush(gold),
@@ -268,6 +284,7 @@ public partial class DmInlineEditor : ContentView
 			Radius = 10,
 			Opacity = 0.4f
 		};
+#endif
 	}
 
 	// Entry.Completed fires when the user presses Enter — treat as commit.
@@ -281,6 +298,7 @@ public partial class DmInlineEditor : ContentView
 		HideInput(EditEntry);
 		DisplayLabel.Opacity = 1;
 		DisplayLabel.InputTransparent = false;
+		EditingEnded?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void OnEditorUnfocused(object? sender, FocusEventArgs e)
@@ -290,6 +308,7 @@ public partial class DmInlineEditor : ContentView
 		HideInput(EditEditor);
 		DisplayLabel.Opacity = 1;
 		DisplayLabel.InputTransparent = false;
+		EditingEnded?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void Commit(string? value)
@@ -304,6 +323,8 @@ public partial class DmInlineEditor : ContentView
 		_isEditing = false;
 		FocusBorder.Stroke = Colors.Transparent;
 		FocusBorder.ClearValue(VisualElement.BackgroundColorProperty);
+#if !WINDOWS
 		FocusBorder.ClearValue(VisualElement.ShadowProperty);
+#endif
 	}
 }

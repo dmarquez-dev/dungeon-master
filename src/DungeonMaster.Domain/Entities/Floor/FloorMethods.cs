@@ -135,14 +135,139 @@ public sealed partial class Floor
 		var area = _areas.FirstOrDefault(area =>
 			area.Id == areaId);
 
-        if (area is null)
-        {
-            return;
-        }
+		if (area is null)
+		{
+			return;
+		}
 
-        area.SetOutline(
+		area.SetOutline(
 			origin,
 			outline);
+
 		Touch();
+	}
+
+	/// <summary>
+	///		Adds a new placed object to the specified area on this floor.
+	/// </summary>
+	/// <param name="areaId">
+	///		The unique identifier of the area to add the object to.
+	/// </param>
+	/// <param name="kind">
+	///		The kind of object to place.
+	/// </param>
+	/// <param name="position">
+	///		The canvas-space position of the object's bounding-box center,
+	///		expressed as a pixel offset from the area's origin vertex.
+	/// </param>
+	/// <param name="rotation">
+	///		The rotation to apply to the object.
+	/// </param>
+	/// <returns>
+	///		The newly created <see cref="Area.PlacedObject"/> instance, or <see langword="null"/> if the area is not found.
+	/// </returns>
+	internal Area.PlacedObject? AddPlacedObject(
+		Guid areaId,
+		Area.ObjectKind kind,
+		CanvasPoint position,
+		Area.ObjectRotation rotation)
+	{
+		var area = _areas.FirstOrDefault(area =>
+			area.Id == areaId);
+
+		if (area is null)
+		{
+			return null;
+		}
+
+		var result = area.AddObject(
+			kind,
+			position,
+			rotation);
+
+		Touch();
+
+		return result;
+	}
+
+	/// <summary>
+	///		Removes the placed object with the specified identifier from the given area.
+	///		Has no effect if the area or object is not found.
+	/// </summary>
+	/// <param name="areaId">
+	///		The unique identifier of the area that owns the object.
+	/// </param>
+	/// <param name="objectId">
+	///		The unique identifier of the placed object to remove.
+	/// </param>
+	/// <returns>
+	///		<see langword="true"/> if the object was found and removed; otherwise <see langword="false"/>.
+	/// </returns>
+	internal bool RemovePlacedObject(
+		Guid areaId,
+		Guid objectId)
+	{
+		var area = _areas.FirstOrDefault(area =>
+			area.Id == areaId);
+
+		if (area is null)
+		{
+			return false;
+		}
+
+		var removed = area.RemoveObject(objectId);
+
+		if (removed)
+		{
+			Touch();
+		}
+
+		return removed;
+	}
+
+	/// <summary>
+	///		Updates the position and rotation of the specified placed object in the given area.
+	///		Has no effect if the area or object is not found.
+	/// </summary>
+	/// <param name="areaId">
+	///		The unique identifier of the area that owns the object.
+	/// </param>
+	/// <param name="objectId">
+	///		The unique identifier of the placed object to update.
+	/// </param>
+	/// <param name="newPosition">
+	///		The new canvas-space position (bounding-box center, area-relative pixels).
+	/// </param>
+	/// <param name="newRotation">
+	///		The new rotation.
+	/// </param>
+	/// <returns>
+	///		<see langword="true"/> if the object was found and updated; otherwise <see langword="false"/>.
+	/// </returns>
+	internal bool UpdatePlacedObject(
+		Guid areaId,
+		Guid objectId,
+		CanvasPoint newPosition,
+		Area.ObjectRotation newRotation)
+	{
+		var area = _areas.FirstOrDefault(area =>
+			area.Id == areaId);
+
+		if (area is null)
+		{
+			return false;
+		}
+
+		var updated = area.UpdateObject(
+			objectId,
+			newPosition,
+			newRotation);
+
+		if (updated)
+		{
+			Touch();
+		}
+
+		return updated;
 	}
 }

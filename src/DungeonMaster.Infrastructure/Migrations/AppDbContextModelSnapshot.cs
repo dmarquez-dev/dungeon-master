@@ -55,6 +55,35 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.ToTable("Areas", (string)null);
                 });
 
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.PlacedObject", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AreaId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Rotation")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.ToTable("PlacedObjects", (string)null);
+                });
+
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeon.Dungeon", b =>
                 {
                     b.Property<Guid>("Id")
@@ -149,6 +178,39 @@ namespace DungeonMaster.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.PlacedObject", b =>
+                {
+                    b.HasOne("DungeonMaster.Domain.Entities.Area.Area", null)
+                        .WithMany("Objects")
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("DungeonMaster.Domain.ValueObjects.CanvasPoint", "Position", b1 =>
+                        {
+                            b1.Property<Guid>("PlacedObjectId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<float>("X")
+                                .HasColumnType("REAL")
+                                .HasColumnName("Position_X");
+
+                            b1.Property<float>("Y")
+                                .HasColumnType("REAL")
+                                .HasColumnName("Position_Y");
+
+                            b1.HasKey("PlacedObjectId");
+
+                            b1.ToTable("PlacedObjects");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlacedObjectId");
+                        });
+
+                    b.Navigation("Position")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.Floor", b =>
                 {
                     b.HasOne("DungeonMaster.Domain.Entities.Dungeon.Dungeon", null)
@@ -156,6 +218,11 @@ namespace DungeonMaster.Infrastructure.Migrations
                         .HasForeignKey("DungeonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.Area", b =>
+                {
+                    b.Navigation("Objects");
                 });
 
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeon.Dungeon", b =>

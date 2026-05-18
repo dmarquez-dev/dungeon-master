@@ -12,12 +12,6 @@
         Stroke="{StaticResource DMCardBorderBrush}"
         BackgroundColor="{StaticResource DMCardSurface}"
         Padding="10,4">
-        <Border.Shadow>
-            <Shadow Brush="{StaticResource DMGoldBrush}"
-                    Offset="0,0"
-                    Radius="10"
-                    Opacity="0" />
-        </Border.Shadow>
         <Entry
             Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay}"
             Placeholder="Search dungeons..."

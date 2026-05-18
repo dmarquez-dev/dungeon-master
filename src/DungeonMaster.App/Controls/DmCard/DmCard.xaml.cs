@@ -1,3 +1,5 @@
+using DungeonMaster.App.Behaviors;
+
 namespace DungeonMaster.App.Controls;
 
 /// <summary>
@@ -84,35 +86,42 @@ public partial class DmCard : ContentView
 
 	private void WireHover()
 	{
-		var gesture = new PointerGestureRecognizer();
-		gesture.PointerEntered += OnPointerEntered;
-		gesture.PointerExited += OnPointerExited;
-		GestureRecognizers.Add(gesture);
+		var behavior = new HoverOrLongPressBehavior();
+		behavior.HoverEntered += OnHoverEntered;
+		behavior.HoverExited += OnHoverExited;
+		Behaviors.Add(behavior);
 	}
 
-	private void OnPointerEntered(object? sender, PointerEventArgs e)
+	private void OnHoverEntered(object? sender, EventArgs e)
 	{
 		Microsoft.Maui.Controls.VisualStateManager.GoToState(CardBorder, "PointerOver");
 		TrailingPresenter.IsVisible = true;
 #if WINDOWS
-		SetWindowsCursor(Microsoft.UI.Input.InputSystemCursorShape.Hand);
+		SetPlatformCursor(active: true);
+#elif MACCATALYST
+		SetPlatformCursor(active: true);
 #endif
 	}
 
-	private void OnPointerExited(object? sender, PointerEventArgs e)
+	private void OnHoverExited(object? sender, EventArgs e)
 	{
 		Microsoft.Maui.Controls.VisualStateManager.GoToState(CardBorder, "Normal");
 		TrailingPresenter.IsVisible = false;
 #if WINDOWS
-		SetWindowsCursor(Microsoft.UI.Input.InputSystemCursorShape.Arrow);
+		SetPlatformCursor(active: false);
+#elif MACCATALYST
+		SetPlatformCursor(active: false);
 #endif
 	}
 
 #if WINDOWS
-	private void SetWindowsCursor(Microsoft.UI.Input.InputSystemCursorShape shape)
+	private void SetPlatformCursor(bool active)
 	{
 		if (Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement element)
 		{
+			var shape = active
+				? Microsoft.UI.Input.InputSystemCursorShape.Hand
+				: Microsoft.UI.Input.InputSystemCursorShape.Arrow;
 			var cursor = Microsoft.UI.Input.InputSystemCursor.Create(shape);
 			var prop = typeof(Microsoft.UI.Xaml.UIElement)
 				.GetProperty(
@@ -123,6 +132,14 @@ public partial class DmCard : ContentView
 
 			prop?.SetValue(element, cursor);
 		}
+	}
+#elif MACCATALYST
+	private void SetPlatformCursor(bool active)
+	{
+		if (active)
+			AppKit.NSCursor.PointingHandCursor.Set();
+		else
+			AppKit.NSCursor.ArrowCursor.Set();
 	}
 #endif
 

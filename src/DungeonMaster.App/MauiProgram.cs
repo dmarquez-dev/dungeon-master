@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui;
+using Plugin.Maui.KeyListener;
 using DungeonMaster.Application;
 using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views;
@@ -25,6 +26,7 @@ public static class MauiProgram
 		builder
 			.UseMauiApp<App>()
 			.UseMauiCommunityToolkit()
+			.UseKeyListener()
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont(
@@ -60,8 +62,8 @@ public static class MauiProgram
 					"RpgAwesome");
 			});
 
-		// Strip WinUI native border/focus chrome from all Entry and Editor controls
-		// so our themed Border wrappers render cleanly without the platform's purple focus ring
+		// Strip native border/focus chrome from all Entry and Editor controls so our themed
+		// Border wrappers render cleanly without the platform's default focus ring / underline.
 		Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping(
 			"DmNativeStyle",
 			(handler, _) =>
@@ -77,6 +79,14 @@ public static class MauiProgram
 					tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 					tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 					tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+				}
+#elif MACCATALYST
+				// On macCatalyst the Entry platform view is a UITextField.
+				// Remove the system border/background so our MAUI Border wrapper is the only visible frame.
+				if (handler.PlatformView is UIKit.UITextField tf)
+				{
+					tf.BorderStyle = UIKit.UITextBorderStyle.None;
+					tf.BackgroundColor = UIKit.UIColor.Clear;
 				}
 #endif
 			});
@@ -96,6 +106,16 @@ public static class MauiProgram
 					tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 					tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 					tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+				}
+#elif MACCATALYST
+				// On macCatalyst the Editor platform view is a UITextView.
+				// Clear its default system background so the MAUI Border wrapper is the sole visual frame.
+				if (handler.PlatformView is UIKit.UITextView tv)
+				{
+					tv.BackgroundColor = UIKit.UIColor.Clear;
+					// UITextView draws a system border via its layer; clear it.
+					tv.Layer.BorderWidth = 0;
+					tv.Layer.BorderColor = CoreGraphics.CGColor.CreateSrgb(0, 0, 0, 0);
 				}
 #endif
 			});

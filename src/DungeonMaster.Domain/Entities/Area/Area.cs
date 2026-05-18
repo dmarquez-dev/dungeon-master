@@ -8,6 +8,7 @@ namespace DungeonMaster.Domain.Entities.Area;
 public sealed partial class Area : Entity
 {
 	private readonly List<PathSegment> _outline = [];
+	private readonly List<PlacedObject> _objects = [];
 
 	private Area() { }
 
@@ -65,4 +66,10 @@ public sealed partial class Area : Entity
 	/// </summary>
 	public IReadOnlyList<PathSegment> Outline =>
 		_outline.AsReadOnly();
+
+	/// <summary>
+	///		Gets the read-only list of objects placed within this area.
+	/// </summary>
+	public IReadOnlyList<PlacedObject> Objects =>
+		_objects.AsReadOnly();
 }

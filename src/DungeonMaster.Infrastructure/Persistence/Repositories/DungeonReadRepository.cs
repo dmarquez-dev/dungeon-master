@@ -27,7 +27,9 @@ public sealed class DungeonReadRepository(
 			.ToListAsync(ct);
 
 	/// <inheritdoc/>
-	public async Task<DungeonDetailDto?> GetDetailAsync(Guid id, CancellationToken ct)
+	public async Task<DungeonDetailDto?> GetDetailAsync(
+		Guid id,
+		CancellationToken ct)
 		=> await dbContext.Dungeons
 			.AsNoTracking()
 			.Where(dungeon =>
@@ -58,7 +60,15 @@ public sealed class DungeonReadRepository(
 											area.Description,
 											area.Notes,
 											area.Origin,
-											area.Outline))
+											area.Outline,
+											area.Objects
+												.Select(obj =>
+													new PlacedObjectDto(
+														obj.Id,
+														obj.Kind,
+														obj.Position,
+														obj.Rotation))
+												.ToList()))
 									.ToList()))
 						.ToList()))
 			.FirstOrDefaultAsync(ct);

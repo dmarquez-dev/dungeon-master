@@ -1,5 +1,3 @@
-using DungeonMaster.Domain.Entities.Area;
-using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 
 namespace DungeonMaster.Domain.Entities.Dungeon;
@@ -303,5 +301,134 @@ public sealed partial class Dungeon
 			origin,
 			outline);
 		Touch();
+	}
+
+	/// <summary>
+	///		Adds a new placed object to the specified area on the given floor.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor that owns the area.
+	/// </param>
+	/// <param name="areaId">
+	///		The unique identifier of the area to add the object to.
+	/// </param>
+	/// <param name="kind">
+	///		The kind of object to place.
+	/// </param>
+	/// <param name="position">
+	///		The canvas-space position of the object's bounding-box center,
+	///		expressed as a pixel offset from the area's origin vertex.
+	/// </param>
+	/// <param name="rotation">
+	///		The rotation to apply to the object.
+	/// </param>
+	/// <returns>
+	///		The newly created <see cref="Area.PlacedObject"/> instance, or <see langword="null"/> if the floor or area is not found.
+	/// </returns>
+	public Area.PlacedObject? AddPlacedObject(
+		Guid floorId,
+		Guid areaId,
+		Area.ObjectKind kind,
+		CanvasPoint position,
+		Area.ObjectRotation rotation)
+	{
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return null;
+		}
+
+		var result = floor.AddPlacedObject(
+			areaId,
+			kind,
+			position,
+			rotation);
+
+		if (result is not null)
+		{
+			Touch();
+		}
+
+		return result;
+	}
+
+	/// <summary>
+	///		Removes the placed object with the specified identifier from the given area and floor.
+	///		Has no effect if the floor, area, or object is not found.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor that owns the area.
+	/// </param>
+	/// <param name="areaId">
+	///		The unique identifier of the area that owns the object.
+	/// </param>
+	/// <param name="objectId">
+	///		The unique identifier of the placed object to remove.
+	/// </param>
+	public void RemovePlacedObject(
+		Guid floorId,
+		Guid areaId,
+		Guid objectId)
+	{
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return;
+		}
+
+		if (floor.RemovePlacedObject(
+			areaId,
+			objectId))
+		{
+			Touch();
+		}
+	}
+
+	/// <summary>
+	///		Updates the position and rotation of the specified placed object.
+	///		Has no effect if the floor, area, or object is not found.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor that owns the area.
+	/// </param>
+	/// <param name="areaId">
+	///		The unique identifier of the area that owns the object.
+	/// </param>
+	/// <param name="objectId">
+	///		The unique identifier of the placed object to update.
+	/// </param>
+	/// <param name="newPosition">
+	///		The new canvas-space position (bounding-box center, area-relative pixels).
+	/// </param>
+	/// <param name="newRotation">
+	///		The new rotation.
+	/// </param>
+	public void UpdatePlacedObject(
+		Guid floorId,
+		Guid areaId,
+		Guid objectId,
+		CanvasPoint newPosition,
+		Area.ObjectRotation newRotation)
+	{
+		var floor = _floors.FirstOrDefault(floor =>
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return;
+		}
+
+		if (floor.UpdatePlacedObject(
+			areaId,
+			objectId,
+			newPosition,
+			newRotation))
+		{
+			Touch();
+		}
 	}
 }

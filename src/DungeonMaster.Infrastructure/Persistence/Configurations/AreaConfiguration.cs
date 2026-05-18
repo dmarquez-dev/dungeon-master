@@ -56,8 +56,9 @@ public sealed class AreaConfiguration
 			area.LastModified)
 			.IsRequired();
 
-		builder.OwnsOne(area =>
-			area.Origin,
+		builder.OwnsOne(
+			area =>
+				area.Origin,
 			origin =>
 			{
 				origin.Property(point =>
@@ -75,15 +76,29 @@ public sealed class AreaConfiguration
 			area.Outline)
 			.HasColumnType("TEXT")
 			.HasConversion(
-				outline => JsonSerializer.Serialize(
-					outline,
-					JsonOptions),
-				raw => (IReadOnlyList<PathSegment>)(string.IsNullOrEmpty(raw)
-					? new List<PathSegment>()
-					: JsonSerializer.Deserialize<List<PathSegment>>(
-						raw,
-						JsonOptions) ?? new List<PathSegment>()))
+				outline =>
+					JsonSerializer.Serialize(
+						outline,
+						JsonOptions),
+				raw =>
+					(IReadOnlyList<PathSegment>)(string.IsNullOrEmpty(raw)
+						? new List<PathSegment>()
+						: JsonSerializer.Deserialize<List<PathSegment>>(
+							raw,
+							JsonOptions) ?? new List<PathSegment>()))
 			.HasField("_outline")
 			.UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
+
+		builder.HasMany(area =>
+			area.Objects)
+			.WithOne()
+			.HasForeignKey(obj =>
+				obj.AreaId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.Navigation(area =>
+			area.Objects)
+			.HasField("_objects")
+			.UsePropertyAccessMode(PropertyAccessMode.Field);
 	}
 }

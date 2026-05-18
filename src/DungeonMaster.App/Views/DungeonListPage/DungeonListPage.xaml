@@ -97,7 +97,7 @@
 
                                     <!-- Delete button -->
                                     <Button
-                                        Text="&#xE916;"
+                                        Text="&#xE9FC;"
                                         FontFamily="RpgAwesome"
                                         FontSize="20"
                                         BackgroundColor="Transparent"
@@ -141,12 +141,6 @@
                 <Button.Behaviors>
                     <behaviors:HandCursorBehavior />
                 </Button.Behaviors>
-                <Button.Shadow>
-                    <Shadow Brush="{StaticResource DMGoldBrush}"
-                            Offset="0,2"
-                            Radius="8"
-                            Opacity="0" />
-                </Button.Shadow>
             </Button>
         </Grid>
 

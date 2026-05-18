@@ -1,5 +1,3 @@
-using DungeonMaster.Domain.Entities.Floor;
-
 namespace DungeonMaster.Domain.Entities.Dungeon;
 
 /// <summary>

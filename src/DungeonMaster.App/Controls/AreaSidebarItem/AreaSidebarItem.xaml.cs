@@ -4,7 +4,7 @@ using DungeonMaster.App.Theme;
 namespace DungeonMaster.App.Controls;
 
 /// <summary>
-///		A sidebar list item that represents a single dungeon area, supporting inline name editing and delete actions.
+///		A sidebar list item that represents a single dungeon area, supporting name display and select/hover interactions.
 /// </summary>
 public partial class AreaSidebarItem : ContentView
 {
@@ -19,11 +19,6 @@ public partial class AreaSidebarItem : ContentView
 			null,
 			propertyChanged: (bindable, _, newValue) =>
 				((AreaSidebarItem)bindable).Populate((AreaDto?)newValue));
-
-	/// <summary>
-	///		Raised when the user requests deletion of this area.
-	/// </summary>
-	public event EventHandler<AreaDto>? DeleteRequested;
 
 	/// <summary>
 	///		Raised when the user taps this area to enter area edit context.
@@ -69,9 +64,8 @@ public partial class AreaSidebarItem : ContentView
 		AreaNameLabel.Text = area.Name;
 	}
 
-	private void OnPointerEntered(object? sender, PointerEventArgs e)
+	private void OnHoverEntered(object? sender, EventArgs e)
 	{
-		DeleteButton.IsVisible = true;
 		if (!_isSelected)
 		{
 			ItemBorder.BackgroundColor = DmColors.GoldHoverTint;
@@ -82,9 +76,8 @@ public partial class AreaSidebarItem : ContentView
 		}
 	}
 
-	private void OnPointerExited(object? sender, PointerEventArgs e)
+	private void OnHoverExited(object? sender, EventArgs e)
 	{
-		DeleteButton.IsVisible = false;
 		if (!_isSelected)
 		{
 			ItemBorder.BackgroundColor = Colors.Transparent;
@@ -100,14 +93,6 @@ public partial class AreaSidebarItem : ContentView
 		if (Area is not null)
 		{
 			SelectRequested?.Invoke(this, Area);
-		}
-	}
-
-	private void OnDeleteClicked(object? sender, EventArgs e)
-	{
-		if (Area is not null)
-		{
-			DeleteRequested?.Invoke(this, Area);
 		}
 	}
 
