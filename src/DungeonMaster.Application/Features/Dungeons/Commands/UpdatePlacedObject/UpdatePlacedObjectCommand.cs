@@ -5,7 +5,7 @@ using DungeonMaster.Domain.ValueObjects;
 namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 
 /// <summary>
-///		Represents a request to update the position and rotation of a placed object within an area.
+///		Represents a request to update the position, rotation, and scale of a placed object within an area.
 /// </summary>
 /// <param name="DungeonId">
 ///		The unique identifier of the dungeon that contains the floor.
@@ -25,11 +25,15 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObjec
 /// <param name="NewRotation">
 ///		The new rotation.
 /// </param>
+/// <param name="NewScale">
+///		The new scale factor.
+/// </param>
 public record UpdatePlacedObjectCommand(
 	Guid DungeonId,
 	Guid FloorId,
 	Guid AreaId,
 	Guid ObjectId,
 	CanvasPoint NewPosition,
-	ObjectRotation NewRotation)
+	ObjectRotation NewRotation,
+	float NewScale = ObjectScale.Default)
 		: ICommand<bool>;

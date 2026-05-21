@@ -77,6 +77,11 @@ namespace DungeonMaster.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<float>("Scale")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("REAL")
+                        .HasDefaultValue(1f);
+
                     b.HasKey("Id");
 
                     b.HasIndex("AreaId");

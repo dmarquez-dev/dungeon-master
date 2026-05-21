@@ -64,10 +64,11 @@ public sealed class DungeonReadRepository(
 											area.Objects
 												.Select(obj =>
 													new PlacedObjectDto(
-														obj.Id,
-														obj.Kind,
-														obj.Position,
-														obj.Rotation))
+														Id:       obj.Id,
+														Kind:     obj.Kind,
+														Position: obj.Position,
+														Rotation: obj.Rotation,
+														Scale:    obj.Scale))
 												.ToList()))
 									.ToList()))
 						.ToList()))

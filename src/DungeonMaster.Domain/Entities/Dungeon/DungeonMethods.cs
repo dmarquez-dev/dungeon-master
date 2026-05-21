@@ -304,7 +304,7 @@ public sealed partial class Dungeon
 	}
 
 	/// <summary>
-	///		Adds a new placed object to the specified area on the given floor.
+	///		Adds a new placed object to the specified area on the given floor at default scale.
 	/// </summary>
 	/// <param name="floorId">
 	///		The unique identifier of the floor that owns the area.
@@ -331,6 +331,46 @@ public sealed partial class Dungeon
 		Area.ObjectKind kind,
 		CanvasPoint position,
 		Area.ObjectRotation rotation)
+		=> AddPlacedObject(
+			floorId,
+			areaId,
+			kind,
+			position,
+			rotation,
+			Area.ObjectScale.Default);
+
+	/// <summary>
+	///		Adds a new placed object to the specified area on the given floor.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor that owns the area.
+	/// </param>
+	/// <param name="areaId">
+	///		The unique identifier of the area to add the object to.
+	/// </param>
+	/// <param name="kind">
+	///		The kind of object to place.
+	/// </param>
+	/// <param name="position">
+	///		The canvas-space position of the object's bounding-box center,
+	///		expressed as a pixel offset from the area's origin vertex.
+	/// </param>
+	/// <param name="rotation">
+	///		The rotation to apply to the object.
+	/// </param>
+	/// <param name="scale">
+	///		The scale multiplier to apply to the object.
+	/// </param>
+	/// <returns>
+	///		The newly created <see cref="Area.PlacedObject"/> instance, or <see langword="null"/> if the floor or area is not found.
+	/// </returns>
+	public Area.PlacedObject? AddPlacedObject(
+		Guid floorId,
+		Guid areaId,
+		Area.ObjectKind kind,
+		CanvasPoint position,
+		Area.ObjectRotation rotation,
+		float scale)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
 			floor.Id == floorId);
@@ -344,7 +384,8 @@ public sealed partial class Dungeon
 			areaId,
 			kind,
 			position,
-			rotation);
+			rotation,
+			scale);
 
 		if (result is not null)
 		{
@@ -389,7 +430,7 @@ public sealed partial class Dungeon
 	}
 
 	/// <summary>
-	///		Updates the position and rotation of the specified placed object.
+	///		Updates the position, rotation, and scale of the specified placed object.
 	///		Has no effect if the floor, area, or object is not found.
 	/// </summary>
 	/// <param name="floorId">
@@ -407,12 +448,16 @@ public sealed partial class Dungeon
 	/// <param name="newRotation">
 	///		The new rotation.
 	/// </param>
+	/// <param name="newScale">
+	///		The new scale multiplier.
+	/// </param>
 	public void UpdatePlacedObject(
 		Guid floorId,
 		Guid areaId,
 		Guid objectId,
 		CanvasPoint newPosition,
-		Area.ObjectRotation newRotation)
+		Area.ObjectRotation newRotation,
+		float newScale)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
 			floor.Id == floorId);
@@ -426,7 +471,8 @@ public sealed partial class Dungeon
 			areaId,
 			objectId,
 			newPosition,
-			newRotation))
+			newRotation,
+			newScale))
 		{
 			Touch();
 		}

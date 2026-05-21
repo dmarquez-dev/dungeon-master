@@ -51,12 +51,6 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	public partial string? DungeonNotes { get; set; }
 
 	/// <summary>
-	///		Gets or sets the identifier of the floor currently selected in the sidebar.
-	/// </summary>
-	[ObservableProperty]
-	public partial Guid? SelectedFloorId { get; set; }
-
-	/// <summary>
 	///		Gets or sets the identifier of the area currently being edited in draw mode.
 	/// </summary>
 	[ObservableProperty]
@@ -356,12 +350,13 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 			CancellationToken.None);
 	}
 
+	public record PlaceObjectArgs(Guid FloorId, Guid AreaId, ObjectKind Kind, CanvasPoint Position, ObjectRotation Rotation, float Scale);
+
 	/// <summary>
-	///     Places a new object on the specified area and reloads the dungeon detail.
+	///		Places a new object with the specified kind, position, rotation, and scale on the specified area and reloads the dungeon detail.
 	/// </summary>
 	[RelayCommand]
-	private async Task AddPlacedObjectAsync(
-		(Guid FloorId, Guid AreaId, ObjectKind Kind, CanvasPoint Position, ObjectRotation Rotation) args)
+	private async Task AddPlacedObjectAsync(PlaceObjectArgs args)
 	{
 		await dispatcher.SendAsync<Guid>(
 			new AddPlacedObjectCommand(
@@ -370,7 +365,8 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.AreaId,
 				args.Kind,
 				args.Position,
-				args.Rotation),
+				args.Rotation,
+				args.Scale),
 			CancellationToken.None);
 
 		await LoadDungeonAsync(_dungeonId);
@@ -397,7 +393,26 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///     Updates the position and rotation of a placed object and reloads the dungeon detail.
+	///		Updates the position and rotation of a placed object at its current scale and reloads the dungeon detail.
+	/// </summary>
+	public Task UpdatePlacedObjectAsync(
+		Guid dungeonId,
+		Guid floorId,
+		Guid areaId,
+		Guid objectId,
+		CanvasPoint position,
+		ObjectRotation rotation)
+		=> UpdatePlacedObjectAsync(
+			dungeonId,
+			floorId,
+			areaId,
+			objectId,
+			position,
+			rotation,
+			ObjectScale.Default);
+
+	/// <summary>
+	///		Updates the position, rotation, and scale of a placed object and reloads the dungeon detail.
 	/// </summary>
 	public async Task UpdatePlacedObjectAsync(
 		Guid dungeonId,
@@ -405,7 +420,8 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		Guid areaId,
 		Guid objectId,
 		CanvasPoint position,
-		ObjectRotation rotation)
+		ObjectRotation rotation,
+		float scale)
 	{
 		await dispatcher.SendAsync<bool>(
 			new UpdatePlacedObjectCommand(
@@ -414,9 +430,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				areaId,
 				objectId,
 				position,
-				rotation),
+				rotation,
+				scale),
 			CancellationToken.None);
 
 		await LoadDungeonAsync(dungeonId);
 	}
+
 }

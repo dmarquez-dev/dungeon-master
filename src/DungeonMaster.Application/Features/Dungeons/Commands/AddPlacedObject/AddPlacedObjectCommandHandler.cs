@@ -33,7 +33,8 @@ public sealed class AddPlacedObjectCommandHandler(
 			command.AreaId,
 			command.Kind,
 			command.Position,
-			command.Rotation);
+			command.Rotation,
+			command.Scale);
 
 		if (obj is null)
 		{

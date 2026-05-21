@@ -5,6 +5,15 @@ namespace DungeonMaster.Domain.Entities.Area;
 public sealed partial class Area
 {
 	/// <summary>
+	///		Adds a new <see cref="PlacedObject"/> of the specified kind to this area at default scale.
+	/// </summary>
+	internal PlacedObject AddObject(
+		ObjectKind kind,
+		CanvasPoint position,
+		ObjectRotation rotation)
+		=> AddObject(kind, position, rotation, ObjectScale.Default);
+
+	/// <summary>
 	///		Adds a new <see cref="PlacedObject"/> of the specified kind to this area.
 	/// </summary>
 	/// <param name="kind">
@@ -17,19 +26,24 @@ public sealed partial class Area
 	/// <param name="rotation">
 	///		The rotation to apply to the object.
 	/// </param>
+	/// <param name="scale">
+	///		The scale multiplier to apply to the object.
+	/// </param>
 	/// <returns>
 	///		The newly created <see cref="PlacedObject"/> instance.
 	/// </returns>
 	internal PlacedObject AddObject(
 		ObjectKind kind,
 		CanvasPoint position,
-		ObjectRotation rotation)
+		ObjectRotation rotation,
+		float scale)
 	{
 		var obj = new PlacedObject(
 			Id,
 			kind,
 			position,
-			rotation);
+			rotation,
+			scale);
 
 		_objects.Add(obj);
 		Touch();
@@ -64,7 +78,8 @@ public sealed partial class Area
 	}
 
 	/// <summary>
-	///		Updates the position and rotation of the <see cref="PlacedObject"/> with the specified identifier.
+	///		Updates the position and rotation of the <see cref="PlacedObject"/> with the specified
+	///		identifier, preserving its current scale.
 	///		If no matching object is found, the call is a no-op.
 	/// </summary>
 	/// <param name="objectId">
@@ -92,9 +107,49 @@ public sealed partial class Area
 			return false;
 		}
 
+		obj.Update(newPosition, newRotation);
+		Touch();
+
+		return true;
+	}
+
+	/// <summary>
+	///		Updates the position, rotation, and scale of the <see cref="PlacedObject"/> with the specified identifier.
+	///		If no matching object is found, the call is a no-op.
+	/// </summary>
+	/// <param name="objectId">
+	///		The unique identifier of the object to update.
+	/// </param>
+	/// <param name="newPosition">
+	///		The new canvas-space position (bounding-box center, area-relative pixels).
+	/// </param>
+	/// <param name="newRotation">
+	///		The new rotation.
+	/// </param>
+	/// <param name="newScale">
+	///		The new scale multiplier.
+	/// </param>
+	/// <returns>
+	///		<see langword="true"/> if the object was found and updated; otherwise <see langword="false"/>.
+	/// </returns>
+	internal bool UpdateObject(
+		Guid objectId,
+		CanvasPoint newPosition,
+		ObjectRotation newRotation,
+		float newScale)
+	{
+		var obj = _objects.FirstOrDefault(placedObject =>
+			placedObject.Id == objectId);
+
+		if (obj is null)
+		{
+			return false;
+		}
+
 		obj.Update(
 			newPosition,
-			newRotation);
+			newRotation,
+			newScale);
 
 		Touch();
 

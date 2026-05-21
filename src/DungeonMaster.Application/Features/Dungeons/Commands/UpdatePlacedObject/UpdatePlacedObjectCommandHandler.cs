@@ -5,7 +5,7 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObjec
 
 /// <summary>
 ///		Handles the <see cref="UpdatePlacedObjectCommand"/> by loading the dungeon aggregate,
-///		applying the position and rotation update, and persisting the change.
+///		applying the position, rotation, and scale update, and persisting the change.
 ///		Returns a not-found result if the dungeon does not exist.
 ///		Has no effect if the floor, area, or object is not found within the aggregate.
 /// </summary>
@@ -34,7 +34,8 @@ public sealed class UpdatePlacedObjectCommandHandler(
 			command.AreaId,
 			command.ObjectId,
 			command.NewPosition,
-			command.NewRotation);
+			command.NewRotation,
+			command.NewScale);
 
 		await writeRepository.UpdateAsync(
 			dungeon,

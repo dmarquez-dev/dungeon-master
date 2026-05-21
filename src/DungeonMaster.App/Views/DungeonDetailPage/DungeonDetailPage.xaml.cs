@@ -1,4 +1,4 @@
-using DungeonMaster.App.Assets.ObjectAssets;
+﻿using DungeonMaster.App.Assets.ObjectAssets;
 using Plugin.Maui.KeyListener;
 using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Controls;
@@ -156,6 +156,54 @@ public partial class DungeonDetailPage : ContentPage
 			goldHover: false,
 			() =>
 				DeleteSelectedObjectAsync());
+		AttachPopupButtonBehavior(
+			PopupBtnScaleDown,
+			goldHover: true,
+			() => ScaleObjectAsync(down: true));
+		AttachPopupButtonBehavior(
+			PopupBtnScaleUp,
+			goldHover: true,
+			() => ScaleObjectAsync(down: false));
+
+		ControlsPalette.RotateRequested += (_, dir) =>
+		{
+			if (ObjectPalette.ActiveObject is not null)
+			{
+				_ghostRotation = dir == RotationDirection.Clockwise
+					? (ObjectRotation)(((int)_ghostRotation + 1) % 4)
+					: (ObjectRotation)(((int)_ghostRotation + 3) % 4);
+				_drawable.GhostRotation = _ghostRotation;
+				MapCanvas.Invalidate();
+			}
+			else
+			{
+				_selectedObjectId ??= _hoveredObjectId;
+				if (_selectedObjectId is not null)
+				{
+					_ = RotateObjectAsync(dir == RotationDirection.Clockwise);
+				}
+			}
+		};
+		ControlsPalette.ScaleRequested += (_, dir) =>
+		{
+			var down = dir == ScaleDirection.Down;
+			if (ObjectPalette.ActiveObject is not null)
+			{
+				_drawable.GhostScale = down
+					? ObjectScale.StepDown(_drawable.GhostScale)
+					: ObjectScale.StepUp(_drawable.GhostScale);
+				ControlsPalette.UpdateScale(_drawable.GhostScale);
+				MapCanvas.Invalidate();
+			}
+			else
+			{
+				_selectedObjectId ??= _hoveredObjectId;
+				if (_selectedObjectId is not null)
+				{
+					_ = ScaleObjectAsync(down);
+				}
+			}
+		};
 	}
 
 	/// <inheritdoc/>
@@ -243,6 +291,44 @@ public partial class DungeonDetailPage : ContentPage
 						_selectedObjectId ??= _hoveredObjectId;
 						if (_selectedObjectId is not null)
 							_ = RotateObjectAsync(clockwise: true);
+					}
+				}
+				break;
+			case '[':
+				if (_viewModel.ActiveTool == MapTool.Place)
+				{
+					if (ObjectPalette.ActiveObject is not null)
+					{
+						_drawable.GhostScale = ObjectScale.StepDown(_drawable.GhostScale);
+						ControlsPalette.UpdateScale(_drawable.GhostScale);
+						MapCanvas.Invalidate();
+					}
+					else
+					{
+						_selectedObjectId ??= _hoveredObjectId;
+						if (_selectedObjectId is not null)
+						{
+							_ = ScaleObjectAsync(down: true);
+						}
+					}
+				}
+				break;
+			case ']':
+				if (_viewModel.ActiveTool == MapTool.Place)
+				{
+					if (ObjectPalette.ActiveObject is not null)
+					{
+						_drawable.GhostScale = ObjectScale.StepUp(_drawable.GhostScale);
+						ControlsPalette.UpdateScale(_drawable.GhostScale);
+						MapCanvas.Invalidate();
+					}
+					else
+					{
+						_selectedObjectId ??= _hoveredObjectId;
+						if (_selectedObjectId is not null)
+						{
+							_ = ScaleObjectAsync(down: false);
+						}
 					}
 				}
 				break;
@@ -640,6 +726,7 @@ public partial class DungeonDetailPage : ContentPage
 		ObjectActionPopup.IsVisible = false;
 
 		ObjectPalette.IsVisible = tool == MapTool.Place && _activeAreaId is not null;
+		ControlsPalette.IsVisible = tool == MapTool.Place && ObjectPalette.ActiveObject is not null;
 		if (tool != MapTool.Place)
 		{
 			OnSecondaryPaletteDismissed(null, EventArgs.Empty);
@@ -647,6 +734,8 @@ public partial class DungeonDetailPage : ContentPage
 			_drawable.GhostCanvasPosition = null;
 			_drawable.GhostRotation = ObjectRotation.None;
 			_ghostRotation = ObjectRotation.None;
+			_drawable.GhostScale = ObjectScale.Default;
+			ControlsPalette.ResetScale();
 			MapCanvas.Invalidate();
 		}
 
@@ -690,10 +779,13 @@ public partial class DungeonDetailPage : ContentPage
 		_drawable.ActiveAreaId = null;
 
 		ObjectPalette.IsVisible = false;
+		ControlsPalette.IsVisible = false;
 		_drawable.GhostObjectKind = null;
 		_drawable.GhostCanvasPosition = null;
 		_drawable.GhostRotation = ObjectRotation.None;
 		_ghostRotation = ObjectRotation.None;
+		_drawable.GhostScale = ObjectScale.Default;
+		ControlsPalette.ResetScale();
 
 		SetToolbarContext(ToolbarContext.Floor);
 		SetActiveTool(MapTool.Pan);   // Pan is the neutral default tool
@@ -730,10 +822,11 @@ public partial class DungeonDetailPage : ContentPage
 		Guid areaId,
 		ObjectKind kind,
 		CanvasPoint position,
-		ObjectRotation rotation)
+		ObjectRotation rotation,
+		float scale)
 	{
-		await _viewModel.AddPlacedObjectCommand.ExecuteAsync((
-			floorId, areaId, kind, position, rotation));
+		await _viewModel.AddPlacedObjectCommand.ExecuteAsync(
+			new DungeonDetailViewModel.PlaceObjectArgs(floorId, areaId, kind, position, rotation, scale));
 		// Reload only the floor data — do NOT call RefreshMap(), which would reset tool/context state.
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
@@ -744,6 +837,9 @@ public partial class DungeonDetailPage : ContentPage
 		_drawable.GhostObjectKind = kind;
 		_ghostRotation = ObjectRotation.None;
 		_drawable.GhostRotation = ObjectRotation.None;
+		_drawable.GhostScale = ObjectScale.Default;
+		ControlsPalette.ResetScale();
+		ControlsPalette.IsVisible = kind is not null;
 		MapCanvas.Invalidate();
 	}
 
@@ -952,20 +1048,18 @@ public partial class DungeonDetailPage : ContentPage
 		if (ObjectActionPopup.IsVisible && _popupBounds.Contains(_lastTouchPoint.X, _lastTouchPoint.Y))
 		{
 			_longPressDetector.TouchStarted();
-			var relX = _lastTouchPoint.X - _popupBounds.X;
-			var zoneW = _popupBounds.Width / 3f;
+			var relX  = _lastTouchPoint.X - _popupBounds.X;
+			var zoneW = _popupBounds.Width / 5f;
 			if (relX < zoneW)
-			{
 				_ = RotateObjectAsync(clockwise: false);
-			}
 			else if (relX < zoneW * 2)
-			{
 				_ = RotateObjectAsync(clockwise: true);
-			}
+			else if (relX < zoneW * 3)
+				_ = ScaleObjectAsync(down: true);
+			else if (relX < zoneW * 4)
+				_ = ScaleObjectAsync(down: false);
 			else
-			{
 				_ = DeleteSelectedObjectAsync();
-			}
 			return;
 		}
 
@@ -1058,7 +1152,13 @@ public partial class DungeonDetailPage : ContentPage
 			var areaOriginY = hitArea.Origin.Row * _drawable.TileSize;
 			var relPos = new CanvasPoint(placeCanvas.X - areaOriginX, placeCanvas.Y - areaOriginY);
 
-			PlaceObjectAsync(_selectedFloorId.Value, _activeAreaId.Value, placedKind, relPos, _ghostRotation);
+			PlaceObjectAsync(
+				_selectedFloorId.Value,
+				_activeAreaId.Value,
+				placedKind,
+				relPos,
+				_ghostRotation,
+				_drawable.GhostScale);
 			return;
 		}
 
@@ -1658,14 +1758,14 @@ public partial class DungeonDetailPage : ContentPage
 		var areaOriginX = owningArea.Origin.Col * _drawable.TileSize;
 		var areaOriginY = owningArea.Origin.Row * _drawable.TileSize;
 
-		// Position above the object center in screen space (3 × 36px buttons + 2×2px spacing + 2×4px padding = 120×44)
+		// Position above the object center in screen space (5 Ã— 32px buttons + 2 dividers + padding â‰ˆ 182Ã—40)
 		var canvasX = areaOriginX + obj.Position.X;
 		var canvasY = areaOriginY + obj.Position.Y;
 		var screenX = canvasX * _drawable.ZoomLevel + _drawable.PanOffset.X;
 		var screenY = canvasY * _drawable.ZoomLevel + _drawable.PanOffset.Y - 48;
 
-		const float PopupWidth = 120f;
-		const float PopupHeight = 44f;
+		const float PopupWidth  = 182f;
+		const float PopupHeight = 40f;
 		_popupBounds = new RectF(screenX, screenY, PopupWidth, PopupHeight);
 
 		ObjectActionPopup.Margin = new Thickness(screenX, screenY, 0, 0);
@@ -1744,10 +1844,58 @@ public partial class DungeonDetailPage : ContentPage
 			owningArea.Id,
 			_selectedObjectId.Value,
 			obj.Position,
-			newRotation);
+			newRotation,
+			obj.Scale);
 
 		await RefreshFloorAsync();
 		// Re-pin popup to the refreshed object position.
+		if (_selectedObjectId is not null)
+		{
+			UpdateObjectPopup();
+		}
+
+		MapCanvas.Invalidate();
+	}
+
+	private async Task ScaleObjectAsync(bool down)
+	{
+		if (_selectedObjectId is null || _selectedFloorId is null || _drawable.Floor is null)
+		{
+			return;
+		}
+
+		AreaDto? owningArea = null;
+		PlacedObjectDto? obj = null;
+		foreach (var area in _drawable.Floor.Areas)
+		{
+			obj = area.Objects.FirstOrDefault(placedObj =>
+				placedObj.Id == _selectedObjectId.Value);
+			if (obj is not null)
+			{
+				owningArea = area;
+				break;
+			}
+		}
+
+		if (owningArea is null || obj is null)
+		{
+			return;
+		}
+
+		var newScale = down
+			? ObjectScale.StepDown(obj.Scale)
+			: ObjectScale.StepUp(obj.Scale);
+
+		await _viewModel.UpdatePlacedObjectAsync(
+			_viewModel.Dungeon!.Id,
+			_selectedFloorId.Value,
+			owningArea.Id,
+			_selectedObjectId.Value,
+			obj.Position,
+			obj.Rotation,
+			newScale);
+
+		await RefreshFloorAsync();
 		if (_selectedObjectId is not null)
 		{
 			UpdateObjectPopup();
@@ -1790,7 +1938,8 @@ public partial class DungeonDetailPage : ContentPage
 			owningArea.Id,
 			objectId,
 			newPosition,
-			obj.Rotation);
+			obj.Rotation,
+			obj.Scale);
 
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
