@@ -67,6 +67,7 @@ public class UpdatePlacedObjectCommandHandlerTests
         result.IsSuccess.Should().BeTrue();
         obj.Position.Should().Be(new CanvasPoint(200f, 200f));
         obj.Rotation.Should().Be(ObjectRotation.CW90);
+        obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 
         await _writeRepository
             .Received(1)
@@ -187,7 +188,8 @@ public class UpdatePlacedObjectCommandHandlerTests
             new CanvasPoint(10f, 10f),
             ObjectRotation.None);
 
-        var originalPos = area.Objects[0].Position;
+        var theObj = area.Objects.Should().ContainSingle().Which;
+        var originalPos = theObj.Position;
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -205,10 +207,52 @@ public class UpdatePlacedObjectCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        area.Objects[0].Position.Should().Be(originalPos);
+        theObj.Position.Should().Be(originalPos);
 
         await _writeRepository
             .Received(1)
             .UpdateAsync(dungeon, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    ///		Verifies that a custom scale specified in the command is stored on the updated placed object.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_WithCustomScale_StoresScaleOnObject()
+    {
+        // Arrange
+        var dungeon = new Dungeon("D");
+        var floor = dungeon.AddFloor("F");
+        var area = dungeon.AddArea(
+            floor.Id,
+            "A",
+            null);
+
+        dungeon.AddPlacedObject(
+            floor.Id,
+            area.Id,
+            ObjectKind.Chair,
+            new CanvasPoint(10f, 10f),
+            ObjectRotation.None);
+
+        var obj = area.Objects.Should().ContainSingle().Which;
+        _writeRepository
+            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+            .Returns(dungeon);
+
+        var command = new UpdatePlacedObjectCommand(
+            dungeon.Id,
+            floor.Id,
+            area.Id,
+            obj.Id,
+            obj.Position,
+            obj.Rotation,
+            NewScale: 1.5f);
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        obj.Scale.Should().BeApproximately(1.5f, 0.001f);
     }
 }

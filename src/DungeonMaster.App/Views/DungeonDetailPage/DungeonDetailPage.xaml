@@ -629,13 +629,19 @@
                                    Margin="0,0,0,0" />
                         </Grid>
                     </VerticalStackLayout>
-                    <palette:ObjectPaletteView
-                        x:Name="ObjectPalette"
+                    <VerticalStackLayout
                         HorizontalOptions="Start"
                         VerticalOptions="End"
                         Margin="8,0,0,8"
-                        IsVisible="False" />
-                    <!-- Object action popup: rotate CCW, rotate CW, delete -->
+                        Spacing="4">
+                        <palette:ControlsPaletteView
+                            x:Name="ControlsPalette"
+                            IsVisible="False" />
+                        <palette:ObjectPaletteView
+                            x:Name="ObjectPalette"
+                            IsVisible="False" />
+                    </VerticalStackLayout>
+                    <!-- Object action popup: rotate CCW/CW | resize − /+ | delete -->
                     <Border x:Name="ObjectActionPopup"
                             IsVisible="False"
                             BackgroundColor="#1A1610"
@@ -647,12 +653,12 @@
                             VerticalOptions="Start">
                         <HorizontalStackLayout Spacing="2">
                             <Border x:Name="PopupBtnCCW"
-                                    WidthRequest="36" HeightRequest="36"
+                                    WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="↺"
-                                       FontSize="22"
+                                       FontSize="20"
                                        TextColor="#C8A040"
                                        Rotation="-90"
                                        HorizontalOptions="Center"
@@ -660,26 +666,56 @@
                                        InputTransparent="True" />
                             </Border>
                             <Border x:Name="PopupBtnCW"
-                                    WidthRequest="36" HeightRequest="36"
+                                    WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="↻"
-                                       FontSize="22"
+                                       FontSize="20"
                                        TextColor="#C8A040"
                                        Rotation="90"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
                                        InputTransparent="True" />
                             </Border>
+                            <BoxView WidthRequest="1" HeightRequest="18"
+                                     Color="#3a2e1a"
+                                     VerticalOptions="Center" />
+                            <Border x:Name="PopupBtnScaleDown"
+                                    WidthRequest="32" HeightRequest="32"
+                                    BackgroundColor="Transparent"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 2">
+                                <Label Text="−"
+                                       FontSize="20"
+                                       TextColor="#C8A040"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True" />
+                            </Border>
+                            <Border x:Name="PopupBtnScaleUp"
+                                    WidthRequest="32" HeightRequest="32"
+                                    BackgroundColor="Transparent"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 2">
+                                <Label Text="+"
+                                       FontSize="20"
+                                       TextColor="#C8A040"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       InputTransparent="True" />
+                            </Border>
+                            <BoxView WidthRequest="1" HeightRequest="18"
+                                     Color="#3a2e1a"
+                                     VerticalOptions="Center" />
                             <Border x:Name="PopupBtnDelete"
-                                    WidthRequest="36" HeightRequest="36"
+                                    WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="&#xE9FC;"
                                        FontFamily="RpgAwesome"
-                                       FontSize="22"
+                                       FontSize="20"
                                        TextColor="#CC3030"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"

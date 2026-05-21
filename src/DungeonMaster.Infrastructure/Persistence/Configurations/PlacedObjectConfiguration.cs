@@ -31,6 +31,10 @@ public sealed class PlacedObjectConfiguration
             .IsRequired()
             .HasConversion<string>();
 
+        builder.Property(obj => obj.Scale)
+            .HasColumnType("REAL")
+            .HasDefaultValue(1.0f); // DB default backs existing rows; domain guard prevents 0.0f from ever being written
+
         builder.Property(obj => obj.CreatedAt)
             .IsRequired();
 

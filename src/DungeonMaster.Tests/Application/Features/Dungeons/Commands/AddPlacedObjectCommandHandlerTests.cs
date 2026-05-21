@@ -99,9 +99,10 @@ public class AddPlacedObjectCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        area.Objects.Should().HaveCount(1);
-        area.Objects[0].Id.Should().Be(result.Value);
-        area.Objects[0].Kind.Should().Be(ObjectKind.Chair);
+        var addedObj = area.Objects.Should().ContainSingle().Which;
+        addedObj.Id.Should().Be(result.Value);
+        addedObj.Kind.Should().Be(ObjectKind.Chair);
+        addedObj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
     }
 
     /// <summary>
@@ -185,5 +186,34 @@ public class AddPlacedObjectCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorCategory.Should().Be(ErrorCategory.Validation);
+    }
+
+    /// <summary>
+    ///		Verifies that a custom scale specified in the command is stored on the placed object.
+    /// </summary>
+    [Fact]
+    public async Task HandleAsync_WithCustomScale_StoresScaleOnObject()
+    {
+        // Arrange
+        var dungeon = MakeDungeon(out var floorId, out var areaId);
+        var area = dungeon.Floors.First().Areas.First();
+        _writeRepository
+            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+            .Returns(dungeon);
+
+        var command = new AddPlacedObjectCommand(
+            dungeon.Id,
+            floorId,
+            areaId,
+            ObjectKind.Chair,
+            new CanvasPoint(40f, 40f),
+            ObjectRotation.None,
+            Scale: 2.0f);
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        area.Objects.Should().ContainSingle().Which.Scale.Should().BeApproximately(2.0f, 0.001f);
     }
 }

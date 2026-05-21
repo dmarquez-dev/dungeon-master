@@ -148,6 +148,16 @@ public sealed partial class Floor
 	}
 
 	/// <summary>
+	///		Adds a new placed object to the specified area on this floor at default scale.
+	/// </summary>
+	internal Area.PlacedObject? AddPlacedObject(
+		Guid areaId,
+		Area.ObjectKind kind,
+		CanvasPoint position,
+		Area.ObjectRotation rotation)
+		=> AddPlacedObject(areaId, kind, position, rotation, Area.ObjectScale.Default);
+
+	/// <summary>
 	///		Adds a new placed object to the specified area on this floor.
 	/// </summary>
 	/// <param name="areaId">
@@ -163,6 +173,9 @@ public sealed partial class Floor
 	/// <param name="rotation">
 	///		The rotation to apply to the object.
 	/// </param>
+	/// <param name="scale">
+	///		The scale multiplier to apply to the object.
+	/// </param>
 	/// <returns>
 	///		The newly created <see cref="Area.PlacedObject"/> instance, or <see langword="null"/> if the area is not found.
 	/// </returns>
@@ -170,7 +183,8 @@ public sealed partial class Floor
 		Guid areaId,
 		Area.ObjectKind kind,
 		CanvasPoint position,
-		Area.ObjectRotation rotation)
+		Area.ObjectRotation rotation,
+		float scale)
 	{
 		var area = _areas.FirstOrDefault(area =>
 			area.Id == areaId);
@@ -183,7 +197,8 @@ public sealed partial class Floor
 		var result = area.AddObject(
 			kind,
 			position,
-			rotation);
+			rotation,
+			scale);
 
 		Touch();
 
@@ -226,7 +241,7 @@ public sealed partial class Floor
 	}
 
 	/// <summary>
-	///		Updates the position and rotation of the specified placed object in the given area.
+	///		Updates the position, rotation, and scale of the specified placed object in the given area.
 	///		Has no effect if the area or object is not found.
 	/// </summary>
 	/// <param name="areaId">
@@ -241,6 +256,9 @@ public sealed partial class Floor
 	/// <param name="newRotation">
 	///		The new rotation.
 	/// </param>
+	/// <param name="newScale">
+	///		The new scale multiplier.
+	/// </param>
 	/// <returns>
 	///		<see langword="true"/> if the object was found and updated; otherwise <see langword="false"/>.
 	/// </returns>
@@ -248,7 +266,8 @@ public sealed partial class Floor
 		Guid areaId,
 		Guid objectId,
 		CanvasPoint newPosition,
-		Area.ObjectRotation newRotation)
+		Area.ObjectRotation newRotation,
+		float newScale)
 	{
 		var area = _areas.FirstOrDefault(area =>
 			area.Id == areaId);
@@ -261,7 +280,8 @@ public sealed partial class Floor
 		var updated = area.UpdateObject(
 			objectId,
 			newPosition,
-			newRotation);
+			newRotation,
+			newScale);
 
 		if (updated)
 		{

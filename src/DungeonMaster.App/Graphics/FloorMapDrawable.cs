@@ -115,6 +115,9 @@ public sealed class FloorMapDrawable : IDrawable
     /// <summary>When true the ghost renders with a red tint to indicate the placement is out-of-bounds.</summary>
     public bool GhostIsInvalidPlacement { get; set; }
 
+    /// <summary>Scale multiplier applied to the ghost preview (and used when placing).</summary>
+    public float GhostScale { get; set; } = ObjectScale.Default;
+
     /// <summary>Feet per tile used for phantom segment distance labels. Default 5 (standard D&amp;D).</summary>
     public float TileSizeInFeet { get; set; } = 5f;
 
@@ -359,8 +362,8 @@ public sealed class FloorMapDrawable : IDrawable
         }
 
         var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(obj.Kind);
-        var boxW = wTiles * TileSize;
-        var boxH = hTiles * TileSize;
+        var boxW = wTiles * TileSize * obj.Scale;
+        var boxH = hTiles * TileSize * obj.Scale;
 
         var drawX = centerX - boxW / 2f;
         var drawY = centerY - boxH / 2f;
@@ -449,8 +452,8 @@ public sealed class FloorMapDrawable : IDrawable
             return;
 
         var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(kind);
-        var boxW = wTiles * TileSize;
-        var boxH = hTiles * TileSize;
+        var boxW = wTiles * TileSize * GhostScale;
+        var boxH = hTiles * TileSize * GhostScale;
 
         // Ghost centers on the cursor position.
         var ghostCenterX = pos.X;

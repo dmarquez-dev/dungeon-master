@@ -13,8 +13,10 @@ namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 ///     expressed as a pixel offset from the containing area's origin vertex.
 /// </param>
 /// <param name="Rotation">The rotation applied to this object.</param>
+/// <param name="Scale">The scale factor applied to this object.</param>
 public record PlacedObjectDto(
     Guid Id,
     ObjectKind Kind,
     CanvasPoint Position,
-    ObjectRotation Rotation);
+    ObjectRotation Rotation,
+    float Scale);

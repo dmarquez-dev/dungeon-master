@@ -26,11 +26,15 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 /// <param name="Rotation">
 ///		The rotation to apply to the object.
 /// </param>
+/// <param name="Scale">
+///		The scale factor to apply to the object.
+/// </param>
 public record AddPlacedObjectCommand(
 	Guid DungeonId,
 	Guid FloorId,
 	Guid AreaId,
 	ObjectKind Kind,
 	CanvasPoint Position,
-	ObjectRotation Rotation)
+	ObjectRotation Rotation,
+	float Scale = ObjectScale.Default)
 		: ICommand<Guid>;
