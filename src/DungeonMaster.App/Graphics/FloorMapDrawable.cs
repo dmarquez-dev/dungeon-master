@@ -1,7 +1,7 @@
 using DungeonMaster.App.Assets.ObjectAssets;
 using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Platform;
@@ -33,8 +33,8 @@ public sealed class FloorMapDrawable : IDrawable
     public FloorDto? Floor { get; set; }
 
     /// <summary>
-    ///     When set, this area is the target of an active draw operation; all others render dimmed.
-    ///     Only applies when <see cref="InProgressVertices"/> is non-empty.
+    ///     When set, this area renders at full opacity and all others render dimmed.
+    ///     Purely a view filter — it never affects what the user is allowed to place or move.
     /// </summary>
     public Guid? ActiveAreaId { get; set; }
 
@@ -61,12 +61,12 @@ public sealed class FloorMapDrawable : IDrawable
     /// <summary>
     ///     Pending outline replacements for existing areas (not yet saved to DB).
     /// </summary>
-    public Dictionary<Guid, (TilePoint Origin, IReadOnlyList<PathSegment> Outline)> PendingOutlines { get; } = new();
+    public Dictionary<Guid, IReadOnlyList<PathSegment>> PendingOutlines { get; } = new();
 
     /// <summary>
     ///     New areas drawn on the canvas that have not yet been persisted to the DB.
     /// </summary>
-    public List<(TilePoint Origin, IReadOnlyList<PathSegment> Outline)> GhostAreas { get; } = [];
+    public List<IReadOnlyList<PathSegment>> GhostAreas { get; } = [];
 
     /// <summary>
     ///     Confirmed vertices for the in-progress draw operation.
@@ -112,9 +112,6 @@ public sealed class FloorMapDrawable : IDrawable
     /// <summary>Rotation applied to the ghost preview (and used when placing).</summary>
     public ObjectRotation GhostRotation { get; set; } = ObjectRotation.None;
 
-    /// <summary>When true the ghost renders with a red tint to indicate the placement is out-of-bounds.</summary>
-    public bool GhostIsInvalidPlacement { get; set; }
-
     /// <summary>Scale multiplier applied to the ghost preview (and used when placing).</summary>
     public float GhostScale { get; set; } = ObjectScale.Default;
 
@@ -142,12 +139,7 @@ public sealed class FloorMapDrawable : IDrawable
             }
 
             DrawPlacedObjects(canvas);
-
-            if (ActiveAreaId is not null)
-            {
-                DrawGhostObject(canvas);
-            }
-
+            DrawGhostObject(canvas);
             DrawInProgressOverlay(canvas);
         }
 
@@ -182,8 +174,8 @@ public sealed class FloorMapDrawable : IDrawable
         foreach (var area in Floor!.Areas)
         {
             var alpha = HoveredAreaId is null || area.Id == HoveredAreaId ? 1f : 0.3f;
-            var (origin, outline) = GetEffectiveOutline(area);
-            DrawAreaOutline(canvas, origin, outline, alpha, GetEffectiveOffset(area.Id));
+            var outline = GetEffectiveOutline(area);
+            DrawAreaOutline(canvas, outline, alpha, GetEffectiveOffset(area.Id));
         }
 
         DrawGhostAreas(canvas);
@@ -198,8 +190,8 @@ public sealed class FloorMapDrawable : IDrawable
                 alpha = area.Id == HoveredAreaId ? 1f : 0.3f;
             else
                 alpha = area.Id == ActiveAreaId ? 1f : 0.3f;
-            var (origin, outline) = GetEffectiveOutline(area);
-            DrawAreaOutline(canvas, origin, outline, alpha, GetEffectiveOffset(area.Id));
+            var outline = GetEffectiveOutline(area);
+            DrawAreaOutline(canvas, outline, alpha, GetEffectiveOffset(area.Id));
         }
 
         DrawGhostAreas(canvas);
@@ -207,17 +199,17 @@ public sealed class FloorMapDrawable : IDrawable
 
     private void DrawGhostAreas(ICanvas canvas)
     {
-        foreach (var (origin, outline) in GhostAreas)
+        foreach (var outline in GhostAreas)
         {
-            DrawAreaOutline(canvas, origin, outline, 1f);
+            DrawAreaOutline(canvas, outline, 1f);
         }
     }
 
-    private (TilePoint Origin, IReadOnlyList<PathSegment> Outline) GetEffectiveOutline(AreaDto area)
+    private IReadOnlyList<PathSegment> GetEffectiveOutline(AreaDto area)
     {
         if (PendingOutlines.TryGetValue(area.Id, out var pending))
             return pending;
-        return (area.Origin, area.Outline);
+        return area.Outline;
     }
 
     private TilePoint? GetEffectiveOffset(Guid areaId)
@@ -235,7 +227,6 @@ public sealed class FloorMapDrawable : IDrawable
 
     private void DrawAreaOutline(
         ICanvas canvas,
-        TilePoint origin,
         IReadOnlyList<PathSegment> outline,
         float alpha,
         TilePoint? offset = null)
@@ -246,10 +237,12 @@ public sealed class FloorMapDrawable : IDrawable
         canvas.StrokeColor = AreaColor.WithAlpha(alpha);
         canvas.StrokeSize = 1.5f;
 
-        var visualOrigin = offset is null
-            ? origin
-            : new TilePoint(origin.Col + offset.Col, origin.Row + offset.Row);
-        var (ox, oy) = TileCoordinateHelper.ToPixel(visualOrigin, TileSize);
+        // The polygon is closed, so the final segment's end point is also its start point.
+        var start = outline[^1].End;
+        var visualStart = offset is null
+            ? start
+            : new TilePoint(start.Col + offset.Col, start.Row + offset.Row);
+        var (ox, oy) = TileCoordinateHelper.ToPixel(visualStart, TileSize);
         var path = new PathF(ox, oy);
 
         foreach (var segment in outline)
@@ -331,24 +324,15 @@ public sealed class FloorMapDrawable : IDrawable
         if (Floor is null)
             return;
 
-        foreach (var area in Floor.Areas)
-        {
-            foreach (var obj in area.Objects)
-                DrawPlacedObject(canvas, area, obj);
-        }
+        foreach (var obj in Floor.Objects)
+            DrawPlacedObject(canvas, obj);
     }
 
-    private void DrawPlacedObject(ICanvas canvas, AreaDto area, PlacedObjectDto obj)
+    private void DrawPlacedObject(ICanvas canvas, PlacedObjectDto obj)
     {
         var isDragging = DraggingObjectId == obj.Id;
 
-        // Area origin in absolute canvas pixels.
-        var areaOffsetCol = GetEffectiveOffset(area.Id)?.Col ?? 0;
-        var areaOffsetRow = GetEffectiveOffset(area.Id)?.Row ?? 0;
-        var areaOriginX = (area.Origin.Col + areaOffsetCol) * TileSize;
-        var areaOriginY = (area.Origin.Row + areaOffsetRow) * TileSize;
-
-        // Object position is area-relative canvas pixels, center of bounding box.
+        // Object position is floor-absolute canvas pixels, center of bounding box.
         float centerX, centerY;
         if (isDragging && DraggingObjectTargetCanvas is PointF dragTarget)
         {
@@ -357,8 +341,8 @@ public sealed class FloorMapDrawable : IDrawable
         }
         else
         {
-            centerX = areaOriginX + obj.Position.X;
-            centerY = areaOriginY + obj.Position.Y;
+            centerX = obj.Position.X;
+            centerY = obj.Position.Y;
         }
 
         var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(obj.Kind);
@@ -464,20 +448,10 @@ public sealed class FloorMapDrawable : IDrawable
         var image = LoadOrGetImage(kind);
 
         canvas.SaveState();
-        canvas.Alpha = GhostIsInvalidPlacement ? 0.35f : 0.5f;
+        canvas.Alpha = 0.5f;
         ApplyRotation(canvas, GhostRotation, ghostCenterX, ghostCenterY);
 
-        if (GhostIsInvalidPlacement)
-        {
-            // Red overlay to signal invalid placement zone.
-            canvas.FillColor = Color.FromArgb("#80B03020");
-            canvas.FillRectangle(drawX, drawY, boxW, boxH);
-            canvas.StrokeColor = Color.FromArgb("#E04020");
-            canvas.StrokeDashPattern = [4f, 3f];
-            canvas.StrokeSize = 1.5f;
-            canvas.DrawRectangle(drawX, drawY, boxW, boxH);
-        }
-        else if (image is not null)
+        if (image is not null)
         {
             var scaleW = boxW / image.Width;
             var scaleH = boxH / image.Height;
