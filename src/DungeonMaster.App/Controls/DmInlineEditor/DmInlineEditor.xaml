@@ -26,7 +26,7 @@
                 x:Name="DisplayLabel"
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"
-                TextColor="{StaticResource DMTextPrimary}"
+                TextColor="{Binding TextColor, Source={x:Reference Root}}"
                 VerticalOptions="Center">
                 <Label.Behaviors>
                     <behaviors:HandCursorBehavior Shape="IBeam" />
@@ -49,9 +49,9 @@
                 VerticalOptions="Center"
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"
-                TextColor="{StaticResource DMTextPrimary}"
+                TextColor="{Binding TextColor, Source={x:Reference Root}}"
                 BackgroundColor="Transparent"
-                PlaceholderColor="{StaticResource DMTextMuted}"
+                PlaceholderColor="{Binding PlaceholderColor, Source={x:Reference Root}}"
                 Focused="OnInputFocused"
                 Unfocused="OnEntryUnfocused"
                 Completed="OnEntryCompleted" />
@@ -67,9 +67,9 @@
                 AutoSize="TextChanges"
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"
-                TextColor="{StaticResource DMTextPrimary}"
+                TextColor="{Binding TextColor, Source={x:Reference Root}}"
                 BackgroundColor="Transparent"
-                PlaceholderColor="{StaticResource DMTextMuted}"
+                PlaceholderColor="{Binding PlaceholderColor, Source={x:Reference Root}}"
                 Focused="OnInputFocused"
                 Unfocused="OnEditorUnfocused" />
         </Grid>

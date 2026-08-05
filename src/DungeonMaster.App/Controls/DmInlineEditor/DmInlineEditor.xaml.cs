@@ -64,6 +64,38 @@ public partial class DmInlineEditor : ContentView
 			18.0);
 
 	/// <summary>
+	///		Identifies the <see cref="TextColor"/> bindable property.
+	///		Defaults to the dark-tavern primary text gold; parchment-hosted editors override it with an ink colour.
+	/// </summary>
+	public static readonly BindableProperty TextColorProperty =
+		BindableProperty.Create(
+			nameof(TextColor),
+			typeof(Color),
+			typeof(DmInlineEditor),
+			Color.FromArgb("#F5E4B0"),
+			propertyChanged: (bindable, _, _) =>
+			{
+				var self = (DmInlineEditor)bindable;
+				self.SyncDisplay(self.Text);
+			});
+
+	/// <summary>
+	///		Identifies the <see cref="PlaceholderColor"/> bindable property.
+	///		Defaults to the dark-tavern muted text colour.
+	/// </summary>
+	public static readonly BindableProperty PlaceholderColorProperty =
+		BindableProperty.Create(
+			nameof(PlaceholderColor),
+			typeof(Color),
+			typeof(DmInlineEditor),
+			Color.FromArgb("#A08050"),
+			propertyChanged: (bindable, _, _) =>
+			{
+				var self = (DmInlineEditor)bindable;
+				self.SyncDisplay(self.Text);
+			});
+
+	/// <summary>
 	///		Identifies the <see cref="TextHorizontalAlignment"/> bindable property.
 	/// </summary>
 	public static readonly BindableProperty TextHorizontalAlignmentProperty =
@@ -130,6 +162,24 @@ public partial class DmInlineEditor : ContentView
 	{
 		get => (double)GetValue(FontSizeProperty);
 		set => SetValue(FontSizeProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the colour used for non-empty text in the display label and edit controls.
+	/// </summary>
+	public Color TextColor
+	{
+		get => (Color)GetValue(TextColorProperty);
+		set => SetValue(TextColorProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the colour used for placeholder text in the display label and edit controls.
+	/// </summary>
+	public Color PlaceholderColor
+	{
+		get => (Color)GetValue(PlaceholderColorProperty);
+		set => SetValue(PlaceholderColorProperty, value);
 	}
 
 	/// <summary>
@@ -230,9 +280,7 @@ public partial class DmInlineEditor : ContentView
 	{
 		var isEmpty = string.IsNullOrWhiteSpace(value);
 		DisplayLabel.Text = isEmpty ? Placeholder : value;
-		DisplayLabel.TextColor = isEmpty
-			? (Color)MauiApplication.Current!.Resources["DMTextMuted"]
-			: (Color)MauiApplication.Current!.Resources["DMTextPrimary"];
+		DisplayLabel.TextColor = isEmpty ? PlaceholderColor : TextColor;
 		DisplayLabel.FontAttributes = isEmpty ? FontAttributes.Italic : FontAttributes.None;
 	}
 
