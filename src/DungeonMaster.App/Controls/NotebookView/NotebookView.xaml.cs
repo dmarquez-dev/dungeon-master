@@ -403,9 +403,10 @@ public partial class NotebookView : ContentView
 	}
 
 	// Guards against the notebook being dragged past the parent's edge and left unreachable —
-	// the parent (MapOverlay) applies no clipping, so an unbounded drag would otherwise persist
-	// across Close()/Open() forever. Only the header's own footprint needs to overlap the parent;
-	// the rest of the notebook is free to extend beyond it as it always has.
+	// the parent (the page's outermost grid, which the notebook now spans in full so nothing can
+	// paint over it) applies no clipping, so an unbounded drag would otherwise persist across
+	// Close()/Open() forever. Only the header's own footprint needs to overlap the parent; the
+	// rest of the notebook is free to extend beyond it as it always has.
 	private void ResetTranslationIfHeaderOffscreen()
 	{
 		if (Parent is not VisualElement parent || parent.Width <= 0 || parent.Height <= 0 || Width <= 0 || Height <= 0)
