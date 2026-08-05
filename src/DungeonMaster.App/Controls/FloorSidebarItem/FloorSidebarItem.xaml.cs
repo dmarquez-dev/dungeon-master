@@ -64,6 +64,11 @@ public partial class FloorSidebarItem : ContentView
 	public event EventHandler<FloorDto>? DeleteRequested;
 
 	/// <summary>
+	///		Raised when the user requests the notebook for this floor.
+	/// </summary>
+	public event EventHandler<FloorDto>? NotebookRequested;
+
+	/// <summary>
 	///		Raised when the user requests a new area to be added to this floor.
 	/// </summary>
 	public event EventHandler? AddAreaRequested;
@@ -117,6 +122,14 @@ public partial class FloorSidebarItem : ContentView
 
 		FloorNumberLabel.Text = $"Floor {floor.Number} -";
 		FloorNameLabel.Text = floor.Name ?? string.Empty;
+
+		var hasContent =
+			!string.IsNullOrWhiteSpace(floor.Description) ||
+			!string.IsNullOrWhiteSpace(floor.Notes);
+
+		NotebookButton.TextColor = hasContent
+			? DmColors.ScrollGoldLight
+			: DmColors.InkMuted;
 
 		RebuildAreas(floor);
 	}
@@ -269,6 +282,16 @@ public partial class FloorSidebarItem : ContentView
 		if (Floor is not null)
 		{
 			DeleteRequested?.Invoke(this, Floor);
+		}
+	}
+
+	private void OnNotebookClicked(object? sender, EventArgs e)
+	{
+		_suppressCardTap = true;
+
+		if (Floor is not null)
+		{
+			NotebookRequested?.Invoke(this, Floor);
 		}
 	}
 

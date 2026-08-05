@@ -22,7 +22,7 @@
             </VerticalStackLayout.GestureRecognizers>
 
             <!-- Header row -->
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="6">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
 
                 <!-- Expand toggle (visual indicator only — card tap handles expand) -->
                 <Label
@@ -51,10 +51,28 @@
                     TextColor="{StaticResource DMScrollGoldLight}"
                     VerticalOptions="Center" />
 
+                <!-- Always-visible notebook button — colour reflects whether this floor has authored content -->
+                <Button
+                    x:Name="NotebookButton"
+                    Grid.Column="3"
+                    Text="&#xEA8F;"
+                    FontFamily="RpgAwesome"
+                    FontSize="16"
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource DMInkMuted}"
+                    Padding="4,2"
+                    CornerRadius="2"
+                    Clicked="OnNotebookClicked"
+                    ToolTipProperties.Text="Open notebook">
+                    <Button.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Button.Behaviors>
+                </Button>
+
                 <!-- Hover-revealed delete button -->
                 <Button
                     x:Name="DeleteButton"
-                    Grid.Column="3"
+                    Grid.Column="4"
                     Text="&#xE9FC;"
                     FontFamily="RpgAwesome"
                     FontSize="16"
@@ -73,7 +91,7 @@
                 <!-- Drag handle (visible on hover) -->
                 <Label
                     x:Name="DragHandle"
-                    Grid.Column="4"
+                    Grid.Column="5"
                     Text="&#x22EE;"
                     FontSize="18"
                     TextColor="{StaticResource DMTextMuted}"

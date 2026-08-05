@@ -40,6 +40,11 @@ public partial class AreaSidebarItem : ContentView
 	/// </summary>
 	public event EventHandler<AreaDto>? DeleteRequested;
 
+	/// <summary>
+	///		Raised when the user requests the notebook for this area.
+	/// </summary>
+	public event EventHandler<AreaDto>? NotebookRequested;
+
 	private bool _isSelected;
 
 	/// <summary>
@@ -67,6 +72,14 @@ public partial class AreaSidebarItem : ContentView
 		}
 
 		AreaNameLabel.Text = area.Name;
+
+		var hasContent =
+			!string.IsNullOrWhiteSpace(area.Description) ||
+			!string.IsNullOrWhiteSpace(area.Notes);
+
+		NotebookButton.TextColor = hasContent
+			? DmColors.ScrollGoldLight
+			: DmColors.InkMuted;
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)
@@ -112,6 +125,14 @@ public partial class AreaSidebarItem : ContentView
 		if (Area is not null)
 		{
 			DeleteRequested?.Invoke(this, Area);
+		}
+	}
+
+	private void OnNotebookClicked(object? sender, EventArgs e)
+	{
+		if (Area is not null)
+		{
+			NotebookRequested?.Invoke(this, Area);
 		}
 	}
 

@@ -14,7 +14,7 @@
         StrokeThickness="0"
         Padding="4,3">
 
-        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="6">
 
             <!-- Diamond bullet -->
             <Label Grid.Column="0"
@@ -32,10 +32,28 @@
                 TextColor="{StaticResource DMScrollGoldLight}"
                 VerticalOptions="Center" />
 
+            <!-- Always-visible notebook button — colour reflects whether this area has authored content -->
+            <Button
+                x:Name="NotebookButton"
+                Grid.Column="2"
+                Text="&#xEA8F;"
+                FontFamily="RpgAwesome"
+                FontSize="14"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource DMInkMuted}"
+                Padding="4,0"
+                CornerRadius="2"
+                Clicked="OnNotebookClicked"
+                ToolTipProperties.Text="Open notebook">
+                <Button.Behaviors>
+                    <behaviors:HandCursorBehavior />
+                </Button.Behaviors>
+            </Button>
+
             <!-- Hover-revealed delete button -->
             <Button
                 x:Name="DeleteButton"
-                Grid.Column="2"
+                Grid.Column="3"
                 Text="&#xE9FC;"
                 FontFamily="RpgAwesome"
                 FontSize="14"

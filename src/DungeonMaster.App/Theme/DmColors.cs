@@ -58,4 +58,10 @@ public static class DmColors
 
 	/// <summary>Focus/hover glow background tint for inline editors.</summary>
 	public static readonly Color EditorGlowTint = Color.FromArgb("#08C4862A");
+
+	/// <summary>Notebook icon — gold when the entity has authored content.</summary>
+	public static readonly Color ScrollGoldLight = Color.FromArgb("#C8A040");
+
+	/// <summary>Notebook icon — muted when the entity has no authored content.</summary>
+	public static readonly Color InkMuted = Color.FromArgb("#7A5030");
 }
