@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Notebook POC v2 — ribbon bookmarks</title>
+<style>
+@font-face { font-family: 'Cinzel'; src: url(data:font/ttf;base64,__FONT_CINZEL__) format('truetype'); font-weight: 400; }
+@font-face { font-family: 'Cinzel'; src: url(data:font/ttf;base64,__FONT_CINZEL_SB__) format('truetype'); font-weight: 600; }
+@font-face { font-family: 'Garamond'; src: url(data:font/ttf;base64,__FONT_GARAMOND__) format('truetype'); font-style: normal; }
+@font-face { font-family: 'Garamond'; src: url(data:font/ttf;base64,__FONT_GARAMOND_IT__) format('truetype'); font-style: italic; }
+@font-face { font-family: 'RpgAwesome'; src: url(data:font/ttf;base64,__FONT_RPG__) format('truetype'); }
+
+:root {
+  /* app tokens — Colors.xaml */
+  --bg: #1A1208;
+  --gold: #C4862A;
+  --text: #F5E4B0;
+  --muted: #A08050;
+  --card: rgba(139,94,26,0.18);
+  --card-hover: rgba(139,94,26,0.32);
+  --card-border: rgba(196,134,42,0.30);
+  --card-border-hover: rgba(196,134,42,0.65);
+  --parch-light: #F5E8C8;
+  --parch-dark: #ECD8A0;
+  --scroll-gold: #C8A040;
+  --scroll-gold-dark: #B08828;
+  --ink: #2C1A08;
+  --ink-muted: #7A5030;
+  --scroll-border: #8B5E1A;
+  --destructive: #8B2020;
+
+  /* proposed new tokens — heraldic ribbon reds, deliberately distinct
+     from --destructive so red keeps meaning "delete" in the sidebar */
+  --ribbon-read: #A32B24;
+  --ribbon-read-dim: #6B2019;
+  --ribbon-dm: #5E1518;
+  --ribbon-dm-dim: #401014;
+  --ribbon-text: #F0DCA8;
+
+  /* tunable ribbon geometry — these map 1:1 onto BookmarkTabShape */
+  --notch: 10px;
+  --ribbon-len: 60px;
+  --ribbon-len-dim: 40px;
+  --ribbon-pad: 6px;
+  --ribbon-pad-top: 0px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Garamond', Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page { max-width: 1240px; margin: 0 auto; padding: 32px 24px 80px; }
+
+.masthead { border-bottom: 1px solid var(--card-border); padding-bottom: 20px; margin-bottom: 24px; }
+.masthead h1 { font-family: 'Cinzel', serif; font-weight: 600; font-size: 26px; letter-spacing: 2px; color: var(--gold); margin: 0 0 6px; }
+.masthead p { margin: 0; color: var(--muted); font-size: 17px; max-width: 76ch; }
+
+.section-label {
+  font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2.4px;
+  color: var(--muted); margin: 34px 0 14px; display: flex; align-items: center; gap: 12px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--card-border), transparent); }
+
+/* ─────────────  stage  ───────────── */
+
+.stage {
+  position: relative; height: 600px; border: 1px solid var(--card-border); border-radius: 4px;
+  overflow: hidden; display: grid; grid-template-columns: 1fr 300px; gap: 16px; padding: 16px;
+  background:
+    repeating-linear-gradient(0deg, rgba(196,134,42,0.055) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(196,134,42,0.055) 0 1px, transparent 1px 32px),
+    var(--bg);
+}
+
+.canvas { position: relative; }
+.canvas svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.canvas-note { position: absolute; left: 14px; bottom: 10px; font-size: 14px; font-style: italic; color: var(--ink-muted); }
+
+/* ─────────────  sidebar  ───────────── */
+
+.sidebar { display: flex; flex-direction: column; gap: 8px; }
+.floor-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 3px; overflow: hidden; }
+.row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; transition: background 120ms; }
+.row:hover { background: var(--card-hover); }
+.row-name { flex: 1; font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.8px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.area-row { padding-left: 28px; border-top: 1px solid rgba(196,134,42,0.12); }
+.area-row .row-name { font-family: 'Garamond', serif; font-size: 16px; letter-spacing: 0; color: var(--muted); }
+.area-row.is-focused { background: var(--card-hover); }
+.area-row.is-focused .row-name { color: var(--text); }
+
+.icon-btn {
+  font-family: 'RpgAwesome'; font-size: 15px; line-height: 1; background: transparent; border: 0;
+  padding: 4px 5px; border-radius: 3px; color: var(--ink-muted); cursor: pointer; transition: color 120ms, background 120ms;
+}
+.icon-btn:hover { color: var(--scroll-gold) !important; background: rgba(196,134,42,0.14); }
+.icon-btn.destructive:hover { color: #D06060 !important; background: rgba(139,32,32,0.22); }
+.icon-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.icon-btn.has-notes { color: var(--scroll-gold); }
+
+/* ─────────────  notebook  ───────────── */
+
+.notebook {
+  position: absolute; top: 46px; left: 44px; width: 344px; z-index: 20;
+  filter: drop-shadow(0 18px 34px rgba(0,0,0,0.62));
+}
+
+.notebook-frame {
+  border: 1px solid var(--scroll-border); border-radius: 3px;
+  background:
+    radial-gradient(ellipse at 22% 12%, rgba(255,255,255,0.5), transparent 58%),
+    radial-gradient(ellipse at 78% 88%, rgba(176,136,40,0.16), transparent 62%),
+    linear-gradient(160deg, var(--parch-light), var(--parch-dark));
+}
+
+.nb-header {
+  display: flex; align-items: center; gap: 9px; padding: 9px 10px 9px 12px;
+  background: linear-gradient(180deg, rgba(139,94,26,0.20), rgba(139,94,26,0.08));
+  border-bottom: 1px solid rgba(139,94,26,0.42);
+  border-radius: 2px 2px 0 0;
+  cursor: grab; user-select: none;
+}
+.nb-header:active { cursor: grabbing; }
+.nb-glyph { font-family: 'RpgAwesome'; font-size: 17px; color: var(--scroll-gold-dark); }
+.nb-title { flex: 1; font-family: 'Cinzel', serif; font-weight: 600; font-size: 14px; letter-spacing: 1.1px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nb-kind { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1.6px; color: var(--ink-muted); border: 1px solid rgba(122,80,48,0.4); border-radius: 2px; padding: 2px 5px; }
+.nb-close { font-family: 'RpgAwesome'; font-size: 13px; background: transparent; border: 0; color: var(--ink-muted); cursor: pointer; padding: 3px 5px; border-radius: 2px; }
+.nb-close:hover { color: var(--destructive); background: rgba(139,32,32,0.14); }
+.nb-close:focus-visible { outline: 2px solid var(--scroll-border); outline-offset: 1px; }
+
+/* ── ribbon bookmarks ── */
+
+.nb-ribbons {
+  display: flex; gap: 9px; padding: 0 14px;
+  align-items: flex-start;
+  min-height: var(--ribbon-len);
+}
+
+.ribbon {
+  position: relative;
+  font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1.5px;
+  color: var(--ribbon-text);
+  border: 0; cursor: pointer; padding: var(--ribbon-pad-top) var(--ribbon-pad) 0;
+  height: var(--ribbon-len-dim);
+  background: linear-gradient(180deg, var(--ribbon-read-dim), color-mix(in srgb, var(--ribbon-read-dim) 78%, #000));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - var(--notch)), 0 100%);
+  opacity: 0.78;
+  transition: height 140ms ease, opacity 140ms, background 140ms;
+}
+
+.ribbon.secret {
+  background: linear-gradient(180deg, var(--ribbon-dm-dim), color-mix(in srgb, var(--ribbon-dm-dim) 78%, #000));
+}
+
+.ribbon:hover { opacity: 1; }
+.ribbon:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.ribbon[aria-selected="true"] {
+  height: var(--ribbon-len);
+  opacity: 1;
+  background: linear-gradient(180deg, var(--ribbon-read), color-mix(in srgb, var(--ribbon-read) 72%, #000));
+}
+
+.ribbon.secret[aria-selected="true"] {
+  background: linear-gradient(180deg, var(--ribbon-dm), color-mix(in srgb, var(--ribbon-dm) 72%, #000));
+}
+
+/* a fold shadow where the ribbon meets the header, so it reads as hanging */
+.ribbon::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 5px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.42), transparent);
+}
+
+.ribbon .seal { display: inline-block; margin-right: 5px; color: #E8B4B4; }
+
+/* ── panes ── */
+
+.nb-body { padding: 4px 14px 12px; }
+.pane[hidden] { display: none; }
+
+.pane textarea {
+  width: 100%; min-height: 150px; resize: vertical;
+  background: transparent; border: 0; color: var(--ink);
+  font-family: 'Garamond', Georgia, serif; font-size: 17px; line-height: 1.5; padding: 2px 0; outline: none;
+  background-image: repeating-linear-gradient(180deg, transparent 0 24.5px, rgba(122,80,48,0.13) 24.5px 25.5px);
+}
+.pane.read-aloud textarea { font-style: italic; color: #3A2410; }
+.pane textarea::placeholder { color: rgba(122,80,48,0.55); font-style: italic; }
+
+.nb-footer {
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px 9px;
+  border-top: 1px solid rgba(139,94,26,0.28); font-size: 13.5px; color: var(--ink-muted); font-style: italic;
+}
+.nb-state { margin-left: auto; font-style: normal; font-family: 'Cinzel', serif; font-size: 9.5px; letter-spacing: 1.4px; }
+.nb-state.dirty { color: var(--destructive); }
+.nb-state.saved { color: #4A6A2A; }
+
+/* ─────────────  tuner  ───────────── */
+
+.tuner { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px 26px; margin-bottom: 14px; }
+
+.tune { display: flex; flex-direction: column; gap: 6px; }
+.tune label { font-family: 'Cinzel', serif; font-size: 10.5px; letter-spacing: 1.4px; color: var(--muted); display: flex; justify-content: space-between; }
+.tune label b { color: var(--gold); font-weight: 400; }
+.tune input[type=range] { width: 100%; accent-color: var(--gold); }
+
+.readout {
+  border: 1px solid var(--card-border); border-radius: 4px; padding: 14px 16px;
+  background: rgba(0,0,0,0.24); font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.6px; color: var(--text);
+  white-space: pre; overflow-x: auto;
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 900px) { .stage { grid-template-columns: 1fr; height: auto; } .sidebar { order: -1; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="masthead">
+    <h1>The Notebook &mdash; ribbon bookmarks</h1>
+    <p>Tabbed layout with hanging ribbon bookmarks. Drag the notebook by its header, switch ribbons, and tune the geometry below &mdash; the readout gives the exact values to feed <code>BookmarkTabShape</code>.</p>
+  </header>
+
+  <div class="section-label">Tune the ribbon</div>
+
+  <div class="tuner">
+    <div class="tune">
+      <label for="notch">Notch depth <b><span id="notchVal">10</span>px</b></label>
+      <input type="range" id="notch" min="0" max="22" value="10" />
+    </div>
+    <div class="tune">
+      <label for="len">Ribbon length <b><span id="lenVal">60</span>px</b></label>
+      <input type="range" id="len" min="26" max="84" value="60" />
+    </div>
+    <div class="tune">
+      <label for="lenDim">Unselected length <b><span id="lenDimVal">40</span>px</b></label>
+      <input type="range" id="lenDim" min="20" max="70" value="40" />
+    </div>
+    <div class="tune">
+      <label for="pad">Side padding <b><span id="padVal">6</span>px</b></label>
+      <input type="range" id="pad" min="2" max="30" value="6" />
+    </div>
+    <div class="tune">
+      <label for="padTop">Top text padding <b><span id="padTopVal">0</span>px</b></label>
+      <input type="range" id="padTop" min="0" max="16" value="0" />
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="canvas">
+      <svg viewBox="0 0 900 560" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="120,90 400,90 400,250 260,250 260,330 120,330" fill="rgba(196,134,42,0.07)" stroke="#C4862A" stroke-width="2" />
+        <polygon points="470,150 760,150 760,400 470,400" fill="rgba(196,134,42,0.11)" stroke="#C8A040" stroke-width="2.5" />
+        <polygon points="180,400 380,400 380,510 180,510" fill="rgba(196,134,42,0.05)" stroke="#8B5E1A" stroke-width="2" />
+        <circle cx="560" cy="230" r="9" fill="#C4862A" opacity="0.8" />
+        <circle cx="620" cy="300" r="9" fill="#C4862A" opacity="0.8" />
+        <circle cx="300" cy="180" r="9" fill="#C4862A" opacity="0.8" />
+      </svg>
+      <div class="canvas-note">Mock floor plan &mdash; drag the notebook to check occlusion.</div>
+
+      <div class="notebook" id="notebook">
+        <div class="notebook-frame">
+          <div class="nb-header" id="nbHeader">
+            <span class="nb-glyph">&#xEA8F;</span>
+            <span class="nb-title" id="nbTitle">The Chapel</span>
+            <span class="nb-kind" id="nbKind">AREA</span>
+            <button class="nb-close" type="button" title="Close" aria-label="Close notebook">&#xE9B8;</button>
+          </div>
+
+          <div class="nb-ribbons" role="tablist">
+            <button class="ribbon" type="button" role="tab" data-pane="read" aria-selected="true">Read aloud</button>
+            <button class="ribbon secret" type="button" role="tab" data-pane="dm" aria-selected="false"><span class="seal">&#x25CF;</span>DM only</button>
+          </div>
+
+          <div class="nb-body">
+            <div class="pane read-aloud" data-pane="read">
+              <textarea placeholder="What the party sees when they walk in&hellip;">Cracked pews face a shattered altar. The air smells of cold ash and old incense, and something has scratched deep grooves into the flagstones.</textarea>
+            </div>
+            <div class="pane" data-pane="dm" hidden>
+              <textarea placeholder="Secrets, stat blocks, and things the party must not hear&hellip;">Secret door behind the altar — DC 15 Investigation.
+Two ghasts wait on the crypt stairs; they attack on round 2.
+The altar is consecrated to Vecna, not Pelor. Nobody in town knows.</textarea>
+            </div>
+          </div>
+
+          <div class="nb-footer">
+            <span>Saves as you write.</span>
+            <span class="nb-state saved" id="nbState">SAVED</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="floor-card">
+        <div class="row" data-kind="FLOOR" data-name="Ground Floor">
+          <span class="row-name">Ground Floor</span>
+          <button class="icon-btn notebook-btn has-notes" type="button" title="Open notebook">&#xEA8F;</button>
+          <button class="icon-btn destructive" type="button" title="Delete">&#xE9B8;</button>
+        </div>
+        <div class="row area-row is-focused" data-kind="AREA" data-name="The Chapel">
+          <span class="row-name">The Chapel</span>
+          <button class="icon-btn notebook-btn has-notes" type="button" title="Open notebook">&#xEA8F;</button>
+          <button class="icon-btn destructive" type="button" title="Delete">&#xE9B8;</button>
+        </div>
+        <div class="row area-row" data-kind="AREA" data-name="Vestry">
+          <span class="row-name">Vestry</span>
+          <button class="icon-btn notebook-btn" type="button" title="Open notebook">&#xEA8F;</button>
+          <button class="icon-btn destructive" type="button" title="Delete">&#xE9B8;</button>
+        </div>
+        <div class="row area-row" data-kind="AREA" data-name="Bell Tower Stair">
+          <span class="row-name">Bell Tower Stair</span>
+          <button class="icon-btn notebook-btn" type="button" title="Open notebook">&#xEA8F;</button>
+          <button class="icon-btn destructive" type="button" title="Delete">&#xE9B8;</button>
+        </div>
+      </div>
+      <div class="floor-card">
+        <div class="row" data-kind="FLOOR" data-name="Crypt">
+          <span class="row-name">Crypt</span>
+          <button class="icon-btn notebook-btn" type="button" title="Open notebook">&#xEA8F;</button>
+          <button class="icon-btn destructive" type="button" title="Delete">&#xE9B8;</button>
+        </div>
+      </div>
+      <div class="floor-card">
+        <div class="row" data-kind="DUNGEON" data-name="Sunken Temple">
+          <span class="row-name">Sunken Temple</span>
+          <button class="icon-btn notebook-btn has-notes" type="button" title="Open notebook">&#xEA8F;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Values for BookmarkTabShape</div>
+  <div class="readout" id="readout"></div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.documentElement;
+  var notebook = document.getElementById('notebook');
+
+  /* ── ribbons ── */
+
+  var ribbons = notebook.querySelectorAll('.ribbon');
+  var panes = notebook.querySelectorAll('.pane');
+
+  ribbons.forEach(function (r) {
+    r.addEventListener('click', function () {
+      ribbons.forEach(function (x) { x.setAttribute('aria-selected', String(x === r)); });
+      panes.forEach(function (p) { p.hidden = p.dataset.pane !== r.dataset.pane; });
+    });
+  });
+
+  /* ── drag ── */
+
+  var header = document.getElementById('nbHeader');
+  var dragging = false, sx = 0, sy = 0, ol = 0, ot = 0;
+
+  header.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    dragging = true; sx = e.clientX; sy = e.clientY;
+    ol = notebook.offsetLeft; ot = notebook.offsetTop;
+    header.setPointerCapture(e.pointerId);
+  });
+  header.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    notebook.style.left = (ol + e.clientX - sx) + 'px';
+    notebook.style.top = (ot + e.clientY - sy) + 'px';
+  });
+  header.addEventListener('pointerup', function () { dragging = false; });
+
+  /* ── dirty state ── */
+
+  // Autosave, with the stamp as the visible system status. Typing marks the
+  // notebook unsaved; a pause commits it. Closing is just one more save point,
+  // not the only one — so a crash or a stray navigation costs nothing.
+  var state = document.getElementById('nbState');
+  var saveTimer = null;
+
+  function markSaved() {
+    state.textContent = 'SAVED';
+    state.className = 'nb-state saved';
+  }
+
+  notebook.querySelectorAll('textarea').forEach(function (ta) {
+    ta.addEventListener('input', function () {
+      state.textContent = 'UNSAVED';
+      state.className = 'nb-state dirty';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(markSaved, 900);
+    });
+    ta.addEventListener('blur', function () { clearTimeout(saveTimer); markSaved(); });
+  });
+
+  notebook.querySelector('.nb-close').addEventListener('click', function () {
+    clearTimeout(saveTimer);
+    markSaved();
+  });
+
+  /* ── retarget ── */
+
+  var nbTitle = document.getElementById('nbTitle'), nbKind = document.getElementById('nbKind');
+  document.querySelectorAll('.notebook-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var row = btn.closest('.row');
+      nbTitle.textContent = row.dataset.name;
+      nbKind.textContent = row.dataset.kind;
+      document.querySelectorAll('.area-row').forEach(function (r) { r.classList.remove('is-focused'); });
+      if (row.classList.contains('area-row')) row.classList.add('is-focused');
+    });
+  });
+
+  /* ── geometry tuner ── */
+
+  var readout = document.getElementById('readout');
+  var knobs = [
+    { id: 'notch',  varName: '--notch',           out: 'notchVal' },
+    { id: 'len',    varName: '--ribbon-len',      out: 'lenVal' },
+    { id: 'lenDim', varName: '--ribbon-len-dim',  out: 'lenDimVal' },
+    { id: 'pad',    varName: '--ribbon-pad',      out: 'padVal' },
+    { id: 'padTop', varName: '--ribbon-pad-top',  out: 'padTopVal' }
+  ];
+
+  function render() {
+    var v = {};
+    knobs.forEach(function (k) { v[k.id] = document.getElementById(k.id).value; });
+    readout.textContent =
+      'NotchDepth        = ' + v.notch + '\n' +
+      'SelectedHeight    = ' + v.len + '\n' +
+      'UnselectedHeight  = ' + v.lenDim + '\n' +
+      'HorizontalPadding = ' + v.pad + '\n' +
+      'TopPadding        = ' + v.padTop + '\n' +
+      'Ribbon (read)     = #A32B24   dim #6B2019\n' +
+      'Ribbon (dm only)  = #5E1518   dim #401014\n' +
+      'Ribbon text       = #F0DCA8';
+  }
+
+  knobs.forEach(function (k) {
+    var input = document.getElementById(k.id);
+    input.addEventListener('input', function () {
+      root.style.setProperty(k.varName, input.value + 'px');
+      document.getElementById(k.out).textContent = input.value;
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
