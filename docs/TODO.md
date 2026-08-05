@@ -31,7 +31,7 @@ Windows is unaffected and needs no change.
 **Area:** `DungeonMaster.App` — `DungeonDetailPage`
 **Type:** latent bugs — same family as the defect already fixed, none confirmed reproducible yet
 
-The fixed defect was a page handler that kept operating on state the page no longer owned after a modal popup tore down its subscriptions. Auditing for that shape turned up four more places where the designer mutates UI state across an `await` without re-checking that the state it captured is still live. None of them has a confirmed repro, so they were deliberately left out of that fix and collected here for a dedicated refinement branch rather than being folded into an unrelated change.
+The fixed defect was a page handler that kept operating on state the page no longer owned after a modal popup tore down its subscriptions. Auditing for that shape turned up five more places where the designer mutates UI state across an `await` without re-checking that the state it captured is still live. None of them has a confirmed repro, so they were deliberately left out of that fix and collected here for a dedicated refinement branch rather than being folded into an unrelated change.
 
 The common failure mode to keep in mind while reading these: every write path ends in a full `LoadDungeonAsync`, which clears and refills `Floors`, which rebuilds the entire sidebar. Anything holding a `FloorDto`, an `AreaDto`, a sidebar item, or an object id from before that reload is holding something detached.
 
@@ -56,6 +56,28 @@ Fix shape: hoist the confirm-and-mutate work out of the sidebar item's closure i
 ### 4. Keyboard behaviour attached before the page has a handler
 
 `Behaviors.Add(_keyboardBehavior)` runs in the page constructor, before a platform handler exists. It happens to work because the behaviour defers its platform wiring until the handler is created, but nothing states that requirement and nothing enforces it — the ordering is implicit. Either attach it from `OnHandlerChanged`, or document the dependency at the attach site so a future reorder does not silently break keyboard shortcuts.
+
+### 5. `OnNotebookSaveRequested` is a timer-driven `async void` write path
+
+`DungeonDetailPage.OnNotebookSaveRequested` is a sixth handler in this family, but it differs in kind from the other five: every other one is user-gesture-driven and therefore serialised by the user's own input, whereas this one fires on the notebook's 900ms debounce timer. `Dispatcher` resolves handlers from the root `IServiceProvider`, and `AppDbContext` is registered with `AddDbContext` — scoped, but effectively a singleton given MAUI's single root scope. If a debounce commit is mid-`await` and the user then closes the notebook, or blurs an editor after typing more, a second write could start on the same `DbContext` — "A second operation started on this context; a second operation cannot be started while the first is not complete." Not reproduced statically; would need the app running with fast typing followed immediately by Close to confirm.
+
+Worth noting this handler is otherwise the best-behaved of the family: it re-resolves `_drawable.Floor` by id rather than reusing a captured DTO, so the fix here is narrower than for 1–3 — likely serialising the debounce-triggered save against a concurrent close/blur commit rather than the broader re-validate-after-await pattern used elsewhere in this section.
+
+---
+
+## `_suppressCardTap` latch could strand on a platform where `Button.Clicked` does not bubble
+
+**Raised:** 2026-08-05, during the final notebook-metadata review
+**Area:** `DungeonMaster.App` — `FloorSidebarItem`
+**Type:** cross-platform gap, unconfirmed off Windows
+
+`FloorSidebarItem.xaml.cs:277` sets `_suppressCardTap` before a child button's own click handling runs, and relies on the subsequent bubbled `OnCardTapped` to clear it — the pattern used to stop a click meant for the button (notebook, delete, etc.) from also being read as a click on the card underneath it. Verified working on Windows, where `Button.Clicked` reliably bubbles to the containing card's tap recognizer.
+
+On a platform where the click does not bubble the same way, `OnCardTapped` never runs, the latch stays set, and it silently swallows the user's very next genuine card tap — a stuck state that only clears itself on the next successful bubble.
+
+This is the same shape as the pre-existing delete-button suppression path elsewhere in the file, but that one is lower risk: it always ends in a confirm popup, which gives the user an obvious "did that work?" signal and a natural place to retry. This latch has no such backstop, so it is the more likely of the two to strand a user without an obvious cause.
+
+Needs a real device/platform check (iOS/Android/macCatalyst) to confirm before deciding on a fix; if it does strand, the likely fix is clearing the latch on a short timer or on the card's own `PointerExited` rather than depending solely on the bubble.
 
 ---
 
