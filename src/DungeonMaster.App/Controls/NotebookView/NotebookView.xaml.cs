@@ -93,7 +93,7 @@ public partial class NotebookView : ContentView
 	/// <summary>Animation handle, so a second tap replaces the running transition instead of racing it.</summary>
 	private const string RibbonHeightAnimation = "RibbonHeight";
 
-	// How far each ribbon's fold gradient darkens toward black at its foot. The selected ribbon
+	// How far a ribbon's fold gradient darkens toward black at its foot. The selected ribbon
 	// folds harder than the dimmed one; both values come straight from the mock-up's color-mix.
 	private const float SelectedFoldFactor = 0.72f;
 	private const float UnselectedFoldFactor = 0.78f;
@@ -341,11 +341,11 @@ public partial class NotebookView : ContentView
 		var readSelected = pane == NotebookPane.Description;
 
 		SetRibbonHeight(ReadRibbon, readSelected ? SelectedRibbonHeight : UnselectedRibbonHeight, animate);
-		ReadRibbon.Background = RibbonBrush(readSelected ? "DMRibbonRead" : "DMRibbonReadDim", readSelected);
+		ReadRibbon.Background = RibbonBrush(readSelected);
 		ReadRibbon.Opacity = readSelected ? 1 : 0.78;
 
 		SetRibbonHeight(DmRibbon, readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight, animate);
-		DmRibbon.Background = RibbonBrush(readSelected ? "DMRibbonDmDim" : "DMRibbonDm", !readSelected);
+		DmRibbon.Background = RibbonBrush(!readSelected);
 		DmRibbon.Opacity = readSelected ? 0.78 : 1;
 	}
 
@@ -375,10 +375,12 @@ public partial class NotebookView : ContentView
 	}
 
 	/// <summary>
-	///		Builds the vertical fold gradient for a ribbon from its themed base colour.
+	///		Builds the vertical fold gradient for a ribbon from the shared ribbon colour, using the
+	///		active or inactive shade depending on <paramref name="isSelected"/>.
 	/// </summary>
-	private static Brush RibbonBrush(string colorKey, bool isSelected)
+	private static Brush RibbonBrush(bool isSelected)
 	{
+		var colorKey = isSelected ? "DMRibbonRead" : "DMRibbonReadDim";
 		var top = (Color)MauiApplication.Current!.Resources[colorKey];
 		var foot = Darken(top, isSelected ? SelectedFoldFactor : UnselectedFoldFactor);
 

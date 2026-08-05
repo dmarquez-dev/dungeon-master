@@ -12,9 +12,9 @@
     IsVisible="False">
 
     <Border
-        StrokeShape="RoundRectangle 3"
+        StrokeShape="RoundRectangle 4"
         Stroke="{StaticResource DMScrollBorderBrush}"
-        StrokeThickness="1">
+        StrokeThickness="2">
 
         <!--
             The notebook floats over the floor plan, so the shadow is what separates the two.
@@ -36,11 +36,13 @@
             </LinearGradientBrush>
         </Border.Background>
 
-        <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
 
             <!--
                 Row 0 — header. The pan recogniser lives here and nowhere else: attaching it
                 to the whole control would start a drag from inside the text editors.
+                Chrome matches DmPopup's header bar (gold gradient, DMInk content) rather than
+                the translucent brown wash this used to have.
             -->
             <Grid
                 Grid.Row="0"
@@ -50,9 +52,8 @@
 
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <!-- rgba(139,94,26,0.20) fading to rgba(139,94,26,0.08) -->
-                        <GradientStop Color="#338B5E1A" Offset="0.0" />
-                        <GradientStop Color="#148B5E1A" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Grid.Background>
 
@@ -66,7 +67,7 @@
                     Text="&#xEA8F;"
                     FontFamily="RpgAwesome"
                     FontSize="17"
-                    TextColor="{StaticResource DMScrollGoldDark}"
+                    TextColor="{StaticResource DMInk}"
                     VerticalOptions="Center" />
 
                 <!-- Entity name — edited in place, committed on unfocus -->
@@ -103,8 +104,7 @@
                 <Button
                     x:Name="CloseButton"
                     Grid.Column="3"
-                    Text="&#xE9B8;"
-                    FontFamily="RpgAwesome"
+                    Text="&#x2715;"
                     FontSize="13"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource DMInkMuted}"
@@ -146,7 +146,7 @@
                 <Border
                     x:Name="ReadRibbon"
                     StrokeThickness="0"
-                    Padding="6,0"
+                    Padding="6,0,6,10"
                     HeightRequest="60"
                     VerticalOptions="Start">
                     <Border.StrokeShape>
@@ -164,13 +164,13 @@
                         FontSize="10"
                         CharacterSpacing="1.5"
                         TextColor="{StaticResource DMRibbonText}"
-                        VerticalOptions="Start" />
+                        VerticalOptions="Center" />
                 </Border>
 
                 <Border
                     x:Name="DmRibbon"
                     StrokeThickness="0"
-                    Padding="6,0"
+                    Padding="6,0,6,10"
                     HeightRequest="40"
                     VerticalOptions="Start">
                     <Border.StrokeShape>
@@ -183,7 +183,7 @@
                         <behaviors:HandCursorBehavior />
                     </Border.Behaviors>
                     <!-- The seal reads as "sealed against the players" at a glance, before hue registers. -->
-                    <Label VerticalOptions="Start">
+                    <Label VerticalOptions="Center">
                         <Label.FormattedText>
                             <FormattedString>
                                 <Span Text="&#x25CF; " FontSize="10" TextColor="#E8B4B4" />
@@ -279,6 +279,16 @@
                     VerticalOptions="Center" />
 
             </Grid>
+
+            <!-- Bottom scroll bar, matching DmPopup's footer treatment. -->
+            <BoxView Grid.Row="4" HeightRequest="5">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
 
         </Grid>
     </Border>
