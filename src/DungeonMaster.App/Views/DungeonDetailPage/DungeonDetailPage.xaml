@@ -533,36 +533,11 @@
             <!-- RIGHT SIDEBAR -->
             <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" BackgroundColor="Transparent">
 
-                <!-- Sidebar header -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
-                    <Label
-                        Grid.Column="0"
-                        Text="FLOORS"
-                        FontFamily="CinzelRegular"
-                        FontSize="17"
-                        CharacterSpacing="1"
-                        TextColor="{StaticResource DMScrollGoldLight}"
-                        VerticalOptions="Center" />
-                    <Button
-                        Grid.Column="1"
-                        Text="+ Add Floor"
-                        FontFamily="EBGaramondRegular"
-                        FontSize="18"
-                        TextColor="{StaticResource DMScrollGoldLight}"
-                        BackgroundColor="Transparent"
-                        Padding="4,2"
-                        Clicked="OnAddFloorClicked">
-                        <Button.Behaviors>
-                            <behaviors:HandCursorBehavior />
-                        </Button.Behaviors>
-                    </Button>
-                </Grid>
-
                 <!-- Dungeon-level row — always visible, styled like a floor card. Fixed above the
                      scrolling floor list (not a ScrollView child) so it never scrolls out of view
                      and survives FloorListContainer's Children.Clear() rebuilds untouched. -->
                 <Border
-                    Grid.Row="1"
+                    Grid.Row="0"
                     StrokeShape="RoundRectangle 3"
                     StrokeThickness="1"
                     Stroke="{StaticResource DMCardBorderBrush}"
@@ -597,7 +572,32 @@
                 </Border>
 
                 <!-- Fixed divider between the dungeon card and the scrolling floor list -->
-                <controls:DmDivider Grid.Row="2" Margin="0,0,0,4" />
+                <controls:DmDivider Grid.Row="1" Margin="0,0,0,4" IconFontSize="12" />
+
+                <!-- Sidebar header -->
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                    <Label
+                        Grid.Column="0"
+                        Text="FLOORS"
+                        FontFamily="CinzelRegular"
+                        FontSize="17"
+                        CharacterSpacing="1"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        VerticalOptions="Center" />
+                    <Button
+                        Grid.Column="1"
+                        Text="+ Add Floor"
+                        FontFamily="EBGaramondRegular"
+                        FontSize="18"
+                        TextColor="{StaticResource DMScrollGoldLight}"
+                        BackgroundColor="Transparent"
+                        Padding="4,2"
+                        Clicked="OnAddFloorClicked">
+                        <Button.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Button.Behaviors>
+                    </Button>
+                </Grid>
 
                 <!-- Floor list (built in code-behind) -->
                 <ScrollView Grid.Row="3">
