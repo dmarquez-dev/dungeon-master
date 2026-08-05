@@ -570,6 +570,15 @@ public partial class DungeonDetailPage : ContentPage
 				// SaveDungeonCommand does not reload, so the banner and the sidebar row would keep
 				// showing the pre-edit name until something else refreshed them.
 				await _viewModel.LoadDungeonCommand.ExecuteAsync(e.Id);
+
+				// A blank name never overwrote DungeonName above, so it still holds the last known
+				// good one. The notebook does not know that — it is still showing what the user
+				// typed — so tell it, unless it has since been retargeted to a different entity.
+				if (_viewModel.DungeonName != e.Name && Notebook.CurrentId == e.Id)
+				{
+					Notebook.SyncName(_viewModel.DungeonName);
+				}
+
 				break;
 			}
 
@@ -583,6 +592,13 @@ public partial class DungeonDetailPage : ContentPage
 
 				await _viewModel.UpdateFloorCommand.ExecuteAsync(
 					(e.Id, floorName, e.Description, e.Notes));
+
+				// Same fallback-visibility gap as the dungeon case above.
+				if (floorName != e.Name && Notebook.CurrentId == e.Id)
+				{
+					Notebook.SyncName(floorName ?? string.Empty);
+				}
+
 				break;
 			}
 
@@ -609,6 +625,13 @@ public partial class DungeonDetailPage : ContentPage
 
 				await _viewModel.UpdateAreaCommand.ExecuteAsync(
 					(e.FloorId.Value, e.Id, areaName, e.Description, e.Notes));
+
+				// Same fallback-visibility gap as the dungeon case above.
+				if (areaName != e.Name && Notebook.CurrentId == e.Id)
+				{
+					Notebook.SyncName(areaName);
+				}
+
 				break;
 			}
 		}
