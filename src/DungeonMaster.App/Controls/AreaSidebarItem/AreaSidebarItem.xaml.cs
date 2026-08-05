@@ -137,12 +137,6 @@ public partial class AreaSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		Updates the displayed area name label.
-	/// </summary>
-	public void UpdateAreaName(string name) =>
-		AreaNameLabel.Text = name;
-
-	/// <summary>
 	///		No-op — area name editing moved to the map toolbar.
 	/// </summary>
 	public void TryCommitActiveEditor() { }

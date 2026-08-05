@@ -244,29 +244,25 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Updates the name of an existing area, preserving its current description and notes,
-	///		then reloads the detail so the cached area projections carry the new name.
+	///		Updates the name, description, and notes of an existing area, then reloads the detail
+	///		so the cached area projections carry the new values.
 	/// </summary>
 	/// <param name="args">
-	///		A tuple containing the floor identifier, area identifier, and new area name.
+	///		A tuple containing the floor identifier, area identifier, and the area's new name,
+	///		description, and notes. All three text fields are written as supplied, so a caller
+	///		editing only one of them must pass the current values of the other two.
 	/// </param>
 	[RelayCommand]
-	private async Task UpdateAreaNameAsync((Guid FloorId, Guid AreaId, string Name) args)
+	private async Task UpdateAreaAsync((Guid FloorId, Guid AreaId, string Name, string? Description, string? Notes) args)
 	{
-		var existing = Dungeon?.Floors
-			.FirstOrDefault(floor =>
-				floor.Id == args.FloorId)?.Areas
-			.FirstOrDefault(area =>
-				area.Id == args.AreaId);
-
 		await dispatcher.SendAsync<bool>(
 			new UpdateAreaCommand(
 				_dungeonId,
 				args.FloorId,
 				args.AreaId,
 				args.Name,
-				existing?.Description,
-				existing?.Notes),
+				args.Description,
+				args.Notes),
 			CancellationToken.None);
 
 		await LoadDungeonAsync(_dungeonId);

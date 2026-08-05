@@ -40,9 +40,6 @@ public partial class DungeonDetailPage : ContentPage
 	private enum DrawState { Idle, DrawingReady, Drawing }
 	private DrawState _drawState = DrawState.Idle;
 
-	private bool _loreOpen;
-
-
 	// Current drag state
 	private bool _isMoveDragging;
 	private Guid? _draggingAreaId;
@@ -68,9 +65,6 @@ public partial class DungeonDetailPage : ContentPage
 	private bool _isObjectDragConfirmed;
 	private CanvasPoint? _objectDragTargetCanvas;   // floor-absolute pixel position being previewed
 	private bool _objectLongPressHandled;            // prevents EndInteraction from re-triggering click after long press
-
-	// Keyboard guard — suppresses tool shortcuts while a text field is focused.
-	private bool _isTextInputFocused;
 
 	private KeyboardBehavior? _keyboardBehavior;
 
@@ -106,26 +100,6 @@ public partial class DungeonDetailPage : ContentPage
 			_drawable.ClearObjectImageCache();
 			MapCanvas.Invalidate();
 		};
-
-		// Suppress keyboard shortcuts while any inline editor is focused.
-		// Standard MAUI Editor/Entry: use Focused/Unfocused.
-		// DmInlineEditor wraps an internal Entry — use its dedicated events.
-		DescriptionEditor.Focused += (_, _) =>
-			_isTextInputFocused = true;
-		DescriptionEditor.Unfocused += (_, _) =>
-			_isTextInputFocused = false;
-		NotesEditor.Focused += (_, _) =>
-			_isTextInputFocused = true;
-		NotesEditor.Unfocused += (_, _) =>
-			_isTextInputFocused = false;
-		FloorNameToolbarEditor.EditingStarted += (_, _) =>
-			_isTextInputFocused = true;
-		FloorNameToolbarEditor.EditingEnded += (_, _) =>
-			_isTextInputFocused = false;
-		AreaNameToolbarEditor.EditingStarted += (_, _) =>
-			_isTextInputFocused = true;
-		AreaNameToolbarEditor.EditingEnded += (_, _) =>
-			_isTextInputFocused = false;
 
 		AttachPopupButtonBehavior(
 			PopupBtnCCW,
@@ -234,6 +208,7 @@ public partial class DungeonDetailPage : ContentPage
 
 		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed += OnObjectLongPressed;
+		Notebook.SaveRequested += OnNotebookSaveRequested;
 
 		// Plugin.Maui.KeyListener: fires regardless of which element has focus,
 		// solving the GraphicsView focus-sink problem on Windows.
@@ -263,6 +238,7 @@ public partial class DungeonDetailPage : ContentPage
 
 		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed -= OnObjectLongPressed;
+		Notebook.SaveRequested -= OnNotebookSaveRequested;
 
 		if (_keyboardBehavior is not null)
 		{
@@ -309,19 +285,20 @@ public partial class DungeonDetailPage : ContentPage
 #if WINDOWS
 		// Check native focus — more reliable than MAUI Focused events because DmInlineEditor
 		// focuses an internal TextBox that doesn't bubble to the ContentView.Focused event.
+		// The notebook's Editor panes are TextBoxes on WinUI too, so they are covered here.
 		if (Window?.Handler?.PlatformView is Microsoft.UI.Xaml.Window winUiWindow)
 		{
 			var focused = Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(winUiWindow.Content.XamlRoot);
 			return focused is Microsoft.UI.Xaml.Controls.TextBox;
 		}
 #elif MACCATALYST
-		// TODO(macOS): UIKit does not expose a global FocusManager equivalent. The fallback
-		// _isTextInputFocused flag is populated via MAUI Focused/Unfocused events and the
-		// DmInlineEditor.EditingStarted/EditingEnded events wired in the constructor.
-		// If DmInlineEditor's internal UITextField fires focus events that don't surface through
-		// those delegates, add a UITextFieldDelegate or UIResponder.IsFirstResponder check here.
+		// TODO(macOS): UIKit does not expose a global FocusManager equivalent, and this page no
+		// longer owns any text input directly — the only ones left are inside the flag banner and
+		// the notebook, neither of which reports focus to the page. macCatalyst therefore has no
+		// guard at all: add a UIResponder.IsFirstResponder walk over the page's platform view, or
+		// surface a focus event from NotebookView, before shipping that platform.
 #endif
-		return _isTextInputFocused;
+		return false;
 	}
 
 	// The keyboard behavior stays attached for the page's lifetime, so shortcuts are gated here
@@ -530,9 +507,86 @@ public partial class DungeonDetailPage : ContentPage
 		if (e.PropertyName == nameof(DungeonDetailViewModel.Dungeon) && _viewModel.Dungeon is not null)
 		{
 			TitleBanner.Title = _viewModel.DungeonName;
-			DescriptionEditor.Text = _viewModel.DungeonDescription;
-			NotesEditor.Text = _viewModel.DungeonNotes;
+			RefreshDungeonNotebookButton();
 		}
+	}
+
+	/// <summary>
+	///		Re-applies the dungeon row's notebook icon colour, matching how the floor and area rows
+	///		colour theirs when they repopulate: gold once the entity has authored text, dim before.
+	/// </summary>
+	private void RefreshDungeonNotebookButton()
+	{
+		var hasContent =
+			!string.IsNullOrWhiteSpace(_viewModel.DungeonDescription) ||
+			!string.IsNullOrWhiteSpace(_viewModel.DungeonNotes);
+
+		DungeonNotebookButton.TextColor = hasContent
+			? DmColors.ScrollGoldLight
+			: DmColors.InkMuted;
+	}
+
+	private void OnDungeonNotebookClicked(object? sender, EventArgs e)
+	{
+		if (_viewModel.Dungeon is null)
+		{
+			return;
+		}
+
+		Notebook.Open(new NotebookTarget(
+			_viewModel.Dungeon.Id,
+			null,
+			NotebookKind.Dungeon,
+			_viewModel.DungeonName,
+			_viewModel.DungeonDescription,
+			_viewModel.DungeonNotes));
+	}
+
+	// Every write path below ends in a full reload that clears Floors and rebuilds every sidebar
+	// item, so no FloorDto or AreaDto may be held across the await — only identifiers survive it.
+	private async void OnNotebookSaveRequested(object? sender, NotebookSaveArgs e)
+	{
+		switch (e.Kind)
+		{
+			case NotebookKind.Dungeon:
+				// A blank name would erase the dungeon's title, so an empty edit keeps the old one.
+				if (!string.IsNullOrWhiteSpace(e.Name))
+				{
+					_viewModel.DungeonName = e.Name;
+				}
+
+				_viewModel.DungeonDescription = e.Description;
+				_viewModel.DungeonNotes = e.Notes;
+
+				await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
+
+				// SaveDungeonCommand does not reload, so the banner and the sidebar row would keep
+				// showing the pre-edit name until something else refreshed them.
+				await _viewModel.LoadDungeonCommand.ExecuteAsync(e.Id);
+				break;
+
+			case NotebookKind.Floor:
+				await _viewModel.UpdateFloorCommand.ExecuteAsync(
+					(e.Id, e.Name, e.Description, e.Notes));
+				break;
+
+			case NotebookKind.Area:
+				// An area is addressed through its owning floor; without one there is nothing to save.
+				if (e.FloorId is null)
+				{
+					return;
+				}
+
+				await _viewModel.UpdateAreaCommand.ExecuteAsync(
+					(e.FloorId.Value, e.Id, e.Name, e.Description, e.Notes));
+				break;
+		}
+
+		// The reload replaced every floor projection, so the drawable is still pointing at the
+		// pre-save instance. Re-resolve it by id rather than reusing the captured DTO.
+		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
+		RefreshDungeonNotebookButton();
+		MapCanvas.Invalidate();
 	}
 
 	private void OnFloorsChanged(
@@ -573,11 +627,13 @@ public partial class DungeonDetailPage : ContentPage
 					_drawable.Floor = null;
 					_drawable.HoveredAreaId = null;
 					ResetDrawState();
-					FloorNameToolbarEditor.Text = string.Empty;
 					MapToolbar.IsVisible = false;
 				}
 
 				await _viewModel.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
+
+				// The deleted floor, or any of its areas, may be what the notebook is open on.
+				CloseNotebookIfOrphaned();
 
 				if (wasSelected)
 				{
@@ -656,6 +712,24 @@ public partial class DungeonDetailPage : ContentPage
 			item.AreaDeleteRequested += async (_, areaToDelete) =>
 				await DeleteAreaAsync(floor.Id, areaToDelete);
 
+			item.NotebookRequested += (_, floorForNotebook) =>
+				Notebook.Open(new NotebookTarget(
+					floorForNotebook.Id,
+					floorForNotebook.Id,
+					NotebookKind.Floor,
+					floorForNotebook.Name ?? string.Empty,
+					floorForNotebook.Description,
+					floorForNotebook.Notes));
+
+			item.AreaNotebookRequested += (_, areaForNotebook) =>
+				Notebook.Open(new NotebookTarget(
+					areaForNotebook.Id,
+					floor.Id,
+					NotebookKind.Area,
+					areaForNotebook.Name,
+					areaForNotebook.Description,
+					areaForNotebook.Notes));
+
 			FloorListContainer.Children.Add(item);
 
 			if (floor.Id == _selectedFloorId)
@@ -693,25 +767,8 @@ public partial class DungeonDetailPage : ContentPage
 
 		await _viewModel.RemoveAreaCommand.ExecuteAsync((floorId, area.Id));
 		await RefreshFloorAsync();
+		CloseNotebookIfOrphaned();
 		MapCanvas.Invalidate();
-	}
-
-	// ─── Lore drawer ────────────────────────────────────────────────────────────
-
-	private void OnLoreBookmarkTapped(object? sender, EventArgs e)
-	{
-		_loreOpen = !_loreOpen;
-		LoreDrawer.IsVisible = _loreOpen;
-		LoreBookmarkLabel.Text = _loreOpen
-			? "LORE & NOTES  ▴"
-			: "LORE & NOTES  ▾";
-	}
-
-	private void OnLoreDrawerTapped(object? sender, TappedEventArgs e)
-	{
-		TitleBanner.TryCommit();
-		DescriptionEditor.TryCommit();
-		NotesEditor.TryCommit();
 	}
 
 	// ─── Area focus ─────────────────────────────────────────────────────────────
@@ -750,9 +807,6 @@ public partial class DungeonDetailPage : ContentPage
 		_focusedAreaId = area.Id;
 		_drawable.ActiveAreaId = area.Id;
 
-		AreaNameToolbarEditor.Text = area.Name ?? string.Empty;
-		AreaNameToolbarEditor.IsVisible = true;
-
 		UpdateActiveAreaSidebarHighlight();
 		UpdateToolbarButtonState();
 		MapCanvas.Invalidate();
@@ -763,9 +817,6 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		_focusedAreaId = null;
 		_drawable.ActiveAreaId = null;
-
-		AreaNameToolbarEditor.Text = string.Empty;
-		AreaNameToolbarEditor.IsVisible = false;
 
 		UpdateActiveAreaSidebarHighlight();
 		MapCanvas.Invalidate();
@@ -913,6 +964,7 @@ public partial class DungeonDetailPage : ContentPage
 		MapCanvas.Invalidate();
 		await _viewModel.RemoveAreaCommand.ExecuteAsync((floorId, area.Id));
 		await RefreshFloorAsync();
+		CloseNotebookIfOrphaned();
 		MapCanvas.Invalidate();
 	}
 
@@ -962,73 +1014,6 @@ public partial class DungeonDetailPage : ContentPage
 		{
 			child.IsVisible = false;
 		}
-	}
-
-	private async void OnFloorNameToolbarCommitted(object? sender, string? name)
-	{
-		if (_selectedFloorId is null || string.IsNullOrWhiteSpace(name))
-		{
-			return;
-		}
-
-		var floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
-		if (floor is null || name == floor.Name)
-		{
-			return;
-		}
-
-		await _viewModel.UpdateFloorCommand.ExecuteAsync((_selectedFloorId.Value, name, floor.Description, floor.Notes));
-
-		// The command reloads the detail, so the sidebar has already rebuilt from fresh
-		// projections. Re-point the drawable at the new floor instance and re-assert the
-		// toolbar text: a floor-card tap raised while the save was in flight runs
-		// RefreshMap() against the pre-reload projection and would leave the old name showing.
-		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
-		FloorNameToolbarEditor.Text = name;
-		MapCanvas.Invalidate();
-	}
-
-	private async void OnAreaNameToolbarCommitted(object? sender, string? name)
-	{
-		if (_selectedFloorId is null || _focusedAreaId is null || string.IsNullOrWhiteSpace(name))
-		{
-			return;
-		}
-
-		var floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
-		var area = floor?.Areas.FirstOrDefault(areaItem => areaItem.Id == _focusedAreaId);
-
-		// The focused area is gone from the refreshed projection — the toolbar is pointing at a
-		// phantom row. Drop the stale focus rather than silently no-op'ing the rename.
-		if (area is null)
-		{
-			ClearAreaFocus();
-			return;
-		}
-
-		if (name == area.Name)
-		{
-			return;
-		}
-
-		var renamedAreaId = _focusedAreaId.Value;
-
-		await _viewModel.UpdateAreaNameCommand.ExecuteAsync((_selectedFloorId.Value, renamedAreaId, name));
-
-		// The command reloads the detail, so the sidebar has already rebuilt from fresh
-		// projections. Re-point the drawable at the new floor instance.
-		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
-
-		// Focus may have been dropped while the save was in flight — tapping the floor card
-		// clears area focus, and that tap arrives after the commit that started this rename.
-		// Only re-assert the toolbar text while the renamed area is still the focused one;
-		// otherwise the hidden editor would retain text belonging to a no-longer-focused area.
-		if (_focusedAreaId == renamedAreaId)
-		{
-			AreaNameToolbarEditor.Text = name;
-		}
-
-		MapCanvas.Invalidate();
 	}
 
 	private void UpdateToolbarButtonState()
@@ -1947,14 +1932,15 @@ public partial class DungeonDetailPage : ContentPage
 		var floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
 		_drawable.Floor = floor;
 
-		FloorNameToolbarEditor.Text = floor?.Name ?? string.Empty;
-
 		// The focused area belongs to a floor we just left — drop the focus so nothing stays dimmed.
 		if (_focusedAreaId is not null
 			&& floor?.Areas.Any(areaItem => areaItem.Id == _focusedAreaId) != true)
 		{
 			ClearAreaFocus();
 		}
+
+		// Same reasoning one level up: the notebook may be open on an entity the reload removed.
+		CloseNotebookIfOrphaned();
 
 		if (_drawState == DrawState.Idle)
 		{
@@ -1969,6 +1955,29 @@ public partial class DungeonDetailPage : ContentPage
 
 		UpdateToolbarButtonState();
 		MapCanvas.Invalidate();
+	}
+
+	/// <summary>
+	///		Closes the notebook when the entity it is open on no longer exists after a reload,
+	///		so it cannot keep offering to author something that has been deleted.
+	/// </summary>
+	private void CloseNotebookIfOrphaned()
+	{
+		if (Notebook.CurrentId is not Guid notebookId)
+		{
+			return;
+		}
+
+		var isLive =
+			_viewModel.Dungeon?.Id == notebookId
+			|| _viewModel.Floors.Any(floorItem =>
+				floorItem.Id == notebookId
+				|| floorItem.Areas.Any(areaItem => areaItem.Id == notebookId));
+
+		if (!isLive)
+		{
+			Notebook.Close();
+		}
 	}
 
 	// ─── Sidebar helpers ────────────────────────────────────────────────────────
@@ -2144,7 +2153,6 @@ public partial class DungeonDetailPage : ContentPage
 				{
 					lastItem.FocusNameEditor();
 				}
-				FloorNameToolbarEditor.ActivateEditor();
 			});
 	}
 
@@ -2157,21 +2165,4 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
-	private async void OnDescriptionCommitted(object? sender, string? value)
-	{
-		if (value != _viewModel.DungeonDescription)
-		{
-			_viewModel.DungeonDescription = value;
-			await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
-		}
-	}
-
-	private async void OnNotesCommitted(object? sender, string? value)
-	{
-		if (value != _viewModel.DungeonNotes)
-		{
-			_viewModel.DungeonNotes = value;
-			await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
-		}
-	}
 }

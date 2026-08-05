@@ -93,6 +93,11 @@ public partial class FloorSidebarItem : ContentView
 	/// </summary>
 	public event EventHandler<AreaDto>? AreaDeleteRequested;
 
+	/// <summary>
+	///     Raised when the user requests the notebook for an area in this floor.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaNotebookRequested;
+
 	private bool _isExpanded;
 	private bool _suppressCardTap;
 
@@ -149,6 +154,8 @@ public partial class FloorSidebarItem : ContentView
 				AreaHoverEnded?.Invoke(this, hoveredArea);
 			item.DeleteRequested += (_, areaToDelete) =>
 				AreaDeleteRequested?.Invoke(this, areaToDelete);
+			item.NotebookRequested += (_, areaForNotebook) =>
+				AreaNotebookRequested?.Invoke(this, areaForNotebook);
 			AreaContainer.Children.Add(item);
 		}
 	}
@@ -165,27 +172,6 @@ public partial class FloorSidebarItem : ContentView
 		}
 
 		SelectRequested?.Invoke(this, EventArgs.Empty);
-	}
-
-	/// <summary>
-	///		Updates the floor name label text in place without a full rebuild.
-	/// </summary>
-	public void UpdateFloorName(string name) =>
-		FloorNameLabel.Text = name;
-
-	/// <summary>
-	///		Updates the area name label for the matching child area item.
-	/// </summary>
-	public void UpdateAreaName(Guid areaId, string name)
-	{
-		foreach (var child in AreaContainer.Children)
-		{
-			if (child is AreaSidebarItem item && item.Area?.Id == areaId)
-			{
-				item.UpdateAreaName(name);
-				return;
-			}
-		}
 	}
 
 	/// <summary>
