@@ -34,7 +34,9 @@ public sealed class CanvasLongPressDetector : IDisposable
 
 	public void Dispose()
 	{
+		_active = false;
 		_timer?.Stop();
 		_timer?.Dispose();
+		_timer = null;
 	}
 }

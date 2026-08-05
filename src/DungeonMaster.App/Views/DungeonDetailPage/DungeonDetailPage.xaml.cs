@@ -95,9 +95,6 @@ public partial class DungeonDetailPage : ContentPage
 
 		MapCanvas.Drawable = _drawable;
 
-		viewModel.PropertyChanged += OnViewModelPropertyChanged;
-		viewModel.Floors.CollectionChanged += OnFloorsChanged;
-
 		// Wire object palette events
 		ObjectPalette.ActiveObjectChanged += OnPaletteObjectChanged;
 		ObjectPalette.CloseRequested += (_, _) =>
@@ -129,12 +126,6 @@ public partial class DungeonDetailPage : ContentPage
 			_isTextInputFocused = true;
 		AreaNameToolbarEditor.EditingEnded += (_, _) =>
 			_isTextInputFocused = false;
-
-		// Plugin.Maui.KeyListener: fires regardless of which element has focus,
-		// solving the GraphicsView focus-sink problem on Windows.
-		_keyboardBehavior = new KeyboardBehavior();
-		_keyboardBehavior.KeyDown += OnKeyDown;
-		Behaviors.Add(_keyboardBehavior);
 
 		AttachPopupButtonBehavior(
 			PopupBtnCCW,
@@ -199,32 +190,116 @@ public partial class DungeonDetailPage : ContentPage
 				}
 			}
 		};
+
+		AttachRuntimeHandlers();
 	}
 
-	/// <inheritdoc/>
-	protected override void OnAppearing()
+	// ─── Page lifecycle ─────────────────────────────────────────────────────────
+	//
+	// Subscriptions are split into two groups:
+	//
+	//  * One-time construction wiring (above) — palette events, popup button behaviors and
+	//    inline-editor focus handlers. Every one of those targets a child control this page
+	//    owns outright, so they live and die with the page and never need detaching.
+	//
+	//  * Runtime handlers (below) — the view model subscriptions, the canvas handler hook,
+	//    the long-press detector and the keyboard behavior. These used to be torn down in
+	//    OnNavigatedFrom and never restored. CommunityToolkit's ShowPopupAsync presents its
+	//    popup as a modal page, which raises OnNavigatedFrom on the page underneath, so the
+	//    first confirm dialog permanently crippled the page.
+	//
+	// Both the page and its view model are registered transient, so the page is the sole owner
+	// of everything it subscribes to and unsubscribing on navigation buys nothing. The runtime
+	// handlers therefore stay attached for the page's whole lifetime and are only released on
+	// genuine teardown (handler disconnect). AttachRuntimeHandlers is idempotent and is also
+	// invoked from OnAppearing/OnNavigatedTo so the page self-heals if it is ever reconnected.
+	//
+	// Keyboard shortcuts are instead gated at dispatch time by IsPageInteractive(), which
+	// suppresses them while a modal/popup is up or another page is on top — the behaviour the
+	// old teardown was reaching for, without the permanent breakage.
+
+	private bool _runtimeHandlersAttached;
+
+	private void AttachRuntimeHandlers()
 	{
-		base.OnAppearing();
+		if (_runtimeHandlersAttached)
+		{
+			return;
+		}
+
+		_runtimeHandlersAttached = true;
+
+		_viewModel.PropertyChanged += OnViewModelPropertyChanged;
+		_viewModel.Floors.CollectionChanged += OnFloorsChanged;
+
 		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed += OnObjectLongPressed;
+
+		// Plugin.Maui.KeyListener: fires regardless of which element has focus,
+		// solving the GraphicsView focus-sink problem on Windows.
+		if (_keyboardBehavior is null)
+		{
+			_keyboardBehavior = new KeyboardBehavior();
+			_keyboardBehavior.KeyDown += OnKeyDown;
+			Behaviors.Add(_keyboardBehavior);
+		}
+
+		// Re-run the native scroll-zoom hook in case the canvas handler already exists.
+		DetachScrollZoom();
+		AttachScrollZoom();
 	}
 
-	/// <inheritdoc/>
-	protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+	private void DetachRuntimeHandlers()
 	{
-		base.OnNavigatedFrom(args);
+		if (!_runtimeHandlersAttached)
+		{
+			return;
+		}
+
+		_runtimeHandlersAttached = false;
+
+		_viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+		_viewModel.Floors.CollectionChanged -= OnFloorsChanged;
+
+		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
+		_longPressDetector.LongPressed -= OnObjectLongPressed;
+
 		if (_keyboardBehavior is not null)
 		{
 			_keyboardBehavior.KeyDown -= OnKeyDown;
 			Behaviors.Remove(_keyboardBehavior);
 			_keyboardBehavior = null;
 		}
-		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
+
 		DetachScrollZoom();
-		_viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-		_viewModel.Floors.CollectionChanged -= OnFloorsChanged;
-		_longPressDetector.LongPressed -= OnObjectLongPressed;
-		_longPressDetector.Dispose();
+	}
+
+	/// <inheritdoc/>
+	protected override void OnAppearing()
+	{
+		base.OnAppearing();
+		AttachRuntimeHandlers();
+	}
+
+	/// <inheritdoc/>
+	protected override void OnNavigatedTo(NavigatedToEventArgs args)
+	{
+		base.OnNavigatedTo(args);
+		AttachRuntimeHandlers();
+	}
+
+	/// <inheritdoc/>
+	protected override void OnHandlerChanged()
+	{
+		base.OnHandlerChanged();
+
+		// A null handler means the page has left the visual tree for good — this is the only
+		// genuine teardown point, and the only place the long-press detector may be disposed.
+		if (Handler is null)
+		{
+			DetachRuntimeHandlers();
+			_longPressDetector.Dispose();
+		}
 	}
 
 	// ─── Keyboard shortcuts ─────────────────────────────────────────────────────
@@ -249,8 +324,22 @@ public partial class DungeonDetailPage : ContentPage
 		return _isTextInputFocused;
 	}
 
+	// The keyboard behavior stays attached for the page's lifetime, so shortcuts are gated here
+	// instead: they are ignored while a popup/modal is displayed or another page is on top.
+	private bool IsPageInteractive()
+	{
+		if (Navigation?.ModalStack.Count > 0)
+			return false;
+
+		var current = Shell.Current?.CurrentPage;
+		return current is null || ReferenceEquals(current, this);
+	}
+
 	private void OnKeyDown(object? sender, KeyPressedEventArgs e)
 	{
+		if (!IsPageInteractive())
+			return;
+
 		if (IsTextInputActive())
 			return;
 
@@ -468,9 +557,32 @@ public partial class DungeonDetailPage : ContentPage
 					"CANCEL",
 					isDestructive: true);
 
-				if (confirmed)
+				if (!confirmed)
 				{
-					await _viewModel.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
+					return;
+				}
+
+				// Deleting the selected floor must drop every piece of state that points at it,
+				// otherwise the drawable keeps rendering the deleted floor's projection.
+				// Deleting any other floor leaves the current selection untouched.
+				var wasSelected = _selectedFloorId == floorToDelete.Id;
+				if (wasSelected)
+				{
+					ClearAreaFocus();
+					_selectedFloorId = null;
+					_drawable.Floor = null;
+					_drawable.HoveredAreaId = null;
+					ResetDrawState();
+					FloorNameToolbarEditor.Text = string.Empty;
+					MapToolbar.IsVisible = false;
+				}
+
+				await _viewModel.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
+
+				if (wasSelected)
+				{
+					UpdateToolbarButtonState();
+					MapCanvas.Invalidate();
 				}
 			};
 
@@ -609,6 +721,14 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		if (floorId != _selectedFloorId)
 		{
+			return;
+		}
+
+		// Guard against a stale sidebar row whose area no longer exists in the current data.
+		var currentFloor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == floorId);
+		if (currentFloor?.Areas.Any(areaItem => areaItem.Id == area.Id) != true)
+		{
+			ClearAreaFocus();
 			return;
 		}
 
@@ -878,7 +998,16 @@ public partial class DungeonDetailPage : ContentPage
 
 		var floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
 		var area = floor?.Areas.FirstOrDefault(areaItem => areaItem.Id == _focusedAreaId);
-		if (area is null || name == area.Name)
+
+		// The focused area is gone from the refreshed projection — the toolbar is pointing at a
+		// phantom row. Drop the stale focus rather than silently no-op'ing the rename.
+		if (area is null)
+		{
+			ClearAreaFocus();
+			return;
+		}
+
+		if (name == area.Name)
 		{
 			return;
 		}
