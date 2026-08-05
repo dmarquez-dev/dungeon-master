@@ -12,6 +12,9 @@ namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 /// <param name="Name">
 ///		An optional display name for the floor.
 /// </param>
+/// <param name="Description">
+///		An optional player-facing description of the floor.
+/// </param>
 /// <param name="Notes">
 ///		Optional free-form notes about the floor.
 /// </param>
@@ -25,6 +28,7 @@ public record FloorDto(
 	Guid Id,
 	int Number,
 	string? Name,
+	string? Description,
 	string? Notes,
 	IReadOnlyList<AreaDto> Areas,
 	IReadOnlyList<PlacedObjectDto> Objects);

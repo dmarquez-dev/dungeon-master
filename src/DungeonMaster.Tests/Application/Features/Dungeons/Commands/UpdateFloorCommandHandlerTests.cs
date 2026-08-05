@@ -31,7 +31,7 @@ public class UpdateFloorCommandHandlerTests
             .UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
-        var command = new UpdateFloorCommand(dungeon.Id, floor.Id, "New Name", "Some notes");
+        var command = new UpdateFloorCommand(dungeon.Id, floor.Id, "New Name", null, "Some notes");
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -51,7 +51,7 @@ public class UpdateFloorCommandHandlerTests
             .LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((Dungeon?)null);
 
-        var command = new UpdateFloorCommand(Guid.NewGuid(), Guid.NewGuid(), "Name", null);
+        var command = new UpdateFloorCommand(Guid.NewGuid(), Guid.NewGuid(), "Name", null, null);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -59,5 +59,35 @@ public class UpdateFloorCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeFalse();
         result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WithExistingFloor_UpdatesDescriptionAndNotes()
+    {
+        // Arrange
+        var dungeon = new Dungeon("Test Dungeon");
+        var floor = dungeon.AddFloor("Crypt");
+        _writeRepository
+            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+            .Returns(dungeon);
+        _writeRepository
+            .UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        var command = new UpdateFloorCommand(
+            dungeon.Id,
+            floor.Id,
+            "Crypt",
+            "The air grows cold as you descend.",
+            "Ghasts on the stairs.");
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        floor.Name.Should().Be("Crypt");
+        floor.Description.Should().Be("The air grows cold as you descend.");
+        floor.Notes.Should().Be("Ghasts on the stairs.");
     }
 }

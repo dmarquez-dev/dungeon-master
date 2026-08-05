@@ -50,6 +50,11 @@ public sealed partial class Floor : Entity
 	public string? Name { get; private set; }
 
 	/// <summary>
+	///		Gets the optional player-facing description of this floor.
+	/// </summary>
+	public string? Description { get; private set; }
+
+	/// <summary>
 	///		Gets the optional notes associated with this floor.
 	/// </summary>
 	public string? Notes { get; private set; }

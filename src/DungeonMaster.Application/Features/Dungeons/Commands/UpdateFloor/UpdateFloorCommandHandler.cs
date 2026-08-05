@@ -31,6 +31,7 @@ public sealed class UpdateFloorCommandHandler(
 		dungeon.UpdateFloor(
 			command.FloorId,
 			command.Name,
+			command.Description,
 			command.Notes);
 
 		await writeRepository.UpdateAsync(

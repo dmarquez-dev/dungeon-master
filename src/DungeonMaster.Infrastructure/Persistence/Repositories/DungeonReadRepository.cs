@@ -51,6 +51,7 @@ public sealed class DungeonReadRepository(
 								floor.Id,
 								floor.Number,
 								floor.Name,
+								floor.Description,
 								floor.Notes,
 								floor.Areas
 									.Select(area =>

@@ -14,19 +14,24 @@ public sealed partial class Floor
 		Number = number;
 
 	/// <summary>
-	///		Updates the display name and notes of this floor.
+	///		Updates the display name, description, and notes of this floor.
 	/// </summary>
 	/// <param name="name">
 	///		The new optional display name for the floor.
+	/// </param>
+	/// <param name="description">
+	///		The new optional player-facing description for the floor.
 	/// </param>
 	/// <param name="notes">
 	///		The new optional notes for the floor.
 	/// </param>
 	internal void UpdateDetails(
 		string? name,
+		string? description,
 		string? notes)
 	{
 		Name = name;
+		Description = description;
 		Notes = notes;
 		Touch();
 	}

@@ -138,7 +138,7 @@ public sealed partial class Dungeon
 	}
 
 	/// <summary>
-	///		Updates the name and notes of the specified floor.
+	///		Updates the name, description, and notes of the specified floor.
 	/// </summary>
 	/// <param name="floorId">
 	///		The unique identifier of the floor to update.
@@ -146,12 +146,16 @@ public sealed partial class Dungeon
 	/// <param name="name">
 	///		The new optional display name for the floor.
 	/// </param>
+	/// <param name="description">
+	///		The new optional player-facing description for the floor.
+	/// </param>
 	/// <param name="notes">
 	///		The new optional notes for the floor.
 	/// </param>
 	public void UpdateFloor(
 		Guid floorId,
 		string? name,
+		string? description,
 		string? notes)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
@@ -162,7 +166,7 @@ public sealed partial class Dungeon
 			return;
 		}
 
-		floor.UpdateDetails(name, notes);
+		floor.UpdateDetails(name, description, notes);
 		Touch();
 	}
 

@@ -178,6 +178,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				_dungeonId,
 				args.FloorId,
 				args.Name,
+				null,
 				null),
 			CancellationToken.None);
 
