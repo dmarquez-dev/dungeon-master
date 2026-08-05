@@ -164,7 +164,8 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Updates the name of an existing floor without reloading the full detail.
+	///		Updates the name of an existing floor, then reloads the detail so the cached
+	///		floor projections carry the new name.
 	/// </summary>
 	/// <param name="args">
 	///		A tuple containing the floor identifier and its new name.
@@ -179,6 +180,8 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.Name,
 				null),
 			CancellationToken.None);
+
+		await LoadDungeonAsync(_dungeonId);
 	}
 
 	/// <summary>

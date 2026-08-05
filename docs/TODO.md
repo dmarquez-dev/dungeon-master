@@ -4,6 +4,40 @@ Deferred work items with enough context to pick up cold. Newest first.
 
 ---
 
+## Designer async-lifecycle hardening
+
+**Raised:** 2026-08-05, during the investigation behind the popup lifecycle fix
+**Area:** `DungeonMaster.App` — `DungeonDetailPage`
+**Type:** latent bugs — same family as the defect already fixed, none confirmed reproducible yet
+
+The fixed defect was a page handler that kept operating on state the page no longer owned after a modal popup tore down its subscriptions. Auditing for that shape turned up four more places where the designer mutates UI state across an `await` without re-checking that the state it captured is still live. None of them has a confirmed repro, so they were deliberately left out of that fix and collected here for a dedicated refinement branch rather than being folded into an unrelated change.
+
+The common failure mode to keep in mind while reading these: every write path ends in a full `LoadDungeonAsync`, which clears and refills `Floors`, which rebuilds the entire sidebar. Anything holding a `FloorDto`, an `AreaDto`, a sidebar item, or an object id from before that reload is holding something detached.
+
+### 1. Fire-and-forget handlers mutate UI state after awaits
+
+`EraseAreaAsync`, `PlaceObjectAsync`, `FinishDrawing`, `MoveObjectAsync`, and `DeleteSelectedObjectAsync` are all `async void` or otherwise fire-and-forget. Each awaits a command and then writes page state — `_drawable`, canvas invalidation, toolbar state — without re-validating that `_selectedFloorId` and `_drawable.Floor` still refer to live data. A floor deletion, a floor switch, or a second overlapping operation landing during the await leaves the continuation writing into a floor that is no longer selected. Being `async void` also means any exception thrown after the first await escapes to the platform unhandled rather than surfacing.
+
+Fix shape: capture the floor id before the await, re-check it against `_selectedFloorId` after, and bail out of the UI mutation if it changed — the same guard now used in `OnAreaNameToolbarCommitted`.
+
+### 2. `RefreshFloorAsync` does not re-validate object selection
+
+`RefreshFloorAsync` reloads the dungeon and re-points `_drawable.Floor` at the refreshed projection, but leaves `_selectedObjectId` and `_hoveredObjectId` untouched. If the reload dropped the object those ids name — deleted elsewhere, or removed with its floor — the ids survive as references to nothing. `RefreshMap` already does the equivalent check for `_focusedAreaId` and clears it when the area is absent from the refreshed floor; `RefreshFloorAsync` should do the same for object ids.
+
+### 3. Popup awaits inside closures owned by a rebuilt sidebar item
+
+Highest risk of the three, and the same shape as the defect already fixed.
+
+`DeleteAreaAsync` and the floor-delete handler registered in `RebuildFloorList` both `await Navigation.ShowConfirmPopupAsync(...)` from inside a closure captured by a `FloorSidebarItem`. Showing the popup can trigger navigation lifecycle events on the page, and any reload during the await runs `RebuildFloorList`, which clears `FloorListContainer` and constructs entirely new sidebar items. The closure keeps running on the old, detached item — and then mutates page state (`_selectedFloorId`, `_drawable`, toolbar visibility) from it, referencing a `FloorDto` captured before the rebuild.
+
+Fix shape: hoist the confirm-and-mutate work out of the sidebar item's closure into a page-level method that takes only ids, and re-resolve the floor and area from `_viewModel.Floors` after the popup returns rather than trusting the captured DTOs.
+
+### 4. Keyboard behaviour attached before the page has a handler
+
+`Behaviors.Add(_keyboardBehavior)` runs in the page constructor, before a platform handler exists. It happens to work because the behaviour defers its platform wiring until the handler is created, but nothing states that requirement and nothing enforces it — the ordering is implicit. Either attach it from `OnHandlerChanged`, or document the dependency at the attach site so a future reorder does not silently break keyboard shortcuts.
+
+---
+
 ## Evaluate the dungeon-detail data refresh path
 
 **Raised:** 2026-08-05, during the floor-level ownership refactor
@@ -28,7 +62,8 @@ A dungeon with several floors, many areas, and hundreds of placed objects is the
 
 ### Dead code to remove
 
-- `AreaSidebarItem.UpdateAreaName(string)` and `FloorSidebarItem.UpdateAreaName(Guid, string)` — both became unreachable when area renaming moved to the reload path. They mirror `UpdateFloorName`, so decide whether to keep them as deliberate control API or delete them.
+- `AreaSidebarItem.UpdateAreaName(string)` and `FloorSidebarItem.UpdateAreaName(Guid, string)` — both became unreachable when area renaming moved to the reload path.
+- `FloorSidebarItem.UpdateFloorName(string)` — joined them once floor renaming moved to the reload path too, so the whole in-place label-patching API is now unused. Decide whether to keep the three as deliberate control API or delete them together.
 - Re-check for others after the lifecycle fix settles; the refactor removed several call sites.
 
 ### Related

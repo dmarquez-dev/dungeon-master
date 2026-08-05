@@ -979,14 +979,13 @@ public partial class DungeonDetailPage : ContentPage
 
 		await _viewModel.UpdateFloorCommand.ExecuteAsync((_selectedFloorId.Value, name));
 
-		foreach (var child in FloorListContainer.Children)
-		{
-			if (child is FloorSidebarItem item && item.Floor?.Id == _selectedFloorId)
-			{
-				item.UpdateFloorName(name);
-				break;
-			}
-		}
+		// The command reloads the detail, so the sidebar has already rebuilt from fresh
+		// projections. Re-point the drawable at the new floor instance and re-assert the
+		// toolbar text: a floor-card tap raised while the save was in flight runs
+		// RefreshMap() against the pre-reload projection and would leave the old name showing.
+		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
+		FloorNameToolbarEditor.Text = name;
+		MapCanvas.Invalidate();
 	}
 
 	private async void OnAreaNameToolbarCommitted(object? sender, string? name)
@@ -1012,13 +1011,23 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		await _viewModel.UpdateAreaNameCommand.ExecuteAsync((_selectedFloorId.Value, _focusedAreaId.Value, name));
+		var renamedAreaId = _focusedAreaId.Value;
+
+		await _viewModel.UpdateAreaNameCommand.ExecuteAsync((_selectedFloorId.Value, renamedAreaId, name));
 
 		// The command reloads the detail, so the sidebar has already rebuilt from fresh
-		// projections. Re-point the drawable at the new floor instance and keep the
-		// toolbar editor showing the persisted name.
+		// projections. Re-point the drawable at the new floor instance.
 		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
-		AreaNameToolbarEditor.Text = name;
+
+		// Focus may have been dropped while the save was in flight — tapping the floor card
+		// clears area focus, and that tap arrives after the commit that started this rename.
+		// Only re-assert the toolbar text while the renamed area is still the focused one;
+		// otherwise the hidden editor would retain text belonging to a no-longer-focused area.
+		if (_focusedAreaId == renamedAreaId)
+		{
+			AreaNameToolbarEditor.Text = name;
+		}
+
 		MapCanvas.Invalidate();
 	}
 
