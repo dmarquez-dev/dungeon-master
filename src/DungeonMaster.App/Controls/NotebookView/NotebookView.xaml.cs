@@ -174,6 +174,10 @@ public partial class NotebookView : ContentView
 			_isPopulating = false;
 		}
 
+		// A dragged-off-screen header has no other way back: Close() then Open() would otherwise
+		// reopen at the same stuck offset, since translation persists across visibility toggles.
+		ResetTranslationIfHeaderOffscreen();
+
 		// A freshly opened notebook has no previous state to slide out of, so it starts settled.
 		SelectRibbon(NotebookPane.Description, animate: false);
 		SetSaveState(dirty: false);
@@ -395,6 +399,33 @@ public partial class NotebookView : ContentView
 				TranslationX = _dragOriginX + e.TotalX;
 				TranslationY = _dragOriginY + e.TotalY;
 				break;
+		}
+	}
+
+	// Guards against the notebook being dragged past the parent's edge and left unreachable —
+	// the parent (MapOverlay) applies no clipping, so an unbounded drag would otherwise persist
+	// across Close()/Open() forever. Only the header's own footprint needs to overlap the parent;
+	// the rest of the notebook is free to extend beyond it as it always has.
+	private void ResetTranslationIfHeaderOffscreen()
+	{
+		if (Parent is not VisualElement parent || parent.Width <= 0 || parent.Height <= 0 || Width <= 0 || Height <= 0)
+		{
+			return;
+		}
+
+		var headerLeft = X + TranslationX;
+		var headerTop = Y + TranslationY;
+		var headerRight = headerLeft + Width;
+		var headerBottom = headerTop + Height;
+
+		var overlapsParent =
+			headerRight > 0 && headerLeft < parent.Width &&
+			headerBottom > 0 && headerTop < parent.Height;
+
+		if (!overlapsParent)
+		{
+			TranslationX = 0;
+			TranslationY = 0;
 		}
 	}
 }
