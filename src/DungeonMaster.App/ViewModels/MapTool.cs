@@ -17,6 +17,9 @@ public enum MapTool
 	/// <summary>Place tool — click to place entities on the map (keyboard shortcut P).</summary>
 	Place,
 
+	/// <summary>Texture tool — paint floor/wall textures and place structural elements (keyboard shortcut T).</summary>
+	Texture,
+
 	/// <summary>Select tool — click an area on the map to enter its edit context (keyboard shortcut S).</summary>
 	Select,
 

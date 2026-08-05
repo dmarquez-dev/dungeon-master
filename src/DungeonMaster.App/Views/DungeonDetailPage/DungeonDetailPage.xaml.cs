@@ -1,4 +1,5 @@
 ﻿using DungeonMaster.App.Assets.ObjectAssets;
+using DungeonMaster.App.Assets.TextureAssets;
 using Plugin.Maui.KeyListener;
 using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Controls;
@@ -8,6 +9,11 @@ using DungeonMaster.App.Theme;
 using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views.DungeonDetail;
 using DungeonMaster.Application.Common.Map;
+using DungeonMaster.Application.Features.Dungeons.Commands.AddStructureElement;
+using DungeonMaster.Application.Features.Dungeons.Commands.ClearTileTexture;
+using DungeonMaster.Application.Features.Dungeons.Commands.FloodFillTileTextures;
+using DungeonMaster.Application.Features.Dungeons.Commands.RemoveStructureElement;
+using DungeonMaster.Application.Features.Dungeons.Commands.SetTileTexture;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Area;
 using DungeonMaster.Domain.ValueObjects;
@@ -73,6 +79,10 @@ public partial class DungeonDetailPage : ContentPage
 	private CanvasPoint? _objectDragTargetCanvas;   // area-relative pixel position being previewed
 	private bool _objectDragTargetIsValid;           // false when drag position is outside the active area
 	private bool _objectLongPressHandled;            // prevents EndInteraction from re-triggering click after long press
+
+	// Texture tool state
+	private TexturePlacementMode _texturePlacementMode = TexturePlacementMode.SingleTile;
+	private VertexPoint? _structureAnchor;   // null = no anchor set; set after first click in edge mode
 
 	// Keyboard guard — suppresses tool shortcuts while a text field is focused.
 	private bool _isTextInputFocused;
@@ -204,6 +214,33 @@ public partial class DungeonDetailPage : ContentPage
 				}
 			}
 		};
+
+		TexturePalette.SelectionChanged += (_, args) =>
+		{
+			var (category, texture, structure) = args;
+			_drawable.GhostTextureKind = texture;
+			_drawable.GhostStructureKind = structure;
+			_structureAnchor = null;
+			_drawable.GhostStructureFrom = null;
+			_drawable.GhostEdgeAnchor = null;
+			_drawable.GhostStructureTo = null;
+			TextureControlsPalette.SetCategory(
+				category,
+				isEdgeStructure: structure is not null && StructureKindInfo.GetCategory(structure.Value) == "Edge");
+			MapCanvas.Invalidate();
+		};
+		TexturePalette.SecondaryPaletteRequested += OnTextureSecondaryPaletteRequested;
+		TexturePalette.SecondaryPaletteDismissed += OnTextureSecondaryPaletteDismissed;
+
+		TextureControlsPalette.ModeChanged += (_, mode) =>
+		{
+			_texturePlacementMode = mode;
+			_structureAnchor = null;
+			_drawable.GhostStructureFrom = null;
+			_drawable.GhostEdgeAnchor = null;
+			_drawable.GhostStructureTo = null;
+			MapCanvas.Invalidate();
+		};
 	}
 
 	/// <inheritdoc/>
@@ -259,6 +296,17 @@ public partial class DungeonDetailPage : ContentPage
 		if (IsTextInputActive())
 			return;
 
+		// Escape cancels the structure anchor in Texture/EdgeStructure mode.
+		if (e.KeyChar == '\x1B' && _viewModel.ActiveTool == MapTool.Texture && _structureAnchor is not null)
+		{
+			_structureAnchor = null;
+			_drawable.GhostStructureFrom = null;
+			_drawable.GhostEdgeAnchor = null;
+			_drawable.GhostStructureTo = null;
+			MapCanvas.Invalidate();
+			return;
+		}
+
 		switch (char.ToLower(e.KeyChar))
 		{
 			case 'd':
@@ -271,6 +319,10 @@ public partial class DungeonDetailPage : ContentPage
 			case 'h': ToggleOrSetTool(MapTool.Pan);    break;
 			case 'p': ToggleOrSetTool(MapTool.Place);  break;
 			case 's': ToggleOrSetTool(MapTool.Select); break;
+			case 't':
+				if (_currentContext == ToolbarContext.Area)
+					SetActiveTool(MapTool.Texture);
+				break;
 			case 'e':
 				if (_currentContext == ToolbarContext.Floor)
 					ToggleOrSetTool(MapTool.Erase);
@@ -689,6 +741,7 @@ public partial class DungeonDetailPage : ContentPage
 			case MapTool.Place:
 			case MapTool.Select:
 			case MapTool.Erase:
+			case MapTool.Texture:
 				if (_drawState == DrawState.Drawing)
 				{
 					AbortInProgressDraw();
@@ -727,6 +780,10 @@ public partial class DungeonDetailPage : ContentPage
 
 		ObjectPalette.IsVisible = tool == MapTool.Place && _activeAreaId is not null;
 		ControlsPalette.IsVisible = tool == MapTool.Place && ObjectPalette.ActiveObject is not null;
+		TextureControlsPalette.IsVisible = tool == MapTool.Texture && _activeAreaId is not null;
+		TexturePalette.IsVisible = tool == MapTool.Texture && _activeAreaId is not null;
+		if (tool != MapTool.Texture)
+			OnTextureSecondaryPaletteDismissed(null, EventArgs.Empty);
 		if (tool != MapTool.Place)
 		{
 			OnSecondaryPaletteDismissed(null, EventArgs.Empty);
@@ -737,6 +794,24 @@ public partial class DungeonDetailPage : ContentPage
 			_drawable.GhostScale = ObjectScale.Default;
 			ControlsPalette.ResetScale();
 			MapCanvas.Invalidate();
+		}
+		if (tool == MapTool.Texture)
+		{
+			// Clear any dangling ghost state
+			_drawable.GhostTextureTile = null;
+			_drawable.GhostStructureFrom = null;
+			_drawable.GhostEdgeAnchor = null;
+			_drawable.GhostStructureTo = null;
+			_structureAnchor = null;
+			MapCanvas.Invalidate();
+		}
+		else
+		{
+			_drawable.GhostTextureTile = null;
+			_drawable.GhostStructureFrom = null;
+			_drawable.GhostEdgeAnchor = null;
+			_drawable.GhostStructureTo = null;
+			_structureAnchor = null;
 		}
 
 		SetCanvasCursor(tool);
@@ -859,9 +934,25 @@ public partial class DungeonDetailPage : ContentPage
 	private void OnSecondaryPaletteDismissed(object? sender, EventArgs e)
 	{
 		foreach (var child in MapOverlay.Children.OfType<SecondaryPaletteView>().ToList())
-		{
 			child.IsVisible = false;
+	}
+
+	private void OnTextureSecondaryPaletteRequested(object? sender, TextureSecondaryPaletteView palette)
+	{
+		if (!MapOverlay.Children.Contains(palette))
+		{
+			palette.HorizontalOptions = LayoutOptions.Start;
+			palette.VerticalOptions   = LayoutOptions.End;
+			palette.Margin            = new Thickness(232, 0, 0, 8);
+			MapOverlay.Children.Add(palette);
 		}
+		palette.IsVisible = true;
+	}
+
+	private void OnTextureSecondaryPaletteDismissed(object? sender, EventArgs e)
+	{
+		foreach (var child in MapOverlay.Children.OfType<TextureSecondaryPaletteView>().ToList())
+			child.IsVisible = false;
 	}
 
 	private async void OnFloorNameToolbarCommitted(object? sender, string? name)
@@ -923,6 +1014,7 @@ public partial class DungeonDetailPage : ContentPage
 		var isPlaceActive = _viewModel.ActiveTool == MapTool.Place;
 		var isSelectActive = _viewModel.ActiveTool == MapTool.Select;
 		var isEraseActive = _viewModel.ActiveTool == MapTool.Erase;
+		var isTextureActive = _viewModel.ActiveTool == MapTool.Texture;
 
 		var activeColor = DmColors.Gold;
 		var mutedColor = DmColors.GoldMuted;
@@ -965,6 +1057,10 @@ public partial class DungeonDetailPage : ContentPage
 			ToolPanAreaBorder.Stroke = isPanActive ? activeBrush : transparentBrush;
 			ToolPanAreaIcon.TextColor = isPanActive ? activeColor : mutedColor;
 			ToolPanAreaLabel.TextColor = isPanActive ? activeColor : mutedColor;
+
+			ToolTextureBorder.Stroke = isTextureActive ? activeBrush : transparentBrush;
+			ToolTextureIcon.TextColor = isTextureActive ? activeColor : mutedColor;
+			ToolTextureLabel.TextColor = isTextureActive ? activeColor : mutedColor;
 		}
 
 		var hasVertices = _viewModel.DrawingSession.Vertices.Count > 0;
@@ -1220,6 +1316,101 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
+		if (_viewModel.ActiveTool == MapTool.Texture && _activeAreaId is not null)
+		{
+			var rawPoint = new PointF((float)e.Touches.FirstOrDefault().X, (float)e.Touches.FirstOrDefault().Y);
+			var cp = _drawable.ScreenToCanvas(rawPoint);
+			var activeArea = _drawable.Floor?.Areas.FirstOrDefault(a => a.Id == _activeAreaId);
+
+			if (activeArea is not null)
+			{
+				if (_texturePlacementMode is TexturePlacementMode.SingleTile
+					or TexturePlacementMode.PaintFill)
+				{
+					// Snap to containing tile (area-relative)
+					var absoluteTile = TileCoordinateHelper.SnapToTileCenter(
+						cp.X, cp.Y, _drawable.TileSize);
+					var relTile = new TilePoint(
+						absoluteTile.Col - activeArea.Origin.Col,
+						absoluteTile.Row - activeArea.Origin.Row);
+					_drawable.GhostTextureTile = relTile;
+					_drawable.GhostTextureIsInvalid = !IsTileInActiveArea(absoluteTile);
+					_drawable.GhostStructureFrom = null;
+					_drawable.GhostEdgeAnchor = null;
+				}
+				else
+				{
+					// Structure mode — kind-based snap: door/arch kinds snap to edge centers; column/wall kinds snap to vertices
+					_drawable.GhostTextureTile = null;
+
+					var isEdgeCenterKind = _drawable.GhostStructureKind.HasValue
+						&& StructureKindInfo.IsEdgeCenterStructure(_drawable.GhostStructureKind.Value);
+
+					if (isEdgeCenterKind)
+					{
+						var (absoluteEdge, _) = TileCoordinateHelper.SnapToNearestEdgeCenter(
+							cp.X, cp.Y, _drawable.TileSize);
+
+						var relEdge = new EdgePoint(
+							absoluteEdge.TileCol - activeArea.Origin.Col,
+							absoluteEdge.TileRow - activeArea.Origin.Row,
+							absoluteEdge.Side);
+
+						_drawable.GhostEdgeAnchor = relEdge;
+						_drawable.GhostStructureFrom = null;
+						_drawable.GhostStructureTo = null;
+
+						// Validity: check a point near the edge center is inside the active area
+						var edgeCenterAbsX = absoluteEdge.Side switch
+						{
+							EdgeSide.N or EdgeSide.S => (absoluteEdge.TileCol + 0.5f) * _drawable.TileSize,
+							EdgeSide.E               => (absoluteEdge.TileCol + 1f) * _drawable.TileSize,
+							_                        => absoluteEdge.TileCol * _drawable.TileSize,
+						};
+						var edgeCenterAbsY = absoluteEdge.Side switch
+						{
+							EdgeSide.N               => absoluteEdge.TileRow * _drawable.TileSize,
+							EdgeSide.S               => (absoluteEdge.TileRow + 1f) * _drawable.TileSize,
+							_                        => (absoluteEdge.TileRow + 0.5f) * _drawable.TileSize,
+						};
+						_drawable.GhostStructureIsInvalid = !IsPositionReachableFromActiveArea(
+							new PointF(edgeCenterAbsX, edgeCenterAbsY));
+					}
+					else
+					{
+						_drawable.GhostEdgeAnchor = null;
+						var absoluteVertex = TileCoordinateHelper.SnapToNearestVertex(
+							cp.X, cp.Y, _drawable.TileSize);
+						var relVertex = new VertexPoint(
+							absoluteVertex.Col - activeArea.Origin.Col,
+							absoluteVertex.Row - activeArea.Origin.Row);
+
+						if (_structureAnchor is null)
+						{
+							// Preview: from == to (point or direction hint)
+							_drawable.GhostStructureFrom = relVertex;
+							_drawable.GhostStructureTo = relVertex;
+						}
+						else
+						{
+							// Anchor locked: show edge from anchor to hovered vertex
+							_drawable.GhostStructureFrom = _structureAnchor;
+							_drawable.GhostStructureTo = relVertex;
+						}
+
+						// Validate: vertex inside/on area polygon
+						var vertexCanvas = new PointF(
+							absoluteVertex.Col * _drawable.TileSize,
+							absoluteVertex.Row * _drawable.TileSize);
+						_drawable.GhostStructureIsInvalid = !IsPositionReachableFromActiveArea(vertexCanvas);
+					}
+				}
+
+				MapCanvas.Invalidate();
+			}
+			return;
+		}
+
 		if (_drawState == DrawState.Drawing)
 		{
 			_drawable.PhantomEnd = canvasPoint;
@@ -1270,6 +1461,16 @@ public partial class DungeonDetailPage : ContentPage
 		if (_viewModel.ActiveTool == MapTool.Place)
 		{
 			_drawable.GhostCanvasPosition = null;
+			needsInvalidate = true;
+		}
+
+		if (_viewModel.ActiveTool == MapTool.Texture)
+		{
+			_drawable.GhostTextureTile = null;
+			_drawable.GhostStructureFrom = null;
+			_drawable.GhostEdgeAnchor = null;
+			if (_structureAnchor is null)
+				_drawable.GhostStructureTo = null;
 			needsInvalidate = true;
 		}
 
@@ -1449,6 +1650,15 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
+		if (_viewModel.ActiveTool == MapTool.Texture
+			&& _activeAreaId is not null
+			&& _viewModel.Dungeon is not null
+			&& _selectedFloorId is not null)
+		{
+			_ = HandleTextureToolClickAsync();
+			return;
+		}
+
 		if (_viewModel.ActiveTool == MapTool.Move && _isMoveDragging
 			&& _draggingAreaId is not null && _selectedFloorId is not null)
 		{
@@ -1491,6 +1701,100 @@ public partial class DungeonDetailPage : ContentPage
 			}
 
 			UpdateToolbarButtonState();
+			MapCanvas.Invalidate();
+		}
+	}
+
+	private async Task HandleTextureToolClickAsync()
+	{
+		if (_activeAreaId is null || _viewModel.Dungeon is null || _selectedFloorId is null)
+			return;
+
+		var dungeonId = _viewModel.Dungeon.Id;
+		var floorId = _selectedFloorId.Value;
+		var areaId = _activeAreaId.Value;
+
+		if (_texturePlacementMode == TexturePlacementMode.SingleTile
+			&& _drawable.GhostTextureTile is TilePoint tile
+			&& !_drawable.GhostTextureIsInvalid
+			&& _drawable.GhostTextureKind is TextureKind kind)
+		{
+			var command = new SetTileTextureCommand(dungeonId, floorId, areaId, tile, kind);
+			var result = await _viewModel.SetTileTextureAsync(command);
+			if (result.IsSuccess)
+				await RefreshFloorAsync();
+			MapCanvas.Invalidate();
+			return;
+		}
+
+		if (_texturePlacementMode == TexturePlacementMode.PaintFill
+			&& _drawable.GhostTextureTile is TilePoint seedTile
+			&& !_drawable.GhostTextureIsInvalid
+			&& _drawable.GhostTextureKind is TextureKind fillKind)
+		{
+			var command = new FloodFillTileTexturesCommand(dungeonId, floorId, areaId, seedTile, fillKind);
+			var result = await _viewModel.FloodFillTileTexturesAsync(command);
+			if (result.IsSuccess)
+				await RefreshFloorAsync();
+			MapCanvas.Invalidate();
+			return;
+		}
+
+		if (_texturePlacementMode == TexturePlacementMode.PointStructure
+			&& !_drawable.GhostStructureIsInvalid
+			&& _drawable.GhostStructureKind is StructureKind structKind)
+		{
+			if (_drawable.GhostEdgeAnchor is EdgePoint edgeAnchor)
+			{
+				var command = new AddStructureElementCommand(
+					dungeonId, floorId, areaId,
+					From: null, To: null, Kind: structKind, EdgeAnchor: edgeAnchor);
+				var result = await _viewModel.AddStructureElementAsync(command);
+				if (result.IsSuccess)
+					await RefreshFloorAsync();
+				MapCanvas.Invalidate();
+				return;
+			}
+
+			if (_drawable.GhostStructureFrom is VertexPoint vertex)
+			{
+				var command = new AddStructureElementCommand(
+					dungeonId, floorId, areaId,
+					From: vertex, To: vertex, Kind: structKind);
+				var result = await _viewModel.AddStructureElementAsync(command);
+				if (result.IsSuccess)
+					await RefreshFloorAsync();
+				MapCanvas.Invalidate();
+				return;
+			}
+		}
+
+		if (_texturePlacementMode == TexturePlacementMode.EdgeStructure
+			&& _drawable.GhostStructureKind is StructureKind edgeKind)
+		{
+			if (_structureAnchor is null)
+			{
+				// First click: lock anchor
+				_structureAnchor = _drawable.GhostStructureFrom;
+			}
+			else
+			{
+				// Second click: place edge
+				var toVertex = _drawable.GhostStructureTo ?? _structureAnchor;
+				if (!_drawable.GhostStructureIsInvalid)
+				{
+					var command = new AddStructureElementCommand(
+						dungeonId, floorId, areaId,
+						_structureAnchor, toVertex, edgeKind);
+					var result = await _viewModel.AddStructureElementAsync(command);
+					if (result.IsSuccess)
+						await RefreshFloorAsync();
+				}
+				_structureAnchor = null;
+				_drawable.GhostStructureFrom = null;
+				_drawable.GhostEdgeAnchor = null;
+				_drawable.GhostStructureTo = null;
+			}
 			MapCanvas.Invalidate();
 		}
 	}
@@ -1551,7 +1855,7 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
-	private void OnMapSecondaryTapped(object? sender, TappedEventArgs e)
+	private async void OnMapSecondaryTapped(object? sender, TappedEventArgs e)
 	{
 		if (_viewModel.ActiveTool == MapTool.Place)
 		{
@@ -1565,6 +1869,63 @@ public partial class DungeonDetailPage : ContentPage
 				// Right-click on a hovered placed object (inspect mode) deletes it.
 				_selectedObjectId = _hoveredObjectId;
 				_ = DeleteSelectedObjectAsync();
+			}
+			return;
+		}
+
+		if (_viewModel.ActiveTool == MapTool.Texture
+			&& _activeAreaId is not null
+			&& _viewModel.Dungeon is not null
+			&& _selectedFloorId is not null)
+		{
+			var rawPoint = new PointF(
+				(float)e.GetPosition(MapCanvas)!.Value.X,
+				(float)e.GetPosition(MapCanvas)!.Value.Y);
+			var cp = _drawable.ScreenToCanvas(rawPoint);
+			var activeArea = _drawable.Floor?.Areas.FirstOrDefault(a => a.Id == _activeAreaId);
+
+			if (activeArea is null) return;
+
+			var dungeonId = _viewModel.Dungeon.Id;
+			var floorId = _selectedFloorId.Value;
+			var areaId = _activeAreaId.Value;
+
+			if (_texturePlacementMode is TexturePlacementMode.SingleTile
+				or TexturePlacementMode.PaintFill)
+			{
+				var absoluteTile = TileCoordinateHelper.SnapToTileCenter(
+					cp.X, cp.Y, _drawable.TileSize);
+				var relTile = new TilePoint(
+					absoluteTile.Col - activeArea.Origin.Col,
+					absoluteTile.Row - activeArea.Origin.Row);
+
+				if (activeArea.TileTextures.Any(t => t.Position == relTile))
+				{
+					var command = new ClearTileTextureCommand(dungeonId, floorId, areaId, relTile);
+					var result = await _viewModel.ClearTileTextureAsync(command);
+					if (result.IsSuccess)
+						await RefreshFloorAsync();
+				}
+			}
+			else
+			{
+				// Find structure element near the right-clicked vertex
+				var absoluteVertex = TileCoordinateHelper.SnapToNearestVertex(
+					cp.X, cp.Y, _drawable.TileSize);
+				var relVertex = new VertexPoint(
+					absoluteVertex.Col - activeArea.Origin.Col,
+					absoluteVertex.Row - activeArea.Origin.Row);
+
+				var target = activeArea.StructureElements.FirstOrDefault(el =>
+					el.From == relVertex || el.To == relVertex);
+
+				if (target is not null)
+				{
+					var command = new RemoveStructureElementCommand(dungeonId, floorId, areaId, target.Id);
+					var result = await _viewModel.RemoveStructureElementAsync(command);
+					if (result.IsSuccess)
+						await RefreshFloorAsync();
+				}
 			}
 			return;
 		}
@@ -1634,6 +1995,61 @@ public partial class DungeonDetailPage : ContentPage
 		}
 
 		return bestMatch;
+	}
+
+	// Tests whether a canvas point (grid vertex or edge midpoint) is reachable from the active
+	// Tests whether a tile (given its absolute TilePoint) meaningfully overlaps the active area
+	// by sampling a 3×3 grid of points within the tile. A tile qualifies if any sample lands
+	// inside the polygon — this handles diagonals that bisect a tile so its center falls outside.
+	private bool IsTileInActiveArea(TilePoint absoluteTile)
+	{
+		var activeArea = _drawable.Floor?.Areas?.FirstOrDefault(a => a.Id == _activeAreaId);
+		if (activeArea is null) return false;
+
+		var verts = BuildAreaPolygon(activeArea);
+		var ts = _drawable.TileSize;
+
+		float[] d = [0.25f, 0.5f, 0.75f];
+		foreach (var dx in d)
+			foreach (var dy in d)
+				if (IsPointInPolygon(
+					new PointF((absoluteTile.Col + dx) * ts, (absoluteTile.Row + dy) * ts), verts))
+					return true;
+
+		return false;
+	}
+
+	// area by probing all 4 diagonal neighbours. This handles structures on shared boundaries
+	// where a single-direction nudge can land inside a neighbouring area instead of the active one.
+	private bool IsPositionReachableFromActiveArea(PointF canvasPoint)
+	{
+		var activeArea = _drawable.Floor?.Areas?.FirstOrDefault(a => a.Id == _activeAreaId);
+		if (activeArea is null) return false;
+
+		var verts = BuildAreaPolygon(activeArea);
+
+		float[] d = [-1f, 1f];
+		foreach (var dx in d)
+			foreach (var dy in d)
+				if (IsPointInPolygon(new PointF(canvasPoint.X + dx, canvasPoint.Y + dy), verts))
+					return true;
+
+		return false;
+	}
+
+	private List<PointF> BuildAreaPolygon(AreaDto area)
+	{
+		var verts = new List<PointF>(area.Outline.Count + 1);
+		var (ox, oy) = TileCoordinateHelper.ToPixel(area.Origin, _drawable.TileSize);
+		verts.Add(new PointF(ox, oy));
+		foreach (var seg in area.Outline)
+		{
+			var (ex, ey) = TileCoordinateHelper.ToPixel(seg.End, _drawable.TileSize);
+			verts.Add(new PointF(ex, ey));
+		}
+		if (verts.Count > 1)
+			verts.RemoveAt(verts.Count - 1);
+		return verts;
 	}
 
 	private static bool IsPointInPolygon(PointF point, List<PointF> polygon)
@@ -2211,5 +2627,11 @@ public partial class DungeonDetailPage : ContentPage
 			_viewModel.DungeonNotes = value;
 			await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
 		}
+	}
+
+	private void OnToolTextureClicked(object? sender, TappedEventArgs e)
+	{
+		if (_currentContext == ToolbarContext.Area)
+			SetActiveTool(MapTool.Texture);
 	}
 }

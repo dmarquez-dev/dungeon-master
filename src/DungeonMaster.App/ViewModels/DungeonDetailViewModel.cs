@@ -5,8 +5,13 @@ using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
+using DungeonMaster.Application.Features.Dungeons.Commands.AddStructureElement;
+using DungeonMaster.Application.Features.Dungeons.Commands.ClearTileTexture;
+using DungeonMaster.Application.Features.Dungeons.Commands.FloodFillTileTextures;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
+using DungeonMaster.Application.Features.Dungeons.Commands.RemoveStructureElement;
+using DungeonMaster.Application.Features.Dungeons.Commands.SetTileTexture;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
@@ -436,5 +441,35 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 
 		await LoadDungeonAsync(dungeonId);
 	}
+
+	/// <summary>
+	///		Sets the texture of a tile in the specified area.
+	/// </summary>
+	public Task<Application.Common.Results.Result<bool>> SetTileTextureAsync(SetTileTextureCommand command)
+		=> dispatcher.SendAsync<bool>(command, CancellationToken.None);
+
+	/// <summary>
+	///		Clears the texture of a tile in the specified area.
+	/// </summary>
+	public Task<Application.Common.Results.Result<bool>> ClearTileTextureAsync(ClearTileTextureCommand command)
+		=> dispatcher.SendAsync<bool>(command, CancellationToken.None);
+
+	/// <summary>
+	///		Adds a structure element to the specified area.
+	/// </summary>
+	public Task<Application.Common.Results.Result<Guid>> AddStructureElementAsync(AddStructureElementCommand command)
+		=> dispatcher.SendAsync<Guid>(command, CancellationToken.None);
+
+	/// <summary>
+	///		Removes a structure element from the specified area.
+	/// </summary>
+	public Task<Application.Common.Results.Result<bool>> RemoveStructureElementAsync(RemoveStructureElementCommand command)
+		=> dispatcher.SendAsync<bool>(command, CancellationToken.None);
+
+	/// <summary>
+	///		Flood-fills tiles in the specified area with a texture.
+	/// </summary>
+	public Task<Application.Common.Results.Result<int>> FloodFillTileTexturesAsync(FloodFillTileTexturesCommand command)
+		=> dispatcher.SendAsync<int>(command, CancellationToken.None);
 
 }

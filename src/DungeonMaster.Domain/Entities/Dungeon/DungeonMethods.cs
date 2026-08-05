@@ -477,4 +477,56 @@ public sealed partial class Dungeon
 			Touch();
 		}
 	}
+
+	public void SetTileTexture(Guid floorId, Guid areaId, TilePoint position, Area.TextureKind kind)
+	{
+		var floor = _floors.FirstOrDefault(f => f.Id == floorId);
+		if (floor is null) return;
+		floor.SetTileTexture(areaId, position, kind);
+		Touch();
+	}
+
+	public void ClearTileTexture(Guid floorId, Guid areaId, TilePoint position)
+	{
+		var floor = _floors.FirstOrDefault(f => f.Id == floorId);
+		if (floor is null) return;
+		floor.ClearTileTexture(areaId, position);
+		Touch();
+	}
+
+	public Area.StructureElement? AddStructureElement(
+		Guid floorId,
+		Guid areaId,
+		VertexPoint from,
+		VertexPoint to,
+		Area.StructureKind kind)
+	{
+		var floor = _floors.FirstOrDefault(f => f.Id == floorId);
+		if (floor is null) return null;
+		var result = floor.AddStructureElement(areaId, from, to, kind);
+		if (result is not null) Touch();
+		return result;
+	}
+
+	public Area.StructureElement? AddEdgeCenterStructureElement(
+		Guid floorId,
+		Guid areaId,
+		EdgePoint edgeAnchor,
+		Area.StructureKind kind)
+	{
+		var floor = _floors.FirstOrDefault(f => f.Id == floorId);
+		if (floor is null) return null;
+		var result = floor.AddEdgeCenterStructureElement(areaId, edgeAnchor, kind);
+		if (result is not null) Touch();
+		return result;
+	}
+
+	public bool RemoveStructureElement(Guid floorId, Guid areaId, Guid elementId)
+	{
+		var floor = _floors.FirstOrDefault(f => f.Id == floorId);
+		if (floor is null) return false;
+		var removed = floor.RemoveStructureElement(areaId, elementId);
+		if (removed) Touch();
+		return removed;
+	}
 }

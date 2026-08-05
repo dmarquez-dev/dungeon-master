@@ -69,6 +69,22 @@ public sealed class DungeonReadRepository(
 														Position: obj.Position,
 														Rotation: obj.Rotation,
 														Scale:    obj.Scale))
+												.ToList(),
+											area.TileTextures
+												.Select(t =>
+													new TileTextureDto(
+														Id:       t.Id,
+														Position: t.Position,
+														Kind:     t.Kind))
+												.ToList(),
+											area.StructureElements
+												.Select(e =>
+													new StructureElementDto(
+														Id:          e.Id,
+														From:        e.From,
+														To:          e.To,
+														EdgeAnchor:  e.EdgeAnchor,
+														Kind:        e.Kind))
 												.ToList()))
 									.ToList()))
 						.ToList()))

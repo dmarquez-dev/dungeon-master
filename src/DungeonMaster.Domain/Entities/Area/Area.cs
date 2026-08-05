@@ -9,6 +9,8 @@ public sealed partial class Area : Entity
 {
 	private readonly List<PathSegment> _outline = [];
 	private readonly List<PlacedObject> _objects = [];
+	private readonly List<TileTexture> _tileTextures = [];
+	private readonly List<StructureElement> _structureElements = [];
 
 	private Area() { }
 
@@ -72,4 +74,16 @@ public sealed partial class Area : Entity
 	/// </summary>
 	public IReadOnlyList<PlacedObject> Objects =>
 		_objects.AsReadOnly();
+
+	/// <summary>
+	///		Gets the read-only list of tile textures applied within this area.
+	/// </summary>
+	public IReadOnlyList<TileTexture> TileTextures =>
+		_tileTextures.AsReadOnly();
+
+	/// <summary>
+	///		Gets the read-only list of structural elements placed within this area.
+	/// </summary>
+	public IReadOnlyList<StructureElement> StructureElements =>
+		_structureElements.AsReadOnly();
 }

@@ -389,9 +389,9 @@
 
                             </Grid>
 
-                            <!-- Area context: back + area name + redraw + place + pan -->
+                            <!-- Area context: back + area name + redraw + texture + place + pan -->
                             <Grid x:Name="AreaContextToolbar" IsVisible="False"
-                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="4">
+                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="4">
 
                                 <Button
                                     Grid.Column="0"
@@ -423,7 +423,7 @@
                                 <!-- Place tool (area context only — objects belong to areas) -->
                                 <Border
                                     x:Name="ToolPlaceBorder"
-                                    Grid.Column="2"
+                                    Grid.Column="4"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -457,7 +457,7 @@
                                 <!-- Pan tool (area context) -->
                                 <Border
                                     x:Name="ToolPanAreaBorder"
-                                    Grid.Column="3"
+                                    Grid.Column="5"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -491,7 +491,7 @@
                                 <!-- Redraw tool -->
                                 <Border
                                     x:Name="ToolRedrawBorder"
-                                    Grid.Column="4"
+                                    Grid.Column="2"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -515,6 +515,40 @@
                                         <Label
                                             x:Name="ToolRedrawLabel"
                                             Text="D"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="13"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Texture tool (area context only) -->
+                                <Border
+                                    x:Name="ToolTextureBorder"
+                                    Grid.Column="3"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Texture tiles and structures (T)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolTextureClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolTextureIcon"
+                                            Text="&#xEA04;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolTextureLabel"
+                                            Text="T"
                                             FontFamily="EBGaramondRegular"
                                             FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
@@ -639,6 +673,12 @@
                             IsVisible="False" />
                         <palette:ObjectPaletteView
                             x:Name="ObjectPalette"
+                            IsVisible="False" />
+                        <palette:TextureControlsPaletteView
+                            x:Name="TextureControlsPalette"
+                            IsVisible="False" />
+                        <palette:TexturePaletteView
+                            x:Name="TexturePalette"
                             IsVisible="False" />
                     </VerticalStackLayout>
                     <!-- Object action popup: rotate CCW/CW | resize − /+ | delete -->

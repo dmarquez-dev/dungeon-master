@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DungeonMaster.App.Views.DungeonDetail.TextureControlsPaletteView"
+             IsVisible="False">
+	<ContentView.Resources>
+		<Style x:Key="PaletteButtonStyle" TargetType="Border">
+			<Setter Property="BackgroundColor" Value="#C8AC78" />
+			<Setter Property="Stroke" Value="#9A7820" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup Name="CommonStates">
+						<VisualState Name="Normal">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#C8AC78" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#E8CC9A" />
+								<Setter Property="Stroke" Value="#C8A040" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+	</ContentView.Resources>
+	<Border BackgroundColor="#EDD8A0"
+	        Stroke="#8B5E1A"
+	        StrokeThickness="1"
+	        Padding="6,5,6,6"
+	        WidthRequest="216"
+	        HorizontalOptions="Start">
+		<Border.StrokeShape>
+			<RoundRectangle CornerRadius="4" />
+		</Border.StrokeShape>
+		<HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="0">
+
+			<!-- MODE group -->
+			<VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+				<Label Text="MODE"
+				       FontSize="9"
+				       CharacterSpacing="1"
+				       TextColor="#7A5030"
+				       TextTransform="Uppercase"
+				       HorizontalOptions="Center" />
+				<HorizontalStackLayout Spacing="4">
+					<Border x:Name="LeftModeBorder"
+					        Style="{StaticResource PaletteButtonStyle}"
+					        WidthRequest="88" HeightRequest="32"
+					        StrokeThickness="1"
+					        StrokeShape="RoundRectangle 2">
+						<HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center"
+						                       Spacing="3" InputTransparent="True">
+							<!-- U+E963: checker/chess board — represents a single tile in a grid -->
+							<Label x:Name="LeftModeIconLabel"
+							       Text="&#xE963;"
+							       FontFamily="RpgAwesome"
+							       FontSize="13"
+							       TextColor="#5C3E10"
+							       VerticalOptions="Center"
+							       InputTransparent="True" />
+							<Label x:Name="LeftModeLabel"
+							       Text="Single"
+							       FontSize="11"
+							       TextColor="#5C3E10"
+							       VerticalOptions="Center"
+							       InputTransparent="True" />
+						</HorizontalStackLayout>
+					</Border>
+					<Border x:Name="RightModeBorder"
+					        Style="{StaticResource PaletteButtonStyle}"
+					        WidthRequest="88" HeightRequest="32"
+					        StrokeThickness="1"
+					        StrokeShape="RoundRectangle 2">
+						<HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center"
+						                       Spacing="3" InputTransparent="True">
+							<!-- U+EA02: connected hex tiles — represents filling a tile area -->
+							<Label x:Name="RightModeIconLabel"
+							       Text="&#xEA02;"
+							       FontFamily="RpgAwesome"
+							       FontSize="13"
+							       TextColor="#5C3E10"
+							       VerticalOptions="Center"
+							       InputTransparent="True" />
+							<Label x:Name="RightModeLabel"
+							       Text="Fill"
+							       FontSize="11"
+							       TextColor="#5C3E10"
+							       VerticalOptions="Center"
+							       InputTransparent="True" />
+						</HorizontalStackLayout>
+					</Border>
+				</HorizontalStackLayout>
+			</VerticalStackLayout>
+
+		</HorizontalStackLayout>
+	</Border>
+</ContentView>

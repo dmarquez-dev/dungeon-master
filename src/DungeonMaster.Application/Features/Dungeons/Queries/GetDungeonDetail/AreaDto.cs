@@ -26,6 +26,12 @@ namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 /// <param name="Objects">
 ///		The list of objects placed within this area.
 /// </param>
+/// <param name="TileTextures">
+///		The list of tile textures painted within this area.
+/// </param>
+/// <param name="StructureElements">
+///		The list of structural elements placed within this area.
+/// </param>
 public record AreaDto(
 	Guid Id,
 	string Name,
@@ -33,4 +39,6 @@ public record AreaDto(
 	string? Notes,
 	TilePoint Origin,
 	IReadOnlyList<PathSegment> Outline,
-	IReadOnlyList<PlacedObjectDto> Objects);
+	IReadOnlyList<PlacedObjectDto> Objects,
+	IReadOnlyList<TileTextureDto> TileTextures,
+	IReadOnlyList<StructureElementDto> StructureElements);

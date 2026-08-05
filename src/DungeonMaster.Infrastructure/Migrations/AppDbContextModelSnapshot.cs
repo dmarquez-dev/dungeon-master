@@ -89,6 +89,65 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.ToTable("PlacedObjects", (string)null);
                 });
 
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.StructureElement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AreaId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EdgeAnchor")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("From")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("To")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.ToTable("StructureElements", (string)null);
+                });
+
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.TileTexture", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AreaId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId");
+
+                    b.ToTable("TileTextures", (string)null);
+                });
+
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeon.Dungeon", b =>
                 {
                     b.Property<Guid>("Id")
@@ -216,6 +275,48 @@ namespace DungeonMaster.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.StructureElement", b =>
+                {
+                    b.HasOne("DungeonMaster.Domain.Entities.Area.Area", null)
+                        .WithMany("StructureElements")
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.TileTexture", b =>
+                {
+                    b.HasOne("DungeonMaster.Domain.Entities.Area.Area", null)
+                        .WithMany("TileTextures")
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("DungeonMaster.Domain.ValueObjects.TilePoint", "Position", b1 =>
+                        {
+                            b1.Property<Guid>("TileTextureId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<int>("Col")
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("Position_Col");
+
+                            b1.Property<int>("Row")
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("Position_Row");
+
+                            b1.HasKey("TileTextureId");
+
+                            b1.ToTable("TileTextures");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TileTextureId");
+                        });
+
+                    b.Navigation("Position")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.Floor", b =>
                 {
                     b.HasOne("DungeonMaster.Domain.Entities.Dungeon.Dungeon", null)
@@ -228,6 +329,10 @@ namespace DungeonMaster.Infrastructure.Migrations
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.Area", b =>
                 {
                     b.Navigation("Objects");
+
+                    b.Navigation("StructureElements");
+
+                    b.Navigation("TileTextures");
                 });
 
             modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeon.Dungeon", b =>

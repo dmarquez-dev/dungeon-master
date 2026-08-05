@@ -3,12 +3,17 @@ using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
+using DungeonMaster.Application.Features.Dungeons.Commands.AddStructureElement;
+using DungeonMaster.Application.Features.Dungeons.Commands.ClearTileTexture;
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
+using DungeonMaster.Application.Features.Dungeons.Commands.FloodFillTileTextures;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
+using DungeonMaster.Application.Features.Dungeons.Commands.RemoveStructureElement;
 using DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
+using DungeonMaster.Application.Features.Dungeons.Commands.SetTileTexture;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
@@ -99,6 +104,21 @@ public static class ApplicationServiceCollectionExtensions
 		services.AddScoped<
 			ICommandHandler<UpdatePlacedObjectCommand, bool>,
 			UpdatePlacedObjectCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<SetTileTextureCommand, bool>,
+			SetTileTextureCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<ClearTileTextureCommand, bool>,
+			ClearTileTextureCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<AddStructureElementCommand, Guid>,
+			AddStructureElementCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<RemoveStructureElementCommand, bool>,
+			RemoveStructureElementCommandHandler>();
+		services.AddScoped<
+			ICommandHandler<FloodFillTileTexturesCommand, int>,
+			FloodFillTileTexturesCommandHandler>();
 
 		return services;
 	}

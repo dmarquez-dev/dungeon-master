@@ -52,6 +52,35 @@ public static class TileCoordinateHelper
 		(tile.Col * tileSize, tile.Row * tileSize);
 
 	/// <summary>
+	///		Returns the <see cref="TilePoint"/> of the tile that contains the given pixel position.
+	///		Uses floor division, so the top-left corner of each tile maps to that tile.
+	/// </summary>
+	public static TilePoint SnapToTileCenter(
+		float x,
+		float y,
+		float tileSize)
+	{
+		var col = (int)MathF.Floor(x / tileSize);
+		var row = (int)MathF.Floor(y / tileSize);
+
+		return new TilePoint(col, row);
+	}
+
+	/// <summary>
+	///		Returns the <see cref="VertexPoint"/> at the nearest tile-grid intersection to the given pixel position.
+	/// </summary>
+	public static VertexPoint SnapToNearestVertex(
+		float x,
+		float y,
+		float tileSize)
+	{
+		var col = (int)MathF.Round(x / tileSize);
+		var row = (int)MathF.Round(y / tileSize);
+
+		return new VertexPoint(col, row);
+	}
+
+	/// <summary>
 	///		Determines whether a candidate tile point is within one tile's distance of the given origin.
 	/// </summary>
 	/// <param name="candidate">
@@ -75,5 +104,52 @@ public static class TileCoordinateHelper
 		var dy = MathF.Abs((candidate.Row - origin.Row) * tileSize);
 
 		return dx <= tileSize && dy <= tileSize;
+	}
+
+	/// <summary>
+	///     Returns the nearest tile-edge center to the given pixel position, along with its distance.
+	///     Canonical convention: cursor below a horizontal edge → N side of lower tile;
+	///     cursor above → S side of upper tile. Cursor right of a vertical edge → W side of right tile;
+	///     cursor left → E side of left tile.
+	/// </summary>
+	public static (EdgePoint EdgeCenter, float Distance) SnapToNearestEdgeCenter(
+		float x,
+		float y,
+		float tileSize)
+	{
+		// Nearest horizontal edge (N/S family)
+		var nsRow = (int)MathF.Round(y / tileSize);
+		var nsCol = (int)MathF.Floor(x / tileSize);
+		var nsCenterX = (nsCol + 0.5f) * tileSize;
+		var nsCenterY = nsRow * tileSize;
+		var nsDist = MathF.Sqrt((x - nsCenterX) * (x - nsCenterX) + (y - nsCenterY) * (y - nsCenterY));
+		var nsEdge = y >= nsCenterY
+			? new EdgePoint(nsCol, nsRow, EdgeSide.N)
+			: new EdgePoint(nsCol, nsRow - 1, EdgeSide.S);
+
+		// Nearest vertical edge (E/W family)
+		var ewCol = (int)MathF.Round(x / tileSize);
+		var ewRow = (int)MathF.Floor(y / tileSize);
+		var ewCenterX = ewCol * tileSize;
+		var ewCenterY = (ewRow + 0.5f) * tileSize;
+		var ewDist = MathF.Sqrt((x - ewCenterX) * (x - ewCenterX) + (y - ewCenterY) * (y - ewCenterY));
+		var ewEdge = x >= ewCenterX
+			? new EdgePoint(ewCol, ewRow, EdgeSide.W)
+			: new EdgePoint(ewCol - 1, ewRow, EdgeSide.E);
+
+		return nsDist <= ewDist
+			? (nsEdge, nsDist)
+			: (ewEdge, ewDist);
+	}
+
+	/// <summary>
+	///     Returns the pixel distance from the given position to the nearest tile-grid vertex.
+	/// </summary>
+	public static float DistanceToNearestVertex(float x, float y, float tileSize)
+	{
+		var vertex = SnapToNearestVertex(x, y, tileSize);
+		var vx = vertex.Col * tileSize;
+		var vy = vertex.Row * tileSize;
+		return MathF.Sqrt((x - vx) * (x - vx) + (y - vy) * (y - vy));
 	}
 }

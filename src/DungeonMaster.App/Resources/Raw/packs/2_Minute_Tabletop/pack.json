@@ -31,5 +31,19 @@
     { "kind": "Cauldron",     "path": "decoration/cauldron.png" },
     { "kind": "Oven",         "path": "decoration/oven.png" },
     { "kind": "WeaponRack",   "path": "decoration/weapon_rack.png" }
+  ],
+  "textures": [
+    { "kind": "StoneFloor",       "path": "Floors/stone_floor.jpg" },
+    { "kind": "CobblestoneFloor", "path": "Floors/cobblestone_floor.jpg" },
+    { "kind": "StoneBrick",       "path": "Walls/stone_brick.png" },
+    { "kind": "BrickWall",        "path": "Walls/brick_wall.png" }
+  ],
+  "structures": [
+    { "kind": "RoundColumn",  "path": "Structures/round_column.png" },
+    { "kind": "SquareColumn", "path": "Structures/square_column.png" },
+    { "kind": "IronBars",     "path": "Structures/iron_bars.png" },
+    { "kind": "OpenArchway",  "path": "Structures/open_archway.png" },
+    { "kind": "WoodDoor",     "path": "Structures/wood_door.png" },
+    { "kind": "IronDoor",     "path": "Structures/iron_door.png" }
   ]
 }

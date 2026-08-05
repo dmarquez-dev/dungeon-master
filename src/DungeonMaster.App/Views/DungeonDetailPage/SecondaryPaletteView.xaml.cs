@@ -17,8 +17,23 @@ public partial class SecondaryPaletteView : ContentView
     private void OnCloseClicked(object? sender, EventArgs e) =>
         CloseRequested?.Invoke(this, EventArgs.Empty);
 
+    private Border? _selectedBorder;
+
+    private void SelectBorder(Border border)
+    {
+        if (_selectedBorder is not null)
+        {
+            _selectedBorder.Stroke = new SolidColorBrush(Color.FromArgb("#9A7820"));
+            _selectedBorder.StrokeThickness = 1;
+        }
+        _selectedBorder = border;
+        border.Stroke = new SolidColorBrush(Color.FromArgb("#2C1A08"));
+        border.StrokeThickness = 2;
+    }
+
     public void Populate(string category, IReadOnlyList<ObjectKind> objects)
     {
+        _selectedBorder = null;
         TitleLabel.Text = $"All {category}";
         ObjectGrid.Children.Clear();
         ObjectGrid.RowDefinitions.Clear();
@@ -71,7 +86,10 @@ public partial class SecondaryPaletteView : ContentView
 
             var tap = new TapGestureRecognizer();
             tap.Tapped += (_, _) =>
+            {
+                SelectBorder(border);
                 ObjectSelected?.Invoke(this, kind);
+            };
             border.GestureRecognizers.Add(tap);
 
             border.Behaviors.Add(new HandCursorBehavior());
@@ -79,12 +97,17 @@ public partial class SecondaryPaletteView : ContentView
             ptr.PointerEntered += (_, _) =>
             {
                 border.BackgroundColor = Color.FromArgb("#E8CC9A");
-                border.Stroke = new SolidColorBrush(Color.FromArgb("#C8A040"));
+                if (border != _selectedBorder)
+                    border.Stroke = new SolidColorBrush(Color.FromArgb("#C8A040"));
             };
             ptr.PointerExited += (_, _) =>
             {
                 border.BackgroundColor = Color.FromArgb("#C8AC78");
-                border.Stroke = new SolidColorBrush(Color.FromArgb("#9A7820"));
+                border.Stroke = border == _selectedBorder
+                    ? new SolidColorBrush(Color.FromArgb("#2C1A08"))
+                    : new SolidColorBrush(Color.FromArgb("#9A7820"));
+                if (border == _selectedBorder)
+                    border.StrokeThickness = 2;
             };
             border.GestureRecognizers.Add(ptr);
 

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DungeonMaster.App.Views.DungeonDetail.TexturePaletteView"
+             IsVisible="False">
+
+	<Border BackgroundColor="#EDD8A0"
+	        Stroke="#8B5E1A"
+	        StrokeThickness="1"
+	        Padding="6,4,6,6"
+	        WidthRequest="216"
+	        HorizontalOptions="Start">
+		<Border.StrokeShape>
+			<RoundRectangle CornerRadius="4" />
+		</Border.StrokeShape>
+		<VerticalStackLayout Spacing="4" MinimumWidthRequest="204">
+
+			<!-- Header -->
+			<Grid ColumnDefinitions="*,Auto">
+				<Label Text="Textures"
+				       FontFamily="CinzelDecorative"
+				       FontSize="17"
+				       TextColor="#5C3E10"
+				       TextTransform="Uppercase"
+				       CharacterSpacing="1"
+				       VerticalOptions="Center" />
+			</Grid>
+
+			<!-- Pack picker -->
+			<Picker x:Name="PackPicker"
+			        FontFamily="EBGaramondRegular"
+			        FontSize="15"
+			        TextColor="#5C3E10"
+			        BackgroundColor="#C8AC78"
+			        HorizontalOptions="Fill"
+			        SelectedIndexChanged="OnPackPickerChanged" />
+
+			<!-- Scrollable texture/structure content -->
+			<ScrollView x:Name="TextureScrollView" HeightRequest="280" VerticalScrollBarVisibility="Always">
+				<VerticalStackLayout Spacing="7">
+
+					<!-- FLOOR section -->
+					<Label Text="FLOOR"
+					       FontFamily="EBGaramondRegular"
+					       FontSize="13"
+					       TextColor="#5C3E10"
+					       CharacterSpacing="0.5" />
+					<Grid x:Name="FloorGrid"
+					      ColumnDefinitions="*,*,*,*"
+					      ColumnSpacing="4"
+					      RowSpacing="4" />
+
+					<!-- WALL section -->
+					<Label Text="WALL"
+					       FontFamily="EBGaramondRegular"
+					       FontSize="13"
+					       TextColor="#5C3E10"
+					       CharacterSpacing="0.5" />
+					<Grid x:Name="WallGrid"
+					      ColumnDefinitions="*,*,*,*"
+					      ColumnSpacing="4"
+					      RowSpacing="4" />
+
+					<!-- STRUCTURE section -->
+					<Label Text="STRUCTURE"
+					       FontFamily="EBGaramondRegular"
+					       FontSize="13"
+					       TextColor="#5C3E10"
+					       CharacterSpacing="0.5" />
+					<Grid x:Name="StructureGrid"
+					      ColumnDefinitions="*,*,*,*"
+					      ColumnSpacing="4"
+					      RowSpacing="4" />
+
+				</VerticalStackLayout>
+			</ScrollView>
+
+		</VerticalStackLayout>
+	</Border>
+</ContentView>

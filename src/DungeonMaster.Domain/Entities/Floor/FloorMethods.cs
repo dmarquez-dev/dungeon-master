@@ -290,4 +290,54 @@ public sealed partial class Floor
 
 		return updated;
 	}
+
+	internal void SetTileTexture(Guid areaId, TilePoint position, Area.TextureKind kind)
+	{
+		var area = _areas.FirstOrDefault(a => a.Id == areaId);
+		if (area is null) return;
+		area.SetTileTexture(position, kind);
+		Touch();
+	}
+
+	internal void ClearTileTexture(Guid areaId, TilePoint position)
+	{
+		var area = _areas.FirstOrDefault(a => a.Id == areaId);
+		if (area is null) return;
+		area.ClearTileTexture(position);
+		Touch();
+	}
+
+	internal Area.StructureElement? AddStructureElement(
+		Guid areaId,
+		VertexPoint from,
+		VertexPoint to,
+		Area.StructureKind kind)
+	{
+		var area = _areas.FirstOrDefault(a => a.Id == areaId);
+		if (area is null) return null;
+		var result = area.AddStructureElement(from, to, kind);
+		Touch();
+		return result;
+	}
+
+	internal Area.StructureElement? AddEdgeCenterStructureElement(
+		Guid areaId,
+		EdgePoint edgeAnchor,
+		Area.StructureKind kind)
+	{
+		var area = _areas.FirstOrDefault(a => a.Id == areaId);
+		if (area is null) return null;
+		var result = area.AddEdgeCenterStructureElement(edgeAnchor, kind);
+		Touch();
+		return result;
+	}
+
+	internal bool RemoveStructureElement(Guid areaId, Guid elementId)
+	{
+		var area = _areas.FirstOrDefault(a => a.Id == areaId);
+		if (area is null) return false;
+		var removed = area.RemoveStructureElement(elementId);
+		if (removed) Touch();
+		return removed;
+	}
 }

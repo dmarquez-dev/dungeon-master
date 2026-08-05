@@ -14,7 +14,10 @@ public static class ObjectPackRegistry
         try
         {
             await using var stream = await FileSystem.OpenAppPackageFileAsync(manifestPath);
-            var manifest = await JsonSerializer.DeserializeAsync<PackManifest>(stream, cancellationToken: ct);
+            var manifest = await JsonSerializer.DeserializeAsync<PackManifest>(
+                stream,
+                PackManifestJsonOptions.Default,
+                ct);
             if (manifest is null)
                 return null;
 

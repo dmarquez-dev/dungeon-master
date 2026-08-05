@@ -100,5 +100,29 @@ public sealed class AreaConfiguration
 			area.Objects)
 			.HasField("_objects")
 			.UsePropertyAccessMode(PropertyAccessMode.Field);
+
+		builder.HasMany(area =>
+			area.TileTextures)
+			.WithOne()
+			.HasForeignKey(t =>
+				t.AreaId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.Navigation(area =>
+			area.TileTextures)
+			.HasField("_tileTextures")
+			.UsePropertyAccessMode(PropertyAccessMode.Field);
+
+		builder.HasMany(area =>
+			area.StructureElements)
+			.WithOne()
+			.HasForeignKey(e =>
+				e.AreaId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.Navigation(area =>
+			area.StructureElements)
+			.HasField("_structureElements")
+			.UsePropertyAccessMode(PropertyAccessMode.Field);
 	}
 }
