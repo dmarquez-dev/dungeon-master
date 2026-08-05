@@ -529,19 +529,6 @@
                             </Border>
                         </HorizontalStackLayout>
                     </Border>
-
-                    <!--
-                        The notebook floats over the map and is dragged by its header, so it is
-                        declared last and paints over everything above it. Secondary object
-                        palettes are appended to this grid at runtime and so can still overlap it;
-                        the header drag is the way out of that.
-                    -->
-                    <controls:NotebookView
-                        x:Name="Notebook"
-                        IsVisible="False"
-                        HorizontalOptions="Start"
-                        VerticalOptions="Start"
-                        Margin="16,12,0,0" />
                 </Grid>
             </Grid>
 
@@ -617,5 +604,24 @@
 
             </Grid>
         </Grid>
+
+        <!--
+            The notebook floats over the whole page, not just the map: it used to live inside
+            MapOverlay (column 0 of the row above), which put it beneath the sidebar (column 1),
+            a later sibling that paints on top. Declaring it last here, spanning every row and
+            column of the outermost grid, guarantees nothing — sidebar included — can paint over
+            it. Secondary object palettes are still appended to MapOverlay's children at runtime,
+            but since the notebook is no longer inside MapOverlay at all, that no longer matters;
+            this z-order wins regardless. The margin below approximates the map's on-screen
+            resting position now that it is no longer computed relative to MapOverlay.
+        -->
+        <controls:NotebookView
+            x:Name="Notebook"
+            Grid.Row="0"
+            Grid.RowSpan="4"
+            IsVisible="False"
+            HorizontalOptions="Start"
+            VerticalOptions="Start"
+            Margin="32,158,0,0" />
     </Grid>
 </ContentPage>
