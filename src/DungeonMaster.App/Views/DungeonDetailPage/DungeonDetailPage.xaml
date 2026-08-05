@@ -203,9 +203,9 @@
                         <!-- Left: context-switching area -->
                         <Grid Grid.Column="0">
 
-                            <!-- Floor context: name input + drawing tools -->
+                            <!-- Floor context: name inputs + drawing tools -->
                             <Grid x:Name="FloorContextToolbar" IsVisible="True"
-                                  ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
 
                                 <controls:DmInlineEditor
                                     x:Name="FloorNameToolbarEditor"
@@ -217,10 +217,22 @@
                                     TextCommitted="OnFloorNameToolbarCommitted"
                                     VerticalOptions="Center" />
 
+                                <!-- Focused area name — visible only while an area is focused -->
+                                <controls:DmInlineEditor
+                                    x:Name="AreaNameToolbarEditor"
+                                    Grid.Column="1"
+                                    IsVisible="False"
+                                    FontFamily="EBGaramondRegular"
+                                    FontSize="17"
+                                    AcceptsReturn="False"
+                                    Placeholder="Area name..."
+                                    TextCommitted="OnAreaNameToolbarCommitted"
+                                    VerticalOptions="Center" />
+
                                 <!-- Draw tool — active by default -->
                                 <Border
                                     x:Name="ToolDrawBorder"
-                                    Grid.Column="1"
+                                    Grid.Column="2"
                                     BackgroundColor="Transparent"
                                     Stroke="{StaticResource DMScrollGoldLight}"
                                     StrokeThickness="1"
@@ -254,7 +266,7 @@
                                 <!-- Move tool -->
                                 <Border
                                     x:Name="ToolMoveBorder"
-                                    Grid.Column="2"
+                                    Grid.Column="3"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -285,10 +297,10 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
-                                <!-- Select tool — click an area on the map to enter it -->
+                                <!-- Select tool — click a placed object on the map to select it -->
                                 <Border
                                     x:Name="ToolSelectBorder"
-                                    Grid.Column="3"
+                                    Grid.Column="4"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -322,7 +334,7 @@
                                 <!-- Erase tool — delete an area by clicking it on the canvas -->
                                 <Border
                                     x:Name="ToolEraseBorder"
-                                    Grid.Column="4"
+                                    Grid.Column="5"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -353,77 +365,10 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
-                                <!-- Pan tool -->
-                                <Border
-                                    x:Name="ToolPanBorder"
-                                    Grid.Column="5"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Pan / scroll (H)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolPanClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolPanIcon"
-                                            Text="&#xEA78;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolPanLabel"
-                                            Text="H"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                            </Grid>
-
-                            <!-- Area context: back + area name + redraw + place + pan -->
-                            <Grid x:Name="AreaContextToolbar" IsVisible="False"
-                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="4">
-
-                                <Button
-                                    Grid.Column="0"
-                                    Text="&#x25C4; Floor"
-                                    FontFamily="EBGaramondRegular"
-                                    FontSize="17"
-                                    BackgroundColor="Transparent"
-                                    TextColor="{StaticResource DMScrollGoldLight}"
-                                    BorderColor="Transparent"
-                                    BorderWidth="1"
-                                    CornerRadius="3"
-                                    Padding="8,4"
-                                    Clicked="OnAreaContextBackClicked">
-                                    <Button.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Button.Behaviors>
-                                </Button>
-
-                                <controls:DmInlineEditor
-                                    x:Name="AreaNameToolbarEditor"
-                                    Grid.Column="1"
-                                    FontFamily="EBGaramondRegular"
-                                    FontSize="17"
-                                    AcceptsReturn="False"
-                                    Placeholder="Area name..."
-                                    TextCommitted="OnAreaNameToolbarCommitted"
-                                    VerticalOptions="Center" />
-
-                                <!-- Place tool (area context only — objects belong to areas) -->
+                                <!-- Place tool — place objects anywhere on the floor -->
                                 <Border
                                     x:Name="ToolPlaceBorder"
-                                    Grid.Column="2"
+                                    Grid.Column="6"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -454,10 +399,10 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
-                                <!-- Pan tool (area context) -->
+                                <!-- Pan tool -->
                                 <Border
-                                    x:Name="ToolPanAreaBorder"
-                                    Grid.Column="3"
+                                    x:Name="ToolPanBorder"
+                                    Grid.Column="7"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -472,49 +417,15 @@
                                     </Border.Behaviors>
                                     <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
                                         <Label
-                                            x:Name="ToolPanAreaIcon"
+                                            x:Name="ToolPanIcon"
                                             Text="&#xEA78;"
                                             FontFamily="RpgAwesome"
                                             FontSize="17"
                                             TextColor="{StaticResource DMTextMuted}"
                                             VerticalOptions="Center" />
                                         <Label
-                                            x:Name="ToolPanAreaLabel"
+                                            x:Name="ToolPanLabel"
                                             Text="H"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                                <!-- Redraw tool -->
-                                <Border
-                                    x:Name="ToolRedrawBorder"
-                                    Grid.Column="4"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Redraw area outline (D)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolRedrawClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolRedrawIcon"
-                                            Text="&#xEA75;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolRedrawLabel"
-                                            Text="D"
                                             FontFamily="EBGaramondRegular"
                                             FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
