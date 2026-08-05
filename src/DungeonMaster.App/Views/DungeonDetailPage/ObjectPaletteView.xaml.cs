@@ -1,6 +1,6 @@
 using DungeonMaster.App.Assets.ObjectAssets;
 using DungeonMaster.App.Behaviors;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
 

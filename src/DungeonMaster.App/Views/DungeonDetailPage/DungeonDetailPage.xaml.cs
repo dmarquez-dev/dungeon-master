@@ -9,7 +9,7 @@ using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views.DungeonDetail;
 using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
