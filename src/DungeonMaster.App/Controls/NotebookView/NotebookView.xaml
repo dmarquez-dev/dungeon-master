@@ -16,6 +16,19 @@
 		Stroke="{StaticResource DMScrollBorderBrush}"
 		StrokeThickness="1">
 
+		<!--
+			The notebook floats over the floor plan, so the shadow is what separates the two.
+			Every property is set explicitly because the implicit Shadow style in Styles.xaml
+			casts a white shadow, which would glow rather than lift.
+		-->
+		<Border.Shadow>
+			<Shadow
+				Brush="Black"
+				Offset="0,14"
+				Radius="17"
+				Opacity="0.62" />
+		</Border.Shadow>
+
 		<Border.Background>
 			<LinearGradientBrush StartPoint="0,0" EndPoint="0.6,1">
 				<GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />

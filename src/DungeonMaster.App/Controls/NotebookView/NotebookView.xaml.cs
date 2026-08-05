@@ -83,6 +83,16 @@ public partial class NotebookView : ContentView
 	/// <summary>Ribbon height when not selected.</summary>
 	private const double UnselectedRibbonHeight = 40;
 
+	/// <summary>How long a ribbon takes to grow or shrink between the two heights, in milliseconds.</summary>
+	/// <remarks>
+	///		Snapping between the heights reads as an element resizing; over this duration it reads
+	///		as a bookmark sliding out of the book, which is the whole metaphor.
+	/// </remarks>
+	private const uint RibbonTransitionMilliseconds = 140;
+
+	/// <summary>Animation handle, so a second tap replaces the running transition instead of racing it.</summary>
+	private const string RibbonHeightAnimation = "RibbonHeight";
+
 	// How far each ribbon's fold gradient darkens toward black at its foot. The selected ribbon
 	// folds harder than the dimmed one; both values come straight from the mock-up's color-mix.
 	private const float SelectedFoldFactor = 0.72f;
@@ -125,7 +135,7 @@ public partial class NotebookView : ContentView
 	public NotebookView()
 	{
 		InitializeComponent();
-		ApplyRibbonVisuals(NotebookPane.Description);
+		ApplyRibbonVisuals(NotebookPane.Description, animate: false);
 		SetSaveState(dirty: false);
 	}
 
@@ -164,7 +174,8 @@ public partial class NotebookView : ContentView
 			_isPopulating = false;
 		}
 
-		SelectRibbon(NotebookPane.Description);
+		// A freshly opened notebook has no previous state to slide out of, so it starts settled.
+		SelectRibbon(NotebookPane.Description, animate: false);
 		SetSaveState(dirty: false);
 		IsVisible = true;
 	}
@@ -277,30 +288,55 @@ public partial class NotebookView : ContentView
 	}
 
 	private void OnReadRibbonTapped(object? sender, TappedEventArgs e) =>
-		SelectRibbon(NotebookPane.Description);
+		SelectRibbon(NotebookPane.Description, animate: true);
 
 	private void OnDmRibbonTapped(object? sender, TappedEventArgs e) =>
-		SelectRibbon(NotebookPane.Notes);
+		SelectRibbon(NotebookPane.Notes, animate: true);
 
-	private void SelectRibbon(NotebookPane pane)
+	private void SelectRibbon(NotebookPane pane, bool animate)
 	{
-		ApplyRibbonVisuals(pane);
+		ApplyRibbonVisuals(pane, animate);
 
 		DescriptionPane.IsVisible = pane == NotebookPane.Description;
 		NotesPane.IsVisible = pane == NotebookPane.Notes;
 	}
 
-	private void ApplyRibbonVisuals(NotebookPane pane)
+	private void ApplyRibbonVisuals(NotebookPane pane, bool animate)
 	{
 		var readSelected = pane == NotebookPane.Description;
 
-		ReadRibbon.HeightRequest = readSelected ? SelectedRibbonHeight : UnselectedRibbonHeight;
+		SetRibbonHeight(ReadRibbon, readSelected ? SelectedRibbonHeight : UnselectedRibbonHeight, animate);
 		ReadRibbon.Background = RibbonBrush(readSelected ? "DMRibbonRead" : "DMRibbonReadDim", readSelected);
 		ReadRibbon.Opacity = readSelected ? 1 : 0.78;
 
-		DmRibbon.HeightRequest = readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight;
+		SetRibbonHeight(DmRibbon, readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight, animate);
 		DmRibbon.Background = RibbonBrush(readSelected ? "DMRibbonDmDim" : "DMRibbonDm", !readSelected);
 		DmRibbon.Opacity = readSelected ? 0.78 : 1;
+	}
+
+	/// <summary>
+	///		Moves a ribbon to its new height, sliding when the user drove the change and snapping
+	///		when the notebook is being set up.
+	/// </summary>
+	private static void SetRibbonHeight(Border ribbon, double height, bool animate)
+	{
+		// A running transition must be abandoned either way, or its next frame overwrites the
+		// height it was already told to leave.
+		ribbon.AbortAnimation(RibbonHeightAnimation);
+
+		if (!animate || Math.Abs(ribbon.HeightRequest - height) < 0.5)
+		{
+			ribbon.HeightRequest = height;
+			return;
+		}
+
+		new Animation(
+			value =>
+				ribbon.HeightRequest = value,
+			ribbon.HeightRequest,
+			height,
+			Easing.CubicInOut)
+			.Commit(ribbon, RibbonHeightAnimation, length: RibbonTransitionMilliseconds);
 	}
 
 	/// <summary>
