@@ -92,6 +92,10 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
                     b.Property<Guid>("DungeonId")
                         .HasColumnType("TEXT");
 

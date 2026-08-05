@@ -40,6 +40,10 @@ public sealed class FloorConfiguration
 			.HasMaxLength(100);
 
 		builder.Property(floor =>
+			floor.Description)
+			.HasMaxLength(2000);
+
+		builder.Property(floor =>
 			floor.Notes)
 			.HasMaxLength(2000);
 
