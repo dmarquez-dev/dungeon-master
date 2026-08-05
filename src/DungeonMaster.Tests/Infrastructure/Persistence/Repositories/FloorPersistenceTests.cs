@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-///     Round-trip coverage for floor metadata through the real write repository.
-///     The rename-preserves-notes test is the regression guard for a defect where
-///     the designer sent a hardcoded null for notes when renaming a floor.
+///     Round-trip coverage for floor metadata through the real write repository
+///     and EF mapping. Confirms that a second update supplying the existing
+///     description and notes preserves those values across a reload.
 /// </summary>
 public class FloorPersistenceTests : IDisposable
 {
@@ -81,7 +81,11 @@ public class FloorPersistenceTests : IDisposable
             await repo.UpdateAsync(loaded, CancellationToken.None);
         }
 
-        // A rename must carry the existing description and notes forward, not blank them.
+        // Asserts the repository and mapping layer preserve description and notes when an
+        // update explicitly supplies them. The App-layer path that instead passes hardcoded
+        // nulls (DungeonDetailViewModel.UpdateFloorAsync) is not reachable from this test
+        // project — DungeonMaster.Tests does not reference DungeonMaster.App — and is covered
+        // by manual verification instead.
         using (var ctx = CreateContext())
         {
             var repo = new DungeonWriteRepository(ctx);
