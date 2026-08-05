@@ -114,7 +114,7 @@ public partial class NotebookView : ContentView
 	public event EventHandler<NotebookSaveArgs>? SaveRequested;
 
 	private NotebookTarget? _target;
-	private CancellationTokenSource? _debounce;
+	private readonly IDispatcherTimer _debounceTimer;
 	private bool _isDirty;
 	private bool _isPopulating;
 	private double _dragOriginX;
@@ -135,6 +135,15 @@ public partial class NotebookView : ContentView
 	public NotebookView()
 	{
 		InitializeComponent();
+
+		// Created once and restarted on every keystroke instead of a Task.Delay(ct) per keystroke:
+		// cancelling a pending Task.Delay throws TaskCanceledException, which is caught and harmless
+		// but still trips the debugger's first-chance exception break on every character typed.
+		_debounceTimer = Dispatcher.CreateTimer();
+		_debounceTimer.Interval = TimeSpan.FromMilliseconds(DebounceMilliseconds);
+		_debounceTimer.IsRepeating = false;
+		_debounceTimer.Tick += OnDebounceTimerTick;
+
 		ApplyRibbonVisuals(NotebookPane.Description, animate: false);
 		SetSaveState(dirty: false);
 	}
@@ -201,6 +210,39 @@ public partial class NotebookView : ContentView
 		IsVisible = false;
 	}
 
+	/// <summary>
+	///		Updates the displayed name without marking the notebook dirty or scheduling a save.
+	/// </summary>
+	/// <param name="name">The name to display in place of whatever the name editor currently shows.</param>
+	/// <remarks>
+	///		The host calls this when it substitutes a fallback name for a blank one the notebook sent
+	///		— clearing a name is intentionally not persisted, but the notebook still needs to stop
+	///		showing the blank text the user cleared. Reuses the populating guard so this does not trip
+	///		the text-changed or name-committed handlers and schedule a save, which would defeat the
+	///		whole point. A no-op while the notebook is closed, and the caller is responsible for
+	///		checking <see cref="CurrentId"/> first so a retargeted notebook never receives a stale
+	///		entity's name.
+	/// </remarks>
+	public void SyncName(string name)
+	{
+		if (_target is null)
+		{
+			return;
+		}
+
+		_isPopulating = true;
+		try
+		{
+			NameEditor.Text = name;
+		}
+		finally
+		{
+			_isPopulating = false;
+		}
+
+		_target = _target with { Name = name };
+	}
+
 	private void OnNameCommitted(object? sender, string? e)
 	{
 		if (_isPopulating)
@@ -222,12 +264,10 @@ public partial class NotebookView : ContentView
 
 		SetSaveState(dirty: true);
 
-		var previous = _debounce;
-		_debounce = new CancellationTokenSource();
-		previous?.Cancel();
-		previous?.Dispose();
-
-		_ = CommitAfterDelayAsync(_debounce.Token);
+		// Restart the countdown rather than let it keep running: each keystroke pushes the commit
+		// out by another full debounce window.
+		_debounceTimer.Stop();
+		_debounceTimer.Start();
 	}
 
 	private void OnEditorUnfocused(object? sender, FocusEventArgs e)
@@ -236,23 +276,11 @@ public partial class NotebookView : ContentView
 		CommitIfDirty();
 	}
 
-	private async Task CommitAfterDelayAsync(CancellationToken ct)
+	private void OnDebounceTimerTick(object? sender, EventArgs e)
 	{
-		try
-		{
-			await Task.Delay(DebounceMilliseconds, ct);
-		}
-		catch (TaskCanceledException)
-		{
-			return;
-		}
-
-		// The notebook may have been closed or retargeted during the delay.
-		if (ct.IsCancellationRequested)
-		{
-			return;
-		}
-
+		// IsRepeating is false, so the timer has already stopped itself; stopping again here is
+		// just defensive and keeps this handler correct even if that default is ever changed.
+		_debounceTimer.Stop();
 		CommitIfDirty();
 	}
 
@@ -284,9 +312,7 @@ public partial class NotebookView : ContentView
 	/// </summary>
 	private void CancelPendingCommit()
 	{
-		_debounce?.Cancel();
-		_debounce?.Dispose();
-		_debounce = null;
+		_debounceTimer.Stop();
 	}
 
 	private void SetSaveState(bool dirty)
