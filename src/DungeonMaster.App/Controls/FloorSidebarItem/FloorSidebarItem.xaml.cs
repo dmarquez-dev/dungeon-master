@@ -125,8 +125,16 @@ public partial class FloorSidebarItem : ContentView
 			return;
 		}
 
-		FloorNumberLabel.Text = $"Floor {floor.Number} -";
-		FloorNameLabel.Text = floor.Name ?? string.Empty;
+		if (string.IsNullOrWhiteSpace(floor.Name))
+		{
+			FloorNameLabel.Text = $"Floor {floor.Number}";
+			FloorNameLabel.TextColor = DmColors.GoldMuted;
+		}
+		else
+		{
+			FloorNameLabel.Text = floor.Name;
+			FloorNameLabel.TextColor = DmColors.ScrollGoldLight;
+		}
 
 		var hasContent =
 			!string.IsNullOrWhiteSpace(floor.Description) ||

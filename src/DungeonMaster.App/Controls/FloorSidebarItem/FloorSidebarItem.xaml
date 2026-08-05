@@ -22,7 +22,7 @@
             </VerticalStackLayout.GestureRecognizers>
 
             <!-- Header row -->
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
 
                 <!-- Expand toggle (visual indicator only — card tap handles expand) -->
                 <Label
@@ -33,19 +33,10 @@
                     TextColor="{StaticResource DMTextMuted}"
                     VerticalOptions="Center" />
 
-                <!-- Floor number (static, muted) -->
-                <Label
-                    x:Name="FloorNumberLabel"
-                    Grid.Column="1"
-                    FontFamily="CinzelSemiBold"
-                    FontSize="16"
-                    TextColor="{StaticResource DMTextMuted}"
-                    VerticalOptions="Center" />
-
-                <!-- Floor custom name (display only — edited via toolbar) -->
+                <!-- Floor name (or a "Floor N" placeholder when unnamed) -->
                 <Label
                     x:Name="FloorNameLabel"
-                    Grid.Column="2"
+                    Grid.Column="1"
                     FontFamily="CinzelSemiBold"
                     FontSize="16"
                     TextColor="{StaticResource DMScrollGoldLight}"
@@ -54,7 +45,7 @@
                 <!-- Always-visible notebook button — colour reflects whether this floor has authored content -->
                 <Button
                     x:Name="NotebookButton"
-                    Grid.Column="3"
+                    Grid.Column="2"
                     Text="&#xEA8F;"
                     FontFamily="RpgAwesome"
                     FontSize="16"
@@ -72,7 +63,7 @@
                 <!-- Delete button -->
                 <Button
                     x:Name="DeleteButton"
-                    Grid.Column="4"
+                    Grid.Column="3"
                     Text="&#xE9FC;"
                     FontFamily="RpgAwesome"
                     FontSize="16"
@@ -90,7 +81,7 @@
                 <!-- Drag handle -->
                 <Label
                     x:Name="DragHandle"
-                    Grid.Column="5"
+                    Grid.Column="4"
                     Text="&#x22EE;"
                     FontSize="18"
                     TextColor="{StaticResource DMTextMuted}"
