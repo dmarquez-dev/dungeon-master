@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
 using DungeonMaster.Infrastructure.Persistence;

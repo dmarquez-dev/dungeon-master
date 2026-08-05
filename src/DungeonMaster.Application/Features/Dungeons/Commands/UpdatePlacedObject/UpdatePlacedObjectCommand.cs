@@ -1,5 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;

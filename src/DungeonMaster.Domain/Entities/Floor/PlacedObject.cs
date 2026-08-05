@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Area;
+namespace DungeonMaster.Domain.Entities.Floor;
 
 /// <summary>
 ///		Represents a game object placed at a specific position within an area.

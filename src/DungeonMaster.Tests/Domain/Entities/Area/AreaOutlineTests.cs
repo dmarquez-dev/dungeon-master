@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
 using DomainDungeon = DungeonMaster.Domain.Entities.Dungeon.Dungeon;

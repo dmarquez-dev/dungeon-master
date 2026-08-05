@@ -1,4 +1,3 @@
-using DungeonMaster.Domain.Entities.Area;
 using DungeonMaster.Domain.ValueObjects;
 
 namespace DungeonMaster.Domain.Entities.Floor;
