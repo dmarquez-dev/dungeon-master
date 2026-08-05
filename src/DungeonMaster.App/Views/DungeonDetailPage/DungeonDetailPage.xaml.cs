@@ -1004,10 +1004,10 @@ public partial class DungeonDetailPage : ContentPage
 		var rawPoint = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
 		var canvasHitPoint = _drawable.ScreenToCanvas(rawPoint);
 
-		// Object interaction: Place mode + no active palette item.
-		// Left-click with palette item = place; with none = inspect/drag existing objects.
-		if (_viewModel.ActiveTool == MapTool.Place
-			&& ObjectPalette.ActiveObject is null)
+		// Object interaction: the Select tool, or Place mode with no active palette item.
+		// Left-click with a palette item = place; otherwise inspect/drag existing objects.
+		if (_viewModel.ActiveTool == MapTool.Select
+			|| (_viewModel.ActiveTool == MapTool.Place && ObjectPalette.ActiveObject is null))
 		{
 			var hitObjectId = GetObjectAtCanvasPoint(canvasHitPoint);
 			if (hitObjectId is not null)
@@ -1034,17 +1034,6 @@ public partial class DungeonDetailPage : ContentPage
 			}
 			MapCanvas.Invalidate();
 			// Don't return — let the click fall through to tool logic.
-		}
-
-		if (_viewModel.ActiveTool == MapTool.Select && _drawable.Floor is not null)
-		{
-			var hitObjectId = GetObjectAtCanvasPoint(canvasHitPoint);
-			_selectedObjectId = hitObjectId;
-			_hoveredObjectId = hitObjectId;
-			_drawable.HoveredObjectId = hitObjectId;
-			UpdateObjectPopup();
-			MapCanvas.Invalidate();
-			return;
 		}
 
 		if (_viewModel.ActiveTool == MapTool.Erase
@@ -1149,7 +1138,7 @@ public partial class DungeonDetailPage : ContentPage
 		}
 
 		// Hover highlight for placed objects (canvas glow only — popup is click-driven).
-		if (_viewModel.ActiveTool == MapTool.Place)
+		if (_viewModel.ActiveTool == MapTool.Place || _viewModel.ActiveTool == MapTool.Select)
 		{
 			var cp = _drawable.ScreenToCanvas(new PointF((float)e.Touches.FirstOrDefault().X, (float)e.Touches.FirstOrDefault().Y));
 			var newHovered = GetObjectAtCanvasPoint(cp);
