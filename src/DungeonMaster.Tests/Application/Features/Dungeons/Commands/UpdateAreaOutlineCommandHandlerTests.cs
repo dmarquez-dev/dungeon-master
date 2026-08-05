@@ -34,7 +34,6 @@ public class UpdateAreaOutlineCommandHandlerTests
             .Returns(Task.CompletedTask);
 
         var area = floor.Areas[0];
-        var origin = new TilePoint(2, 3);
         var outline = new List<PathSegment>
         {
             new(PathSegmentKind.Line, new TilePoint(4, 3), null, null),
@@ -42,7 +41,7 @@ public class UpdateAreaOutlineCommandHandlerTests
             new(PathSegmentKind.Line, new TilePoint(2, 3), null, null),
         };
 
-        var command = new UpdateAreaOutlineCommand(dungeon.Id, floor.Id, area.Id, origin, outline);
+        var command = new UpdateAreaOutlineCommand(dungeon.Id, floor.Id, area.Id, outline);
 
         // Act
         var result = await _handler.HandleAsync(command, CancellationToken.None);
@@ -50,7 +49,6 @@ public class UpdateAreaOutlineCommandHandlerTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeTrue();
-        area.Origin.Should().Be(origin);
         area.Outline.Should().HaveCount(3);
     }
 
@@ -66,7 +64,6 @@ public class UpdateAreaOutlineCommandHandlerTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            new TilePoint(0, 0),
             []);
 
         // Act

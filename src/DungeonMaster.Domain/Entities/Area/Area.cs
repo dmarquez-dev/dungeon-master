@@ -3,7 +3,7 @@ using DungeonMaster.Domain.ValueObjects;
 namespace DungeonMaster.Domain.Entities.Area;
 
 /// <summary>
-///		Represents a discrete area within a floor, defined by an origin point and an optional outline path.
+///		Represents a discrete area within a floor, defined by an optional outline path in floor-absolute tile coordinates.
 /// </summary>
 public sealed partial class Area : Entity
 {
@@ -32,7 +32,6 @@ public sealed partial class Area : Entity
 		FloorId = floorId;
 		Name = name;
 		Description = description;
-		Origin = new TilePoint(0, 0);
 	}
 
 	/// <summary>
@@ -54,11 +53,6 @@ public sealed partial class Area : Entity
 	///		Gets the optional notes associated with this area.
 	/// </summary>
 	public string? Notes { get; private set; }
-
-	/// <summary>
-	///		Gets the tile-grid origin point of this area.
-	/// </summary>
-	public TilePoint Origin { get; private set; } = default!;
 
 	/// <summary>
 	///		Gets the read-only list of path segments that form the outline of this area.

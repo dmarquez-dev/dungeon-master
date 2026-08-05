@@ -50,30 +50,4 @@ public static class TileCoordinateHelper
 		TilePoint tile,
 		float tileSize) =>
 		(tile.Col * tileSize, tile.Row * tileSize);
-
-	/// <summary>
-	///		Determines whether a candidate tile point is within one tile's distance of the given origin.
-	/// </summary>
-	/// <param name="candidate">
-	///		The tile point to test.
-	/// </param>
-	/// <param name="origin">
-	///		The reference origin tile point.
-	/// </param>
-	/// <param name="tileSize">
-	///		The width and height of a single tile in pixels.
-	/// </param>
-	/// <returns>
-	///		<see langword="true"/> if the candidate is within one tile of the origin in both axes; otherwise <see langword="false"/>.
-	/// </returns>
-	public static bool IsNearOrigin(
-		TilePoint candidate,
-		TilePoint origin,
-		float tileSize)
-	{
-		var dx = MathF.Abs((candidate.Col - origin.Col) * tileSize);
-		var dy = MathF.Abs((candidate.Row - origin.Row) * tileSize);
-
-		return dx <= tileSize && dy <= tileSize;
-	}
 }

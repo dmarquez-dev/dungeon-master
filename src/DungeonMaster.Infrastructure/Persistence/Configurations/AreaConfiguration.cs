@@ -56,22 +56,6 @@ public sealed class AreaConfiguration
 			area.LastModified)
 			.IsRequired();
 
-		builder.OwnsOne(
-			area =>
-				area.Origin,
-			origin =>
-			{
-				origin.Property(point =>
-					point.Col)
-					.HasColumnName("Origin_Col")
-					.IsRequired();
-
-				origin.Property(point =>
-					point.Row)
-					.HasColumnName("Origin_Row")
-					.IsRequired();
-			});
-
 		builder.Property(area =>
 			area.Outline)
 			.HasColumnType("TEXT")

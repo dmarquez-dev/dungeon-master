@@ -30,7 +30,6 @@ public sealed class UpdateAreaOutlineCommandHandler(
 		dungeon.UpdateAreaOutline(
 			command.FloorId,
 			command.AreaId,
-			command.Origin,
 			command.Outline);
 
 		await writeRepository.UpdateAsync(

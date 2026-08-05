@@ -31,21 +31,4 @@ public class TileCoordinateHelperTests
         x.Should().Be(expectedX);
         y.Should().Be(expectedY);
     }
-
-    [Theory]
-    [InlineData(0, 0, 0, 0, true)]
-    [InlineData(0, 0, 1, 0, true)]
-    [InlineData(0, 0, 1, 1, true)]
-    [InlineData(0, 0, 2, 0, false)]
-    [InlineData(0, 0, 0, 2, false)]
-    public void IsNearOrigin_ReturnsTrueWithinOneTile(
-        int originCol, int originRow,
-        int candidateCol, int candidateRow,
-        bool expected)
-    {
-        var origin = new TilePoint(originCol, originRow);
-        var candidate = new TilePoint(candidateCol, candidateRow);
-        var result = TileCoordinateHelper.IsNearOrigin(candidate, origin, TileSize);
-        result.Should().Be(expected);
-    }
 }

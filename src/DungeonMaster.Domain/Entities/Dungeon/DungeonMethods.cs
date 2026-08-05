@@ -267,7 +267,7 @@ public sealed partial class Dungeon
 	}
 
 	/// <summary>
-	///		Updates the tile-grid origin and outline path of the specified area on the given floor.
+	///		Replaces the outline path of the specified area on the given floor.
 	///		Has no effect if the floor or area identifier is not found.
 	/// </summary>
 	/// <param name="floorId">
@@ -276,16 +276,12 @@ public sealed partial class Dungeon
 	/// <param name="areaId">
 	///		The unique identifier of the area to update.
 	/// </param>
-	/// <param name="origin">
-	///		The new tile-grid origin point for the area.
-	/// </param>
 	/// <param name="outline">
 	///		The new ordered list of path segments that form the closed outline polygon.
 	/// </param>
 	public void UpdateAreaOutline(
 		Guid floorId,
 		Guid areaId,
-		TilePoint origin,
 		IReadOnlyList<PathSegment> outline)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
@@ -298,7 +294,6 @@ public sealed partial class Dungeon
 
 		floor.UpdateAreaOutline(
 			areaId,
-			origin,
 			outline);
 		Touch();
 	}

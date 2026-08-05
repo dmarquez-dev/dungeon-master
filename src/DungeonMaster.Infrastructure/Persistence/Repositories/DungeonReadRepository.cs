@@ -59,7 +59,6 @@ public sealed class DungeonReadRepository(
 											area.Name,
 											area.Description,
 											area.Notes,
-											area.Origin,
 											area.Outline))
 									.ToList(),
 								floor.Objects
