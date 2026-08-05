@@ -18,9 +18,13 @@ namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 /// <param name="Areas">
 ///		The list of areas located on this floor.
 /// </param>
+/// <param name="Objects">
+///		The list of objects placed on this floor.
+/// </param>
 public record FloorDto(
 	Guid Id,
 	int Number,
 	string? Name,
 	string? Notes,
-	IReadOnlyList<AreaDto> Areas);
+	IReadOnlyList<AreaDto> Areas,
+	IReadOnlyList<PlacedObjectDto> Objects);

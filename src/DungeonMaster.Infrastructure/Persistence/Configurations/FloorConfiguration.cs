@@ -65,5 +65,17 @@ public sealed class FloorConfiguration
 			floor.Areas)
 			.HasField("_areas")
 			.UsePropertyAccessMode(PropertyAccessMode.Field);
+
+		builder.HasMany(floor =>
+			floor.Objects)
+			.WithOne()
+			.HasForeignKey(obj =>
+				obj.FloorId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.Navigation(floor =>
+			floor.Objects)
+			.HasField("_objects")
+			.UsePropertyAccessMode(PropertyAccessMode.Field);
 	}
 }

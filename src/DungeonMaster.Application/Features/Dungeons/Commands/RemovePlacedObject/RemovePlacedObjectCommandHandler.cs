@@ -7,7 +7,7 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObjec
 ///		Handles the <see cref="RemovePlacedObjectCommand"/> by loading the dungeon aggregate,
 ///		removing the placed object, and persisting the change.
 ///		Returns a not-found result if the dungeon does not exist.
-///		Has no effect if the floor, area, or object is not found within the aggregate.
+///		Has no effect if the floor or object is not found within the aggregate.
 /// </summary>
 public sealed class RemovePlacedObjectCommandHandler(
 	IDungeonWriteRepository writeRepository)
@@ -31,7 +31,6 @@ public sealed class RemovePlacedObjectCommandHandler(
 
 		dungeon.RemovePlacedObject(
 			command.FloorId,
-			command.AreaId,
 			command.ObjectId);
 
 		await writeRepository.UpdateAsync(

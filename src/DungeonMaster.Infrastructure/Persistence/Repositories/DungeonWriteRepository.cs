@@ -18,8 +18,10 @@ public sealed class DungeonWriteRepository(
 				dungeon.Floors)
 			.ThenInclude(floor =>
 				floor.Areas)
-			.ThenInclude(area =>
-				area.Objects)
+			.Include(dungeon =>
+				dungeon.Floors)
+			.ThenInclude(floor =>
+				floor.Objects)
 			.FirstOrDefaultAsync(dungeon =>
 				dungeon.Id == id, ct);
 

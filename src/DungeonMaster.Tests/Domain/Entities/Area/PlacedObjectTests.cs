@@ -9,17 +9,17 @@ public class PlacedObjectTests
     [Fact]
     public void Constructor_SetsAllProperties()
     {
-        var areaId = Guid.NewGuid();
+        var floorId = Guid.NewGuid();
         var pos = new CanvasPoint(120f, 200f);
 
         var obj = new PlacedObject(
-            areaId,
+            floorId,
             ObjectKind.DoorWood,
             pos,
             ObjectRotation.CW90);
 
         obj.Id.Should().NotBeEmpty();
-        obj.AreaId.Should().Be(areaId);
+        obj.FloorId.Should().Be(floorId);
         obj.Kind.Should().Be(ObjectKind.DoorWood);
         obj.Position.Should().Be(pos);
         obj.Rotation.Should().Be(ObjectRotation.CW90);

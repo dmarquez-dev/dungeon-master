@@ -20,7 +20,7 @@ public sealed class PlacedObjectConfiguration
         builder.Property(obj => obj.Id)
             .ValueGeneratedNever();
 
-        builder.Property(obj => obj.AreaId)
+        builder.Property(obj => obj.FloorId)
             .IsRequired();
 
         builder.Property(obj => obj.Kind)

@@ -88,17 +88,5 @@ public sealed class AreaConfiguration
 							JsonOptions) ?? new List<PathSegment>()))
 			.HasField("_outline")
 			.UsePropertyAccessMode(PropertyAccessMode.PreferFieldDuringConstruction);
-
-		builder.HasMany(area =>
-			area.Objects)
-			.WithOne()
-			.HasForeignKey(obj =>
-				obj.AreaId)
-			.OnDelete(DeleteBehavior.Cascade);
-
-		builder.Navigation(area =>
-			area.Objects)
-			.HasField("_objects")
-			.UsePropertyAccessMode(PropertyAccessMode.Field);
 	}
 }

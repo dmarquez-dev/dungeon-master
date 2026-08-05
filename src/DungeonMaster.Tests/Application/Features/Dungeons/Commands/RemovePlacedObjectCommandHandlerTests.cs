@@ -27,7 +27,7 @@ public class RemovePlacedObjectCommandHandlerTests
     }
 
     /// <summary>
-    ///		Verifies that a valid command removes the object from the area and returns success.
+    ///		Verifies that a valid command removes the object from the floor and returns success.
     /// </summary>
     [Fact]
     public async Task HandleAsync_ValidCommand_RemovesObjectAndReturnsSuccess()
@@ -35,19 +35,14 @@ public class RemovePlacedObjectCommandHandlerTests
         // Arrange
         var dungeon = new Dungeon("D");
         var floor = dungeon.AddFloor("F");
-        var area = dungeon.AddArea(
-            floor.Id,
-            "A",
-            null);
 
         dungeon.AddPlacedObject(
             floor.Id,
-            area.Id,
             ObjectKind.Barrel,
             new CanvasPoint(80f, 80f),
             ObjectRotation.None);
 
-        var objId = area.Objects[0].Id;
+        var objId = floor.Objects[0].Id;
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -55,7 +50,6 @@ public class RemovePlacedObjectCommandHandlerTests
         var command = new RemovePlacedObjectCommand(
             dungeon.Id,
             floor.Id,
-            area.Id,
             objId);
 
         // Act
@@ -63,7 +57,7 @@ public class RemovePlacedObjectCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        area.Objects.Should().BeEmpty();
+        floor.Objects.Should().BeEmpty();
 
         await _writeRepository
             .Received(1)
@@ -82,7 +76,6 @@ public class RemovePlacedObjectCommandHandlerTests
             .Returns((Dungeon?)null);
 
         var command = new RemovePlacedObjectCommand(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid());
@@ -111,7 +104,6 @@ public class RemovePlacedObjectCommandHandlerTests
         var command = new RemovePlacedObjectCommand(
             dungeon.Id,
             Guid.NewGuid(),
-            Guid.NewGuid(),
             Guid.NewGuid());
 
         // Act
@@ -126,38 +118,7 @@ public class RemovePlacedObjectCommandHandlerTests
     }
 
     /// <summary>
-    ///		Verifies that an unknown area ID is a silent no-op at the domain level;
-    ///		the handler still persists the aggregate and returns success.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_AreaNotFound_ReturnsSuccessWithNoChange()
-    {
-        // Arrange
-        var dungeon = new Dungeon("D");
-        var floor = dungeon.AddFloor("F");
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
-
-        var command = new RemovePlacedObjectCommand(
-            dungeon.Id,
-            floor.Id,
-            Guid.NewGuid(),
-            Guid.NewGuid());
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        await _writeRepository
-            .Received(1)
-            .UpdateAsync(dungeon, Arg.Any<CancellationToken>());
-    }
-
-    /// <summary>
-    ///		Verifies that an unknown object ID within a valid area is a silent no-op at the domain level;
+    ///		Verifies that an unknown object ID on a valid floor is a silent no-op at the domain level;
     ///		the handler still persists the aggregate and returns success.
     /// </summary>
     [Fact]
@@ -166,10 +127,6 @@ public class RemovePlacedObjectCommandHandlerTests
         // Arrange
         var dungeon = new Dungeon("D");
         var floor = dungeon.AddFloor("F");
-        var area = dungeon.AddArea(
-            floor.Id,
-            "A",
-            null);
 
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
@@ -178,7 +135,6 @@ public class RemovePlacedObjectCommandHandlerTests
         var command = new RemovePlacedObjectCommand(
             dungeon.Id,
             floor.Id,
-            area.Id,
             Guid.NewGuid());
 
         // Act
@@ -186,7 +142,7 @@ public class RemovePlacedObjectCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        area.Objects.Should().BeEmpty();
+        floor.Objects.Should().BeEmpty();
 
         await _writeRepository
             .Received(1)
