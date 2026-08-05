@@ -89,8 +89,6 @@ public partial class AreaSidebarItem : ContentView
 			ItemBorder.BackgroundColor = DmColors.GoldHoverTint;
 		}
 
-		DeleteButton.IsVisible = true;
-
 		if (Area is not null)
 		{
 			HoverStarted?.Invoke(this, Area);
@@ -103,8 +101,6 @@ public partial class AreaSidebarItem : ContentView
 		{
 			ItemBorder.BackgroundColor = Colors.Transparent;
 		}
-
-		DeleteButton.IsVisible = false;
 
 		if (Area is not null)
 		{

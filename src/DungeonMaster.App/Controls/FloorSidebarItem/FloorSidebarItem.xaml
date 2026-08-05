@@ -69,7 +69,7 @@
                     </Button.Behaviors>
                 </Button>
 
-                <!-- Hover-revealed delete button -->
+                <!-- Delete button -->
                 <Button
                     x:Name="DeleteButton"
                     Grid.Column="4"
@@ -80,7 +80,6 @@
                     TextColor="{StaticResource DMDestructive}"
                     Padding="4,2"
                     CornerRadius="2"
-                    IsVisible="False"
                     Clicked="OnDeleteClicked"
                     ToolTipProperties.Text="Delete floor">
                     <Button.Behaviors>
@@ -88,14 +87,13 @@
                     </Button.Behaviors>
                 </Button>
 
-                <!-- Drag handle (visible on hover) -->
+                <!-- Drag handle -->
                 <Label
                     x:Name="DragHandle"
                     Grid.Column="5"
                     Text="&#x22EE;"
                     FontSize="18"
                     TextColor="{StaticResource DMTextMuted}"
-                    IsVisible="False"
                     VerticalOptions="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDragHandleTapped" />

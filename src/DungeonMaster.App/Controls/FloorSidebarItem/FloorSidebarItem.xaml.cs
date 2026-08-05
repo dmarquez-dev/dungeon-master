@@ -241,9 +241,6 @@ public partial class FloorSidebarItem : ContentView
 		{
 			FloorBorder.BackgroundColor = _surfaceHover;
 		}
-
-		DeleteButton.IsVisible = true;
-		DragHandle.IsVisible = true;
 	}
 
 	private void OnPointerExited(object? sender, PointerEventArgs e)
@@ -252,9 +249,6 @@ public partial class FloorSidebarItem : ContentView
 		{
 			FloorBorder.BackgroundColor = _surfaceNormal;
 		}
-
-		DeleteButton.IsVisible = false;
-		DragHandle.IsVisible = false;
 	}
 
 	private void OnDeleteClicked(object? sender, EventArgs e)
