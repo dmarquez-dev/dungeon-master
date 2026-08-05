@@ -35,6 +35,11 @@ public partial class AreaSidebarItem : ContentView
 	/// </summary>
 	public event EventHandler<AreaDto>? HoverEnded;
 
+	/// <summary>
+	///		Raised when the user requests deletion of this area.
+	/// </summary>
+	public event EventHandler<AreaDto>? DeleteRequested;
+
 	private bool _isSelected;
 
 	/// <summary>
@@ -70,6 +75,9 @@ public partial class AreaSidebarItem : ContentView
 		{
 			ItemBorder.BackgroundColor = DmColors.GoldHoverTint;
 		}
+
+		DeleteButton.IsVisible = true;
+
 		if (Area is not null)
 		{
 			HoverStarted?.Invoke(this, Area);
@@ -82,6 +90,9 @@ public partial class AreaSidebarItem : ContentView
 		{
 			ItemBorder.BackgroundColor = Colors.Transparent;
 		}
+
+		DeleteButton.IsVisible = false;
+
 		if (Area is not null)
 		{
 			HoverEnded?.Invoke(this, Area);
@@ -93,6 +104,14 @@ public partial class AreaSidebarItem : ContentView
 		if (Area is not null)
 		{
 			SelectRequested?.Invoke(this, Area);
+		}
+	}
+
+	private void OnDeleteClicked(object? sender, EventArgs e)
+	{
+		if (Area is not null)
+		{
+			DeleteRequested?.Invoke(this, Area);
 		}
 	}
 

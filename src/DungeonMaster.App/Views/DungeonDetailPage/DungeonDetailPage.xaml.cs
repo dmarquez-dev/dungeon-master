@@ -539,6 +539,11 @@ public partial class DungeonDetailPage : ContentPage
 				MapCanvas.Invalidate();
 			};
 
+			// Sidebar delete is the only way to remove an area with an empty outline —
+			// the Erase tool needs outline geometry to hit-test against.
+			item.AreaDeleteRequested += async (_, areaToDelete) =>
+				await DeleteAreaAsync(floor.Id, areaToDelete);
+
 			FloorListContainer.Children.Add(item);
 
 			if (floor.Id == _selectedFloorId)
@@ -546,6 +551,37 @@ public partial class DungeonDetailPage : ContentPage
 				item.Select();
 			}
 		}
+
+		// A rebuild recreates the area items, so re-apply the focused area's selected visual.
+		UpdateActiveAreaSidebarHighlight();
+	}
+
+	// Confirms and removes an area from the sidebar. Placed objects belong to the floor,
+	// so they survive area deletion; only the annotation is removed.
+	private async Task DeleteAreaAsync(Guid floorId, AreaDto area)
+	{
+		var confirmed = await Navigation.ShowConfirmPopupAsync(
+			"Delete Area",
+			$"Delete area \"{area.Name}\"? Objects placed on this floor are not affected.",
+			"DELETE",
+			"CANCEL",
+			isDestructive: true);
+
+		if (!confirmed)
+		{
+			return;
+		}
+
+		if (_focusedAreaId == area.Id)
+		{
+			ClearAreaFocus();
+		}
+
+		_drawable.HoveredAreaId = null;
+
+		await _viewModel.RemoveAreaCommand.ExecuteAsync((floorId, area.Id));
+		await RefreshFloorAsync();
+		MapCanvas.Invalidate();
 	}
 
 	// ─── Lore drawer ────────────────────────────────────────────────────────────
@@ -849,14 +885,12 @@ public partial class DungeonDetailPage : ContentPage
 
 		await _viewModel.UpdateAreaNameCommand.ExecuteAsync((_selectedFloorId.Value, _focusedAreaId.Value, name));
 
-		foreach (var child in FloorListContainer.Children)
-		{
-			if (child is FloorSidebarItem floorItem && floorItem.Floor?.Id == _selectedFloorId)
-			{
-				floorItem.UpdateAreaName(_focusedAreaId.Value, name);
-				break;
-			}
-		}
+		// The command reloads the detail, so the sidebar has already rebuilt from fresh
+		// projections. Re-point the drawable at the new floor instance and keep the
+		// toolbar editor showing the persisted name.
+		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
+		AreaNameToolbarEditor.Text = name;
+		MapCanvas.Invalidate();
 	}
 
 	private void UpdateToolbarButtonState()

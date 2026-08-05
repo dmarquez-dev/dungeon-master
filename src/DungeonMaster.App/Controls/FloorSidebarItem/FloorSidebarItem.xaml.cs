@@ -83,6 +83,11 @@ public partial class FloorSidebarItem : ContentView
 	/// </summary>
 	public event EventHandler<AreaDto>? AreaHoverEnded;
 
+	/// <summary>
+	///     Raised when the user requests deletion of an area in this floor.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaDeleteRequested;
+
 	private bool _isExpanded;
 	private bool _suppressCardTap;
 
@@ -129,6 +134,8 @@ public partial class FloorSidebarItem : ContentView
 				AreaHoverStarted?.Invoke(this, hoveredArea);
 			item.HoverEnded += (_, hoveredArea) =>
 				AreaHoverEnded?.Invoke(this, hoveredArea);
+			item.DeleteRequested += (_, areaToDelete) =>
+				AreaDeleteRequested?.Invoke(this, areaToDelete);
 			AreaContainer.Children.Add(item);
 		}
 	}

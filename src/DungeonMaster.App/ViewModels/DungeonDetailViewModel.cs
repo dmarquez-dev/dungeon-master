@@ -240,7 +240,8 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Updates the name of an existing area, preserving its current description and notes.
+	///		Updates the name of an existing area, preserving its current description and notes,
+	///		then reloads the detail so the cached area projections carry the new name.
 	/// </summary>
 	/// <param name="args">
 	///		A tuple containing the floor identifier, area identifier, and new area name.
@@ -263,6 +264,8 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				existing?.Description,
 				existing?.Notes),
 			CancellationToken.None);
+
+		await LoadDungeonAsync(_dungeonId);
 	}
 
 	/// <summary>
