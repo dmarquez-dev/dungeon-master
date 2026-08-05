@@ -22,11 +22,11 @@ public partial class DmFlagBanner : ContentView
 			});
 
 	/// <summary>
-	///		Identifies the <see cref="IsEditable"/> bindable property.
+	///		Identifies the <see cref="IsTitleEditable"/> bindable property.
 	/// </summary>
-	public static readonly BindableProperty IsEditableProperty =
+	public static readonly BindableProperty IsTitleEditableProperty =
 		BindableProperty.Create(
-			nameof(IsEditable),
+			nameof(IsTitleEditable),
 			typeof(bool),
 			typeof(DmFlagBanner),
 			false,
@@ -50,10 +50,10 @@ public partial class DmFlagBanner : ContentView
 	/// <summary>
 	///		Gets or sets a value indicating whether the banner title can be edited inline.
 	/// </summary>
-	public bool IsEditable
+	public bool IsTitleEditable
 	{
-		get => (bool)GetValue(IsEditableProperty);
-		set => SetValue(IsEditableProperty, value);
+		get => (bool)GetValue(IsTitleEditableProperty);
+		set => SetValue(IsTitleEditableProperty, value);
 	}
 
 	/// <summary>

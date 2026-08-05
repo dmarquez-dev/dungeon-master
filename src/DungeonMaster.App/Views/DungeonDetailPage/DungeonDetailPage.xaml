@@ -88,13 +88,11 @@
             </Grid>
         </Grid>
 
-        <!-- Row 1: Full-width DmFlagBanner -->
+        <!-- Row 1: Full-width DmFlagBanner (display-only — renamed via the sidebar card's notebook) -->
         <controls:DmFlagBanner
             x:Name="TitleBanner"
             Grid.Row="1"
-            IsEditable="True"
-            Title="{Binding Dungeon.Name}"
-            TextCommitted="OnDungeonNameCommitted" />
+            Title="{Binding Dungeon.Name}" />
 
         <!-- Row 2: Decorative divider between the banner and the map -->
         <controls:DmDivider
@@ -533,7 +531,7 @@
             </Grid>
 
             <!-- RIGHT SIDEBAR -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,*" BackgroundColor="Transparent">
+            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" BackgroundColor="Transparent">
 
                 <!-- Sidebar header -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
@@ -560,46 +558,50 @@
                     </Button>
                 </Grid>
 
-                <!-- Floor list (built in code-behind) + dungeon-level notebook row -->
-                <ScrollView Grid.Row="1">
-                    <VerticalStackLayout Spacing="0">
-                        <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
+                <!-- Dungeon-level row — always visible, styled like a floor card. Fixed above the
+                     scrolling floor list (not a ScrollView child) so it never scrolls out of view
+                     and survives FloorListContainer's Children.Clear() rebuilds untouched. -->
+                <Border
+                    Grid.Row="1"
+                    StrokeShape="RoundRectangle 3"
+                    StrokeThickness="1"
+                    Stroke="{StaticResource DMCardBorderBrush}"
+                    BackgroundColor="{StaticResource DMCardSurface}"
+                    Padding="8,6"
+                    Margin="0,0,0,4">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                        <Label
+                            Grid.Column="0"
+                            Text="{Binding Dungeon.Name}"
+                            FontFamily="CinzelSemiBold"
+                            FontSize="16"
+                            TextColor="{StaticResource DMScrollGoldLight}"
+                            VerticalOptions="Center" />
+                        <Button
+                            x:Name="DungeonNotebookButton"
+                            Grid.Column="1"
+                            Text="&#xEA8F;"
+                            FontFamily="RpgAwesome"
+                            FontSize="14"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource DMInkMuted}"
+                            Padding="4,0"
+                            CornerRadius="2"
+                            ToolTipProperties.Text="Open notebook"
+                            Clicked="OnDungeonNotebookClicked">
+                            <Button.Behaviors>
+                                <behaviors:HandCursorBehavior />
+                            </Button.Behaviors>
+                        </Button>
+                    </Grid>
+                </Border>
 
-                        <!-- Dungeon-level row — always visible, styled like a floor card -->
-                        <Border
-                            StrokeShape="RoundRectangle 3"
-                            StrokeThickness="1"
-                            Stroke="{StaticResource DMCardBorderBrush}"
-                            BackgroundColor="{StaticResource DMCardSurface}"
-                            Padding="8,6"
-                            Margin="0,4,0,4">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
-                                <Label
-                                    Grid.Column="0"
-                                    Text="{Binding Dungeon.Name}"
-                                    FontFamily="CinzelSemiBold"
-                                    FontSize="16"
-                                    TextColor="{StaticResource DMScrollGoldLight}"
-                                    VerticalOptions="Center" />
-                                <Button
-                                    x:Name="DungeonNotebookButton"
-                                    Grid.Column="1"
-                                    Text="&#xEA8F;"
-                                    FontFamily="RpgAwesome"
-                                    FontSize="14"
-                                    BackgroundColor="Transparent"
-                                    TextColor="{StaticResource DMInkMuted}"
-                                    Padding="4,0"
-                                    CornerRadius="2"
-                                    ToolTipProperties.Text="Open notebook"
-                                    Clicked="OnDungeonNotebookClicked">
-                                    <Button.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Button.Behaviors>
-                                </Button>
-                            </Grid>
-                        </Border>
-                    </VerticalStackLayout>
+                <!-- Fixed divider between the dungeon card and the scrolling floor list -->
+                <controls:DmDivider Grid.Row="2" Margin="0,0,0,4" />
+
+                <!-- Floor list (built in code-behind) -->
+                <ScrollView Grid.Row="3">
+                    <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
                 </ScrollView>
 
             </Grid>

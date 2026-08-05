@@ -2196,20 +2196,4 @@ public partial class DungeonDetailPage : ContentPage
 			});
 	}
 
-	private async void OnDungeonNameCommitted(object? sender, string? name)
-	{
-		if (!string.IsNullOrWhiteSpace(name) && name != _viewModel.DungeonName)
-		{
-			_viewModel.DungeonName = name;
-			await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
-
-			// SaveDungeonCommand does not reload, so the sidebar dungeon row would keep showing
-			// the pre-edit name until something else refreshed it.
-			if (_viewModel.Dungeon is not null)
-			{
-				await _viewModel.LoadDungeonCommand.ExecuteAsync(_viewModel.Dungeon.Id);
-			}
-		}
-	}
-
 }

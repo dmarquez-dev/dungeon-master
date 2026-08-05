@@ -34,7 +34,7 @@
             CharacterSpacing="2"
             TextColor="{StaticResource DMTextPrimary}" />
 
-        <!-- Inline editor (shown when IsEditable=True) -->
+        <!-- Inline editor (shown when IsTitleEditable=True) -->
         <controls:DmInlineEditor
             x:Name="TitleEditor"
             IsVisible="False"
