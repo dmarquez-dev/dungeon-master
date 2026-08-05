@@ -267,6 +267,11 @@ public partial class NotebookView : ContentView
 			string.IsNullOrWhiteSpace(DescriptionPane.Text) ? null : DescriptionPane.Text,
 			string.IsNullOrWhiteSpace(NotesPane.Text) ? null : NotesPane.Text));
 
+		// Known limitation: SaveRequested is fire-and-forget with no success channel, so this
+		// stamps SAVED whether or not the host's write actually landed. The host guards the
+		// realistic failure — a blank name that validation would reject — but a failure from any
+		// other cause still reads as saved. Closing that gap means giving the event a result to
+		// report back, which is a larger change than this control should make on its own.
 		SetSaveState(dirty: false);
 	}
 

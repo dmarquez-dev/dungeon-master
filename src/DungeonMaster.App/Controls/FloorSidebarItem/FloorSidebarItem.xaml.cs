@@ -162,7 +162,8 @@ public partial class FloorSidebarItem : ContentView
 
 	/// <summary>
 	///		Auto-expands this item and fires <see cref="SelectRequested"/>.
-	///		Called after a new floor is added; the toolbar name editor is focused by the page.
+	///		Called after a new floor is added, so the new row is open and selected; naming it
+	///		happens in the notebook, which the user opens from the row.
 	/// </summary>
 	public void FocusNameEditor()
 	{
@@ -188,7 +189,7 @@ public partial class FloorSidebarItem : ContentView
 		SetExpanded(true);
 
 	/// <summary>
-	///		No-op — floor and area name editing moved to the map toolbar.
+	///		No-op — floor and area name editing moved to the notebook.
 	/// </summary>
 	public void TryCommitActiveEditor() { }
 

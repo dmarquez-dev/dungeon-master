@@ -531,9 +531,10 @@
                     </Border>
 
                     <!--
-                        The notebook floats over the map and is dragged by its header, so it is the
-                        last child: anything added after it would sit on top of the page the user
-                        is writing on.
+                        The notebook floats over the map and is dragged by its header, so it is
+                        declared last and paints over everything above it. Secondary object
+                        palettes are appended to this grid at runtime and so can still overlap it;
+                        the header drag is the way out of that.
                     -->
                     <controls:NotebookView
                         x:Name="Notebook"

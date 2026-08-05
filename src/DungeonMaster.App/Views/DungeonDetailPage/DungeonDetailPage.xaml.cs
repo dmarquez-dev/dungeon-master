@@ -172,9 +172,9 @@ public partial class DungeonDetailPage : ContentPage
 	//
 	// Subscriptions are split into two groups:
 	//
-	//  * One-time construction wiring (above) — palette events, popup button behaviors and
-	//    inline-editor focus handlers. Every one of those targets a child control this page
-	//    owns outright, so they live and die with the page and never need detaching.
+	//  * One-time construction wiring (above) — palette events and popup button behaviors. Every
+	//    one of those targets a child control this page owns outright, so they live and die with
+	//    the page and never need detaching.
 	//
 	//  * Runtime handlers (below) — the view model subscriptions, the canvas handler hook,
 	//    the long-press detector and the keyboard behavior. These used to be torn down in
@@ -544,12 +544,19 @@ public partial class DungeonDetailPage : ContentPage
 
 	// Every write path below ends in a full reload that clears Floors and rebuilds every sidebar
 	// item, so no FloorDto or AreaDto may be held across the await — only identifiers survive it.
+	//
+	// All three branches follow one rule: description and notes are written exactly as typed, but a
+	// blank name falls back to the entity's last known good one. Each level punishes a blank name
+	// differently and all of them badly — UpdateAreaCommandValidator rejects an empty area name and
+	// drops the entire write, description and notes included, while a floor name has no validator
+	// at all and would persist blank. Clearing a name is not something a description edit should be
+	// able to do in passing, so the fallback is applied uniformly rather than per level.
 	private async void OnNotebookSaveRequested(object? sender, NotebookSaveArgs e)
 	{
 		switch (e.Kind)
 		{
 			case NotebookKind.Dungeon:
-				// A blank name would erase the dungeon's title, so an empty edit keeps the old one.
+			{
 				if (!string.IsNullOrWhiteSpace(e.Name))
 				{
 					_viewModel.DungeonName = e.Name;
@@ -564,22 +571,46 @@ public partial class DungeonDetailPage : ContentPage
 				// showing the pre-edit name until something else refreshed them.
 				await _viewModel.LoadDungeonCommand.ExecuteAsync(e.Id);
 				break;
+			}
 
 			case NotebookKind.Floor:
+			{
+				// Resolved before the await, because the reload it triggers replaces this instance.
+				var lastGoodName = _viewModel.Floors
+					.FirstOrDefault(floorItem => floorItem.Id == e.Id)?.Name;
+
+				var floorName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
+
 				await _viewModel.UpdateFloorCommand.ExecuteAsync(
-					(e.Id, e.Name, e.Description, e.Notes));
+					(e.Id, floorName, e.Description, e.Notes));
 				break;
+			}
 
 			case NotebookKind.Area:
+			{
 				// An area is addressed through its owning floor; without one there is nothing to save.
 				if (e.FloorId is null)
 				{
 					return;
 				}
 
+				var lastGoodName = _viewModel.Floors
+					.FirstOrDefault(floorItem => floorItem.Id == e.FloorId.Value)?.Areas
+					.FirstOrDefault(areaItem => areaItem.Id == e.Id)?.Name;
+
+				var areaName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
+
+				// No name typed and no row left to borrow one from: the validator would reject the
+				// write, so abandon it here rather than sending something that cannot succeed.
+				if (string.IsNullOrWhiteSpace(areaName))
+				{
+					return;
+				}
+
 				await _viewModel.UpdateAreaCommand.ExecuteAsync(
-					(e.FloorId.Value, e.Id, e.Name, e.Description, e.Notes));
+					(e.FloorId.Value, e.Id, areaName, e.Description, e.Notes));
 				break;
+			}
 		}
 
 		// The reload replaced every floor projection, so the drawable is still pointing at the

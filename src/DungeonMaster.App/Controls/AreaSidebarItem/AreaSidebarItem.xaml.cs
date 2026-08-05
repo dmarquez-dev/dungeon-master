@@ -137,7 +137,7 @@ public partial class AreaSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		No-op — area name editing moved to the map toolbar.
+	///		No-op — area name editing moved to the notebook.
 	/// </summary>
 	public void TryCommitActiveEditor() { }
 
