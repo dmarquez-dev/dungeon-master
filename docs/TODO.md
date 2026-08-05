@@ -4,6 +4,27 @@ Deferred work items with enough context to pick up cold. Newest first.
 
 ---
 
+## macCatalyst has no text-input guard for keyboard shortcuts
+
+**Raised:** 2026-08-05, during the notebook metadata work
+**Area:** `DungeonMaster.App` — `DungeonDetailPage.IsTextInputActive`
+**Type:** cross-platform gap — blocks shipping macCatalyst, harmless on Windows
+
+`OnKeyDown` gates the designer's single-letter tool shortcuts (D for draw, and the rest) behind `IsTextInputActive()`. On Windows that method asks WinUI's `FocusManager` whether the focused element is a `TextBox`, which correctly covers the notebook's `Editor` panes. On macCatalyst it returns `false` unconditionally, so **typing a description into the notebook will also fire tool shortcuts**.
+
+This is not a regression introduced by deleting `_isTextInputFocused` with the Lore drawer. That flag was only ever maintained by the four editors the notebook replaced; nothing would have set it for `NotebookView` either. The gap arrived with the notebook and would have existed regardless.
+
+Two ways to close it, either is fine:
+
+- Walk `UIResponder.IsFirstResponder` over the page's platform view and return true when the first responder is a `UITextView` or `UITextField`.
+- Have `NotebookView` surface focus/blur events — it already tracks editor focus internally for its autosave-on-unfocus — and let the page hold a flag again, this time fed by the control that actually owns the input.
+
+The second is probably better, since it keeps the page out of platform APIs and would also cover any future control that hosts text.
+
+Windows is unaffected and needs no change.
+
+---
+
 ## Designer async-lifecycle hardening
 
 **Raised:** 2026-08-05, during the investigation behind the popup lifecycle fix
