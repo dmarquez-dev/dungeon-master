@@ -64,12 +64,6 @@ public partial class DmFlagBanner : ContentView
 		InitializeComponent();
 	}
 
-	/// <summary>
-	///		Commits any in-progress title edit without requiring user interaction.
-	/// </summary>
-	public void TryCommit() =>
-		TitleEditor.TryCommit();
-
 	private void ApplyEditability(bool editable)
 	{
 		TitleLabel.IsVisible = !editable;

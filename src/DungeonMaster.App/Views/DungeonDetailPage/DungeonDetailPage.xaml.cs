@@ -2029,20 +2029,6 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
-	private void OnSidebarTapped(object? sender, TappedEventArgs e) =>
-		CommitAllFloorEditors();
-
-	private void CommitAllFloorEditors()
-	{
-		foreach (var child in FloorListContainer.Children)
-		{
-			if (child is FloorSidebarItem item)
-			{
-				item.TryCommitActiveEditor();
-			}
-		}
-	}
-
 	private void CollapseAllExcept(FloorSidebarItem except)
 	{
 		foreach (var child in FloorListContainer.Children)
@@ -2193,6 +2179,13 @@ public partial class DungeonDetailPage : ContentPage
 		{
 			_viewModel.DungeonName = name;
 			await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
+
+			// SaveDungeonCommand does not reload, so the sidebar dungeon row would keep showing
+			// the pre-edit name until something else refreshed it.
+			if (_viewModel.Dungeon is not null)
+			{
+				await _viewModel.LoadDungeonCommand.ExecuteAsync(_viewModel.Dungeon.Id);
+			}
 		}
 	}
 

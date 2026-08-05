@@ -547,9 +547,6 @@
 
             <!-- RIGHT SIDEBAR -->
             <Grid Grid.Column="1" RowDefinitions="Auto,*" BackgroundColor="Transparent">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnSidebarTapped" />
-                </Grid.GestureRecognizers>
 
                 <!-- Sidebar header -->
                 <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">

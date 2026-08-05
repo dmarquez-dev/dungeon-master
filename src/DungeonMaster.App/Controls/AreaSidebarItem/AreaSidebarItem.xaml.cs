@@ -137,11 +137,6 @@ public partial class AreaSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		No-op — area name editing moved to the notebook.
-	/// </summary>
-	public void TryCommitActiveEditor() { }
-
-	/// <summary>
 	///		Sets the selected/editing visual state (gold border and subtle background).
 	/// </summary>
 	public void SetEditing(bool editing)

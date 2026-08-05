@@ -189,11 +189,6 @@ public partial class FloorSidebarItem : ContentView
 		SetExpanded(true);
 
 	/// <summary>
-	///		No-op — floor and area name editing moved to the notebook.
-	/// </summary>
-	public void TryCommitActiveEditor() { }
-
-	/// <summary>
 	///		Sets the editing visual state for a child area item by ID.
 	/// </summary>
 	public void SetAreaEditing(Guid areaId, bool editing)
