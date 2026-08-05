@@ -215,6 +215,7 @@ public partial class FloorSidebarItem : ContentView
 	{
 		_isExpanded = expanded;
 		ExpandToggle.Text = expanded ? "▾" : "▸";
+		AreaSeparator.IsVisible = expanded;
 		AreaContainer.IsVisible = expanded;
 		AddAreaButton.IsVisible = expanded;
 

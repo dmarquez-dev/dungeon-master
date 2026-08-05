@@ -22,7 +22,7 @@
             </VerticalStackLayout.GestureRecognizers>
 
             <!-- Header row -->
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="2">
 
                 <!-- Expand toggle (visual indicator only — card tap handles expand) -->
                 <Label
@@ -33,13 +33,15 @@
                     TextColor="{StaticResource DMTextMuted}"
                     VerticalOptions="Center" />
 
-                <!-- Floor name (or a "Floor N" placeholder when unnamed) -->
+                <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
+                     name clear of the action buttons now that ColumnSpacing is tightened to 2. -->
                 <Label
                     x:Name="FloorNameLabel"
                     Grid.Column="1"
                     FontFamily="CinzelSemiBold"
                     FontSize="16"
                     TextColor="{StaticResource DMScrollGoldLight}"
+                    Margin="0,0,6,0"
                     VerticalOptions="Center" />
 
                 <!-- Always-visible notebook button — colour reflects whether this floor has authored content -->
@@ -92,6 +94,13 @@
                     </Label.GestureRecognizers>
                 </Label>
             </Grid>
+
+            <!-- Separator between the floor's own row and its area list; visible only while expanded -->
+            <BoxView
+                x:Name="AreaSeparator"
+                IsVisible="False"
+                Color="#478B5E1A"
+                HeightRequest="1" />
 
             <!-- Expanded area list -->
             <VerticalStackLayout
