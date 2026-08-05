@@ -83,10 +83,20 @@ public partial class NotebookView : ContentView
 	/// <summary>Ribbon height when not selected.</summary>
 	private const double UnselectedRibbonHeight = 40;
 
+	// How far each ribbon's fold gradient darkens toward black at its foot. The selected ribbon
+	// folds harder than the dimmed one; both values come straight from the mock-up's color-mix.
+	private const float SelectedFoldFactor = 0.72f;
+	private const float UnselectedFoldFactor = 0.78f;
+
 	// The save stamp's two states. Green is not a themed token — it exists only here,
 	// where "committed" needs to read as reassuring rather than as an action to take.
 	private static readonly Color SavedColor = Color.FromArgb("#4A6A2A");
 	private static readonly Color UnsavedColor = Color.FromArgb("#8B2020");
+
+	// Close button hover: destructive red on a faint red wash, matching every other icon button.
+	private static readonly Color CloseHoverText = Color.FromArgb("#8B2020");
+	private static readonly Color CloseHoverBackground = Color.FromArgb("#248B2020");
+	private static readonly Color CloseRestText = Color.FromArgb("#7A5030");
 
 	/// <summary>
 	///		Raised when the notebook has committed an edit and the host should persist it.
@@ -285,25 +295,26 @@ public partial class NotebookView : ContentView
 		var readSelected = pane == NotebookPane.Description;
 
 		ReadRibbon.HeightRequest = readSelected ? SelectedRibbonHeight : UnselectedRibbonHeight;
-		ReadRibbon.Background = RibbonBrush(readSelected ? "DMRibbonRead" : "DMRibbonReadDim");
+		ReadRibbon.Background = RibbonBrush(readSelected ? "DMRibbonRead" : "DMRibbonReadDim", readSelected);
 		ReadRibbon.Opacity = readSelected ? 1 : 0.78;
 
 		DmRibbon.HeightRequest = readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight;
-		DmRibbon.Background = RibbonBrush(readSelected ? "DMRibbonDmDim" : "DMRibbonDm");
+		DmRibbon.Background = RibbonBrush(readSelected ? "DMRibbonDmDim" : "DMRibbonDm", !readSelected);
 		DmRibbon.Opacity = readSelected ? 0.78 : 1;
 	}
 
 	/// <summary>
 	///		Builds the vertical fold gradient for a ribbon from its themed base colour.
 	/// </summary>
-	private static Brush RibbonBrush(string colorKey)
+	private static Brush RibbonBrush(string colorKey, bool isSelected)
 	{
 		var top = (Color)MauiApplication.Current!.Resources[colorKey];
+		var foot = Darken(top, isSelected ? SelectedFoldFactor : UnselectedFoldFactor);
 
 		return new LinearGradientBrush(
 			[
 				new GradientStop(top, 0f),
-				new GradientStop(Darken(top, 0.72f), 1f)
+				new GradientStop(foot, 1f)
 			],
 			new Point(0, 0),
 			new Point(0, 1));
@@ -317,6 +328,18 @@ public partial class NotebookView : ContentView
 
 	private void OnCloseClicked(object? sender, EventArgs e) =>
 		Close();
+
+	private void OnCloseHoverEntered(object? sender, PointerEventArgs e)
+	{
+		CloseButton.TextColor = CloseHoverText;
+		CloseButton.BackgroundColor = CloseHoverBackground;
+	}
+
+	private void OnCloseHoverExited(object? sender, PointerEventArgs e)
+	{
+		CloseButton.TextColor = CloseRestText;
+		CloseButton.BackgroundColor = Colors.Transparent;
+	}
 
 	private void OnHeaderPanUpdated(object? sender, PanUpdatedEventArgs e)
 	{

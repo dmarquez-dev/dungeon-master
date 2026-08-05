@@ -103,6 +103,11 @@
 					<Button.Behaviors>
 						<behaviors:HandCursorBehavior />
 					</Button.Behaviors>
+					<Button.GestureRecognizers>
+						<PointerGestureRecognizer
+							PointerEntered="OnCloseHoverEntered"
+							PointerExited="OnCloseHoverExited" />
+					</Button.GestureRecognizers>
 				</Button>
 
 				<!-- Hairline under the header, rgba(139,94,26,0.42) -->
@@ -164,13 +169,20 @@
 					<Border.Behaviors>
 						<behaviors:HandCursorBehavior />
 					</Border.Behaviors>
-					<Label
-						Text="DM only"
-						FontFamily="CinzelRegular"
-						FontSize="10"
-						CharacterSpacing="1.5"
-						TextColor="{StaticResource DMRibbonText}"
-						VerticalOptions="Start" />
+					<!-- The seal reads as "sealed against the players" at a glance, before hue registers. -->
+					<Label VerticalOptions="Start">
+						<Label.FormattedText>
+							<FormattedString>
+								<Span Text="&#x25CF; " FontSize="10" TextColor="#E8B4B4" />
+								<Span
+									Text="DM only"
+									FontFamily="CinzelRegular"
+									FontSize="10"
+									CharacterSpacing="1.5"
+									TextColor="{StaticResource DMRibbonText}" />
+							</FormattedString>
+						</Label.FormattedText>
+					</Label>
 				</Border>
 
 			</HorizontalStackLayout>
@@ -186,7 +198,7 @@
 					BackgroundColor="Transparent"
 					FontFamily="EBGaramondItalic"
 					FontSize="17"
-					TextColor="{StaticResource DMInk}"
+					TextColor="#3A2410"
 					PlaceholderColor="#8C7A5030"
 					Placeholder="What the party sees when they walk in&#8230;"
 					TextChanged="OnEditorTextChanged"
