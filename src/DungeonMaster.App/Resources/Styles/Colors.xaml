@@ -84,6 +84,19 @@
     <Color x:Key="DMNeutralSurface">#1F785014</Color>
     <Color x:Key="DMNeutralBorder">#5A3010</Color>
 
+    <!-- ═══════════════════════════════════════
+         Notebook ribbon bookmarks
+
+         Deliberately distinct from DMDestructive (#8B2020): the delete button
+         sits inches away in the same sidebar, and reusing its red would drain
+         "red means destructive" of meaning.
+    ═══════════════════════════════════════ -->
+    <Color x:Key="DMRibbonRead">#A32B24</Color>
+    <Color x:Key="DMRibbonReadDim">#6B2019</Color>
+    <Color x:Key="DMRibbonDm">#5E1518</Color>
+    <Color x:Key="DMRibbonDmDim">#401014</Color>
+    <Color x:Key="DMRibbonText">#F0DCA8</Color>
+
     <!-- Brushes -->
     <SolidColorBrush x:Key="DMGoldBrush" Color="{StaticResource DMGold}" />
     <SolidColorBrush x:Key="DMCardBorderBrush" Color="{StaticResource DMCardBorder}" />
