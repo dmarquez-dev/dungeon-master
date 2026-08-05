@@ -164,22 +164,22 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Updates the name of an existing floor, then reloads the detail so the cached
-	///		floor projections carry the new name.
+	///		Updates the name, description, and notes of an existing floor, then reloads the
+	///		detail so the cached floor projections carry the new values.
 	/// </summary>
 	/// <param name="args">
-	///		A tuple containing the floor identifier and its new name.
+	///		A tuple containing the floor identifier and its new name, description, and notes.
 	/// </param>
 	[RelayCommand]
-	private async Task UpdateFloorAsync((Guid FloorId, string? Name) args)
+	private async Task UpdateFloorAsync((Guid FloorId, string? Name, string? Description, string? Notes) args)
 	{
 		await dispatcher.SendAsync<bool>(
 			new UpdateFloorCommand(
 				_dungeonId,
 				args.FloorId,
 				args.Name,
-				null,
-				null),
+				args.Description,
+				args.Notes),
 			CancellationToken.None);
 
 		await LoadDungeonAsync(_dungeonId);

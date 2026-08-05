@@ -977,7 +977,7 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		await _viewModel.UpdateFloorCommand.ExecuteAsync((_selectedFloorId.Value, name));
+		await _viewModel.UpdateFloorCommand.ExecuteAsync((_selectedFloorId.Value, name, floor.Description, floor.Notes));
 
 		// The command reloads the detail, so the sidebar has already rebuilt from fresh
 		// projections. Re-point the drawable at the new floor instance and re-assert the
