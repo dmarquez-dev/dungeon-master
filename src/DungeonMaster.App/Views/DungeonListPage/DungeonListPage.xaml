@@ -9,7 +9,7 @@
     x:Class="DungeonMaster.App.Views.DungeonListPage"
     x:DataType="vm:DungeonListViewModel"
     Shell.NavBarIsVisible="False"
-    BackgroundColor="{StaticResource DMBackground}">
+    BackgroundColor="{StaticResource DmSurfaceTavern}">
 
     <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,12" RowSpacing="10">
 
@@ -20,7 +20,7 @@
             Text="{Binding ErrorMessage}"
             FontFamily="{StaticResource DmFontBody}"
             FontSize="{StaticResource DmFontSizeBody}"
-            TextColor="{StaticResource DMDestructive}"
+            TextColor="{StaticResource DmDestructive}"
             IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
         <controls:DmSearchBar
@@ -53,7 +53,7 @@
                                         FontFamily="{StaticResource DmFontIcon}"
                                         FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
-                                        TextColor="{StaticResource DMScrollGoldLight}"
+                                        TextColor="{StaticResource DmAccentGoldLight}"
                                         CornerRadius="3"
                                         Padding="8,4"
                                         CommandParameter="{Binding Id}"
@@ -71,7 +71,7 @@
                                             FontFamily="{StaticResource DmFontIcon}"
                                             FontSize="{StaticResource DmIconSizeXL}"
                                             BackgroundColor="Transparent"
-                                            TextColor="{StaticResource DMConfirm}"
+                                            TextColor="{StaticResource DmConfirm}"
                                             CornerRadius="3"
                                             Padding="8,4"
                                             CommandParameter="{Binding Id}"
@@ -101,7 +101,7 @@
                                         FontFamily="{StaticResource DmFontIcon}"
                                         FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
-                                        TextColor="{StaticResource DMDestructive}"
+                                        TextColor="{StaticResource DmDestructive}"
                                         CornerRadius="3"
                                         Padding="8,4"
                                         CommandParameter="{Binding Id}"
@@ -132,8 +132,8 @@
                 HorizontalOptions="End"
                 VerticalOptions="End"
                 Margin="0,0,4,4"
-                BackgroundColor="{StaticResource DMGold}"
-                TextColor="{StaticResource DMBackground}"
+                BackgroundColor="{StaticResource DmAccentGold}"
+                TextColor="{StaticResource DmSurfaceTavern}"
                 Clicked="OnCreateClicked">
                 <Button.GestureRecognizers>
                     <PointerGestureRecognizer

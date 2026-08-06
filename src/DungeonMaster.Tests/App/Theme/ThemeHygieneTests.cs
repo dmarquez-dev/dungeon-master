@@ -27,6 +27,11 @@ public class ThemeHygieneTests
             @"FontFamily=""[A-Za-z]",
             RegexOptions.Compiled);
 
+    private static readonly Regex LegacyThemeKeyPattern =
+        new(
+            @"\{StaticResource\s+DM[A-Za-z0-9]*\s*\}",
+            RegexOptions.Compiled);
+
     /// <summary>
     ///		Files not yet migrated onto the theme system. Each migration task deletes its own
     ///		entries from this set BEFORE migrating, so the test fails first and passes after.
@@ -85,6 +90,18 @@ public class ThemeHygieneTests
     }
 
     /// <summary>
+    ///		Asserts that no migrated file still references a legacy <c>DM</c>-prefixed key from
+    ///		<c>Resources/Styles/Colors.xaml</c>, which Task 10 deletes. Migrating a file means
+    ///		moving it onto the <c>Dm</c>-prefixed tokens in <c>Resources/Theme/Tokens.xaml</c>,
+    ///		not merely off raw literals.
+    /// </summary>
+    [Fact]
+    public void NoLegacyThemeKeyReferencesOutsideThePendingMigrationSet()
+    {
+        Offenders("*.xaml", LegacyThemeKeyPattern).Should().BeEmpty();
+    }
+
+    /// <summary>
     ///		Asserts that every allow-listed path names a file that exists and still carries at
     ///		least one of the literals the three facts above forbid. Without this the ratchet is
     ///		not self-checking as it shrinks: a stale or mistyped entry exempts nothing, and a
@@ -118,7 +135,8 @@ public class ThemeHygieneTests
 
         return HexPattern.IsMatch(text)
             || BareFontSizePattern.IsMatch(text)
-            || BareFontFamilyPattern.IsMatch(text);
+            || BareFontFamilyPattern.IsMatch(text)
+            || LegacyThemeKeyPattern.IsMatch(text);
     }
 
     private static IEnumerable<string> Offenders(
