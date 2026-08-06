@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Dark Tavern chrome: page background, sidebar, toolbars, cards. -->
+
+    <Style x:Key="DmButtonTavern" TargetType="Button" BasedOn="{StaticResource DmButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
+        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="BorderColor" Value="{StaticResource DmBorderTavern}" />
+    </Style>
+
+    <Style x:Key="DmEntryTavern" TargetType="Entry" BasedOn="{StaticResource DmEntryBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextTavernMuted}" />
+    </Style>
+
+    <Style x:Key="DmEditorTavern" TargetType="Editor" BasedOn="{StaticResource DmEditorBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextTavernMuted}" />
+    </Style>
+
+    <Style x:Key="DmPickerTavern" TargetType="Picker" BasedOn="{StaticResource DmPickerBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="TitleColor" Value="{StaticResource DmTextTavernMuted}" />
+    </Style>
+
+    <Style x:Key="DmSearchBarTavern" TargetType="SearchBar" BasedOn="{StaticResource DmSearchBarBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextTavernMuted}" />
+        <Setter Property="CancelButtonColor" Value="{StaticResource DmAccentGold}" />
+    </Style>
+
+    <Style x:Key="DmLabelTavern" TargetType="Label" BasedOn="{StaticResource DmLabelBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
+    </Style>
+
+    <Style x:Key="DmBorderTavernStyle" TargetType="Border" BasedOn="{StaticResource DmBorderBase}">
+        <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
+    </Style>
+
+</ResourceDictionary>

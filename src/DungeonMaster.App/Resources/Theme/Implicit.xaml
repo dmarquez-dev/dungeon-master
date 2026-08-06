@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        The only TargetType-only styles the application keeps.
+
+        There is deliberately NO implicit Border, Button, Entry, Editor or Picker style.
+        The stock template had one for Border. Dropping it is safe: the Task 3 audit walked
+        all 33 real Border elements (the often-quoted 61 counted 28 property elements such
+        as the Shadow and StrokeShape sub-elements as if they were Borders) and found that
+        none of them paints the stock grey stroke. 21 set Stroke themselves, 5 receive it
+        from a keyed style or from visual states, and 7 set StrokeThickness to zero. See the
+        audit table for the per-site record.
+
+        The reason for omitting the implicit style is not that it was doing damage — it was
+        not. It is that every Border should state its own intent at the point of use, rather
+        than inherit an outline nobody chose.
+
+        ONE inherited property is real: AreaSidebarItem.xaml:10 sets no StrokeShape and
+        currently takes Rectangle from the stock style. It must be re-declared explicitly
+        during migration.
+
+        The Label default exists only so no text falls back to a platform font once the
+        OpenSans registrations are removed.
+
+        The Shell style keeps the four TabBar setters carried by the stock style it replaces.
+        AppShell currently declares a single ShellContent and shows no tab bar, so they paint
+        nothing today; they are retained so that this dictionary is a strict superset of what
+        it supersedes and adding a second Shell item cannot regress the chrome.
+    -->
+
+    <Style TargetType="Label">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+    </Style>
+
+    <Style TargetType="Page" ApplyToDerivedTypes="True">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavern}" />
+    </Style>
+
+    <Style TargetType="Shell" ApplyToDerivedTypes="True">
+        <Setter Property="Shell.BackgroundColor" Value="{StaticResource DmSurfaceTavern}" />
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource DmAccentGold}" />
+        <Setter Property="Shell.TitleColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="Shell.DisabledColor" Value="{StaticResource DmTextTavernMuted}" />
+        <Setter Property="Shell.UnselectedColor" Value="{StaticResource DmTextTavernMuted}" />
+        <Setter Property="Shell.NavBarHasShadow" Value="False" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource DmSurfaceTavern}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource DmAccentGold}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource DmAccentGold}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource DmTextTavernMuted}" />
+    </Style>
+
+</ResourceDictionary>

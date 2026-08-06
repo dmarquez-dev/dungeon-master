@@ -45,6 +45,7 @@ public class ThemeDictionaryTests
         "DmFontSizeBanner", "DmFontSizeTitle", "DmFontSizeHeading", "DmFontSizeSubheading",
         "DmFontSizeAction", "DmFontSizeEyebrow", "DmFontSizeMicro",
         "DmFontSizeBodyLarge", "DmFontSizeBody", "DmFontSizeBodySmall", "DmFontSizeCaption",
+        "DmFontSizeMeta",
         "DmIconSizeTiny", "DmIconSizeSmall", "DmIconSizeMedium", "DmIconSizeLarge",
         "DmIconSizeXL", "DmIconSizeTool",
 

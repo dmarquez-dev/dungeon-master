@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        Metrics shared by both surface families. Colour lives in Controls.Tavern.xaml and
+        Controls.Parchment.xaml, which derive from these via BasedOn. A padding or radius
+        change belongs here so it lands once rather than twice.
+    -->
+
+    <Style x:Key="DmButtonBase" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontTitle}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeAction}" />
+        <Setter Property="CornerRadius" Value="{StaticResource DmRadiusDefault}" />
+        <Setter Property="BorderWidth" Value="{StaticResource DmStrokeHairline}" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="MinimumHeightRequest" Value="32" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.82" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.45" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DmEntryBase" TargetType="Entry">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="DmEditorBase" TargetType="Editor">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="AutoSize" Value="Disabled" />
+    </Style>
+
+    <Style x:Key="DmPickerBase" TargetType="Picker">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBodySmall}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="DmSearchBarBase" TargetType="SearchBar">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="DmLabelBase" TargetType="Label">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+    </Style>
+
+    <Style x:Key="DmBorderBase" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 3" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+</ResourceDictionary>

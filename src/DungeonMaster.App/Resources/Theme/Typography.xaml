@@ -33,6 +33,14 @@
     <x:Double x:Key="DmFontSizeBody">18</x:Double>
     <x:Double x:Key="DmFontSizeBodySmall">16</x:Double>
     <x:Double x:Key="DmFontSizeCaption">14</x:Double>
+    <!--
+        DmFontSizeMeta is the body ramp's 12. The ramp otherwise bottoms out at 14, but four
+        sites carry a 12pt numeric or meta readout in a body role: ControlsPaletteView.xaml:106
+        and :108, ObjectPaletteView.xaml:31 and SecondaryPaletteView.xaml:29. Reusing
+        DmFontSizeEyebrow — also 12 — would be a semantic lie: eyebrow means tracked-out caps,
+        so restyling eyebrow sizing would silently resize four numeric readouts.
+    -->
+    <x:Double x:Key="DmFontSizeMeta">12</x:Double>
 
     <!-- Icon ramp (RPG Awesome) -->
     <x:Double x:Key="DmIconSizeTiny">12</x:Double>
