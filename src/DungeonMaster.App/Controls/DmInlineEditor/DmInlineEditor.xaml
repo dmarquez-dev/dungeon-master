@@ -27,6 +27,7 @@
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"
                 TextColor="{Binding TextColor, Source={x:Reference Root}}"
+                LineBreakMode="TailTruncation"
                 VerticalOptions="Center">
                 <Label.Behaviors>
                     <behaviors:HandCursorBehavior Shape="IBeam" />
