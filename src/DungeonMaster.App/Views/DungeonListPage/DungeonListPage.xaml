@@ -18,8 +18,8 @@
         <Label
             Grid.Row="1"
             Text="{Binding ErrorMessage}"
-            FontFamily="EBGaramondRegular"
-            FontSize="18"
+            FontFamily="{StaticResource DmFontBody}"
+            FontSize="{StaticResource DmFontSizeBody}"
             TextColor="{StaticResource DMDestructive}"
             IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
@@ -50,8 +50,8 @@
                                     <!-- Edit / Plan button -->
                                     <Button
                                         Text="&#xEA75;"
-                                        FontFamily="RpgAwesome"
-                                        FontSize="20"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
                                         TextColor="{StaticResource DMScrollGoldLight}"
                                         CornerRadius="3"
@@ -68,8 +68,8 @@
                                     <Grid>
                                         <Button
                                             Text="&#xE97D;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="20"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeXL}"
                                             BackgroundColor="Transparent"
                                             TextColor="{StaticResource DMConfirm}"
                                             CornerRadius="3"
@@ -98,8 +98,8 @@
                                     <!-- Delete button -->
                                     <Button
                                         Text="&#xE9FC;"
-                                        FontFamily="RpgAwesome"
-                                        FontSize="20"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
                                         TextColor="{StaticResource DMDestructive}"
                                         CornerRadius="3"
@@ -119,10 +119,12 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
+            <!-- Geometric half-height of the 52px FAB, not a style token. -->
             <Button
                 x:Name="FabButton"
                 Text="+"
-                FontSize="26"
+                FontFamily="{StaticResource DmFontTitle}"
+                FontSize="{StaticResource DmFontSizeBanner}"
                 WidthRequest="52"
                 HeightRequest="52"
                 CornerRadius="26"

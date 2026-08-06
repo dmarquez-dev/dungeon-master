@@ -34,9 +34,6 @@ public class ThemeHygieneTests
     /// </summary>
     private static readonly HashSet<string> PendingMigration = new(StringComparer.OrdinalIgnoreCase)
     {
-        // Task 7 — DungeonListPage
-        @"Views\DungeonListPage\DungeonListPage.xaml",
-
         // Task 8 — DungeonDetailPage and palettes
         @"Views\DungeonDetailPage\ControlsPaletteView.xaml",
         @"Views\DungeonDetailPage\DungeonDetailPage.xaml",
