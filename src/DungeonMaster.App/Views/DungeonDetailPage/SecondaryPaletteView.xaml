@@ -3,9 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DungeonMaster.App.Views.DungeonDetail.SecondaryPaletteView">
 
-    <Border BackgroundColor="#EDD8A0"
-            Stroke="#8B5E1A"
-            StrokeThickness="1"
+    <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
+            Stroke="{StaticResource DmBorderParchment}"
+            StrokeThickness="{StaticResource DmStrokeHairline}"
             Padding="8"
             WidthRequest="272"
             HorizontalOptions="Start">
@@ -17,17 +17,18 @@
             <Grid ColumnDefinitions="*,Auto">
                 <Label x:Name="TitleLabel"
                        Grid.Column="0"
-                       FontFamily="EBGaramondRegular"
-                       FontSize="13"
-                       TextColor="#5C3E10"
+                       FontFamily="{StaticResource DmFontBody}"
+                       FontSize="{StaticResource DmFontSizeCaption}"
+                       TextColor="{StaticResource DmTextToolPanel}"
                        TextTransform="Uppercase"
                        CharacterSpacing="0.8"
                        VerticalOptions="Center" />
                 <Button x:Name="CloseButton"
                         Grid.Column="1"
                         Text="✕"
-                        FontSize="12"
-                        TextColor="#7A5030"
+                        FontFamily="{StaticResource DmFontIcon}"
+                        FontSize="{StaticResource DmFontSizeMeta}"
+                        TextColor="{StaticResource DmTextParchmentMuted}"
                         BackgroundColor="Transparent"
                         Padding="0"
                         WidthRequest="22" HeightRequest="22"

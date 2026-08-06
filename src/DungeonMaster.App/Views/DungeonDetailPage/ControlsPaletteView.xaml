@@ -5,21 +5,21 @@
              IsVisible="False">
     <ContentView.Resources>
         <Style x:Key="PaletteButtonStyle" TargetType="Border">
-            <Setter Property="BackgroundColor" Value="#C8AC78" />
-            <Setter Property="Stroke" Value="#9A7820" />
+            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceToolChip}" />
+            <Setter Property="Stroke" Value="{StaticResource DmBorderToolChip}" />
             <Setter Property="VisualStateManager.VisualStateGroups">
                 <VisualStateGroupList>
                     <VisualStateGroup Name="CommonStates">
                         <VisualState Name="Normal">
                             <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="#C8AC78" />
-                                <Setter Property="Stroke" Value="#9A7820" />
+                                <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceToolChip}" />
+                                <Setter Property="Stroke" Value="{StaticResource DmBorderToolChip}" />
                             </VisualState.Setters>
                         </VisualState>
                         <VisualState Name="PointerOver">
                             <VisualState.Setters>
-                                <Setter Property="BackgroundColor" Value="#E8CC9A" />
-                                <Setter Property="Stroke" Value="#C8A040" />
+                                <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceToolChipHover}" />
+                                <Setter Property="Stroke" Value="{StaticResource DmAccentGoldLight}" />
                             </VisualState.Setters>
                         </VisualState>
                     </VisualStateGroup>
@@ -27,9 +27,9 @@
             </Setter>
         </Style>
     </ContentView.Resources>
-    <Border BackgroundColor="#EDD8A0"
-            Stroke="#8B5E1A"
-            StrokeThickness="1"
+    <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
+            Stroke="{StaticResource DmBorderParchment}"
+            StrokeThickness="{StaticResource DmStrokeHairline}"
             Padding="6,5,6,6"
             WidthRequest="216"
             HorizontalOptions="Start">
@@ -41,21 +41,23 @@
             <!-- ROTATE group -->
             <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
                 <Label Text="ROTATE"
-                       FontSize="9"
+                       FontFamily="{StaticResource DmFontTitle}"
+                       FontSize="{StaticResource DmFontSizeMicro}"
                        CharacterSpacing="1"
-                       TextColor="#7A5030"
+                       TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
                 <HorizontalStackLayout Spacing="4">
                     <Border x:Name="BtnCCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="1"
+                            StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="↺"
-                               FontSize="22"
+                               FontFamily="{StaticResource DmFontIcon}"
+                               FontSize="{StaticResource DmIconSizeTool}"
                                Rotation="-90"
-                               TextColor="#5C3E10"
+                               TextColor="{StaticResource DmTextToolPanel}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
                                InputTransparent="True" />
@@ -63,12 +65,13 @@
                     <Border x:Name="BtnCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="1"
+                            StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="↻"
-                               FontSize="22"
+                               FontFamily="{StaticResource DmFontIcon}"
+                               FontSize="{StaticResource DmIconSizeTool}"
                                Rotation="90"
-                               TextColor="#5C3E10"
+                               TextColor="{StaticResource DmTextToolPanel}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
                                InputTransparent="True" />
@@ -78,36 +81,39 @@
 
             <!-- Divider -->
             <BoxView WidthRequest="1" HeightRequest="44"
-                     Color="#3a2e1a"
+                     Color="{StaticResource DmDivider}"
                      Margin="8,0"
                      VerticalOptions="Center" />
 
             <!-- SCALE group -->
             <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
                 <Label Text="SCALE"
-                       FontSize="9"
+                       FontFamily="{StaticResource DmFontTitle}"
+                       FontSize="{StaticResource DmFontSizeMicro}"
                        CharacterSpacing="1"
-                       TextColor="#7A5030"
+                       TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
                 <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
                     <Border x:Name="BtnScaleDown"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="1"
+                            StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="−"
-                               FontSize="22"
-                               TextColor="#5C3E10"
+                               FontFamily="{StaticResource DmFontIcon}"
+                               FontSize="{StaticResource DmIconSizeTool}"
+                               TextColor="{StaticResource DmTextToolPanel}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
                                InputTransparent="True" />
                     </Border>
                     <Label x:Name="ScaleReadout"
                            Text="1.0×"
-                           FontSize="12"
+                           FontFamily="{StaticResource DmFontBody}"
+                           FontSize="{StaticResource DmFontSizeMeta}"
                            FontAttributes="Bold"
-                           TextColor="#5C3E10"
+                           TextColor="{StaticResource DmTextToolPanel}"
                            MinimumWidthRequest="44"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
@@ -115,11 +121,12 @@
                     <Border x:Name="BtnScaleUp"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="1"
+                            StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="+"
-                               FontSize="22"
-                               TextColor="#5C3E10"
+                               FontFamily="{StaticResource DmFontIcon}"
+                               FontSize="{StaticResource DmIconSizeTool}"
+                               TextColor="{StaticResource DmTextToolPanel}"
                                HorizontalOptions="Center"
                                VerticalOptions="Center"
                                InputTransparent="True" />

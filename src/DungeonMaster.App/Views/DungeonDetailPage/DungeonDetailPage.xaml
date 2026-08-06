@@ -9,7 +9,7 @@
     x:Class="DungeonMaster.App.Views.DungeonDetailPage"
     x:DataType="vm:DungeonDetailViewModel"
     Shell.NavBarIsVisible="False"
-    BackgroundColor="{StaticResource DMBackground}">
+    BackgroundColor="{StaticResource DmSurfaceTavern}">
 
     <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
@@ -18,10 +18,10 @@
             <Button
                 Grid.Column="0"
                 Text="&#x2190; Back"
-                FontFamily="EBGaramondRegular"
-                FontSize="20"
+                FontFamily="{StaticResource DmFontBody}"
+                FontSize="{StaticResource DmFontSizeBodyLarge}"
                 BackgroundColor="Transparent"
-                TextColor="{StaticResource DMScrollGoldLight}"
+                TextColor="{StaticResource DmAccentGoldLight}"
                 Padding="0,4"
                 Clicked="OnBackClicked">
                 <Button.Behaviors>
@@ -36,26 +36,26 @@
                 Spacing="6">
                 <Label
                     Text="&#xEA75;"
-                    FontFamily="RpgAwesome"
-                    FontSize="14"
-                    TextColor="{StaticResource DMTextMuted}"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeSmall}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
                     VerticalOptions="Center" />
                 <Label
                     Text="DUNGEON EDITOR"
-                    FontFamily="CinzelRegular"
-                    FontSize="12"
+                    FontFamily="{StaticResource DmFontTitle}"
+                    FontSize="{StaticResource DmFontSizeEyebrow}"
                     CharacterSpacing="1.5"
-                    TextColor="{StaticResource DMTextMuted}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
                     VerticalOptions="Center" />
             </HorizontalStackLayout>
 
             <Grid Grid.Column="2">
                 <Button
                     Text="Start Session"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="20"
-                    BackgroundColor="{StaticResource DMConfirm}"
-                    TextColor="{StaticResource DMConfirmText}"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmFontSizeBodyLarge}"
+                    BackgroundColor="{StaticResource DmConfirm}"
+                    TextColor="{StaticResource DmConfirmText}"
                     CornerRadius="3"
                     Padding="36,6,12,6"
                     IsEnabled="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
@@ -72,9 +72,9 @@
                 </Button>
                 <!-- Crossed-sword icon overlaid on the left of the button -->
                 <Label Text="&#xE97D;"
-                       FontFamily="RpgAwesome"
-                       FontSize="16"
-                       TextColor="{StaticResource DMConfirmText}"
+                       FontFamily="{StaticResource DmFontIcon}"
+                       FontSize="{StaticResource DmIconSizeMedium}"
+                       TextColor="{StaticResource DmConfirmText}"
                        HorizontalOptions="Start"
                        VerticalOptions="Center"
                        Margin="12,0,0,0"
@@ -107,10 +107,10 @@
 
                 <!-- Map toolbar (hidden until a floor is selected) -->
                 <Border x:Name="MapToolbar" Grid.Row="0" IsVisible="False"
-                        BackgroundColor="{StaticResource DMCardSurface}"
-                        Stroke="{StaticResource DMCardBorderBrush}"
+                        BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
+                        Stroke="{StaticResource DmBorderTavernBrush}"
                         StrokeShape="RoundRectangle 3"
-                        StrokeThickness="1"
+                        StrokeThickness="{StaticResource DmStrokeHairline}"
                         Padding="6,4"
                         Margin="0,0,0,4">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
@@ -127,8 +127,8 @@
                                     x:Name="ToolDrawBorder"
                                     Grid.Column="0"
                                     BackgroundColor="Transparent"
-                                    Stroke="{StaticResource DMScrollGoldLight}"
-                                    StrokeThickness="1"
+                                    Stroke="{StaticResource DmAccentGoldLight}"
+                                    StrokeThickness="{StaticResource DmStrokeHairline}"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
                                     ToolTipProperties.Text="Draw area (D)">
@@ -142,16 +142,16 @@
                                         <Label
                                             x:Name="ToolDrawIcon"
                                             Text="&#xEA75;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMScrollGoldLight}"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeLarge}"
+                                            TextColor="{StaticResource DmAccentGoldLight}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolDrawLabel"
                                             Text="D"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMScrollGoldLight}"
+                                            FontFamily="{StaticResource DmFontBody}"
+                                            FontSize="{StaticResource DmFontSizeCaption}"
+                                            TextColor="{StaticResource DmAccentGoldLight}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
                                 </Border>
@@ -162,7 +162,7 @@
                                     Grid.Column="1"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
-                                    StrokeThickness="1"
+                                    StrokeThickness="{StaticResource DmStrokeHairline}"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
                                     ToolTipProperties.Text="Move areas (M)">
@@ -176,16 +176,16 @@
                                         <Label
                                             x:Name="ToolMoveIcon"
                                             Text="&#xE9D9;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeLarge}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolMoveLabel"
                                             Text="M"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontBody}"
+                                            FontSize="{StaticResource DmFontSizeCaption}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
                                 </Border>
@@ -196,7 +196,7 @@
                                     Grid.Column="2"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
-                                    StrokeThickness="1"
+                                    StrokeThickness="{StaticResource DmStrokeHairline}"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
                                     ToolTipProperties.Text="Select area (S)">
@@ -210,16 +210,16 @@
                                         <Label
                                             x:Name="ToolSelectIcon"
                                             Text="&#xE9B6;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeLarge}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolSelectLabel"
                                             Text="S"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontBody}"
+                                            FontSize="{StaticResource DmFontSizeCaption}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
                                 </Border>
@@ -230,7 +230,7 @@
                                     Grid.Column="3"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
-                                    StrokeThickness="1"
+                                    StrokeThickness="{StaticResource DmStrokeHairline}"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
                                     ToolTipProperties.Text="Erase area (E)">
@@ -244,16 +244,16 @@
                                         <Label
                                             x:Name="ToolEraseIcon"
                                             Text="&#xE936;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeLarge}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolEraseLabel"
                                             Text="E"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontBody}"
+                                            FontSize="{StaticResource DmFontSizeCaption}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
                                 </Border>
@@ -264,7 +264,7 @@
                                     Grid.Column="4"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
-                                    StrokeThickness="1"
+                                    StrokeThickness="{StaticResource DmStrokeHairline}"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
                                     ToolTipProperties.Text="Place objects (P)">
@@ -278,16 +278,16 @@
                                         <Label
                                             x:Name="ToolPlaceIcon"
                                             Text="&#xE9B8;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeLarge}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolPlaceLabel"
                                             Text="P"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontBody}"
+                                            FontSize="{StaticResource DmFontSizeCaption}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
                                 </Border>
@@ -298,7 +298,7 @@
                                     Grid.Column="5"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
-                                    StrokeThickness="1"
+                                    StrokeThickness="{StaticResource DmStrokeHairline}"
                                     StrokeShape="RoundRectangle 3"
                                     Padding="8,4"
                                     ToolTipProperties.Text="Pan / scroll (H)">
@@ -312,16 +312,16 @@
                                         <Label
                                             x:Name="ToolPanIcon"
                                             Text="&#xEA78;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeLarge}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                         <Label
                                             x:Name="ToolPanLabel"
                                             Text="H"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
+                                            FontFamily="{StaticResource DmFontBody}"
+                                            FontSize="{StaticResource DmFontSizeCaption}"
+                                            TextColor="{StaticResource DmTextTavernMuted}"
                                             VerticalOptions="Center" />
                                     </HorizontalStackLayout>
                                 </Border>
@@ -336,10 +336,10 @@
                             <Button
                                 x:Name="UndoButton"
                                 Text="&#x21A9; Undo"
-                                FontFamily="EBGaramondRegular"
-                                FontSize="15"
+                                FontFamily="{StaticResource DmFontBody}"
+                                FontSize="{StaticResource DmFontSizeBodySmall}"
                                 BackgroundColor="Transparent"
-                                TextColor="{StaticResource DMScrollGoldLight}"
+                                TextColor="{StaticResource DmAccentGoldLight}"
                                 BorderColor="Transparent"
                                 BorderWidth="1"
                                 CornerRadius="3"
@@ -387,14 +387,15 @@
                                 <behaviors:HandCursorBehavior />
                             </Grid.Behaviors>
                             <Polygon Points="21,1 41,35 1,35"
-                                     Fill="#3D2E12"
-                                     Stroke="#C8A040"
-                                     StrokeThickness="1"
+                                     Fill="{StaticResource DmSurfaceStepper}"
+                                     Stroke="{StaticResource DmAccentGoldLight}"
+                                     StrokeThickness="{StaticResource DmStrokeHairline}"
                                      HorizontalOptions="Fill"
                                      VerticalOptions="Fill" />
                             <Label Text="+"
-                                   FontSize="20"
-                                   TextColor="#F5E4B0"
+                                   FontFamily="{StaticResource DmFontIcon}"
+                                   FontSize="{StaticResource DmIconSizeXL}"
+                                   TextColor="{StaticResource DmTextTavern}"
                                    WidthRequest="42"
                                    HorizontalOptions="Fill"
                                    HorizontalTextAlignment="Center"
@@ -403,9 +404,9 @@
                         </Grid>
                         <Label x:Name="ZoomPercentLabel"
                                Text="100%"
-                               FontFamily="EBGaramondRegular"
-                               FontSize="15"
-                               TextColor="#F5E4B0"
+                               FontFamily="{StaticResource DmFontBody}"
+                               FontSize="{StaticResource DmFontSizeBodySmall}"
+                               TextColor="{StaticResource DmTextTavern}"
                                HorizontalOptions="Center"
                                HorizontalTextAlignment="Center"
                                WidthRequest="42" />
@@ -418,14 +419,15 @@
                                 <behaviors:HandCursorBehavior />
                             </Grid.Behaviors>
                             <Polygon Points="1,1 41,1 21,35"
-                                     Fill="#3D2E12"
-                                     Stroke="#C8A040"
-                                     StrokeThickness="1"
+                                     Fill="{StaticResource DmSurfaceStepper}"
+                                     Stroke="{StaticResource DmAccentGoldLight}"
+                                     StrokeThickness="{StaticResource DmStrokeHairline}"
                                      HorizontalOptions="Fill"
                                      VerticalOptions="Fill" />
                             <Label Text="−"
-                                   FontSize="20"
-                                   TextColor="#F5E4B0"
+                                   FontFamily="{StaticResource DmFontIcon}"
+                                   FontSize="{StaticResource DmIconSizeXL}"
+                                   TextColor="{StaticResource DmTextTavern}"
                                    WidthRequest="42"
                                    HorizontalOptions="Fill"
                                    HorizontalTextAlignment="Center"
@@ -448,9 +450,9 @@
                     <!-- Object action popup: rotate CCW/CW | resize − /+ | delete -->
                     <Border x:Name="ObjectActionPopup"
                             IsVisible="False"
-                            BackgroundColor="#1A1610"
-                            Stroke="#4a3a1a"
-                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource DmSurfacePopup}"
+                            Stroke="{StaticResource DmBorderPopup}"
+                            StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 3"
                             Padding="4"
                             HorizontalOptions="Start"
@@ -462,8 +464,9 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="↺"
-                                       FontSize="20"
-                                       TextColor="#C8A040"
+                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontSize="{StaticResource DmIconSizeXL}"
+                                       TextColor="{StaticResource DmAccentGoldLight}"
                                        Rotation="-90"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
@@ -475,15 +478,16 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="↻"
-                                       FontSize="20"
-                                       TextColor="#C8A040"
+                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontSize="{StaticResource DmIconSizeXL}"
+                                       TextColor="{StaticResource DmAccentGoldLight}"
                                        Rotation="90"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
                                        InputTransparent="True" />
                             </Border>
                             <BoxView WidthRequest="1" HeightRequest="18"
-                                     Color="#3a2e1a"
+                                     Color="{StaticResource DmDivider}"
                                      VerticalOptions="Center" />
                             <Border x:Name="PopupBtnScaleDown"
                                     WidthRequest="32" HeightRequest="32"
@@ -491,8 +495,9 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="−"
-                                       FontSize="20"
-                                       TextColor="#C8A040"
+                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontSize="{StaticResource DmIconSizeXL}"
+                                       TextColor="{StaticResource DmAccentGoldLight}"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
                                        InputTransparent="True" />
@@ -503,14 +508,15 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="+"
-                                       FontSize="20"
-                                       TextColor="#C8A040"
+                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontSize="{StaticResource DmIconSizeXL}"
+                                       TextColor="{StaticResource DmAccentGoldLight}"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
                                        InputTransparent="True" />
                             </Border>
                             <BoxView WidthRequest="1" HeightRequest="18"
-                                     Color="#3a2e1a"
+                                     Color="{StaticResource DmDivider}"
                                      VerticalOptions="Center" />
                             <Border x:Name="PopupBtnDelete"
                                     WidthRequest="32" HeightRequest="32"
@@ -518,9 +524,9 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="&#xE9FC;"
-                                       FontFamily="RpgAwesome"
-                                       FontSize="20"
-                                       TextColor="#CC3030"
+                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontSize="{StaticResource DmIconSizeXL}"
+                                       TextColor="{StaticResource DmDestructiveBright}"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
                                        InputTransparent="True" />
@@ -542,9 +548,9 @@
                     x:Name="DungeonCard"
                     Grid.Row="0"
                     StrokeShape="RoundRectangle 3"
-                    StrokeThickness="1"
-                    Stroke="{StaticResource DMCardBorderBrush}"
-                    BackgroundColor="{StaticResource DMCardSurface}"
+                    StrokeThickness="{StaticResource DmStrokeHairline}"
+                    Stroke="{StaticResource DmBorderTavernBrush}"
+                    BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
                     Padding="8,8"
                     Margin="0,0,0,4"
                     HeightRequest="41">
@@ -552,18 +558,18 @@
                         <Label
                             Grid.Column="0"
                             Text="{Binding Dungeon.Name}"
-                            FontFamily="CinzelSemiBold"
-                            FontSize="16"
-                            TextColor="{StaticResource DMScrollGoldLight}"
+                            FontFamily="{StaticResource DmFontTitleStrong}"
+                            FontSize="{StaticResource DmFontSizeSubheading}"
+                            TextColor="{StaticResource DmAccentGoldLight}"
                             VerticalOptions="Center" />
                         <Button
                             x:Name="DungeonNotebookButton"
                             Grid.Column="1"
                             Text="&#xEA8F;"
-                            FontFamily="RpgAwesome"
-                            FontSize="14"
+                            FontFamily="{StaticResource DmFontIcon}"
+                            FontSize="{StaticResource DmIconSizeSmall}"
                             BackgroundColor="Transparent"
-                            TextColor="{StaticResource DMInkMuted}"
+                            TextColor="{StaticResource DmTextParchmentMuted}"
                             Padding="4,0"
                             CornerRadius="2"
                             HeightRequest="22"
@@ -578,24 +584,24 @@
                 </Border>
 
                 <!-- Fixed divider between the dungeon card and the scrolling floor list -->
-                <controls:DmDivider Grid.Row="1" Margin="0,0,0,4" IconFontSize="12" />
+                <controls:DmDivider Grid.Row="1" Margin="0,0,0,4" IconFontSize="{StaticResource DmIconSizeTiny}" />
 
                 <!-- Sidebar header -->
                 <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
                     <Label
                         Grid.Column="0"
                         Text="FLOORS"
-                        FontFamily="CinzelRegular"
-                        FontSize="17"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeHeading}"
                         CharacterSpacing="1"
-                        TextColor="{StaticResource DMScrollGoldLight}"
+                        TextColor="{StaticResource DmAccentGoldLight}"
                         VerticalOptions="Center" />
                     <Button
                         Grid.Column="1"
                         Text="+ Add Floor"
-                        FontFamily="EBGaramondRegular"
-                        FontSize="18"
-                        TextColor="{StaticResource DMScrollGoldLight}"
+                        FontFamily="{StaticResource DmFontBody}"
+                        FontSize="{StaticResource DmFontSizeBody}"
+                        TextColor="{StaticResource DmAccentGoldLight}"
                         BackgroundColor="Transparent"
                         Padding="4,2"
                         Clicked="OnAddFloorClicked">

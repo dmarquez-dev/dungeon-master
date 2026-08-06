@@ -76,4 +76,28 @@ public static class DmColors
 
 	/// <summary>The notebook's "saved" stamp green. Mirrors the DmSavedStamp token.</summary>
 	public static readonly Color SavedStamp = Color.FromArgb("#4A6A2A");
+
+	/// <summary>Parchment ink for text on a tool-panel surface. Mirrors the DmTextParchment token.</summary>
+	public static readonly Color TextParchment = Color.FromArgb("#2C1A08");
+
+	/// <summary>Tool-palette chip surface — normal state. Mirrors the DmSurfaceToolChip token.</summary>
+	public static readonly Color SurfaceToolChip = Color.FromArgb("#C8AC78");
+
+	/// <summary>Tool-palette chip surface — hover state. Mirrors the DmSurfaceToolChipHover token.</summary>
+	public static readonly Color SurfaceToolChipHover = Color.FromArgb("#E8CC9A");
+
+	/// <summary>Tool-palette chip border — normal state. Mirrors the DmBorderToolChip token.</summary>
+	public static readonly Color BorderToolChip = Color.FromArgb("#9A7820");
+
+	/// <summary>Object action popup button wash — gold hover. Mirrors the DmPopupButtonHover token.</summary>
+	public static readonly Color PopupButtonHover = Color.FromArgb("#33C8A040");
+
+	/// <summary>Object action popup button wash — gold pressed. Mirrors the DmPopupButtonPressed token.</summary>
+	public static readonly Color PopupButtonPressed = Color.FromArgb("#66C8A040");
+
+	/// <summary>Object action popup button wash — destructive hover. Mirrors the DmPopupButtonDestructiveHover token.</summary>
+	public static readonly Color PopupButtonDestructiveHover = Color.FromArgb("#33CC3030");
+
+	/// <summary>Object action popup button wash — destructive pressed. Mirrors the DmPopupButtonDestructivePressed token.</summary>
+	public static readonly Color PopupButtonDestructivePressed = Color.FromArgb("#66CC3030");
 }

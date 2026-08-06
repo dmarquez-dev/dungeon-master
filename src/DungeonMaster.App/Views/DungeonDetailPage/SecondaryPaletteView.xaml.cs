@@ -1,5 +1,6 @@
 using DungeonMaster.App.Assets.ObjectAssets;
 using DungeonMaster.App.Behaviors;
+using DungeonMaster.App.Theme;
 using DungeonMaster.Domain.Entities.Floor;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
@@ -50,7 +51,7 @@ public partial class SecondaryPaletteView : ContentView
                 {
                     Text = name.Length > 0 ? name[..1] : "?",
                     FontSize = 11,
-                    TextColor = Color.FromArgb("#2C1A08"),
+                    TextColor = DmColors.TextParchment,
                     HorizontalOptions = LayoutOptions.Center,
                     VerticalOptions = LayoutOptions.Center
                 };
@@ -61,8 +62,8 @@ public partial class SecondaryPaletteView : ContentView
                 WidthRequest = 48,
                 HeightRequest = 48,
                 Padding = 0,
-                BackgroundColor = Color.FromArgb("#C8AC78"),
-                Stroke = new SolidColorBrush(Color.FromArgb("#9A7820")),
+                BackgroundColor = DmColors.SurfaceToolChip,
+                Stroke = new SolidColorBrush(DmColors.BorderToolChip),
                 StrokeThickness = 1,
                 StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 },
                 Content = content
@@ -78,13 +79,13 @@ public partial class SecondaryPaletteView : ContentView
             var ptr = new PointerGestureRecognizer();
             ptr.PointerEntered += (_, _) =>
             {
-                border.BackgroundColor = Color.FromArgb("#E8CC9A");
-                border.Stroke = new SolidColorBrush(Color.FromArgb("#C8A040"));
+                border.BackgroundColor = DmColors.SurfaceToolChipHover;
+                border.Stroke = new SolidColorBrush(DmColors.Gold);
             };
             ptr.PointerExited += (_, _) =>
             {
-                border.BackgroundColor = Color.FromArgb("#C8AC78");
-                border.Stroke = new SolidColorBrush(Color.FromArgb("#9A7820"));
+                border.BackgroundColor = DmColors.SurfaceToolChip;
+                border.Stroke = new SolidColorBrush(DmColors.BorderToolChip);
             };
             border.GestureRecognizers.Add(ptr);
 

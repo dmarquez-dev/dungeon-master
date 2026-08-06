@@ -1858,10 +1858,10 @@ public partial class DungeonDetailPage : ContentPage
 		ObjectActionPopup.IsVisible = true;
 	}
 
-	private static readonly Color PopupBtnHoverGold    = Color.FromArgb("#33C8A040");
-	private static readonly Color PopupBtnHoverRed     = Color.FromArgb("#33CC3030");
-	private static readonly Color PopupBtnPressGold    = Color.FromArgb("#66C8A040");
-	private static readonly Color PopupBtnPressRed     = Color.FromArgb("#66CC3030");
+	private static readonly Color PopupBtnHoverGold    = DmColors.PopupButtonHover;
+	private static readonly Color PopupBtnHoverRed     = DmColors.PopupButtonDestructiveHover;
+	private static readonly Color PopupBtnPressGold    = DmColors.PopupButtonPressed;
+	private static readonly Color PopupBtnPressRed     = DmColors.PopupButtonDestructivePressed;
 
 	private static void AttachPopupButtonBehavior(Border btn, bool goldHover, Func<Task> action)
 	{
