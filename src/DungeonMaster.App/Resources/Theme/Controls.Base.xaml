@@ -76,6 +76,9 @@
 
     <Style x:Key="DmBorderBase" TargetType="Border">
         <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
+        <!-- The 3 mirrors DmRadiusDefault and must move with it. StrokeShape's converter
+             parses a shape name and its arguments from one string and cannot take a markup
+             extension for the radius, so the value is unavoidably a literal here. -->
         <Setter Property="StrokeShape" Value="RoundRectangle 3" />
         <Setter Property="BackgroundColor" Value="Transparent" />
     </Style>

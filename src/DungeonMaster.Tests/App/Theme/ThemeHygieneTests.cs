@@ -74,18 +74,6 @@ public class ThemeHygieneTests
     };
 
     /// <summary>
-    ///		Numeric font-size defaults that cannot resolve through DmTheme because
-    ///		BindableProperty.Create runs in a static initialiser, before Application.Current
-    ///		and its merged dictionaries exist. BindablePropertyDefaultsMatchTokensTests
-    ///		asserts these literals still equal the tokens they mirror.
-    /// </summary>
-    private static readonly HashSet<string> BindableDefaultExemptions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        @"Controls\DmDivider\DmDivider.xaml.cs",
-        @"Controls\DmInlineEditor\DmInlineEditor.xaml.cs",
-    };
-
-    /// <summary>
     ///		Asserts that colour literals appear only in the theme dictionaries.
     /// </summary>
     [Fact]
@@ -115,6 +103,43 @@ public class ThemeHygieneTests
         Offenders("*.xaml", BareFontFamilyPattern).Should().BeEmpty();
     }
 
+    /// <summary>
+    ///		Asserts that every allow-listed path names a file that exists and still carries at
+    ///		least one of the literals the three facts above forbid. Without this the ratchet is
+    ///		not self-checking as it shrinks: a stale or mistyped entry exempts nothing, and a
+    ///		migration task can "remove its entry" and see green because the entry never bit.
+    /// </summary>
+    [Fact]
+    public void EveryAllowListedFileExistsAndStillOffends()
+    {
+        var stale = PendingMigration
+            .Where(relative =>
+                !StillOffends(relative))
+            .OrderBy(relative =>
+                relative, StringComparer.Ordinal)
+            .ToList();
+
+        stale.Should().BeEmpty();
+    }
+
+    private static bool StillOffends(string relative)
+    {
+        var path = Path.Combine(
+            RepoPaths.AppRoot,
+            relative);
+
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        var text = File.ReadAllText(path);
+
+        return HexPattern.IsMatch(text)
+            || BareFontSizePattern.IsMatch(text)
+            || BareFontFamilyPattern.IsMatch(text);
+    }
+
     private static IEnumerable<string> Offenders(
         string searchPattern,
         Regex pattern)
@@ -133,8 +158,6 @@ public class ThemeHygieneTests
                     StringComparison.OrdinalIgnoreCase))
             .Where(relative =>
                 !PendingMigration.Contains(relative))
-            .Where(relative =>
-                !BindableDefaultExemptions.Contains(relative))
             .Where(relative =>
                 pattern.IsMatch(
                     File.ReadAllText(
