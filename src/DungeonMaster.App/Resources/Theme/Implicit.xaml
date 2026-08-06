@@ -35,6 +35,35 @@
         <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
     </Style>
 
+    <!--
+        Geometry-only implicit Button style.
+
+        This exists solely so that deleting the stock Button style in
+        Resources/Styles/Styles.xaml (Task 10) is a geometry no-op. The Task 4b
+        measurement walked every Button in the app and found 18 of the 21 rely on
+        that stock style for at least one of Padding, MinimumHeightRequest or
+        CornerRadius; MAUI leaves MinimumHeightRequest unset by default, so
+        removing the stock style without this one would shrink buttons below the
+        44px minimum touch target across the whole app.
+
+        Colour and font are deliberately excluded here. They remain the exclusive
+        property of the keyed DmButton* styles in Controls.Base.xaml and its
+        derivatives; duplicating either here would give the app two sources of
+        truth for the same property.
+
+        None of the five values below matches an existing token in Tokens.xaml
+        (the radius tokens are 2/3/4, the stroke tokens are 1/2), so all five are
+        literals. CornerRadius="8" in particular mirrors the stock Styles.xaml
+        value it replaces and is not a candidate for a new radius token.
+    -->
+    <Style TargetType="Button">
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderWidth" Value="0" />
+    </Style>
+
     <Style TargetType="Page" ApplyToDerivedTypes="True">
         <Setter Property="Padding" Value="0" />
         <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavern}" />

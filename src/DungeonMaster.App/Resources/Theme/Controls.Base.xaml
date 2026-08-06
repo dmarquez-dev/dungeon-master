@@ -14,8 +14,15 @@
         <Setter Property="FontSize" Value="{StaticResource DmFontSizeAction}" />
         <Setter Property="CornerRadius" Value="{StaticResource DmRadiusDefault}" />
         <Setter Property="BorderWidth" Value="{StaticResource DmStrokeHairline}" />
-        <Setter Property="Padding" Value="14,6" />
-        <Setter Property="MinimumHeightRequest" Value="32" />
+        <!-- Padding and the minimum size requests deliberately match the geometry-only
+             implicit Button style in Implicit.xaml, so a themed button and an
+             unstyled one settle on the same footprint instead of fighting each
+             other. CornerRadius stays bound to DmRadiusDefault: a button that
+             opts into a keyed style is opting into the themed 3px radius on
+             purpose. -->
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
