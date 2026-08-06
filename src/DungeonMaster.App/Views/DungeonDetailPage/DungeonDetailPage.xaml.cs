@@ -209,6 +209,7 @@ public partial class DungeonDetailPage : ContentPage
 		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed += OnObjectLongPressed;
 		Notebook.SaveRequested += OnNotebookSaveRequested;
+		MapToolbar.SizeChanged += OnMapToolbarSizeChanged;
 
 		// Plugin.Maui.KeyListener: fires regardless of which element has focus,
 		// solving the GraphicsView focus-sink problem on Windows.
@@ -239,6 +240,7 @@ public partial class DungeonDetailPage : ContentPage
 		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed -= OnObjectLongPressed;
 		Notebook.SaveRequested -= OnNotebookSaveRequested;
+		MapToolbar.SizeChanged -= OnMapToolbarSizeChanged;
 
 		if (_keyboardBehavior is not null)
 		{
@@ -524,6 +526,26 @@ public partial class DungeonDetailPage : ContentPage
 		DungeonNotebookButton.TextColor = hasContent
 			? DmColors.ScrollGoldLight
 			: DmColors.InkMuted;
+	}
+
+	/// <summary>
+	///		Keeps the sidebar dungeon card the same height as the map toolbar so their bottom edges
+	///		line up across the two columns. The two controls have unrelated content (a title/button
+	///		row versus a full toolbar of icon buttons), and WinUI's rendered line height for the fonts
+	///		involved cannot be derived from the markup — an earlier attempt computed it from padding,
+	///		stroke and an assumed font-size multiplier and was visibly wrong on screen despite being
+	///		"within 1px on paper". Measuring the toolbar's actual rendered height at runtime and
+	///		copying it is the only reliable source of truth; do not replace this with static math.
+	/// </summary>
+	private void OnMapToolbarSizeChanged(object? sender, EventArgs e)
+	{
+		// MapToolbar starts hidden (IsVisible="False") until a floor is selected, and while hidden
+		// its Height reports -1 or 0. Propagating that would collapse the card, so the card keeps
+		// its markup fallback until the toolbar first renders with a real height.
+		if (MapToolbar.Height > 0)
+		{
+			DungeonCard.HeightRequest = MapToolbar.Height;
+		}
 	}
 
 	private void OnDungeonNotebookClicked(object? sender, EventArgs e)

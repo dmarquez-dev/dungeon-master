@@ -535,15 +535,19 @@
 
                 <!-- Dungeon-level row — always visible, styled like a floor card. Fixed above the
                      scrolling floor list (not a ScrollView child) so it never scrolls out of view
-                     and survives FloorListContainer's Children.Clear() rebuilds untouched. -->
+                     and survives FloorListContainer's Children.Clear() rebuilds untouched.
+                     HeightRequest below is only a pre-render fallback — the code-behind syncs this
+                     card's real height to MapToolbar's measured height once it first renders. -->
                 <Border
+                    x:Name="DungeonCard"
                     Grid.Row="0"
                     StrokeShape="RoundRectangle 3"
                     StrokeThickness="1"
                     Stroke="{StaticResource DMCardBorderBrush}"
                     BackgroundColor="{StaticResource DMCardSurface}"
                     Padding="8,8"
-                    Margin="0,0,0,4">
+                    Margin="0,0,0,4"
+                    HeightRequest="41">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
                         <Label
                             Grid.Column="0"
