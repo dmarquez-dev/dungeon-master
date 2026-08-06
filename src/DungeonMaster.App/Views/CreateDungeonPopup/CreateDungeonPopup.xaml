@@ -20,32 +20,25 @@
                 <!-- Error -->
                 <Label
                     Text="{Binding ErrorMessage}"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="16"
-                    TextColor="{StaticResource DMDestructive}"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmFontSizeBodySmall}"
+                    TextColor="{StaticResource DmDestructive}"
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
                 <!-- Name field -->
                 <VerticalStackLayout Spacing="4">
                     <Label
                         Text="NAME *"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeAction}"
                         CharacterSpacing="1.5"
-                        TextColor="{StaticResource DMInkMuted}" />
+                        TextColor="{StaticResource DmTextParchmentMuted}" />
                     <Border
-                        StrokeShape="RoundRectangle 3"
-                        StrokeThickness="1"
-                        Stroke="{StaticResource DMScrollBorderBrush}"
-                        BackgroundColor="Transparent"
+                        Style="{StaticResource DmBorderParchmentStyle}"
                         Padding="10,4">
                         <Entry
+                            Style="{StaticResource DmEntryParchment}"
                             Text="{Binding Name, Mode=TwoWay}"
-                            FontFamily="EBGaramondRegular"
-                            FontSize="18"
-                            TextColor="{StaticResource DMInk}"
-                            BackgroundColor="Transparent"
-                            PlaceholderColor="{StaticResource DMInkMuted}"
                             Placeholder="Enter dungeon name" />
                     </Border>
                 </VerticalStackLayout>
@@ -54,26 +47,19 @@
                 <VerticalStackLayout Spacing="4">
                     <Label
                         Text="DESCRIPTION"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeAction}"
                         CharacterSpacing="1.5"
-                        TextColor="{StaticResource DMInkMuted}" />
+                        TextColor="{StaticResource DmTextParchmentMuted}" />
                     <Border
-                        StrokeShape="RoundRectangle 3"
-                        StrokeThickness="1"
-                        Stroke="{StaticResource DMScrollBorderBrush}"
-                        BackgroundColor="Transparent"
+                        Style="{StaticResource DmBorderParchmentStyle}"
                         Padding="10,4">
                         <Editor
+                            Style="{StaticResource DmEditorParchment}"
                             Text="{Binding Description, Mode=TwoWay}"
-                            FontFamily="EBGaramondItalic"
-                            FontSize="18"
-                            TextColor="{StaticResource DMInk}"
-                            BackgroundColor="Transparent"
-                            PlaceholderColor="{StaticResource DMInkMuted}"
+                            FontFamily="{StaticResource DmFontBodyItalic}"
                             Placeholder="Optional — a sentence about this place"
-                            HeightRequest="72"
-                            AutoSize="Disabled" />
+                            HeightRequest="72" />
                     </Border>
                 </VerticalStackLayout>
 
@@ -83,14 +69,9 @@
                         Grid.Column="0"
                         Text="CANCEL"
                         Command="{Binding CancelCommand}"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        Style="{StaticResource DmNeutralButton}"
                         CharacterSpacing="1"
-                        BackgroundColor="{StaticResource DMNeutralSurface}"
-                        TextColor="{StaticResource DMInk}"
-                        BorderColor="{StaticResource DMNeutralBorder}"
-                        BorderWidth="1.5"
-                        CornerRadius="3">
+                        BorderWidth="1.5">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>
@@ -100,10 +81,7 @@
                         Text="CREATE"
                         Style="{StaticResource DmConfirmButton}"
                         Command="{Binding CreateCommand}"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
-                        CharacterSpacing="1"
-                        CornerRadius="3">
+                        CharacterSpacing="1">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>
