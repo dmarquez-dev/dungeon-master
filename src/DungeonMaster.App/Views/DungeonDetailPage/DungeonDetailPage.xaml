@@ -542,7 +542,7 @@
                     StrokeThickness="1"
                     Stroke="{StaticResource DMCardBorderBrush}"
                     BackgroundColor="{StaticResource DMCardSurface}"
-                    Padding="8,6"
+                    Padding="8,8"
                     Margin="0,0,0,4">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
                         <Label
@@ -562,6 +562,8 @@
                             TextColor="{StaticResource DMInkMuted}"
                             Padding="4,0"
                             CornerRadius="2"
+                            HeightRequest="22"
+                            MinimumHeightRequest="22"
                             ToolTipProperties.Text="Open notebook"
                             Clicked="OnDungeonNotebookClicked">
                             <Button.Behaviors>

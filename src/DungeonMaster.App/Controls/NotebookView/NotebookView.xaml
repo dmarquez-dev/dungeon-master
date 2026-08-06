@@ -48,7 +48,7 @@
                 Grid.Row="0"
                 ColumnDefinitions="Auto,*,Auto,Auto"
                 ColumnSpacing="9"
-                Padding="12,11,10,11">
+                Padding="12,8,10,8">
 
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -68,7 +68,7 @@
                     Grid.Column="0"
                     Text="&#xEA8F;"
                     FontFamily="RpgAwesome"
-                    FontSize="19"
+                    FontSize="18"
                     TextColor="{StaticResource DMInk}"
                     VerticalOptions="Center" />
 
@@ -78,7 +78,7 @@
                     Grid.Column="1"
                     AcceptsReturn="False"
                     FontFamily="CinzelSemiBold"
-                    FontSize="20"
+                    FontSize="18"
                     TextColor="{StaticResource DMInk}"
                     PlaceholderColor="{StaticResource DMInkMuted}"
                     Placeholder="Untitled"
@@ -116,6 +116,8 @@
                     TextColor="{StaticResource DMInkMuted}"
                     Padding="5,3"
                     CornerRadius="2"
+                    HeightRequest="24"
+                    MinimumHeightRequest="24"
                     VerticalOptions="Center"
                     Clicked="OnCloseClicked"
                     ToolTipProperties.Text="Close notebook">
