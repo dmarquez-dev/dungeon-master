@@ -115,26 +115,6 @@ The page lifecycle defect fixed on 2026-08-05 (a modal popup fired `OnNavigatedF
 
 ---
 
-## Metadata editing UX for floors and areas
-
-**Raised:** 2026-08-05
-**Area:** `DungeonMaster.App` — designer chrome
-**Type:** design question, not yet specified
-
-Floor names are edited in a toolbar field; area names in a second toolbar field that appears only while an area is focused; areas and floors are deleted from the right sidebar. So the same object is renamed in one place and deleted in another.
-
-`Area` also carries `Description` and `Notes` that the UI barely surfaces, and a DM writing room descriptions is a core use case a rename-only affordance cannot serve.
-
-Options worth surveying before building:
-
-- **Inline edit in the sidebar row** — the tree-UI convention (Figma layers, VS Code explorer). Puts every operation on an object in one place.
-- **A properties panel** — select an object, its metadata appears in a dedicated pane. Scales to description and notes.
-- **Keep contextual toolbar editing** but make floors and areas consistent with each other.
-
-Blocked on a design pass, not on implementation.
-
----
-
 ## Reintroduce area outline redraw
 
 **Raised:** 2026-08-05
