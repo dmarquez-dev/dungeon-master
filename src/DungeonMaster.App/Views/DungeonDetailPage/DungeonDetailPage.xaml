@@ -393,7 +393,7 @@
                                      HorizontalOptions="Fill"
                                      VerticalOptions="Fill" />
                             <Label Text="+"
-                                   FontFamily="{StaticResource DmFontIcon}"
+                                   FontFamily="{StaticResource DmFontBody}"
                                    FontSize="{StaticResource DmIconSizeXL}"
                                    TextColor="{StaticResource DmTextTavern}"
                                    WidthRequest="42"
@@ -425,7 +425,7 @@
                                      HorizontalOptions="Fill"
                                      VerticalOptions="Fill" />
                             <Label Text="−"
-                                   FontFamily="{StaticResource DmFontIcon}"
+                                   FontFamily="{StaticResource DmFontBody}"
                                    FontSize="{StaticResource DmIconSizeXL}"
                                    TextColor="{StaticResource DmTextTavern}"
                                    WidthRequest="42"
@@ -464,7 +464,7 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="↺"
-                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
                                        Rotation="-90"
@@ -478,7 +478,7 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="↻"
-                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
                                        Rotation="90"
@@ -495,7 +495,7 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="−"
-                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
                                        HorizontalOptions="Center"
@@ -508,7 +508,7 @@
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
                                 <Label Text="+"
-                                       FontFamily="{StaticResource DmFontIcon}"
+                                       FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
                                        HorizontalOptions="Center"
