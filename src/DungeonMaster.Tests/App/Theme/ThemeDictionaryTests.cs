@@ -27,7 +27,7 @@ public class ThemeDictionaryTests
         "DmConfirm", "DmConfirmText", "DmDestructive", "DmDestructiveText",
         "DmNeutralSurface", "DmNeutralBorder",
         "DmSave", "DmSaveText", "DmDiscard", "DmDiscardText",
-        "DmRibbonRead", "DmRibbonReadDim", "DmRibbonText",
+        "DmRibbonRead", "DmRibbonReadDim", "DmRibbonText", "DmRibbonSeal",
         "DmBannerEdge", "DmBannerCenter",
         "DmDragPlaceholderStroke", "DmDragPlaceholderFill",
         "DmAreaSelectedBorder", "DmAreaSelectedTint",
@@ -37,24 +37,30 @@ public class ThemeDictionaryTests
         "DmBorderParchmentBrush",
         "DmRadiusTight", "DmRadiusDefault", "DmRadiusLoose",
         "DmStrokeHairline", "DmStrokeEmphasis",
+        // Font families. Bound as FontFamily="..." by Tasks 4-11; a typo in one of
+        // these fails silently at runtime rather than at build, so they are guarded.
+        "DmFontTitle", "DmFontTitleStrong", "DmFontTitleDecorative",
+        "DmFontBody", "DmFontBodyItalic", "DmFontIcon",
+
         "DmFontSizeBanner", "DmFontSizeTitle", "DmFontSizeHeading", "DmFontSizeSubheading",
         "DmFontSizeAction", "DmFontSizeEyebrow", "DmFontSizeMicro",
         "DmFontSizeBodyLarge", "DmFontSizeBody", "DmFontSizeBodySmall", "DmFontSizeCaption",
         "DmIconSizeTiny", "DmIconSizeSmall", "DmIconSizeMedium", "DmIconSizeLarge",
         "DmIconSizeXL", "DmIconSizeTool",
 
-        // Step 0 additions: unnamed literals recovered from views, code-behind and
-        // Platforms/Windows/App.xaml. See task-2-report.md for the full inventory.
-        "DmPaletteParchmentPanel", "DmPaletteParchmentPanelDeep", "DmPaletteParchmentPanelShade",
-        "DmPaletteGoldBrown", "DmPaletteBrownDeep",
-        "DmPaletteInk850", "DmPaletteBrown700", "DmPaletteBrown650", "DmPaletteBrown600",
-        "DmPaletteBrown550",
-        "DmPaletteBrownDeepA20", "DmPaletteBrownMidA40",
-        "DmPaletteTan600", "DmPaletteTan500", "DmPaletteTan400",
-        "DmPaletteRedBright", "DmPaletteRedBrightA20", "DmPaletteRedBrightA40",
-        "DmPaletteGoldLightA20", "DmPaletteGoldLightA40",
-        "DmPaletteBronzeA28", "DmPaletteBronzeA42Alt", "DmPaletteInkMutedA55",
-        "DmPaletteRedA14", "DmPaletteOlive",
+        // Step 0 additions: literals recovered from views, code-behind and
+        // Platforms/Windows/App.xaml that carried no name before Task 2. Named from
+        // their usage sites; see task-2-report.md for the full inventory.
+        "DmSurfaceToolPanel", "DmSurfaceToolChip", "DmSurfaceToolChipHover",
+        "DmBorderToolChip", "DmTextToolPanel",
+        "DmSurfacePopup", "DmBorderPopup", "DmDivider", "DmSurfaceStepper",
+        "DmTextNotebook",
+        "DmScrollbarThumb", "DmScrollbarThumbDisabled", "DmTextSelection",
+        "DmSurfaceComboItemHover", "DmSurfaceComboItemPressed", "DmTextComboItemDisabled",
+        "DmDestructiveBright", "DmPopupButtonHover", "DmPopupButtonPressed",
+        "DmPopupButtonDestructiveHover", "DmPopupButtonDestructivePressed",
+        "DmHairline", "DmHairlineStrong", "DmTextPlaceholder",
+        "DmDestructiveHoverSurface", "DmSavedStamp",
     ];
 
     /// <summary>

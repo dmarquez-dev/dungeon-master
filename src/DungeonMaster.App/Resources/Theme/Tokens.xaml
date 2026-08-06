@@ -25,6 +25,28 @@
         in the application permitted to contain colour literals; ThemeDictionaryTests
         enforces that. Add new colours here as semantic names, never as a raw hex
         at a usage site.
+
+        ─────────────────────────────────────────────────────────────────────────
+        COLOURS SHARED ACROSS TOKENS — CHANGE THESE TOGETHER
+
+        The abandoned two-layer design encoded this structurally: each of these
+        tokens was a reference to one palette entry, so a restyle edited one line.
+        In a single layer they are textually identical lines that must still move
+        together, and only this list says so. If you change one, change all of its
+        siblings — or deliberately split them and delete the row.
+
+          #C8A040   DmAccentGoldLight
+                    DmDragPlaceholderStroke
+                    DmAreaSelectedBorder
+                    DmMapArea
+          #F5E4B0   DmTextTavern
+                    DmMapVertex
+          #664a3820 DmScrollbarThumb
+                    DmTextSelection
+
+        Keep this list correct when adding tokens: a literal that appears at two
+        keys and is not listed here is a latent restyle bug.
+        ─────────────────────────────────────────────────────────────────────────
     -->
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -107,56 +129,84 @@
     <Color x:Key="DmMapAreaStrokeActive">#90C8A040</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         Raw colours awaiting semantic names.
+         Feature-specific: tool palette chrome (the parchment strip)
 
-         Step 0 of Task 2 inventoried every colour literal in the application and
-         found these carry no name today: they are typed inline in views, in
-         code-behind, or in Platforms/Windows/App.xaml. They keep the DmPalette*
-         prefix deliberately — the prefix marks them as "raw, not yet given
-         meaning". As Tasks 4-11 move each usage site onto the theme, promote the
-         entry it needs to a semantic name above and delete it from here.
-
-         DO NOT collapse near-duplicates while promoting. Recorded pairs:
-           DmSurfaceParchmentDeep  #ECD8A0  vs  DmPaletteParchmentPanel #EDD8A0
-           DmSurfaceTavernRaisedActive #6A8B5E1A vs DmPaletteBronzeA42Alt #6B8B5E1A
-         Merging either pair is a restyle decision, not a refactor one.
+         ControlsPaletteView, ObjectPaletteView and SecondaryPaletteView, plus the
+         WinUI ComboBox overrides in Platforms/Windows/App.xaml that have to match
+         them. The palette's own custom scrollbar reuses the chip colours: thumb =
+         DmSurfaceToolChip, thumb hover = DmSurfaceToolChipHover, thumb stroke =
+         DmBorderToolChip.
     ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfaceToolPanel">#EDD8A0</Color>
+    <Color x:Key="DmSurfaceToolChip">#C8AC78</Color>
+    <Color x:Key="DmSurfaceToolChipHover">#E8CC9A</Color>
+    <Color x:Key="DmBorderToolChip">#9A7820</Color>
+    <Color x:Key="DmTextToolPanel">#5C3E10</Color>
 
-    <!-- Parchment panel chrome: ControlsPaletteView, ObjectPaletteView,
-         SecondaryPaletteView, Platforms/Windows/App.xaml -->
-    <Color x:Key="DmPaletteParchmentPanel">#EDD8A0</Color>
-    <Color x:Key="DmPaletteParchmentPanelDeep">#E8CC9A</Color>
-    <Color x:Key="DmPaletteParchmentPanelShade">#C8AC78</Color>
-    <Color x:Key="DmPaletteGoldBrown">#9A7820</Color>
-    <Color x:Key="DmPaletteBrownDeep">#5C3E10</Color>
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: designer canvas chrome
 
-    <!-- Designer canvas chrome: DungeonDetailPage.xaml, NotebookView.xaml -->
-    <Color x:Key="DmPaletteInk850">#1A1610</Color>
-    <Color x:Key="DmPaletteBrown700">#3A2410</Color>
-    <Color x:Key="DmPaletteBrown650">#3a2e1a</Color>
-    <Color x:Key="DmPaletteBrown600">#3D2E12</Color>
-    <Color x:Key="DmPaletteBrown550">#4a3a1a</Color>
+         The object action popup (DungeonDetailPage.xaml), the zoom stepper
+         triangles, the hairline dividers between button groups, and the notebook
+         body text sitting on parchment.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfacePopup">#1A1610</Color>
+    <Color x:Key="DmBorderPopup">#4a3a1a</Color>
+    <Color x:Key="DmDivider">#3a2e1a</Color>
+    <Color x:Key="DmSurfaceStepper">#3D2E12</Color>
+    <Color x:Key="DmTextNotebook">#3A2410</Color>
 
-    <!-- WinUI scrollbar and combo chrome: Platforms/Windows/App.xaml -->
-    <Color x:Key="DmPaletteBrownDeepA20">#332a2010</Color>
-    <Color x:Key="DmPaletteBrownMidA40">#664a3820</Color>
-    <Color x:Key="DmPaletteTan600">#9A8060</Color>
-    <Color x:Key="DmPaletteTan500">#B89A60</Color>
-    <Color x:Key="DmPaletteTan400">#D6BE82</Color>
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: WinUI scrollbar, text selection and combo items
 
-    <!-- Invalid-drop feedback: DungeonDetailPage.xaml and its code-behind -->
-    <Color x:Key="DmPaletteRedBright">#CC3030</Color>
-    <Color x:Key="DmPaletteRedBrightA20">#33CC3030</Color>
-    <Color x:Key="DmPaletteRedBrightA40">#66CC3030</Color>
-    <Color x:Key="DmPaletteGoldLightA20">#33C8A040</Color>
-    <Color x:Key="DmPaletteGoldLightA40">#66C8A040</Color>
+         Platforms/Windows/App.xaml only. DmScrollbarThumb and DmTextSelection are
+         the same literal for now — see the shared-colour list at the top.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmScrollbarThumb">#664a3820</Color>
+    <Color x:Key="DmScrollbarThumbDisabled">#332a2010</Color>
+    <Color x:Key="DmTextSelection">#664a3820</Color>
+    <Color x:Key="DmSurfaceComboItemHover">#D6BE82</Color>
+    <Color x:Key="DmSurfaceComboItemPressed">#B89A60</Color>
+    <Color x:Key="DmTextComboItemDisabled">#9A8060</Color>
 
-    <!-- Notebook and floor-sidebar state tints: NotebookView, FloorSidebarItem -->
-    <Color x:Key="DmPaletteBronzeA28">#478B5E1A</Color>
-    <Color x:Key="DmPaletteBronzeA42Alt">#6B8B5E1A</Color>
-    <Color x:Key="DmPaletteInkMutedA55">#8C7A5030</Color>
-    <Color x:Key="DmPaletteRedA14">#248B2020</Color>
-    <Color x:Key="DmPaletteOlive">#4A6A2A</Color>
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: object action popup buttons
+
+         DungeonDetailPage.xaml.cs PopupBtn* states. DmDestructiveBright is the
+         delete glyph: a lighter red than DmDestructive (#8B2020) because it sits
+         on the near-black popup surface rather than on parchment.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmDestructiveBright">#CC3030</Color>
+    <Color x:Key="DmPopupButtonHover">#33C8A040</Color>
+    <Color x:Key="DmPopupButtonPressed">#66C8A040</Color>
+    <Color x:Key="DmPopupButtonDestructiveHover">#33CC3030</Color>
+    <Color x:Key="DmPopupButtonDestructivePressed">#66CC3030</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: hairlines, placeholders and notebook state
+
+         DmHairline is the common 1px separator (NotebookView footer,
+         FloorSidebarItem area list). DmHairlineStrong is the heavier rule under
+         the notebook header. DmSavedStamp is deliberately not DmConfirm: the
+         source note at NotebookView.xaml.cs:101 says "committed" must read as
+         reassuring rather than as an action to take.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmHairline">#478B5E1A</Color>
+    <Color x:Key="DmHairlineStrong">#6B8B5E1A</Color>
+    <Color x:Key="DmTextPlaceholder">#8C7A5030</Color>
+    <Color x:Key="DmDestructiveHoverSurface">#248B2020</Color>
+    <Color x:Key="DmSavedStamp">#4A6A2A</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         NEAR-DUPLICATE COLOURS — DO NOT COLLAPSE
+
+         Each pair differs by one in a single channel. Merging either is a restyle
+         decision, not a refactor one; this theme is behaviour-preserving for
+         colour. Proposed for merge in the Task 3 audit table.
+
+           DmSurfaceParchmentDeep      #ECD8A0    vs  DmSurfaceToolPanel  #EDD8A0
+           DmSurfaceTavernRaisedActive #6A8B5E1A  vs  DmHairlineStrong    #6B8B5E1A
+    ═══════════════════════════════════════════════════════════════ -->
 
     <!-- ═══════════════════════════════════════════════════════════════
          Brushes. {StaticResource} works here because it sits in attribute
