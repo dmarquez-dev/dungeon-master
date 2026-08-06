@@ -381,7 +381,7 @@ public partial class NotebookView : ContentView
 	/// </summary>
 	private static Brush RibbonBrush(bool isSelected)
 	{
-		var colorKey = isSelected ? "DMRibbonRead" : "DMRibbonReadDim";
+		var colorKey = isSelected ? "DmRibbonRead" : "DmRibbonReadDim";
 		var top = (Color)MauiApplication.Current!.Resources[colorKey];
 		var foot = Darken(top, isSelected ? SelectedFoldFactor : UnselectedFoldFactor);
 

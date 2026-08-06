@@ -41,7 +41,7 @@
             <!--
                 Row 0 — header. The pan recogniser lives here and nowhere else: attaching it
                 to the whole control would start a drag from inside the text editors.
-                Chrome matches DmPopup's header bar (gold gradient, DMInk content) rather than
+                Chrome matches DmPopup's header bar (gold gradient, DmTextParchment content) rather than
                 the translucent brown wash this used to have.
             -->
             <Grid
@@ -85,10 +85,10 @@
                     VerticalOptions="Center"
                     TextCommitted="OnNameCommitted" />
 
-                <!-- Kind badge — DMInk at 0.6 opacity on both stroke and text so the two agree; a
+                <!-- Kind badge — DmTextParchment at 0.6 opacity on both stroke and text so the two agree; a
                      single Opacity on the border governs both children, keeping them locked together
                      without hand-tuning two separate alpha values. Legible against both
-                     DMScrollGoldLight and DMScrollGoldDark, and clearly subordinate to the name. -->
+                     DmAccentGoldLight and DmAccentGoldDark, and clearly subordinate to the name. -->
                 <Border
                     Grid.Column="2"
                     StrokeShape="RoundRectangle 2"

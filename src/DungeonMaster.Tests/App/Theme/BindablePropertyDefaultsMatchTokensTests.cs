@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 
@@ -57,7 +58,9 @@ public class BindablePropertyDefaultsMatchTokensTests
             .Should()
             .BeTrue($"'{propertyName}' should declare a numeric double default in {relativePath}");
 
-        var declaredDefault = double.Parse(match.Groups["value"].Value);
+        var declaredDefault = double.Parse(
+            match.Groups["value"].Value,
+            CultureInfo.InvariantCulture);
 
         declaredDefault
             .Should()
@@ -82,6 +85,8 @@ public class BindablePropertyDefaultsMatchTokensTests
             .Should()
             .BeTrue($"token '{key}' should be defined in Typography.xaml");
 
-        return double.Parse(match.Groups["value"].Value);
+        return double.Parse(
+            match.Groups["value"].Value,
+            CultureInfo.InvariantCulture);
     }
 }

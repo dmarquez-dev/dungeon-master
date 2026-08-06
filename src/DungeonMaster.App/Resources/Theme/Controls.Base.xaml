@@ -78,7 +78,15 @@
         <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
         <!-- The 3 mirrors DmRadiusDefault and must move with it. StrokeShape's converter
              parses a shape name and its arguments from one string and cannot take a markup
-             extension for the radius, so the value is unavoidably a literal here. -->
+             extension for the radius, so the value is unavoidably a literal here.
+
+             This setter is a default, not a constraint, and must not be removed on the grounds
+             that it "forces" a radius. MAUI value precedence puts a locally-set property above
+             a Style setter, so a Border may carry Style="{StaticResource DmBorderTavernStyle}"
+             AND its own StrokeShape="RoundRectangle 4" attribute — or a <Border.StrokeShape>
+             element carrying a custom geometry — and keep its own shape. Adopting a paired
+             style alongside a different shape is intended usage; CreateDungeonPopup.xaml does
+             exactly this. -->
         <Setter Property="StrokeShape" Value="RoundRectangle 3" />
         <Setter Property="BackgroundColor" Value="Transparent" />
     </Style>
