@@ -6,6 +6,26 @@ namespace DungeonMaster.App.Controls;
 public partial class DmDivider : ContentView
 {
 	/// <summary>
+	///		Identifies the <see cref="IconFontSize"/> bindable property.
+	/// </summary>
+	public static readonly BindableProperty IconFontSizeProperty =
+		BindableProperty.Create(
+			nameof(IconFontSize),
+			typeof(double),
+			typeof(DmDivider),
+			16.0);
+
+	/// <summary>
+	///		Gets or sets the font size of the centred crossed-swords icon. Defaults to 16; callers in
+	///		tighter spaces (e.g. the 300px sidebar) can shrink it so the rule doesn't read too heavy.
+	/// </summary>
+	public double IconFontSize
+	{
+		get => (double)GetValue(IconFontSizeProperty);
+		set => SetValue(IconFontSizeProperty, value);
+	}
+
+	/// <summary>
 	///		Initializes a new instance of <see cref="DmDivider"/> and loads the XAML component tree.
 	/// </summary>
 	public DmDivider()

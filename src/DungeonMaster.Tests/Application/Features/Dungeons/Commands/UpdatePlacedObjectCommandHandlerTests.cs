@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
@@ -35,19 +35,14 @@ public class UpdatePlacedObjectCommandHandlerTests
         // Arrange
         var dungeon = new Dungeon("D");
         var floor = dungeon.AddFloor("F");
-        var area = dungeon.AddArea(
-            floor.Id,
-            "A",
-            null);
 
         dungeon.AddPlacedObject(
             floor.Id,
-            area.Id,
             ObjectKind.Throne,
             new CanvasPoint(0f, 0f),
             ObjectRotation.None);
 
-        var obj = area.Objects[0];
+        var obj = floor.Objects[0];
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -55,7 +50,6 @@ public class UpdatePlacedObjectCommandHandlerTests
         var command = new UpdatePlacedObjectCommand(
             dungeon.Id,
             floor.Id,
-            area.Id,
             obj.Id,
             new CanvasPoint(200f, 200f),
             ObjectRotation.CW90);
@@ -89,7 +83,6 @@ public class UpdatePlacedObjectCommandHandlerTests
             Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
-            Guid.NewGuid(),
             new CanvasPoint(40f, 40f),
             ObjectRotation.None);
 
@@ -118,7 +111,6 @@ public class UpdatePlacedObjectCommandHandlerTests
             dungeon.Id,
             Guid.NewGuid(),
             Guid.NewGuid(),
-            Guid.NewGuid(),
             new CanvasPoint(0f, 0f),
             ObjectRotation.None);
 
@@ -134,40 +126,7 @@ public class UpdatePlacedObjectCommandHandlerTests
     }
 
     /// <summary>
-    ///		Verifies that an unknown area ID is a silent no-op at the domain level;
-    ///		the handler still persists the aggregate and returns success.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_AreaNotFound_ReturnsSuccessWithNoChange()
-    {
-        // Arrange
-        var dungeon = new Dungeon("D");
-        var floor = dungeon.AddFloor("F");
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
-
-        var command = new UpdatePlacedObjectCommand(
-            dungeon.Id,
-            floor.Id,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            new CanvasPoint(40f, 40f),
-            ObjectRotation.None);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-
-        await _writeRepository
-            .Received(1)
-            .UpdateAsync(dungeon, Arg.Any<CancellationToken>());
-    }
-
-    /// <summary>
-    ///		Verifies that an unknown object ID within a valid area is a silent no-op at the domain level;
+    ///		Verifies that an unknown object ID on a valid floor is a silent no-op at the domain level;
     ///		the handler still persists the aggregate and returns success, leaving existing objects untouched.
     /// </summary>
     [Fact]
@@ -176,19 +135,14 @@ public class UpdatePlacedObjectCommandHandlerTests
         // Arrange
         var dungeon = new Dungeon("D");
         var floor = dungeon.AddFloor("F");
-        var area = dungeon.AddArea(
-            floor.Id,
-            "A",
-            null);
 
         dungeon.AddPlacedObject(
             floor.Id,
-            area.Id,
             ObjectKind.Chair,
             new CanvasPoint(10f, 10f),
             ObjectRotation.None);
 
-        var theObj = area.Objects.Should().ContainSingle().Which;
+        var theObj = floor.Objects.Should().ContainSingle().Which;
         var originalPos = theObj.Position;
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
@@ -197,7 +151,6 @@ public class UpdatePlacedObjectCommandHandlerTests
         var command = new UpdatePlacedObjectCommand(
             dungeon.Id,
             floor.Id,
-            area.Id,
             Guid.NewGuid(),
             new CanvasPoint(999f, 999f),
             ObjectRotation.CW180);
@@ -223,19 +176,14 @@ public class UpdatePlacedObjectCommandHandlerTests
         // Arrange
         var dungeon = new Dungeon("D");
         var floor = dungeon.AddFloor("F");
-        var area = dungeon.AddArea(
-            floor.Id,
-            "A",
-            null);
 
         dungeon.AddPlacedObject(
             floor.Id,
-            area.Id,
             ObjectKind.Chair,
             new CanvasPoint(10f, 10f),
             ObjectRotation.None);
 
-        var obj = area.Objects.Should().ContainSingle().Which;
+        var obj = floor.Objects.Should().ContainSingle().Which;
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -243,7 +191,6 @@ public class UpdatePlacedObjectCommandHandlerTests
         var command = new UpdatePlacedObjectCommand(
             dungeon.Id,
             floor.Id,
-            area.Id,
             obj.Id,
             obj.Position,
             obj.Rotation,

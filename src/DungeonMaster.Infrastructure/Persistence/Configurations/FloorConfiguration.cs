@@ -40,6 +40,10 @@ public sealed class FloorConfiguration
 			.HasMaxLength(100);
 
 		builder.Property(floor =>
+			floor.Description)
+			.HasMaxLength(2000);
+
+		builder.Property(floor =>
 			floor.Notes)
 			.HasMaxLength(2000);
 
@@ -64,6 +68,18 @@ public sealed class FloorConfiguration
 		builder.Navigation(floor =>
 			floor.Areas)
 			.HasField("_areas")
+			.UsePropertyAccessMode(PropertyAccessMode.Field);
+
+		builder.HasMany(floor =>
+			floor.Objects)
+			.WithOne()
+			.HasForeignKey(obj =>
+				obj.FloorId)
+			.OnDelete(DeleteBehavior.Cascade);
+
+		builder.Navigation(floor =>
+			floor.Objects)
+			.HasField("_objects")
 			.UsePropertyAccessMode(PropertyAccessMode.Field);
 	}
 }

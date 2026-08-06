@@ -4,9 +4,9 @@ using DungeonMaster.Application.Common.Results;
 namespace DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 
 /// <summary>
-///		Handles the <see cref="AddPlacedObjectCommand"/> by loading the dungeon aggregate, locating the target area,
-///		adding the new placed object, and persisting the change.
-///		Returns a not-found result if the dungeon does not exist, or a validation failure if the floor or area is not found.
+///		Handles the <see cref="AddPlacedObjectCommand"/> by loading the dungeon aggregate,
+///		adding the new placed object to the target floor, and persisting the change.
+///		Returns a not-found result if the dungeon does not exist, or a validation failure if the floor is not found.
 /// </summary>
 public sealed class AddPlacedObjectCommandHandler(
 	IDungeonWriteRepository writeRepository)
@@ -30,7 +30,6 @@ public sealed class AddPlacedObjectCommandHandler(
 
 		var obj = dungeon.AddPlacedObject(
 			command.FloorId,
-			command.AreaId,
 			command.Kind,
 			command.Position,
 			command.Rotation,

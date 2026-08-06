@@ -1,4 +1,6 @@
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.ValueObjects;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
@@ -112,5 +114,34 @@ public class DungeonWriteRepositoryTests : IDisposable
         var updated = await verify.Dungeons.FindAsync(dungeon.Id);
         updated!.Name.Should().Be("New Name");
         updated.Notes.Should().Be("Some notes");
+    }
+
+    [Fact]
+    public async Task LoadAsync_RoundTripsFloorObjectPositionsUnchanged()
+    {
+        var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
+        var floor = dungeon.AddFloor(null);
+        var obj = floor.AddObject(
+            ObjectKind.Chair,
+            new CanvasPoint(123.5f, 456.25f),
+            ObjectRotation.CW90,
+            1.5f);
+
+        using (var ctx = CreateContext())
+        {
+            var repo = new DungeonWriteRepository(ctx);
+            await repo.AddAsync(dungeon, CancellationToken.None);
+        }
+
+        using var verify = CreateContext();
+        var verifyRepo = new DungeonWriteRepository(verify);
+        var loaded = await verifyRepo.LoadAsync(dungeon.Id, CancellationToken.None);
+
+        var loadedObj = loaded!.Floors.Single().Objects.Single();
+        loadedObj.Id.Should().Be(obj.Id);
+        loadedObj.Position.Should().Be(new CanvasPoint(123.5f, 456.25f));
+        loadedObj.Rotation.Should().Be(ObjectRotation.CW90);
+        loadedObj.Scale.Should().Be(1.5f);
+        loadedObj.FloorId.Should().Be(floor.Id);
     }
 }

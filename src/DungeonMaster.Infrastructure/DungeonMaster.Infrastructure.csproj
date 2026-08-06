@@ -11,6 +11,10 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
+    <!-- Transitive pin: EF Core 10.0.7 resolves SQLitePCLRaw.lib.e_sqlite3 2.1.11, which carries
+         advisory GHSA-2m69-gcr7-jv3q. 2.1.12 is the patched release. Remove once EF ships a
+         version that resolves 2.1.12 or later on its own (10.0.10 still does not). -->
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.12" />
   </ItemGroup>
 
   <PropertyGroup>

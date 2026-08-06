@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
+    xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
+    x:Class="DungeonMaster.App.Controls.NotebookView"
+    x:Name="Root"
+    WidthRequest="344"
+    HorizontalOptions="Start"
+    VerticalOptions="Start"
+    IsVisible="False">
+
+    <Border
+        StrokeShape="RoundRectangle 4"
+        Stroke="{StaticResource DMScrollBorderBrush}"
+        StrokeThickness="2">
+
+        <!--
+            The notebook floats over the floor plan, so the shadow is what separates the two.
+            Every property is set explicitly because the implicit Shadow style in Styles.xaml
+            casts a white shadow, which would glow rather than lift.
+        -->
+        <Border.Shadow>
+            <Shadow
+                Brush="Black"
+                Offset="0,14"
+                Radius="17"
+                Opacity="0.62" />
+        </Border.Shadow>
+
+        <Border.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0.6,1">
+                <GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />
+                <GradientStop Color="{StaticResource DMParchmentDark}" Offset="1.0" />
+            </LinearGradientBrush>
+        </Border.Background>
+
+        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+
+            <!--
+                Row 0 — header. The pan recogniser lives here and nowhere else: attaching it
+                to the whole control would start a drag from inside the text editors.
+                Chrome matches DmPopup's header bar (gold gradient, DMInk content) rather than
+                the translucent brown wash this used to have.
+            -->
+            <Grid
+                Grid.Row="0"
+                ColumnDefinitions="Auto,*,Auto,Auto"
+                ColumnSpacing="9"
+                Padding="12,8,10,8">
+
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+
+                <Grid.GestureRecognizers>
+                    <PanGestureRecognizer PanUpdated="OnHeaderPanUpdated" />
+                </Grid.GestureRecognizers>
+
+                <!-- Notebook glyph — nudged up alongside the 20pt name so it stays proportionate;
+                     RpgAwesome glyphs read visually larger than text at the same nominal size, so
+                     this is a modest bump rather than a literal 14→20 scale of the name's own ratio. -->
+                <Label
+                    Grid.Column="0"
+                    Text="&#xEA8F;"
+                    FontFamily="RpgAwesome"
+                    FontSize="18"
+                    TextColor="{StaticResource DMInk}"
+                    VerticalOptions="Center" />
+
+                <!-- Entity name — edited in place, committed on unfocus -->
+                <controls:DmInlineEditor
+                    x:Name="NameEditor"
+                    Grid.Column="1"
+                    AcceptsReturn="False"
+                    FontFamily="CinzelSemiBold"
+                    FontSize="18"
+                    TextColor="{StaticResource DMInk}"
+                    PlaceholderColor="{StaticResource DMInkMuted}"
+                    Placeholder="Untitled"
+                    VerticalOptions="Center"
+                    TextCommitted="OnNameCommitted" />
+
+                <!-- Kind badge — DMInk at 0.6 opacity on both stroke and text so the two agree; a
+                     single Opacity on the border governs both children, keeping them locked together
+                     without hand-tuning two separate alpha values. Legible against both
+                     DMScrollGoldLight and DMScrollGoldDark, and clearly subordinate to the name. -->
+                <Border
+                    Grid.Column="2"
+                    StrokeShape="RoundRectangle 2"
+                    Stroke="{StaticResource DMInk}"
+                    StrokeThickness="1"
+                    BackgroundColor="Transparent"
+                    Padding="5,2"
+                    Opacity="0.6"
+                    VerticalOptions="Center">
+                    <Label
+                        x:Name="KindLabel"
+                        FontFamily="CinzelRegular"
+                        FontSize="9"
+                        CharacterSpacing="1.6"
+                        TextColor="{StaticResource DMInk}" />
+                </Border>
+
+                <!-- Close -->
+                <Button
+                    x:Name="CloseButton"
+                    Grid.Column="3"
+                    Text="&#x2715;"
+                    FontSize="13"
+                    BackgroundColor="Transparent"
+                    TextColor="{StaticResource DMInkMuted}"
+                    Padding="5,3"
+                    CornerRadius="2"
+                    HeightRequest="24"
+                    MinimumHeightRequest="24"
+                    VerticalOptions="Center"
+                    Clicked="OnCloseClicked"
+                    ToolTipProperties.Text="Close notebook">
+                    <Button.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Button.Behaviors>
+                    <Button.GestureRecognizers>
+                        <PointerGestureRecognizer
+                            PointerEntered="OnCloseHoverEntered"
+                            PointerExited="OnCloseHoverExited" />
+                    </Button.GestureRecognizers>
+                </Button>
+
+                <!-- Hairline under the header, rgba(139,94,26,0.42) -->
+                <BoxView
+                    Grid.Column="0"
+                    Grid.ColumnSpan="4"
+                    Color="#6B8B5E1A"
+                    HeightRequest="1"
+                    Margin="-12,0,-10,-9"
+                    VerticalOptions="End" />
+            </Grid>
+
+            <!--
+                Row 1 — the ribbon rail. Ribbons hang from the top edge, so each border is
+                anchored Start and grows downward when selected (60) or shrinks when not (40).
+            -->
+            <HorizontalStackLayout
+                x:Name="RibbonRail"
+                Grid.Row="1"
+                Spacing="9"
+                Padding="14,0">
+
+                <Border
+                    x:Name="ReadRibbon"
+                    StrokeThickness="0"
+                    Padding="6,0,6,10"
+                    HeightRequest="60"
+                    VerticalOptions="Start">
+                    <Border.StrokeShape>
+                        <controls:BookmarkTabShape NotchDepth="10" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnReadRibbonTapped" />
+                    </Border.GestureRecognizers>
+                    <Border.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Border.Behaviors>
+                    <Label
+                        Text="Read aloud"
+                        FontFamily="CinzelRegular"
+                        FontSize="10"
+                        CharacterSpacing="1.5"
+                        TextColor="{StaticResource DMRibbonText}"
+                        VerticalOptions="Center" />
+                </Border>
+
+                <Border
+                    x:Name="DmRibbon"
+                    StrokeThickness="0"
+                    Padding="6,0,6,10"
+                    HeightRequest="40"
+                    VerticalOptions="Start">
+                    <Border.StrokeShape>
+                        <controls:BookmarkTabShape NotchDepth="10" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDmRibbonTapped" />
+                    </Border.GestureRecognizers>
+                    <Border.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Border.Behaviors>
+                    <!-- The seal reads as "sealed against the players" at a glance, before hue registers. -->
+                    <Label VerticalOptions="Center">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="&#x25CF; " FontSize="10" TextColor="#E8B4B4" />
+                                <Span
+                                    Text="DM only"
+                                    FontFamily="CinzelRegular"
+                                    FontSize="10"
+                                    CharacterSpacing="1.5"
+                                    TextColor="{StaticResource DMRibbonText}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </Border>
+
+            </HorizontalStackLayout>
+
+            <!-- Row 2 — the two panes; exactly one is visible at a time. -->
+            <Grid Grid.Row="2" Padding="14,4,14,12">
+
+                <!-- Read aloud: player-facing prose, italic to mark it as spoken text. -->
+                <Editor
+                    x:Name="DescriptionPane"
+                    AutoSize="TextChanges"
+                    MinimumHeightRequest="150"
+                    BackgroundColor="Transparent"
+                    FontFamily="EBGaramondItalic"
+                    FontSize="17"
+                    TextColor="#3A2410"
+                    PlaceholderColor="#8C7A5030"
+                    Placeholder="What the party sees when they walk in&#8230;"
+                    TextChanged="OnEditorTextChanged"
+                    Unfocused="OnEditorUnfocused">
+                    <Editor.Behaviors>
+                        <behaviors:HandCursorBehavior Shape="IBeam" />
+                    </Editor.Behaviors>
+                </Editor>
+
+                <!-- DM only: secrets the party must never hear. -->
+                <Editor
+                    x:Name="NotesPane"
+                    AutoSize="TextChanges"
+                    MinimumHeightRequest="150"
+                    BackgroundColor="Transparent"
+                    FontFamily="EBGaramondRegular"
+                    FontSize="17"
+                    TextColor="{StaticResource DMInk}"
+                    PlaceholderColor="#8C7A5030"
+                    Placeholder="Secrets, stat blocks, and things the party must not hear&#8230;"
+                    IsVisible="False"
+                    TextChanged="OnEditorTextChanged"
+                    Unfocused="OnEditorUnfocused">
+                    <Editor.Behaviors>
+                        <behaviors:HandCursorBehavior Shape="IBeam" />
+                    </Editor.Behaviors>
+                </Editor>
+
+            </Grid>
+
+            <!--
+                Row 3 — the save-state stamp. This is the user's only proof that autosave
+                fired, so it is functional chrome rather than decoration.
+            -->
+            <Grid
+                Grid.Row="3"
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="8"
+                Padding="14,7,14,9">
+
+                <BoxView
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Color="#478B5E1A"
+                    HeightRequest="1"
+                    Margin="-14,-7,-14,0"
+                    VerticalOptions="Start" />
+
+                <Label
+                    Grid.Column="0"
+                    Text="Saves as you write."
+                    FontFamily="EBGaramondItalic"
+                    FontSize="14"
+                    TextColor="{StaticResource DMInkMuted}"
+                    VerticalOptions="Center" />
+
+                <Label
+                    x:Name="SaveStateLabel"
+                    Grid.Column="1"
+                    Text="SAVED"
+                    FontFamily="CinzelRegular"
+                    FontSize="10"
+                    CharacterSpacing="1.4"
+                    HorizontalTextAlignment="End"
+                    VerticalOptions="Center" />
+
+            </Grid>
+
+            <!-- Bottom scroll bar, matching DmPopup's footer treatment. -->
+            <BoxView Grid.Row="4" HeightRequest="5">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+
+        </Grid>
+    </Border>
+</ContentView>

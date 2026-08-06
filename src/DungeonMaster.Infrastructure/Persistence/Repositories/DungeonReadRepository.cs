@@ -51,6 +51,7 @@ public sealed class DungeonReadRepository(
 								floor.Id,
 								floor.Number,
 								floor.Name,
+								floor.Description,
 								floor.Notes,
 								floor.Areas
 									.Select(area =>
@@ -59,17 +60,16 @@ public sealed class DungeonReadRepository(
 											area.Name,
 											area.Description,
 											area.Notes,
-											area.Origin,
-											area.Outline,
-											area.Objects
-												.Select(obj =>
-													new PlacedObjectDto(
-														Id:       obj.Id,
-														Kind:     obj.Kind,
-														Position: obj.Position,
-														Rotation: obj.Rotation,
-														Scale:    obj.Scale))
-												.ToList()))
+											area.Outline))
+									.ToList(),
+								floor.Objects
+									.Select(obj =>
+										new PlacedObjectDto(
+											Id:       obj.Id,
+											Kind:     obj.Kind,
+											Position: obj.Position,
+											Rotation: obj.Rotation,
+											Scale:    obj.Scale))
 									.ToList()))
 						.ToList()))
 			.FirstOrDefaultAsync(ct);

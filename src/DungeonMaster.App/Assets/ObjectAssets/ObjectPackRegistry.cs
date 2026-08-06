@@ -1,5 +1,5 @@
 using System.Text.Json;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 
 namespace DungeonMaster.App.Assets.ObjectAssets;
 

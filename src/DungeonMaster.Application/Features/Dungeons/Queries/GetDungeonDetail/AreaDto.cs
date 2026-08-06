@@ -17,20 +17,12 @@ namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 /// <param name="Notes">
 ///		Optional free-form notes about the area.
 /// </param>
-/// <param name="Origin">
-///		The tile-grid origin point of the area.
-/// </param>
 /// <param name="Outline">
 ///		The ordered list of path segments that form the closed outline polygon of the area.
-/// </param>
-/// <param name="Objects">
-///		The list of objects placed within this area.
 /// </param>
 public record AreaDto(
 	Guid Id,
 	string Name,
 	string? Description,
 	string? Notes,
-	TilePoint Origin,
-	IReadOnlyList<PathSegment> Outline,
-	IReadOnlyList<PlacedObjectDto> Objects);
+	IReadOnlyList<PathSegment> Outline);

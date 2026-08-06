@@ -38,3 +38,6 @@ Desktop.ini
 # Claude Code artifacts
 .claude/
 docs/superpowers/
+
+# Built design mockups — sources are tracked, run docs/mockups/build-mockups.ps1
+docs/mockups/dist/

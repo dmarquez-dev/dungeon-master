@@ -11,7 +11,7 @@
     Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource DMBackground}">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
         <!-- Row 0: Top nav bar -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
@@ -88,104 +88,19 @@
             </Grid>
         </Grid>
 
-        <!-- Row 1: Full-width DmFlagBanner + centered bookmark tab -->
-        <Grid Grid.Row="1" RowDefinitions="Auto,Auto">
-            <controls:DmFlagBanner
-                x:Name="TitleBanner"
-                Grid.Row="0"
-                IsEditable="True"
-                Title="{Binding Dungeon.Name}"
-                TextCommitted="OnDungeonNameCommitted" />
+        <!-- Row 1: Full-width DmFlagBanner (display-only — renamed via the sidebar card's notebook) -->
+        <controls:DmFlagBanner
+            x:Name="TitleBanner"
+            Grid.Row="1"
+            Title="{Binding Dungeon.Name}" />
 
-            <Border
-                x:Name="LoreBookmarkTab"
-                Grid.Row="1"
-                HorizontalOptions="Center"
-                VerticalOptions="Start"
-                Margin="0,-8,0,0"
-                Stroke="{StaticResource DMScrollGoldLight}"
-                StrokeThickness="1"
-                StrokeShape="RoundRectangle 0,0,8,8"
-                Padding="0">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                        <GradientStop Color="#3A2510" Offset="0.0" />
-                        <GradientStop Color="#1A0C05" Offset="0.25" />
-                        <GradientStop Color="#080402" Offset="0.5" />
-                        <GradientStop Color="#1A0C05" Offset="0.75" />
-                        <GradientStop Color="#3A2510" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnLoreBookmarkTapped" />
-                </Border.GestureRecognizers>
-                <Border.Behaviors>
-                    <behaviors:HandCursorBehavior />
-                </Border.Behaviors>
-                <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="8" Padding="16,5,16,8">
-                    <Label
-                        Grid.Column="0"
-                        Text="&#xEA8F;"
-                        FontFamily="RpgAwesome"
-                        FontSize="10"
-                        TextColor="{StaticResource DMScrollGoldLight}"
-                        VerticalOptions="Center" />
-                    <Label
-                        x:Name="LoreBookmarkLabel"
-                        Grid.Column="1"
-                        Text="LORE &amp; NOTES  &#x25BE;"
-                        FontFamily="CinzelRegular"
-                        FontSize="13"
-                        CharacterSpacing="1.2"
-                        TextColor="{StaticResource DMScrollGoldLight}"
-                        VerticalOptions="Center" />
-                    <Label
-                        Grid.Column="2"
-                        Text="&#xEA8F;"
-                        FontFamily="RpgAwesome"
-                        FontSize="10"
-                        TextColor="{StaticResource DMScrollGoldLight}"
-                        VerticalOptions="Center"
-                        ScaleX="-1" />
-                </Grid>
-            </Border>
-        </Grid>
-
-        <!-- Row 2: Lore drawer (collapsed by default) -->
-        <Grid
-            x:Name="LoreDrawer"
-            Grid.Row="2"
-            IsVisible="False">
-            <Grid.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnLoreDrawerTapped" />
-            </Grid.GestureRecognizers>
-            <VerticalStackLayout Spacing="6" Padding="0,8,0,0">
-                <!-- Description -->
-                <controls:DmInlineEditor
-                    x:Name="DescriptionEditor"
-                    Opacity="0.65"
-                    FontFamily="EBGaramondItalic"
-                    FontSize="20"
-                    Placeholder="Add a description..."
-                    TextCommitted="OnDescriptionCommitted" />
-
-                <!-- Notes -->
-                <controls:DmInlineEditor
-                    x:Name="NotesEditor"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="17"
-                    Placeholder="DM notes..."
-                    TextCommitted="OnNotesCommitted" />
-            </VerticalStackLayout>
-        </Grid>
-
-        <!-- Row 3: Decorative divider between lore section and map -->
+        <!-- Row 2: Decorative divider between the banner and the map -->
         <controls:DmDivider
-            Grid.Row="3"
+            Grid.Row="2"
             Margin="0,6,0,4" />
 
-        <!-- Row 4: Map canvas (left) | Floors sidebar (right) -->
-        <Grid Grid.Row="4" ColumnDefinitions="*,300" ColumnSpacing="16">
+        <!-- Row 3: Map canvas (left) | Floors sidebar (right) -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,300" ColumnSpacing="16">
 
             <!-- LEFT COLUMN: toolbar (edit mode only) + map canvas -->
             <Grid Grid.Column="0" RowDefinitions="Auto,*">
@@ -203,24 +118,14 @@
                         <!-- Left: context-switching area -->
                         <Grid Grid.Column="0">
 
-                            <!-- Floor context: name input + drawing tools -->
+                            <!-- Floor context: drawing tools. Names are edited in the notebook. -->
                             <Grid x:Name="FloorContextToolbar" IsVisible="True"
-                                  ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
-
-                                <controls:DmInlineEditor
-                                    x:Name="FloorNameToolbarEditor"
-                                    Grid.Column="0"
-                                    FontFamily="CinzelSemiBold"
-                                    FontSize="15"
-                                    AcceptsReturn="False"
-                                    Placeholder="Floor name..."
-                                    TextCommitted="OnFloorNameToolbarCommitted"
-                                    VerticalOptions="Center" />
+                                  ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="4">
 
                                 <!-- Draw tool — active by default -->
                                 <Border
                                     x:Name="ToolDrawBorder"
-                                    Grid.Column="1"
+                                    Grid.Column="0"
                                     BackgroundColor="Transparent"
                                     Stroke="{StaticResource DMScrollGoldLight}"
                                     StrokeThickness="1"
@@ -254,7 +159,7 @@
                                 <!-- Move tool -->
                                 <Border
                                     x:Name="ToolMoveBorder"
-                                    Grid.Column="2"
+                                    Grid.Column="1"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -285,10 +190,10 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
-                                <!-- Select tool — click an area on the map to enter it -->
+                                <!-- Select tool — click a placed object on the map to select it -->
                                 <Border
                                     x:Name="ToolSelectBorder"
-                                    Grid.Column="3"
+                                    Grid.Column="2"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -322,7 +227,7 @@
                                 <!-- Erase tool — delete an area by clicking it on the canvas -->
                                 <Border
                                     x:Name="ToolEraseBorder"
-                                    Grid.Column="4"
+                                    Grid.Column="3"
                                     BackgroundColor="Transparent"
                                     Stroke="Transparent"
                                     StrokeThickness="1"
@@ -346,6 +251,40 @@
                                         <Label
                                             x:Name="ToolEraseLabel"
                                             Text="E"
+                                            FontFamily="EBGaramondRegular"
+                                            FontSize="13"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <!-- Place tool — place objects anywhere on the floor -->
+                                <Border
+                                    x:Name="ToolPlaceBorder"
+                                    Grid.Column="4"
+                                    BackgroundColor="Transparent"
+                                    Stroke="Transparent"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 3"
+                                    Padding="8,4"
+                                    ToolTipProperties.Text="Place objects (P)">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
+                                    </Border.GestureRecognizers>
+                                    <Border.Behaviors>
+                                        <behaviors:HandCursorBehavior />
+                                    </Border.Behaviors>
+                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                        <Label
+                                            x:Name="ToolPlaceIcon"
+                                            Text="&#xE9B8;"
+                                            FontFamily="RpgAwesome"
+                                            FontSize="17"
+                                            TextColor="{StaticResource DMTextMuted}"
+                                            VerticalOptions="Center" />
+                                        <Label
+                                            x:Name="ToolPlaceLabel"
+                                            Text="P"
                                             FontFamily="EBGaramondRegular"
                                             FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
@@ -380,141 +319,6 @@
                                         <Label
                                             x:Name="ToolPanLabel"
                                             Text="H"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                            </Grid>
-
-                            <!-- Area context: back + area name + redraw + place + pan -->
-                            <Grid x:Name="AreaContextToolbar" IsVisible="False"
-                                  ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="4">
-
-                                <Button
-                                    Grid.Column="0"
-                                    Text="&#x25C4; Floor"
-                                    FontFamily="EBGaramondRegular"
-                                    FontSize="17"
-                                    BackgroundColor="Transparent"
-                                    TextColor="{StaticResource DMScrollGoldLight}"
-                                    BorderColor="Transparent"
-                                    BorderWidth="1"
-                                    CornerRadius="3"
-                                    Padding="8,4"
-                                    Clicked="OnAreaContextBackClicked">
-                                    <Button.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Button.Behaviors>
-                                </Button>
-
-                                <controls:DmInlineEditor
-                                    x:Name="AreaNameToolbarEditor"
-                                    Grid.Column="1"
-                                    FontFamily="EBGaramondRegular"
-                                    FontSize="17"
-                                    AcceptsReturn="False"
-                                    Placeholder="Area name..."
-                                    TextCommitted="OnAreaNameToolbarCommitted"
-                                    VerticalOptions="Center" />
-
-                                <!-- Place tool (area context only — objects belong to areas) -->
-                                <Border
-                                    x:Name="ToolPlaceBorder"
-                                    Grid.Column="2"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Place objects (P)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolPlaceIcon"
-                                            Text="&#xE9B8;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolPlaceLabel"
-                                            Text="P"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                                <!-- Pan tool (area context) -->
-                                <Border
-                                    x:Name="ToolPanAreaBorder"
-                                    Grid.Column="3"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Pan / scroll (H)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolPanClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolPanAreaIcon"
-                                            Text="&#xEA78;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolPanAreaLabel"
-                                            Text="H"
-                                            FontFamily="EBGaramondRegular"
-                                            FontSize="13"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                                <!-- Redraw tool -->
-                                <Border
-                                    x:Name="ToolRedrawBorder"
-                                    Grid.Column="4"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="1"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Redraw area outline (D)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolRedrawClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolRedrawIcon"
-                                            Text="&#xEA75;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="17"
-                                            TextColor="{StaticResource DMTextMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolRedrawLabel"
-                                            Text="D"
                                             FontFamily="EBGaramondRegular"
                                             FontSize="13"
                                             TextColor="{StaticResource DMTextMuted}"
@@ -727,13 +531,57 @@
             </Grid>
 
             <!-- RIGHT SIDEBAR -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,*" BackgroundColor="Transparent">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnSidebarTapped" />
-                </Grid.GestureRecognizers>
+            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" BackgroundColor="Transparent">
+
+                <!-- Dungeon-level row — always visible, styled like a floor card. Fixed above the
+                     scrolling floor list (not a ScrollView child) so it never scrolls out of view
+                     and survives FloorListContainer's Children.Clear() rebuilds untouched.
+                     HeightRequest below is only a pre-render fallback — the code-behind syncs this
+                     card's real height to MapToolbar's measured height once it first renders. -->
+                <Border
+                    x:Name="DungeonCard"
+                    Grid.Row="0"
+                    StrokeShape="RoundRectangle 3"
+                    StrokeThickness="1"
+                    Stroke="{StaticResource DMCardBorderBrush}"
+                    BackgroundColor="{StaticResource DMCardSurface}"
+                    Padding="8,8"
+                    Margin="0,0,0,4"
+                    HeightRequest="41">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                        <Label
+                            Grid.Column="0"
+                            Text="{Binding Dungeon.Name}"
+                            FontFamily="CinzelSemiBold"
+                            FontSize="16"
+                            TextColor="{StaticResource DMScrollGoldLight}"
+                            VerticalOptions="Center" />
+                        <Button
+                            x:Name="DungeonNotebookButton"
+                            Grid.Column="1"
+                            Text="&#xEA8F;"
+                            FontFamily="RpgAwesome"
+                            FontSize="14"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource DMInkMuted}"
+                            Padding="4,0"
+                            CornerRadius="2"
+                            HeightRequest="22"
+                            MinimumHeightRequest="22"
+                            ToolTipProperties.Text="Open notebook"
+                            Clicked="OnDungeonNotebookClicked">
+                            <Button.Behaviors>
+                                <behaviors:HandCursorBehavior />
+                            </Button.Behaviors>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Fixed divider between the dungeon card and the scrolling floor list -->
+                <controls:DmDivider Grid.Row="1" Margin="0,0,0,4" IconFontSize="12" />
 
                 <!-- Sidebar header -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
                     <Label
                         Grid.Column="0"
                         Text="FLOORS"
@@ -758,11 +606,30 @@
                 </Grid>
 
                 <!-- Floor list (built in code-behind) -->
-                <ScrollView Grid.Row="1">
+                <ScrollView Grid.Row="3">
                     <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
                 </ScrollView>
 
             </Grid>
         </Grid>
+
+        <!--
+            The notebook floats over the whole page, not just the map: it used to live inside
+            MapOverlay (column 0 of the row above), which put it beneath the sidebar (column 1),
+            a later sibling that paints on top. Declaring it last here, spanning every row and
+            column of the outermost grid, guarantees nothing — sidebar included — can paint over
+            it. Secondary object palettes are still appended to MapOverlay's children at runtime,
+            but since the notebook is no longer inside MapOverlay at all, that no longer matters;
+            this z-order wins regardless. The margin below approximates the map's on-screen
+            resting position now that it is no longer computed relative to MapOverlay.
+        -->
+        <controls:NotebookView
+            x:Name="Notebook"
+            Grid.Row="0"
+            Grid.RowSpan="4"
+            IsVisible="False"
+            HorizontalOptions="Start"
+            VerticalOptions="Start"
+            Margin="32,158,0,0" />
     </Grid>
 </ContentPage>

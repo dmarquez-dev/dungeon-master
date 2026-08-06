@@ -35,6 +35,16 @@ public partial class AreaSidebarItem : ContentView
 	/// </summary>
 	public event EventHandler<AreaDto>? HoverEnded;
 
+	/// <summary>
+	///		Raised when the user requests deletion of this area.
+	/// </summary>
+	public event EventHandler<AreaDto>? DeleteRequested;
+
+	/// <summary>
+	///		Raised when the user requests the notebook for this area.
+	/// </summary>
+	public event EventHandler<AreaDto>? NotebookRequested;
+
 	private bool _isSelected;
 
 	/// <summary>
@@ -62,6 +72,14 @@ public partial class AreaSidebarItem : ContentView
 		}
 
 		AreaNameLabel.Text = area.Name;
+
+		var hasContent =
+			!string.IsNullOrWhiteSpace(area.Description) ||
+			!string.IsNullOrWhiteSpace(area.Notes);
+
+		NotebookButton.TextColor = hasContent
+			? DmColors.ScrollGoldLight
+			: DmColors.InkMuted;
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)
@@ -70,6 +88,7 @@ public partial class AreaSidebarItem : ContentView
 		{
 			ItemBorder.BackgroundColor = DmColors.GoldHoverTint;
 		}
+
 		if (Area is not null)
 		{
 			HoverStarted?.Invoke(this, Area);
@@ -82,6 +101,7 @@ public partial class AreaSidebarItem : ContentView
 		{
 			ItemBorder.BackgroundColor = Colors.Transparent;
 		}
+
 		if (Area is not null)
 		{
 			HoverEnded?.Invoke(this, Area);
@@ -96,16 +116,21 @@ public partial class AreaSidebarItem : ContentView
 		}
 	}
 
-	/// <summary>
-	///		Updates the displayed area name label.
-	/// </summary>
-	public void UpdateAreaName(string name) =>
-		AreaNameLabel.Text = name;
+	private void OnDeleteClicked(object? sender, EventArgs e)
+	{
+		if (Area is not null)
+		{
+			DeleteRequested?.Invoke(this, Area);
+		}
+	}
 
-	/// <summary>
-	///		No-op — area name editing moved to the map toolbar.
-	/// </summary>
-	public void TryCommitActiveEditor() { }
+	private void OnNotebookClicked(object? sender, EventArgs e)
+	{
+		if (Area is not null)
+		{
+			NotebookRequested?.Invoke(this, Area);
+		}
+	}
 
 	/// <summary>
 	///		Sets the selected/editing visual state (gold border and subtle background).

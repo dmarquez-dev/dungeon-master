@@ -18,7 +18,7 @@ namespace DungeonMaster.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    Notes = table.Column<string>(type: "TEXT", nullable: true),
+                    Notes = table.Column<string>(type: "TEXT", maxLength: 4000, nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     LastModified = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
                 },
@@ -59,8 +59,6 @@ namespace DungeonMaster.Infrastructure.Migrations
                     Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
                     Notes = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: true),
-                    Origin_Col = table.Column<int>(type: "INTEGER", nullable: false),
-                    Origin_Row = table.Column<int>(type: "INTEGER", nullable: false),
                     Outline = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     LastModified = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
@@ -76,6 +74,31 @@ namespace DungeonMaster.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "PlacedObjects",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    FloorId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Kind = table.Column<string>(type: "TEXT", nullable: false),
+                    Position_X = table.Column<float>(type: "REAL", nullable: false),
+                    Position_Y = table.Column<float>(type: "REAL", nullable: false),
+                    Rotation = table.Column<string>(type: "TEXT", nullable: false),
+                    Scale = table.Column<float>(type: "REAL", nullable: false, defaultValue: 1f),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    LastModified = table.Column<DateTimeOffset>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlacedObjects", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlacedObjects_Floors_FloorId",
+                        column: x => x.FloorId,
+                        principalTable: "Floors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Areas_FloorId",
                 table: "Areas",
@@ -84,8 +107,12 @@ namespace DungeonMaster.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Floors_DungeonId_Number",
                 table: "Floors",
-                columns: new[] { "DungeonId", "Number" },
-                unique: true);
+                columns: new[] { "DungeonId", "Number" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlacedObjects_FloorId",
+                table: "PlacedObjects",
+                column: "FloorId");
         }
 
         /// <inheritdoc />
@@ -93,6 +120,9 @@ namespace DungeonMaster.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Areas");
+
+            migrationBuilder.DropTable(
+                name: "PlacedObjects");
 
             migrationBuilder.DropTable(
                 name: "Floors");

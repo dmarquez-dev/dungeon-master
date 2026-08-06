@@ -29,19 +29,14 @@ public sealed partial class Area
 	}
 
 	/// <summary>
-	///		Sets the tile-grid origin and replaces the outline path segments for this area.
+	///		Replaces the outline path segments for this area.
 	/// </summary>
-	/// <param name="origin">
-	///		The new tile-grid origin point for this area.
-	/// </param>
 	/// <param name="outline">
-	///		The new ordered list of path segments that form the closed outline polygon.
+	///		The new ordered list of path segments that form the closed outline polygon,
+	///		in floor-absolute tile coordinates.
 	/// </param>
-	internal void SetOutline(
-		TilePoint origin,
-		IReadOnlyList<PathSegment> outline)
+	internal void SetOutline(IReadOnlyList<PathSegment> outline)
 	{
-		Origin = origin;
 		_outline.Clear();
 		_outline.AddRange(outline);
 

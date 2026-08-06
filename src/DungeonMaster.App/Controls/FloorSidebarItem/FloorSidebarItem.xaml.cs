@@ -64,6 +64,11 @@ public partial class FloorSidebarItem : ContentView
 	public event EventHandler<FloorDto>? DeleteRequested;
 
 	/// <summary>
+	///		Raised when the user requests the notebook for this floor.
+	/// </summary>
+	public event EventHandler<FloorDto>? NotebookRequested;
+
+	/// <summary>
 	///		Raised when the user requests a new area to be added to this floor.
 	/// </summary>
 	public event EventHandler? AddAreaRequested;
@@ -82,6 +87,16 @@ public partial class FloorSidebarItem : ContentView
 	///     Raised when the pointer exits an area item in this floor.
 	/// </summary>
 	public event EventHandler<AreaDto>? AreaHoverEnded;
+
+	/// <summary>
+	///     Raised when the user requests deletion of an area in this floor.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaDeleteRequested;
+
+	/// <summary>
+	///     Raised when the user requests the notebook for an area in this floor.
+	/// </summary>
+	public event EventHandler<AreaDto>? AreaNotebookRequested;
 
 	private bool _isExpanded;
 	private bool _suppressCardTap;
@@ -110,8 +125,24 @@ public partial class FloorSidebarItem : ContentView
 			return;
 		}
 
-		FloorNumberLabel.Text = $"Floor {floor.Number} -";
-		FloorNameLabel.Text = floor.Name ?? string.Empty;
+		if (string.IsNullOrWhiteSpace(floor.Name))
+		{
+			FloorNameLabel.Text = $"Floor {floor.Number}";
+			FloorNameLabel.TextColor = DmColors.GoldMuted;
+		}
+		else
+		{
+			FloorNameLabel.Text = floor.Name;
+			FloorNameLabel.TextColor = DmColors.ScrollGoldLight;
+		}
+
+		var hasContent =
+			!string.IsNullOrWhiteSpace(floor.Description) ||
+			!string.IsNullOrWhiteSpace(floor.Notes);
+
+		NotebookButton.TextColor = hasContent
+			? DmColors.ScrollGoldLight
+			: DmColors.InkMuted;
 
 		RebuildAreas(floor);
 	}
@@ -129,13 +160,18 @@ public partial class FloorSidebarItem : ContentView
 				AreaHoverStarted?.Invoke(this, hoveredArea);
 			item.HoverEnded += (_, hoveredArea) =>
 				AreaHoverEnded?.Invoke(this, hoveredArea);
+			item.DeleteRequested += (_, areaToDelete) =>
+				AreaDeleteRequested?.Invoke(this, areaToDelete);
+			item.NotebookRequested += (_, areaForNotebook) =>
+				AreaNotebookRequested?.Invoke(this, areaForNotebook);
 			AreaContainer.Children.Add(item);
 		}
 	}
 
 	/// <summary>
 	///		Auto-expands this item and fires <see cref="SelectRequested"/>.
-	///		Called after a new floor is added; the toolbar name editor is focused by the page.
+	///		Called after a new floor is added, so the new row is open and selected; naming it
+	///		happens in the notebook, which the user opens from the row.
 	/// </summary>
 	public void FocusNameEditor()
 	{
@@ -145,27 +181,6 @@ public partial class FloorSidebarItem : ContentView
 		}
 
 		SelectRequested?.Invoke(this, EventArgs.Empty);
-	}
-
-	/// <summary>
-	///		Updates the floor name label text in place without a full rebuild.
-	/// </summary>
-	public void UpdateFloorName(string name) =>
-		FloorNameLabel.Text = name;
-
-	/// <summary>
-	///		Updates the area name label for the matching child area item.
-	/// </summary>
-	public void UpdateAreaName(Guid areaId, string name)
-	{
-		foreach (var child in AreaContainer.Children)
-		{
-			if (child is AreaSidebarItem item && item.Area?.Id == areaId)
-			{
-				item.UpdateAreaName(name);
-				return;
-			}
-		}
 	}
 
 	/// <summary>
@@ -180,11 +195,6 @@ public partial class FloorSidebarItem : ContentView
 	/// </summary>
 	public void Select() =>
 		SetExpanded(true);
-
-	/// <summary>
-	///		No-op — floor and area name editing moved to the map toolbar.
-	/// </summary>
-	public void TryCommitActiveEditor() { }
 
 	/// <summary>
 	///		Sets the editing visual state for a child area item by ID.
@@ -205,6 +215,7 @@ public partial class FloorSidebarItem : ContentView
 	{
 		_isExpanded = expanded;
 		ExpandToggle.Text = expanded ? "▾" : "▸";
+		AreaSeparator.IsVisible = expanded;
 		AreaContainer.IsVisible = expanded;
 		AddAreaButton.IsVisible = expanded;
 
@@ -239,9 +250,6 @@ public partial class FloorSidebarItem : ContentView
 		{
 			FloorBorder.BackgroundColor = _surfaceHover;
 		}
-
-		DeleteButton.IsVisible = true;
-		DragHandle.IsVisible = true;
 	}
 
 	private void OnPointerExited(object? sender, PointerEventArgs e)
@@ -250,9 +258,6 @@ public partial class FloorSidebarItem : ContentView
 		{
 			FloorBorder.BackgroundColor = _surfaceNormal;
 		}
-
-		DeleteButton.IsVisible = false;
-		DragHandle.IsVisible = false;
 	}
 
 	private void OnDeleteClicked(object? sender, EventArgs e)
@@ -262,6 +267,16 @@ public partial class FloorSidebarItem : ContentView
 		if (Floor is not null)
 		{
 			DeleteRequested?.Invoke(this, Floor);
+		}
+	}
+
+	private void OnNotebookClicked(object? sender, EventArgs e)
+	{
+		_suppressCardTap = true;
+
+		if (Floor is not null)
+		{
+			NotebookRequested?.Invoke(this, Floor);
 		}
 	}
 

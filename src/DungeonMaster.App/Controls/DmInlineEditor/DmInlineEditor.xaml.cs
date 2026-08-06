@@ -64,6 +64,38 @@ public partial class DmInlineEditor : ContentView
 			18.0);
 
 	/// <summary>
+	///		Identifies the <see cref="TextColor"/> bindable property.
+	///		Defaults to the dark-tavern primary text gold; parchment-hosted editors override it with an ink colour.
+	/// </summary>
+	public static readonly BindableProperty TextColorProperty =
+		BindableProperty.Create(
+			nameof(TextColor),
+			typeof(Color),
+			typeof(DmInlineEditor),
+			Color.FromArgb("#F5E4B0"),
+			propertyChanged: (bindable, _, _) =>
+			{
+				var self = (DmInlineEditor)bindable;
+				self.SyncDisplay(self.Text);
+			});
+
+	/// <summary>
+	///		Identifies the <see cref="PlaceholderColor"/> bindable property.
+	///		Defaults to the dark-tavern muted text colour.
+	/// </summary>
+	public static readonly BindableProperty PlaceholderColorProperty =
+		BindableProperty.Create(
+			nameof(PlaceholderColor),
+			typeof(Color),
+			typeof(DmInlineEditor),
+			Color.FromArgb("#A08050"),
+			propertyChanged: (bindable, _, _) =>
+			{
+				var self = (DmInlineEditor)bindable;
+				self.SyncDisplay(self.Text);
+			});
+
+	/// <summary>
 	///		Identifies the <see cref="TextHorizontalAlignment"/> bindable property.
 	/// </summary>
 	public static readonly BindableProperty TextHorizontalAlignmentProperty =
@@ -133,6 +165,24 @@ public partial class DmInlineEditor : ContentView
 	}
 
 	/// <summary>
+	///		Gets or sets the colour used for non-empty text in the display label and edit controls.
+	/// </summary>
+	public Color TextColor
+	{
+		get => (Color)GetValue(TextColorProperty);
+		set => SetValue(TextColorProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the colour used for placeholder text in the display label and edit controls.
+	/// </summary>
+	public Color PlaceholderColor
+	{
+		get => (Color)GetValue(PlaceholderColorProperty);
+		set => SetValue(PlaceholderColorProperty, value);
+	}
+
+	/// <summary>
 	///		Gets or sets the horizontal text alignment applied to the display label and edit controls.
 	/// </summary>
 	public TextAlignment TextHorizontalAlignment
@@ -158,6 +208,11 @@ public partial class DmInlineEditor : ContentView
 	public event EventHandler? EditingEnded;
 
 	private bool _isEditing;
+
+	// Set by TryCommit, which commits up front; cleared by whichever comes first — the pending
+	// Unfocused it belongs to, or the next time the user starts editing. Clearing it on focus
+	// means a swallowed Unfocused cannot leave the flag set and eat a later genuine commit.
+	private bool _suppressUnfocusCommit;
 
 	/// <summary>
 	///		Initializes a new instance of <see cref="DmInlineEditor"/> and loads the XAML component tree.
@@ -190,20 +245,37 @@ public partial class DmInlineEditor : ContentView
 	}
 
 	/// <summary>
-	///		Commits any in-progress edit without user interaction by unfocusing the active input control.
+	///		Commits any in-progress edit without user interaction, then unfocuses the active input control.
 	/// </summary>
+	/// <remarks>
+	///		The commit happens synchronously, before the unfocus is requested. WinUI raises
+	///		<see cref="VisualElement.Unfocused"/> on a later tick, so a caller that unfocused and
+	///		waited for the event would see the commit land after whatever it did next — long enough
+	///		for the caller to have moved on to a different entity and for the edit to be saved
+	///		against the wrong one, or dropped entirely. Callers of this method expect the value to
+	///		be committed by the time it returns.
+	/// </remarks>
 	public void TryCommit()
 	{
-		if (_isEditing)
+		if (!_isEditing)
 		{
-			if (!AcceptsReturn)
-			{
-				EditEntry.Unfocus();
-			}
-			else
-			{
-				EditEditor.Unfocus();
-			}
+			return;
+		}
+
+		// The pending Unfocused must not commit a second time for the same edit, and a second
+		// TryCommit before that event arrives must be a no-op rather than a repeat commit.
+		_suppressUnfocusCommit = true;
+		_isEditing = false;
+
+		if (!AcceptsReturn)
+		{
+			Commit(EditEntry.Text);
+			EditEntry.Unfocus();
+		}
+		else
+		{
+			Commit(EditEditor.Text);
+			EditEditor.Unfocus();
 		}
 	}
 
@@ -230,9 +302,7 @@ public partial class DmInlineEditor : ContentView
 	{
 		var isEmpty = string.IsNullOrWhiteSpace(value);
 		DisplayLabel.Text = isEmpty ? Placeholder : value;
-		DisplayLabel.TextColor = isEmpty
-			? (Color)MauiApplication.Current!.Resources["DMTextMuted"]
-			: (Color)MauiApplication.Current!.Resources["DMTextPrimary"];
+		DisplayLabel.TextColor = isEmpty ? PlaceholderColor : TextColor;
 		DisplayLabel.FontAttributes = isEmpty ? FontAttributes.Italic : FontAttributes.None;
 	}
 
@@ -272,6 +342,7 @@ public partial class DmInlineEditor : ContentView
 	private void OnInputFocused(object? sender, FocusEventArgs e)
 	{
 		_isEditing = true;
+		_suppressUnfocusCommit = false;
 		EditingStarted?.Invoke(this, EventArgs.Empty);
 		var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
 		FocusBorder.Stroke = gold;
@@ -294,7 +365,12 @@ public partial class DmInlineEditor : ContentView
 	private void OnEntryUnfocused(object? sender, FocusEventArgs e)
 	{
 		ClearFocusGlow();
-		Commit(EditEntry.Text);
+
+		if (!TakeSuppressedCommit())
+		{
+			Commit(EditEntry.Text);
+		}
+
 		HideInput(EditEntry);
 		DisplayLabel.Opacity = 1;
 		DisplayLabel.InputTransparent = false;
@@ -304,11 +380,29 @@ public partial class DmInlineEditor : ContentView
 	private void OnEditorUnfocused(object? sender, FocusEventArgs e)
 	{
 		ClearFocusGlow();
-		Commit(EditEditor.Text);
+
+		if (!TakeSuppressedCommit())
+		{
+			Commit(EditEditor.Text);
+		}
+
 		HideInput(EditEditor);
 		DisplayLabel.Opacity = 1;
 		DisplayLabel.InputTransparent = false;
 		EditingEnded?.Invoke(this, EventArgs.Empty);
+	}
+
+	// Returns true when this unfocus belongs to a TryCommit that already committed, consuming
+	// the flag so only the one pending Unfocused is skipped.
+	private bool TakeSuppressedCommit()
+	{
+		if (!_suppressUnfocusCommit)
+		{
+			return false;
+		}
+
+		_suppressUnfocusCommit = false;
+		return true;
 	}
 
 	private void Commit(string? value)

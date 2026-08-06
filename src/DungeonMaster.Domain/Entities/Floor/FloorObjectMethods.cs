@@ -1,11 +1,11 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Area;
+namespace DungeonMaster.Domain.Entities.Floor;
 
-public sealed partial class Area
+public sealed partial class Floor
 {
 	/// <summary>
-	///		Adds a new <see cref="PlacedObject"/> of the specified kind to this area at default scale.
+	///		Adds a new <see cref="PlacedObject"/> of the specified kind to this floor at default scale.
 	/// </summary>
 	internal PlacedObject AddObject(
 		ObjectKind kind,
@@ -14,14 +14,13 @@ public sealed partial class Area
 		=> AddObject(kind, position, rotation, ObjectScale.Default);
 
 	/// <summary>
-	///		Adds a new <see cref="PlacedObject"/> of the specified kind to this area.
+	///		Adds a new <see cref="PlacedObject"/> of the specified kind to this floor.
 	/// </summary>
 	/// <param name="kind">
 	///		The kind of object to place.
 	/// </param>
 	/// <param name="position">
-	///		The canvas-space position of the object's bounding-box center,
-	///		expressed as a pixel offset from this area's origin vertex.
+	///		The canvas-space position of the object's bounding-box center, in floor-absolute pixels.
 	/// </param>
 	/// <param name="rotation">
 	///		The rotation to apply to the object.
@@ -52,7 +51,7 @@ public sealed partial class Area
 	}
 
 	/// <summary>
-	///		Removes the <see cref="PlacedObject"/> with the specified identifier from this area.
+	///		Removes the <see cref="PlacedObject"/> with the specified identifier from this floor.
 	///		If no matching object is found, the call is a no-op.
 	/// </summary>
 	/// <param name="objectId">
@@ -86,7 +85,7 @@ public sealed partial class Area
 	///		The unique identifier of the object to update.
 	/// </param>
 	/// <param name="newPosition">
-	///		The new canvas-space position (bounding-box center, area-relative pixels).
+	///		The new canvas-space position (bounding-box center, floor-absolute pixels).
 	/// </param>
 	/// <param name="newRotation">
 	///		The new rotation.
@@ -121,7 +120,7 @@ public sealed partial class Area
 	///		The unique identifier of the object to update.
 	/// </param>
 	/// <param name="newPosition">
-	///		The new canvas-space position (bounding-box center, area-relative pixels).
+	///		The new canvas-space position (bounding-box center, floor-absolute pixels).
 	/// </param>
 	/// <param name="newRotation">
 	///		The new rotation.

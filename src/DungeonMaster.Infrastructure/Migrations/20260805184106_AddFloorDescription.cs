@@ -5,25 +5,25 @@
 namespace DungeonMaster.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddPlacedObjectScale : Migration
+    public partial class AddFloorDescription : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<float>(
-                name: "Scale",
-                table: "PlacedObjects",
-                type: "REAL",
-                nullable: false,
-                defaultValue: 1f);
+            migrationBuilder.AddColumn<string>(
+                name: "Description",
+                table: "Floors",
+                type: "TEXT",
+                maxLength: 2000,
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Scale",
-                table: "PlacedObjects");
+                name: "Description",
+                table: "Floors");
         }
     }
 }

@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Area;
+namespace DungeonMaster.Domain.Entities.Floor;
 
 /// <summary>
 ///		Represents a game object placed at a specific position within an area.
@@ -11,15 +11,15 @@ public sealed class PlacedObject : Entity
 
 	/// <summary>Initializes a new <see cref="PlacedObject"/> with default scale.</summary>
 	internal PlacedObject(
-		Guid areaId,
+		Guid floorId,
 		ObjectKind kind,
 		CanvasPoint position,
 		ObjectRotation rotation)
-		: this(areaId, kind, position, rotation, ObjectScale.Default) { }
+		: this(floorId, kind, position, rotation, ObjectScale.Default) { }
 
 	/// <summary>Initializes a new <see cref="PlacedObject"/> with an explicit scale.</summary>
 	internal PlacedObject(
-		Guid areaId,
+		Guid floorId,
 		ObjectKind kind,
 		CanvasPoint position,
 		ObjectRotation rotation,
@@ -33,22 +33,22 @@ public sealed class PlacedObject : Entity
 				$"Scale must be between {ObjectScale.Min} and {ObjectScale.Max}.");
 		}
 
-		AreaId   = areaId;
+		FloorId  = floorId;
 		Kind     = kind;
 		Position = position;
 		Rotation = rotation;
 		Scale    = scale;
 	}
 
-	/// <summary>Gets the unique identifier of the area this object belongs to.</summary>
-	public Guid AreaId { get; private set; }
+	/// <summary>Gets the unique identifier of the floor this object belongs to.</summary>
+	public Guid FloorId { get; private set; }
 
 	/// <summary>Gets the kind of game object this represents.</summary>
 	public ObjectKind Kind { get; private set; }
 
 	/// <summary>
 	///		Gets the canvas-space position of this object's bounding-box center,
-	///		expressed as a pixel offset from the containing area's origin vertex.
+	///		expressed in floor-absolute pixels.
 	/// </summary>
 	public CanvasPoint Position { get; private set; } = default!;
 
@@ -64,7 +64,7 @@ public sealed class PlacedObject : Entity
 
 	/// <summary>Updates the position, rotation, and scale of this object.</summary>
 	/// <param name="newPosition">
-	///		The new canvas-space position (bounding-box center, area-relative pixels).
+	///		The new canvas-space position (bounding-box center, floor-absolute pixels).
 	/// </param>
 	/// <param name="newRotation">
 	///		The new rotation.

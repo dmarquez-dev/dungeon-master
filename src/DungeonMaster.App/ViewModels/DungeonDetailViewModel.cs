@@ -15,7 +15,7 @@ using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateFloor;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 
@@ -164,21 +164,25 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Updates the name of an existing floor without reloading the full detail.
+	///		Updates the name, description, and notes of an existing floor, then reloads the
+	///		detail so the cached floor projections carry the new values.
 	/// </summary>
 	/// <param name="args">
-	///		A tuple containing the floor identifier and its new name.
+	///		A tuple containing the floor identifier and its new name, description, and notes.
 	/// </param>
 	[RelayCommand]
-	private async Task UpdateFloorAsync((Guid FloorId, string? Name) args)
+	private async Task UpdateFloorAsync((Guid FloorId, string? Name, string? Description, string? Notes) args)
 	{
 		await dispatcher.SendAsync<bool>(
 			new UpdateFloorCommand(
 				_dungeonId,
 				args.FloorId,
 				args.Name,
-				null),
+				args.Description,
+				args.Notes),
 			CancellationToken.None);
+
+		await LoadDungeonAsync(_dungeonId);
 	}
 
 	/// <summary>
@@ -240,78 +244,37 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Updates the name of an existing area, preserving its current description and notes.
+	///		Updates the name, description, and notes of an existing area, then reloads the detail
+	///		so the cached area projections carry the new values.
 	/// </summary>
 	/// <param name="args">
-	///		A tuple containing the floor identifier, area identifier, and new area name.
+	///		A tuple containing the floor identifier, area identifier, and the area's new name,
+	///		description, and notes. All three text fields are written as supplied, so a caller
+	///		editing only one of them must pass the current values of the other two.
 	/// </param>
 	[RelayCommand]
-	private async Task UpdateAreaNameAsync((Guid FloorId, Guid AreaId, string Name) args)
+	private async Task UpdateAreaAsync((Guid FloorId, Guid AreaId, string Name, string? Description, string? Notes) args)
 	{
-		var existing = Dungeon?.Floors
-			.FirstOrDefault(floor =>
-				floor.Id == args.FloorId)?.Areas
-			.FirstOrDefault(area =>
-				area.Id == args.AreaId);
-
 		await dispatcher.SendAsync<bool>(
 			new UpdateAreaCommand(
 				_dungeonId,
 				args.FloorId,
 				args.AreaId,
 				args.Name,
-				existing?.Description,
-				existing?.Notes),
+				args.Description,
+				args.Notes),
 			CancellationToken.None);
+
+		await LoadDungeonAsync(_dungeonId);
 	}
 
 	/// <summary>
-	///		Persists the in-progress drawn outline for the specified area and resets the drawing session.
+	///     Persists a moved area outline and reloads the detail. Placed objects belong to the floor
+	///     and are deliberately not repositioned when an area outline moves.
 	/// </summary>
-	/// <param name="args">
-	///		A tuple containing the floor identifier, area identifier, and the tile-grid origin point.
-	/// </param>
-	[RelayCommand]
-	private async Task SaveOutlineAsync((Guid FloorId, Guid AreaId, TilePoint Origin) args)
-	{
-		var outline = DrawingSession.BuildOutline();
-
-		await dispatcher.SendAsync<bool>(
-			new UpdateAreaOutlineCommand(
-				_dungeonId,
-				args.FloorId,
-				args.AreaId,
-				args.Origin,
-				outline),
-			CancellationToken.None);
-
-		DrawingSession.Reset();
-	}
-
-	/// <summary>
-	///     Persists a moved area outline using an explicit origin and outline (bypasses DrawingSession).
-	/// </summary>
-	[RelayCommand]
-	private async Task MoveAreaAsync((Guid FloorId, Guid AreaId, TilePoint NewOrigin, IReadOnlyList<PathSegment> NewOutline) args)
-	{
-		await dispatcher.SendAsync<bool>(
-			new UpdateAreaOutlineCommand(
-				_dungeonId,
-				args.FloorId,
-				args.AreaId,
-				args.NewOrigin,
-				args.NewOutline),
-			CancellationToken.None);
-	}
-
-	/// <summary>
-	///     Persists a moved area outline. Placed objects are stored in area-relative coordinates
-	///     so they require no position updates when their containing area moves.
-	/// </summary>
-	public async Task MoveAreaWithObjectsAsync(
+	public async Task MoveAreaOutlineAsync(
 		Guid floorId,
 		Guid areaId,
-		TilePoint newOrigin,
 		IReadOnlyList<PathSegment> newOutline)
 	{
 		await dispatcher.SendAsync<bool>(
@@ -319,7 +282,6 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				_dungeonId,
 				floorId,
 				areaId,
-				newOrigin,
 				newOutline),
 			CancellationToken.None);
 
@@ -331,7 +293,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	///     Used for draw-to-spawn: the area is added to the DB then its outline is written atomically.
 	/// </summary>
 	[RelayCommand]
-	private async Task AddAreaWithOutlineAsync((Guid FloorId, TilePoint Origin, IReadOnlyList<PathSegment> Outline) args)
+	private async Task AddAreaWithOutlineAsync((Guid FloorId, IReadOnlyList<PathSegment> Outline) args)
 	{
 		var result = await dispatcher.SendAsync<Guid>(
 			new AddAreaCommand(_dungeonId, args.FloorId, "New Area", null),
@@ -345,15 +307,17 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				_dungeonId,
 				args.FloorId,
 				result.Value,
-				args.Origin,
 				args.Outline),
 			CancellationToken.None);
 	}
 
-	public record PlaceObjectArgs(Guid FloorId, Guid AreaId, ObjectKind Kind, CanvasPoint Position, ObjectRotation Rotation, float Scale);
+	/// <summary>
+	///		Arguments for placing a new object on a floor.
+	/// </summary>
+	public record PlaceObjectArgs(Guid FloorId, ObjectKind Kind, CanvasPoint Position, ObjectRotation Rotation, float Scale);
 
 	/// <summary>
-	///		Places a new object with the specified kind, position, rotation, and scale on the specified area and reloads the dungeon detail.
+	///		Places a new object with the specified kind, position, rotation, and scale on the specified floor and reloads the dungeon detail.
 	/// </summary>
 	[RelayCommand]
 	private async Task AddPlacedObjectAsync(PlaceObjectArgs args)
@@ -362,7 +326,6 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 			new AddPlacedObjectCommand(
 				_dungeonId,
 				args.FloorId,
-				args.AreaId,
 				args.Kind,
 				args.Position,
 				args.Rotation,
@@ -373,19 +336,17 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///     Removes a placed object from the specified area and reloads the dungeon detail.
+	///     Removes a placed object from the specified floor and reloads the dungeon detail.
 	/// </summary>
 	public async Task RemovePlacedObjectAsync(
 		Guid dungeonId,
 		Guid floorId,
-		Guid areaId,
 		Guid objectId)
 	{
 		await dispatcher.SendAsync<bool>(
 			new RemovePlacedObjectCommand(
 				dungeonId,
 				floorId,
-				areaId,
 				objectId),
 			CancellationToken.None);
 
@@ -398,14 +359,12 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	public Task UpdatePlacedObjectAsync(
 		Guid dungeonId,
 		Guid floorId,
-		Guid areaId,
 		Guid objectId,
 		CanvasPoint position,
 		ObjectRotation rotation)
 		=> UpdatePlacedObjectAsync(
 			dungeonId,
 			floorId,
-			areaId,
 			objectId,
 			position,
 			rotation,
@@ -417,7 +376,6 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	public async Task UpdatePlacedObjectAsync(
 		Guid dungeonId,
 		Guid floorId,
-		Guid areaId,
 		Guid objectId,
 		CanvasPoint position,
 		ObjectRotation rotation,
@@ -427,7 +385,6 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 			new UpdatePlacedObjectCommand(
 				dungeonId,
 				floorId,
-				areaId,
 				objectId,
 				position,
 				rotation,

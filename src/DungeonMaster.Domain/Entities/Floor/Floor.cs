@@ -8,6 +8,7 @@ namespace DungeonMaster.Domain.Entities.Floor;
 public sealed partial class Floor : Entity
 {
 	private readonly List<Area.Area> _areas = [];
+	private readonly List<PlacedObject> _objects = [];
 
 	private Floor() { }
 
@@ -49,6 +50,11 @@ public sealed partial class Floor : Entity
 	public string? Name { get; private set; }
 
 	/// <summary>
+	///		Gets the optional player-facing description of this floor.
+	/// </summary>
+	public string? Description { get; private set; }
+
+	/// <summary>
 	///		Gets the optional notes associated with this floor.
 	/// </summary>
 	public string? Notes { get; private set; }
@@ -58,4 +64,10 @@ public sealed partial class Floor : Entity
 	/// </summary>
 	public IReadOnlyList<Area.Area> Areas =>
 		_areas.AsReadOnly();
+
+	/// <summary>
+	///		Gets the read-only list of objects placed on this floor.
+	/// </summary>
+	public IReadOnlyList<PlacedObject> Objects =>
+		_objects.AsReadOnly();
 }

@@ -14,19 +14,24 @@ public sealed partial class Floor
 		Number = number;
 
 	/// <summary>
-	///		Updates the display name and notes of this floor.
+	///		Updates the display name, description, and notes of this floor.
 	/// </summary>
 	/// <param name="name">
 	///		The new optional display name for the floor.
+	/// </param>
+	/// <param name="description">
+	///		The new optional player-facing description for the floor.
 	/// </param>
 	/// <param name="notes">
 	///		The new optional notes for the floor.
 	/// </param>
 	internal void UpdateDetails(
 		string? name,
+		string? description,
 		string? notes)
 	{
 		Name = name;
+		Description = description;
 		Notes = notes;
 		Touch();
 	}
@@ -115,21 +120,17 @@ public sealed partial class Floor
 	}
 
 	/// <summary>
-	///		Updates the tile-grid origin and outline path of the specified area on this floor.
+	///		Replaces the outline path of the specified area on this floor.
 	///		Has no effect if no area with the given identifier exists.
 	/// </summary>
 	/// <param name="areaId">
 	///		The unique identifier of the area to update.
-	/// </param>
-	/// <param name="origin">
-	///		The new tile-grid origin point for the area.
 	/// </param>
 	/// <param name="outline">
 	///		The new ordered list of path segments that form the closed outline polygon.
 	/// </param>
 	internal void UpdateAreaOutline(
 		Guid areaId,
-		TilePoint origin,
 		IReadOnlyList<PathSegment> outline)
 	{
 		var area = _areas.FirstOrDefault(area =>
@@ -140,154 +141,8 @@ public sealed partial class Floor
 			return;
 		}
 
-		area.SetOutline(
-			origin,
-			outline);
+		area.SetOutline(outline);
 
 		Touch();
-	}
-
-	/// <summary>
-	///		Adds a new placed object to the specified area on this floor at default scale.
-	/// </summary>
-	internal Area.PlacedObject? AddPlacedObject(
-		Guid areaId,
-		Area.ObjectKind kind,
-		CanvasPoint position,
-		Area.ObjectRotation rotation)
-		=> AddPlacedObject(areaId, kind, position, rotation, Area.ObjectScale.Default);
-
-	/// <summary>
-	///		Adds a new placed object to the specified area on this floor.
-	/// </summary>
-	/// <param name="areaId">
-	///		The unique identifier of the area to add the object to.
-	/// </param>
-	/// <param name="kind">
-	///		The kind of object to place.
-	/// </param>
-	/// <param name="position">
-	///		The canvas-space position of the object's bounding-box center,
-	///		expressed as a pixel offset from the area's origin vertex.
-	/// </param>
-	/// <param name="rotation">
-	///		The rotation to apply to the object.
-	/// </param>
-	/// <param name="scale">
-	///		The scale multiplier to apply to the object.
-	/// </param>
-	/// <returns>
-	///		The newly created <see cref="Area.PlacedObject"/> instance, or <see langword="null"/> if the area is not found.
-	/// </returns>
-	internal Area.PlacedObject? AddPlacedObject(
-		Guid areaId,
-		Area.ObjectKind kind,
-		CanvasPoint position,
-		Area.ObjectRotation rotation,
-		float scale)
-	{
-		var area = _areas.FirstOrDefault(area =>
-			area.Id == areaId);
-
-		if (area is null)
-		{
-			return null;
-		}
-
-		var result = area.AddObject(
-			kind,
-			position,
-			rotation,
-			scale);
-
-		Touch();
-
-		return result;
-	}
-
-	/// <summary>
-	///		Removes the placed object with the specified identifier from the given area.
-	///		Has no effect if the area or object is not found.
-	/// </summary>
-	/// <param name="areaId">
-	///		The unique identifier of the area that owns the object.
-	/// </param>
-	/// <param name="objectId">
-	///		The unique identifier of the placed object to remove.
-	/// </param>
-	/// <returns>
-	///		<see langword="true"/> if the object was found and removed; otherwise <see langword="false"/>.
-	/// </returns>
-	internal bool RemovePlacedObject(
-		Guid areaId,
-		Guid objectId)
-	{
-		var area = _areas.FirstOrDefault(area =>
-			area.Id == areaId);
-
-		if (area is null)
-		{
-			return false;
-		}
-
-		var removed = area.RemoveObject(objectId);
-
-		if (removed)
-		{
-			Touch();
-		}
-
-		return removed;
-	}
-
-	/// <summary>
-	///		Updates the position, rotation, and scale of the specified placed object in the given area.
-	///		Has no effect if the area or object is not found.
-	/// </summary>
-	/// <param name="areaId">
-	///		The unique identifier of the area that owns the object.
-	/// </param>
-	/// <param name="objectId">
-	///		The unique identifier of the placed object to update.
-	/// </param>
-	/// <param name="newPosition">
-	///		The new canvas-space position (bounding-box center, area-relative pixels).
-	/// </param>
-	/// <param name="newRotation">
-	///		The new rotation.
-	/// </param>
-	/// <param name="newScale">
-	///		The new scale multiplier.
-	/// </param>
-	/// <returns>
-	///		<see langword="true"/> if the object was found and updated; otherwise <see langword="false"/>.
-	/// </returns>
-	internal bool UpdatePlacedObject(
-		Guid areaId,
-		Guid objectId,
-		CanvasPoint newPosition,
-		Area.ObjectRotation newRotation,
-		float newScale)
-	{
-		var area = _areas.FirstOrDefault(area =>
-			area.Id == areaId);
-
-		if (area is null)
-		{
-			return false;
-		}
-
-		var updated = area.UpdateObject(
-			objectId,
-			newPosition,
-			newRotation,
-			newScale);
-
-		if (updated)
-		{
-			Touch();
-		}
-
-		return updated;
 	}
 }

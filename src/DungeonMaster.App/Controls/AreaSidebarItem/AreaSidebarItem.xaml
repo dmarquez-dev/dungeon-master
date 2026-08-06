@@ -14,7 +14,7 @@
         StrokeThickness="0"
         Padding="4,3">
 
-        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
 
             <!-- Diamond bullet -->
             <Label Grid.Column="0"
@@ -23,14 +23,52 @@
                    TextColor="{StaticResource DMTextMuted}"
                    VerticalOptions="Center" />
 
-            <!-- Area name (display only — edited via toolbar) -->
+            <!-- Area name (display only — edited via toolbar). Right margin keeps the name clear
+                 of the action buttons now that ColumnSpacing is tightened to 2. -->
             <Label
                 x:Name="AreaNameLabel"
                 Grid.Column="1"
                 FontFamily="EBGaramondRegular"
                 FontSize="17"
                 TextColor="{StaticResource DMScrollGoldLight}"
+                Margin="0,0,6,0"
                 VerticalOptions="Center" />
+
+            <!-- Always-visible notebook button — colour reflects whether this area has authored content -->
+            <Button
+                x:Name="NotebookButton"
+                Grid.Column="2"
+                Text="&#xEA8F;"
+                FontFamily="RpgAwesome"
+                FontSize="14"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource DMInkMuted}"
+                Padding="4,0"
+                CornerRadius="2"
+                Clicked="OnNotebookClicked"
+                ToolTipProperties.Text="Open notebook">
+                <Button.Behaviors>
+                    <behaviors:HandCursorBehavior />
+                </Button.Behaviors>
+            </Button>
+
+            <!-- Delete button -->
+            <Button
+                x:Name="DeleteButton"
+                Grid.Column="3"
+                Text="&#xE9FC;"
+                FontFamily="RpgAwesome"
+                FontSize="14"
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource DMDestructive}"
+                Padding="4,0"
+                CornerRadius="2"
+                Clicked="OnDeleteClicked"
+                ToolTipProperties.Text="Delete area">
+                <Button.Behaviors>
+                    <behaviors:HandCursorBehavior />
+                </Button.Behaviors>
+            </Button>
 
         </Grid>
 

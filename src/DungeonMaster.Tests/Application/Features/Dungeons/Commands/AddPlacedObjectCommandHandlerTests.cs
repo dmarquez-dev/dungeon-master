@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
@@ -26,17 +26,12 @@ public class AddPlacedObjectCommandHandlerTests
         _handler = new AddPlacedObjectCommandHandler(_writeRepository);
     }
 
-    private static Dungeon MakeDungeon(out Guid floorId, out Guid areaId)
+    private static Dungeon MakeDungeon(out Guid floorId)
     {
         var dungeon = new Dungeon("D");
         var floor = dungeon.AddFloor("F");
-        var area = dungeon.AddArea(
-            floor.Id,
-            "A",
-            null);
 
         floorId = floor.Id;
-        areaId = area.Id;
         return dungeon;
     }
 
@@ -48,7 +43,7 @@ public class AddPlacedObjectCommandHandlerTests
     public async Task HandleAsync_ValidCommand_ReturnsSuccessWithId()
     {
         // Arrange
-        var dungeon = MakeDungeon(out var floorId, out var areaId);
+        var dungeon = MakeDungeon(out var floorId);
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -56,7 +51,6 @@ public class AddPlacedObjectCommandHandlerTests
         var command = new AddPlacedObjectCommand(
             dungeon.Id,
             floorId,
-            areaId,
             ObjectKind.Chair,
             new CanvasPoint(40f, 40f),
             ObjectRotation.None);
@@ -74,14 +68,14 @@ public class AddPlacedObjectCommandHandlerTests
     }
 
     /// <summary>
-    ///		Verifies that the object is actually added to the area after the command succeeds.
+    ///		Verifies that the object is actually added to the floor after the command succeeds.
     /// </summary>
     [Fact]
-    public async Task HandleAsync_ValidCommand_AddsObjectToArea()
+    public async Task HandleAsync_ValidCommand_AddsObjectToFloor()
     {
         // Arrange
-        var dungeon = MakeDungeon(out var floorId, out var areaId);
-        var area = dungeon.Floors.First().Areas.First();
+        var dungeon = MakeDungeon(out var floorId);
+        var floor = dungeon.Floors.First();
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -89,7 +83,6 @@ public class AddPlacedObjectCommandHandlerTests
         var command = new AddPlacedObjectCommand(
             dungeon.Id,
             floorId,
-            areaId,
             ObjectKind.Chair,
             new CanvasPoint(120f, 160f),
             ObjectRotation.CW90);
@@ -99,7 +92,7 @@ public class AddPlacedObjectCommandHandlerTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var addedObj = area.Objects.Should().ContainSingle().Which;
+        var addedObj = floor.Objects.Should().ContainSingle().Which;
         addedObj.Id.Should().Be(result.Value);
         addedObj.Kind.Should().Be(ObjectKind.Chair);
         addedObj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
@@ -117,7 +110,6 @@ public class AddPlacedObjectCommandHandlerTests
             .Returns((Dungeon?)null);
 
         var command = new AddPlacedObjectCommand(
-            Guid.NewGuid(),
             Guid.NewGuid(),
             Guid.NewGuid(),
             ObjectKind.Chair,
@@ -139,42 +131,13 @@ public class AddPlacedObjectCommandHandlerTests
     public async Task HandleAsync_FloorNotFound_ReturnsValidationFailure()
     {
         // Arrange
-        var dungeon = MakeDungeon(out _, out var areaId);
+        var dungeon = MakeDungeon(out _);
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
 
         var command = new AddPlacedObjectCommand(
             dungeon.Id,
-            Guid.NewGuid(),
-            areaId,
-            ObjectKind.Chair,
-            new CanvasPoint(40f, 40f),
-            ObjectRotation.None);
-
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCategory.Should().Be(ErrorCategory.Validation);
-    }
-
-    /// <summary>
-    ///		Verifies that a missing area returns a validation failure (domain returns null when area is absent).
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_AreaNotFound_ReturnsValidationFailure()
-    {
-        // Arrange
-        var dungeon = MakeDungeon(out var floorId, out _);
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
-
-        var command = new AddPlacedObjectCommand(
-            dungeon.Id,
-            floorId,
             Guid.NewGuid(),
             ObjectKind.Chair,
             new CanvasPoint(40f, 40f),
@@ -195,8 +158,8 @@ public class AddPlacedObjectCommandHandlerTests
     public async Task HandleAsync_WithCustomScale_StoresScaleOnObject()
     {
         // Arrange
-        var dungeon = MakeDungeon(out var floorId, out var areaId);
-        var area = dungeon.Floors.First().Areas.First();
+        var dungeon = MakeDungeon(out var floorId);
+        var floor = dungeon.Floors.First();
         _writeRepository
             .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
             .Returns(dungeon);
@@ -204,7 +167,6 @@ public class AddPlacedObjectCommandHandlerTests
         var command = new AddPlacedObjectCommand(
             dungeon.Id,
             floorId,
-            areaId,
             ObjectKind.Chair,
             new CanvasPoint(40f, 40f),
             ObjectRotation.None,
@@ -214,6 +176,6 @@ public class AddPlacedObjectCommandHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        area.Objects.Should().ContainSingle().Which.Scale.Should().BeApproximately(2.0f, 0.001f);
+        floor.Objects.Should().ContainSingle().Which.Scale.Should().BeApproximately(2.0f, 0.001f);
     }
 }
