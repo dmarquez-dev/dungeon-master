@@ -59,7 +59,7 @@ public class ThemeHygieneTests
         //                                                    :264   FontSize = 11
         //                                                    :284   FontSize = 18
         //   Views\DungeonDetailPage\SecondaryPaletteView.xaml.cs:53 FontSize = 11
-        //   Graphics\FloorMapDrawable.cs:529                        canvas.FontSize = 9f
+        //   Graphics\FloorMapDrawable.cs:541                        canvas.FontSize = 9f
         //
         // 13, 11, 11 and 9 are all off-scale; only the 18 maps cleanly. Extending the two
         // typography facts to *.cs would therefore fail immediately on four offenders whose

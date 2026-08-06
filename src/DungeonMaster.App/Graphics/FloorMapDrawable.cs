@@ -434,10 +434,10 @@ public sealed class FloorMapDrawable : IDrawable
 
     private static void DrawMissingObjectFallback(ICanvas canvas, float x, float y, float size)
     {
-        canvas.StrokeColor = DmColors.MapArea;
+        canvas.StrokeColor = DmColors.MapObjectPlaceholder;
         canvas.StrokeSize = 1.5f;
         canvas.DrawRectangle(x, y, size, size);
-        canvas.FontColor = DmColors.MapArea;
+        canvas.FontColor = DmColors.MapObjectPlaceholder;
         canvas.FontSize = size * 0.4f;
         canvas.DrawString("?", x, y, size, size, HorizontalAlignment.Center, VerticalAlignment.Center);
     }
@@ -474,7 +474,7 @@ public sealed class FloorMapDrawable : IDrawable
         }
         else
         {
-            canvas.StrokeColor = DmColors.MapArea;
+            canvas.StrokeColor = DmColors.MapObjectPlaceholder;
             canvas.StrokeDashPattern = [4f, 3f];
             canvas.StrokeSize = 1.5f;
             canvas.DrawRectangle(drawX, drawY, boxW, boxH);

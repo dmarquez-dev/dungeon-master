@@ -104,7 +104,7 @@ public static class DmColors
 	/// <summary>Map canvas — grid line colour.</summary>
 	public static readonly Color MapGrid = Color.FromArgb("#1AC4862A");
 
-	/// <summary>Map canvas — committed area outline colour. Shares its value with <see cref="Gold"/> and <see cref="ScrollGoldLight"/> today, but is deliberately a separate member: the map's area colour and the UI accent gold are independent design decisions that a future restyle may want to move apart.</summary>
+	/// <summary>Map canvas — committed area outline colour. Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/> and <see cref="MapObjectPlaceholder"/> today, but is deliberately a separate member: the map's area colour and the UI accent gold are independent design decisions that a future restyle may want to move apart.</summary>
 	public static readonly Color MapArea = Color.FromArgb("#C8A040");
 
 	/// <summary>Map canvas — outline vertex handle colour.</summary>
@@ -115,4 +115,7 @@ public static class DmColors
 
 	/// <summary>Map canvas — stroke of the area currently being drawn.</summary>
 	public static readonly Color MapAreaStrokeActive = Color.FromArgb("#90C8A040");
+
+	/// <summary>Map canvas — stand-in rendering for an object with no drawable image: the "?" fallback glyph/outline and the dashed ghost-placement outline. Shares its value with <see cref="MapArea"/> and the UI golds today, but is deliberately separate because these are object-placeholder renderings, not area outlines or UI affordances, and a restyle may want to move them apart.</summary>
+	public static readonly Color MapObjectPlaceholder = Color.FromArgb("#C8A040");
 }
