@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        SINGLE-LAYER DECISION — read this before adding tokens (Tasks 4-11).
+
+        This file was planned as two dictionaries: Palette.xaml holding raw named
+        colours, and Tokens.xaml aliasing them under semantic names by putting a
+        StaticResource reference in the element content of a Color entry.
+
+        That form does not compile. A markup extension in element-content position
+        is handed to ColorTypeConverter as a literal string, and the MAUI XAML
+        source generator rejects it with one error per aliased entry:
+
+            Resources/Theme/Tokens.xaml(1,2): error MAUIG1010:
+            Cannot convert "... DmPaletteInk900" into "Microsoft.Maui.Graphics.Color".
+
+        Verified by spike on 2026-08-05 against net10.0-windows10.0.19041.0.
+        A StaticResource reference still works in ATTRIBUTE position, which is why
+        the SolidColorBrush entries below alias their colours successfully.
+
+        So the palette layer is merged into this file. This is now the ONLY file
+        in the application permitted to contain colour literals; ThemeDictionaryTests
+        enforces that. Add new colours here as semantic names, never as a raw hex
+        at a usage site.
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Structural: Dark Tavern surface family
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfaceTavern">#1A1208</Color>
+    <Color x:Key="DmSurfaceTavernRaised">#2E8B5E1A</Color>
+    <Color x:Key="DmSurfaceTavernRaisedHover">#528B5E1A</Color>
+    <Color x:Key="DmSurfaceTavernRaisedActive">#6A8B5E1A</Color>
+    <Color x:Key="DmBorderTavern">#4DC4862A</Color>
+    <Color x:Key="DmBorderTavernHover">#A6C4862A</Color>
+    <Color x:Key="DmTextTavern">#F5E4B0</Color>
+    <Color x:Key="DmTextTavernMuted">#A08050</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Structural: Light Parchment surface family
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfaceParchment">#F5E8C8</Color>
+    <Color x:Key="DmSurfaceParchmentDeep">#ECD8A0</Color>
+    <Color x:Key="DmBorderParchment">#8B5E1A</Color>
+    <Color x:Key="DmTextParchment">#2C1A08</Color>
+    <Color x:Key="DmTextParchmentMuted">#7A5030</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Accents
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmAccentGold">#C4862A</Color>
+    <Color x:Key="DmAccentGoldLight">#C8A040</Color>
+    <Color x:Key="DmAccentGoldDark">#B08828</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Action semantics
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmConfirm">#2D5C1A</Color>
+    <Color x:Key="DmConfirmText">#D4EDB0</Color>
+    <Color x:Key="DmDestructive">#8B2020</Color>
+    <Color x:Key="DmDestructiveText">#F5D0D0</Color>
+    <Color x:Key="DmNeutralSurface">#1F785014</Color>
+    <Color x:Key="DmNeutralBorder">#5A3010</Color>
+    <Color x:Key="DmSave">#4A8A30</Color>
+    <Color x:Key="DmSaveText">#8ACA60</Color>
+    <Color x:Key="DmDiscard">#A03030</Color>
+    <Color x:Key="DmDiscardText">#E08080</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: notebook ribbons
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmRibbonRead">#A32B24</Color>
+    <Color x:Key="DmRibbonReadDim">#6B2019</Color>
+    <Color x:Key="DmRibbonText">#F0DCA8</Color>
+    <Color x:Key="DmRibbonSeal">#E8B4B4</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: flag banner gradient
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmBannerEdge">#7A4F12</Color>
+    <Color x:Key="DmBannerCenter">#B8781E</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: sidebar drag and drop
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmDragPlaceholderStroke">#C8A040</Color>
+    <Color x:Key="DmDragPlaceholderFill">#20C8A040</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: map area selection and hover tints
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmAreaSelectedBorder">#C8A040</Color>
+    <Color x:Key="DmAreaSelectedTint">#18C8A040</Color>
+    <Color x:Key="DmGoldHoverTint">#10C8A040</Color>
+    <Color x:Key="DmEditorGlowTint">#08C4862A</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: FloorMapDrawable
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmMapGrid">#1AC4862A</Color>
+    <Color x:Key="DmMapArea">#C8A040</Color>
+    <Color x:Key="DmMapVertex">#F5E4B0</Color>
+    <Color x:Key="DmMapAreaFillActive">#40C8A040</Color>
+    <Color x:Key="DmMapAreaStrokeActive">#90C8A040</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Raw colours awaiting semantic names.
+
+         Step 0 of Task 2 inventoried every colour literal in the application and
+         found these carry no name today: they are typed inline in views, in
+         code-behind, or in Platforms/Windows/App.xaml. They keep the DmPalette*
+         prefix deliberately — the prefix marks them as "raw, not yet given
+         meaning". As Tasks 4-11 move each usage site onto the theme, promote the
+         entry it needs to a semantic name above and delete it from here.
+
+         DO NOT collapse near-duplicates while promoting. Recorded pairs:
+           DmSurfaceParchmentDeep  #ECD8A0  vs  DmPaletteParchmentPanel #EDD8A0
+           DmSurfaceTavernRaisedActive #6A8B5E1A vs DmPaletteBronzeA42Alt #6B8B5E1A
+         Merging either pair is a restyle decision, not a refactor one.
+    ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- Parchment panel chrome: ControlsPaletteView, ObjectPaletteView,
+         SecondaryPaletteView, Platforms/Windows/App.xaml -->
+    <Color x:Key="DmPaletteParchmentPanel">#EDD8A0</Color>
+    <Color x:Key="DmPaletteParchmentPanelDeep">#E8CC9A</Color>
+    <Color x:Key="DmPaletteParchmentPanelShade">#C8AC78</Color>
+    <Color x:Key="DmPaletteGoldBrown">#9A7820</Color>
+    <Color x:Key="DmPaletteBrownDeep">#5C3E10</Color>
+
+    <!-- Designer canvas chrome: DungeonDetailPage.xaml, NotebookView.xaml -->
+    <Color x:Key="DmPaletteInk850">#1A1610</Color>
+    <Color x:Key="DmPaletteBrown700">#3A2410</Color>
+    <Color x:Key="DmPaletteBrown650">#3a2e1a</Color>
+    <Color x:Key="DmPaletteBrown600">#3D2E12</Color>
+    <Color x:Key="DmPaletteBrown550">#4a3a1a</Color>
+
+    <!-- WinUI scrollbar and combo chrome: Platforms/Windows/App.xaml -->
+    <Color x:Key="DmPaletteBrownDeepA20">#332a2010</Color>
+    <Color x:Key="DmPaletteBrownMidA40">#664a3820</Color>
+    <Color x:Key="DmPaletteTan600">#9A8060</Color>
+    <Color x:Key="DmPaletteTan500">#B89A60</Color>
+    <Color x:Key="DmPaletteTan400">#D6BE82</Color>
+
+    <!-- Invalid-drop feedback: DungeonDetailPage.xaml and its code-behind -->
+    <Color x:Key="DmPaletteRedBright">#CC3030</Color>
+    <Color x:Key="DmPaletteRedBrightA20">#33CC3030</Color>
+    <Color x:Key="DmPaletteRedBrightA40">#66CC3030</Color>
+    <Color x:Key="DmPaletteGoldLightA20">#33C8A040</Color>
+    <Color x:Key="DmPaletteGoldLightA40">#66C8A040</Color>
+
+    <!-- Notebook and floor-sidebar state tints: NotebookView, FloorSidebarItem -->
+    <Color x:Key="DmPaletteBronzeA28">#478B5E1A</Color>
+    <Color x:Key="DmPaletteBronzeA42Alt">#6B8B5E1A</Color>
+    <Color x:Key="DmPaletteInkMutedA55">#8C7A5030</Color>
+    <Color x:Key="DmPaletteRedA14">#248B2020</Color>
+    <Color x:Key="DmPaletteOlive">#4A6A2A</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Brushes. {StaticResource} works here because it sits in attribute
+         position rather than element content — see the note at the top.
+    ═══════════════════════════════════════════════════════════════ -->
+    <SolidColorBrush x:Key="DmAccentGoldBrush" Color="{StaticResource DmAccentGold}" />
+    <SolidColorBrush x:Key="DmBorderTavernBrush" Color="{StaticResource DmBorderTavern}" />
+    <SolidColorBrush x:Key="DmBorderTavernHoverBrush" Color="{StaticResource DmBorderTavernHover}" />
+    <SolidColorBrush x:Key="DmBorderParchmentBrush" Color="{StaticResource DmBorderParchment}" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry
+    ═══════════════════════════════════════════════════════════════ -->
+    <x:Double x:Key="DmRadiusTight">2</x:Double>
+    <x:Double x:Key="DmRadiusDefault">3</x:Double>
+    <x:Double x:Key="DmRadiusLoose">4</x:Double>
+    <x:Double x:Key="DmStrokeHairline">1</x:Double>
+    <x:Double x:Key="DmStrokeEmphasis">2</x:Double>
+
+</ResourceDictionary>

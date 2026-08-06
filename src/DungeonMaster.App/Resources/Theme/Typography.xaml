@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        Three ramps for three type roles. RpgAwesome glyphs read visually larger than text
+        at the same nominal size, which is why icons have their own ramp rather than
+        sharing the body scale.
+
+        Scale: 10, 12, 14, 16, 18, 20, 24. Do not introduce a value outside it.
+    -->
+
+    <!-- Families -->
+    <x:String x:Key="DmFontTitle">CinzelRegular</x:String>
+    <x:String x:Key="DmFontTitleStrong">CinzelSemiBold</x:String>
+    <x:String x:Key="DmFontTitleDecorative">CinzelDecorative</x:String>
+    <x:String x:Key="DmFontBody">EBGaramondRegular</x:String>
+    <x:String x:Key="DmFontBodyItalic">EBGaramondItalic</x:String>
+    <x:String x:Key="DmFontIcon">RpgAwesome</x:String>
+
+    <!-- Title ramp (Cinzel) -->
+    <x:Double x:Key="DmFontSizeBanner">24</x:Double>
+    <x:Double x:Key="DmFontSizeTitle">20</x:Double>
+    <x:Double x:Key="DmFontSizeHeading">18</x:Double>
+    <x:Double x:Key="DmFontSizeSubheading">16</x:Double>
+    <x:Double x:Key="DmFontSizeAction">16</x:Double>
+    <x:Double x:Key="DmFontSizeEyebrow">12</x:Double>
+    <x:Double x:Key="DmFontSizeMicro">10</x:Double>
+
+    <!-- Body ramp (EB Garamond) -->
+    <x:Double x:Key="DmFontSizeBodyLarge">20</x:Double>
+    <x:Double x:Key="DmFontSizeBody">18</x:Double>
+    <x:Double x:Key="DmFontSizeBodySmall">16</x:Double>
+    <x:Double x:Key="DmFontSizeCaption">14</x:Double>
+
+    <!-- Icon ramp (RPG Awesome) -->
+    <x:Double x:Key="DmIconSizeTiny">12</x:Double>
+    <x:Double x:Key="DmIconSizeSmall">14</x:Double>
+    <x:Double x:Key="DmIconSizeMedium">16</x:Double>
+    <x:Double x:Key="DmIconSizeLarge">18</x:Double>
+    <x:Double x:Key="DmIconSizeXL">20</x:Double>
+    <x:Double x:Key="DmIconSizeTool">22</x:Double>
+
+</ResourceDictionary>
