@@ -55,11 +55,20 @@ public class ThemeHygieneTests
         //
         // The known C# typography literals, deferred and visible rather than silent:
         //
-        //   Views\DungeonDetailPage\ObjectPaletteView.xaml.cs:206   FontSize = 13
-        //                                                    :264   FontSize = 11
-        //                                                    :284   FontSize = 18
+        //   Views\DungeonDetailPage\ObjectPaletteView.xaml.cs:206   FontFamily = "EBGaramondRegular"
+        //                                                    :207   FontSize = 13
+        //                                                    :265   FontSize = 11
+        //                                                    :285   FontSize = 18
         //   Views\DungeonDetailPage\SecondaryPaletteView.xaml.cs:53 FontSize = 11
         //   Graphics\FloorMapDrawable.cs:541                        canvas.FontSize = 9f
+        //
+        // The FontFamily is included because BareFontFamilyPattern only matches the XAML
+        // attribute form (FontFamily="..."), so a C# property assignment is invisible to
+        // the ratchet no matter which files the fact scans. It is the only one in the App
+        // project: the three other code-behind-constructed Labels — ObjectPaletteView
+        // :262 and :282, SecondaryPaletteView :50 — set no family at all and inherit
+        // DmFontBody from Resources/Theme/Implicit.xaml, which is the intended
+        // destination. See the code-behind section of the Task 3 audit.
         //
         // 13, 11, 11 and 9 are all off-scale; only the 18 maps cleanly. Extending the two
         // typography facts to *.cs would therefore fail immediately on four offenders whose
@@ -106,7 +115,7 @@ public class ThemeHygieneTests
 
     /// <summary>
     ///		Asserts that no migrated file still references a legacy <c>DM</c>-prefixed key from
-    ///		<c>Resources/Styles/Colors.xaml</c>, which Task 10 deletes. Migrating a file means
+    ///		<c>Resources/Styles/Colors.xaml</c>, which Task 10 deleted. Migrating a file means
     ///		moving it onto the <c>Dm</c>-prefixed tokens in <c>Resources/Theme/Tokens.xaml</c>,
     ///		not merely off raw literals.
     /// </summary>

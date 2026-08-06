@@ -95,13 +95,13 @@ public static class DmColors
 	/// <summary>Text on a tool-panel surface. Mirrors the DmTextToolPanel token.</summary>
 	public static readonly Color TextToolPanel = Color.FromArgb("#5C3E10");
 
-	/// <summary>WinUI scrollbar thumb fill. Mirrors the DmScrollbarThumb token.</summary>
+	/// <summary>WinUI scrollbar thumb fill. Mirrors the DmScrollbarThumb token. Shares its value with <see cref="TextSelection"/> today, but is deliberately a separate member: the scrollbar thumb and the text-selection wash are independent design decisions that a future restyle may want to move apart. Tokens.xaml lists the pair under "colours shared across tokens".</summary>
 	public static readonly Color ScrollbarThumb = Color.FromArgb("#664a3820");
 
 	/// <summary>WinUI scrollbar thumb fill — disabled state. Mirrors the DmScrollbarThumbDisabled token.</summary>
 	public static readonly Color ScrollbarThumbDisabled = Color.FromArgb("#332a2010");
 
-	/// <summary>WinUI text selection highlight. Mirrors the DmTextSelection token.</summary>
+	/// <summary>WinUI text selection highlight. Mirrors the DmTextSelection token. Shares its value with <see cref="ScrollbarThumb"/> today, but is deliberately a separate member for the same reason given there.</summary>
 	public static readonly Color TextSelection = Color.FromArgb("#664a3820");
 
 	/// <summary>WinUI combo item surface — hover state. Mirrors the DmSurfaceComboItemHover token.</summary>
@@ -153,6 +153,12 @@ public static class DmColors
 	/// <returns>
 	///		The equivalent <see cref="Windows.UI.Color"/>.
 	/// </returns>
+	/// <remarks>
+	///		Each channel is truncated rather than rounded, so the conversion is exact only for
+	///		colours whose channels originate as 8-bit values — which is every colour in this
+	///		file, since all of them are parsed from 6- or 8-digit hex. A channel that does not
+	///		land on k/255 loses a value: an alpha of 0.5f yields 127 where 128 is nearer.
+	/// </remarks>
 	public static Windows.UI.Color ToPlatform(Color color)
 	{
 		return Windows.UI.Color.FromArgb(

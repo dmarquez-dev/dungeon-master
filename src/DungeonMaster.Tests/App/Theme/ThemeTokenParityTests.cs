@@ -67,9 +67,9 @@ public class ThemeTokenParityTests
     ///		is caught just as readily as a direct <c>Resources["Key"]</c> lookup.
     ///		<para>
     ///		It resolves against <c>Resources/Theme/</c> alone, deliberately excluding the legacy
-    ///		<c>Resources/Styles/Colors.xaml</c> that Task 10 deletes. Accepting a legacy key
-    ///		because it happens to still be defined would defer every such failure to the moment
-    ///		that file is removed, which is the opposite of what a ratchet is for.
+    ///		<c>Resources/Styles/Colors.xaml</c> that Task 10 deleted. Accepting a legacy key
+    ///		because it happened to still be defined would have deferred every such failure to
+    ///		the moment that file was removed, which is the opposite of what a ratchet is for.
     ///		</para>
     /// </summary>
     [Fact]

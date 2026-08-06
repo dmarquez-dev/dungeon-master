@@ -86,12 +86,27 @@
         Measured rather than argued: all three were photographed on both sides of the
         deletion (the notebook with its header and footer rules open, and a floor expanded
         so FloorSidebarItem's AreaSeparator is visible — it is IsVisible="False" until
-        then). Both screens came out at ZERO differing pixels. MAUI's BoxView paints Color
-        over its full bounds and the inherited BackgroundColor was never reaching a pixel.
+        then). All came out at ZERO differing pixels.
 
-        So there is deliberately no implicit BoxView style, and nothing was lost by that.
-        Recorded because the reasoning that predicted a loss is sound and someone will
-        redo it: the answer is that the prediction was checked and did not survive.
+        WHY, verified — because a wrong mechanism here is worse than none, and the first
+        draft of this note had one. It claimed BoxView "paints Color over its full bounds
+        so the background never reached a pixel", which cannot be right: a 28%-alpha fill
+        composites with whatever is beneath it rather than erasing it, and that is the very
+        premise that predicted a loss.
+
+        The actual reason is that BackgroundColor never reaches the platform view at all.
+        Two runtime probes on AreaSeparator, on Windows:
+
+          1. Setting BackgroundColor="Red" on it renders nothing red. The bar draws only
+             its semi-transparent DmHairline fill over the sidebar surface.
+          2. AreaSeparator.Handler.PlatformView is a
+             Microsoft.Maui.Graphics.Win2D.W2DGraphicsView — a drawing canvas, not a
+             Control, Border or Panel. MAUI's Windows background mapper has no target on
+             it. The MAUI-side property is set correctly (the probe read back
+             Alpha=1 Red=1); it simply has nowhere to go.
+
+        So the stock style's BackgroundColor was inert on every BoxView in the app, opaque
+        Color or not. There is deliberately no implicit BoxView style and nothing was lost.
 
         For the record, had the loss been real the fix would NOT have been to restore the
         grey — that would put stock template colour back into the theme layer, which is
@@ -169,14 +184,29 @@
             Normal, PointerOver and Pressed are byte-identical to the stock values (1,
             0.82, 0.7), so hover and press are unchanged.
 
-            Disabled is deliberately NOT what the stock style did. That state swapped
-            TextColor and BackgroundColor to Gray950/Gray200/Gray600 from the template
-            palette, which was deleted with Resources/Styles/Colors.xaml in Task 10;
-            reinstating it would drag stock template colours back into the theme layer.
-            Opacity 0.45 is used instead because that is what DmButtonBase already applies
-            to its own Disabled state, so styled and unstyled Buttons now agree rather
-            than diverge. Net visible effect: a disabled Button dims instead of turning
-            grey.
+            THERE IS DELIBERATELY NO Disabled STATE HERE, and the reason is a precedence
+            rule that is easy to miss: a VisualState setter outranks BOTH a DataTrigger and
+            a local value set on the element. Anything this group put on Disabled would
+            silently overrule what a call site had chosen for itself.
+
+            Three unstyled Buttons do choose for themselves, all at Opacity 0.35:
+
+                DungeonDetailPage.xaml:69       Start Session, DataTrigger FloorCount == 0
+                DungeonListPage.xaml:86         Start Session icon, same trigger
+                DungeonDetailPage.xaml:347-348  UndoButton, local IsEnabled + Opacity
+
+            An earlier draft of this file set Disabled to Opacity 0.45 to match
+            DmButtonBase. That was wrong twice over: it overrode all three of those sites,
+            rendering them LESS dim than their authors chose and weakening the disabled
+            affordance — and it did not match stock either. The stock Disabled state set
+            TextColor and BackgroundColor to Gray950/Gray200/Gray600 and NO Opacity at all.
+
+            Omitting the state therefore reproduces stock's opacity behaviour exactly for
+            those three sites and merely drops the greys, which was the goal: those came
+            from the template palette deleted with Resources/Styles/Colors.xaml in Task 10,
+            and reinstating them would drag stock template colour back into the theme
+            layer. A Button that wants a disabled look states it at the point of use, or
+            opts into a keyed DmButton* style, which carries its own Disabled state.
         -->
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
@@ -194,11 +224,6 @@
                     <VisualState x:Name="Pressed">
                         <VisualState.Setters>
                             <Setter Property="Opacity" Value="0.7" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Disabled">
-                        <VisualState.Setters>
-                            <Setter Property="Opacity" Value="0.45" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
