@@ -15,8 +15,6 @@
                 <ResourceDictionary Source="Resources/Theme/Controls.Parchment.xaml" />
                 <ResourceDictionary Source="Resources/Theme/Controls.Semantic.xaml" />
                 <ResourceDictionary Source="Resources/Theme/Implicit.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <converters:NotNullConverter x:Key="NotNullConverter" />

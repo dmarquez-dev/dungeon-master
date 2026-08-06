@@ -4,31 +4,127 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!--
-        The only TargetType-only styles the application keeps.
+        ══════════════════════════════════════════════════════════════════════════════
+        THE GEOMETRY-AND-STATES FLOOR
 
-        There is deliberately NO implicit Border, Button, Entry, Editor or Picker style.
-        The stock template had one for Border. Dropping it is safe: the Task 3 audit walked
-        all 33 real Border elements (the often-quoted 61 counted 28 property elements such
-        as the Shadow and StrokeShape sub-elements as if they were Borders) and found that
-        none of them paints the stock grey stroke. 21 set Stroke themselves, 5 receive it
-        from a keyed style or from visual states, and 7 set StrokeThickness to zero. See the
-        audit table for the per-site record.
+        This file is not decoration and it is not redundant. Do not delete it because
+        "the keyed Dm* styles already cover everything" — they do not, and the way we
+        found out is recorded below.
 
-        The reason for omitting the implicit style is not that it was doing damage — it was
-        not. It is that every Border should state its own intent at the point of use, rather
-        than inherit an outline nobody chose.
+        WHAT IT IS
 
-        ONE inherited property is real: AreaSidebarItem.xaml:10 sets no StrokeShape and
-        currently takes Rectangle from the stock style. It must be re-declared explicitly
-        during migration.
+        A floor of TargetType-only styles for Button, Entry, Editor and Picker, plus the
+        Label family default and the Page / Shell chrome. It supplies the properties a
+        control needs when nobody has said otherwise: minimum touch targets, padding,
+        corner radius, and Button interaction states.
 
-        The Label default exists only so no text falls back to a platform font once the
-        OpenSans registrations are removed.
+        THE INVARIANT: NO COLOUR, NO FONT, AT CONTROL LEVEL
 
-        The Shell style keeps the four TabBar setters carried by the stock style it replaces.
-        AppShell currently declares a single ShellContent and shows no tab bar, so they paint
-        nothing today; they are retained so that this dictionary is a strict superset of what
-        it supersedes and adding a second Shell item cannot regress the chrome.
+        The Button / Entry / Editor / Picker styles set no TextColor, BackgroundColor,
+        PlaceholderColor, FontFamily or FontSize. Those belong exclusively to the keyed
+        Dm* styles in Controls.Base.xaml and its derivatives; putting them here too would
+        give the app two sources of truth for the same property. The Label style is the
+        single, deliberate exception — one FontFamily setter, explained where it sits.
+
+        Page and Shell do carry colour tokens. They are app chrome with exactly one
+        instance each and no keyed alternative to defer to, so the invariant is about the
+        control-level styles, not about this file as a whole.
+
+        WHY IT EXISTS — measured, not assumed
+
+        Task 10 deleted the stock MAUI template's Resources/Styles/Styles.xaml. Those
+        stock implicit styles were quietly load-bearing, and removing them without a
+        replacement was a regression twice over:
+
+          1. GEOMETRY. 19 of the app's 21 Button elements carry no Style= at all, and all
+             3 Entry elements are likewise unstyled or only partly styled. They took
+             Padding, CornerRadius and the 44px minimum touch target from the stock
+             styles. MAUI leaves MinimumHeightRequest unset by default, so without this
+             floor they simply shrink. This was measured, not predicted: a pixel diff of
+             the running app against the pre-deletion build showed the DmSearchBar Entry
+             on the dungeon list page dropping from 51px tall to 42px, with everything
+             below it shifting up 9px — and dropping the field under the 44px touch
+             target the Button style is careful to keep.
+
+          2. INTERACTION STATES. The stock Button style also carried a CommonStates group
+             (hover and press opacity). Task 4b measured only padding and min-size and
+             missed it, so the first cut of this file left all 19 unstyled Buttons with no
+             hover or press feedback at all. See the Button style below.
+
+        Editor and Picker get the same minimums even though, today, both are inert: every
+        Editor in the app sets an explicit height, and ObjectPaletteView.xaml.cs sets
+        cb.MinWidth = 0 on the Windows ComboBox behind the one Picker. They are here for
+        consistency — so the next Editor or Picker added to the app gets the same floor
+        every Button and Entry already has, rather than silently getting none.
+
+        THERE IS STILL NO IMPLICIT Border STYLE — and that one is a measured conclusion
+
+        The stock template had one (Stroke Gray200/Gray500, StrokeShape Rectangle,
+        StrokeThickness 1). It is the one case where "deliberately thin" survived contact
+        with measurement. The Task 3 audit walked all 33 real Border elements — the
+        often-quoted 61 counted 28 property elements such as the Shadow and StrokeShape
+        sub-elements as if they were Borders — and found that NONE of them paints the
+        stock grey: 21 set Stroke themselves, 5 receive it from a keyed style or from
+        visual states, and 7 set StrokeThickness to zero. Nothing was lost by dropping it,
+        so every Border states its own intent at the point of use rather than inheriting
+        an outline nobody chose.
+
+        Exactly one Border property was genuinely inherited: AreaSidebarItem.xaml set no
+        StrokeShape and took Rectangle from the stock style. It is re-declared explicitly
+        at AreaSidebarItem.xaml:15.
+
+        THE BoxView QUESTION, ASKED AND ANSWERED: NO LOSS
+
+        The stock BoxView style set BackgroundColor to Gray950/Gray200. Three BoxViews set
+        a semi-transparent Color and no background of their own, which on paper means that
+        grey composited behind them and no longer does:
+
+            NotebookView.xaml:136      Color DmHairlineStrong  (alpha 42%)
+            NotebookView.xaml:268      Color DmHairline        (alpha 28%)
+            FloorSidebarItem.xaml:101  Color DmHairline        (alpha 28%)
+
+        Measured rather than argued: all three were photographed on both sides of the
+        deletion (the notebook with its header and footer rules open, and a floor expanded
+        so FloorSidebarItem's AreaSeparator is visible — it is IsVisible="False" until
+        then). Both screens came out at ZERO differing pixels. MAUI's BoxView paints Color
+        over its full bounds and the inherited BackgroundColor was never reaching a pixel.
+
+        So there is deliberately no implicit BoxView style, and nothing was lost by that.
+        Recorded because the reasoning that predicted a loss is sound and someone will
+        redo it: the answer is that the prediction was checked and did not survive.
+
+        For the record, had the loss been real the fix would NOT have been to restore the
+        grey — that would put stock template colour back into the theme layer, which is
+        the exact thing this refactor removes.
+
+        THE Label DEFAULT
+
+        Exists only so no text falls back to a platform font now that the OpenSans
+        registrations have been removed (Task 10).
+
+        Three Labels genuinely still depend on it, and they are the only text in the app
+        whose font actually changed when the stock styles went. All three are built in
+        code-behind, which is why the Task 3 audit — an XAML sweep — never listed them and
+        Tasks 5-8 never gave them an explicit family:
+
+            ObjectPaletteView.xaml.cs:282     the "···" category expander glyph
+            ObjectPaletteView.xaml.cs:262     single-letter fallback for an object with no image
+            SecondaryPaletteView.xaml.cs:50   the same fallback in the secondary palette
+
+        They rendered in OpenSansRegular by accident and now render in EB Garamond by
+        design, which is the intended destination. The measured effect on the one that is
+        routinely on screen (the "···") is 84 differing pixels: the glyph sits about 2px
+        lower. Left as-is deliberately — inheriting DmFontBody from this style IS the
+        correct answer for them; they are named here so the change is on the record rather
+        than discovered later as a mystery.
+
+        THE Shell STYLE
+
+        Keeps the four TabBar setters carried by the stock style it replaces. AppShell
+        currently declares a single ShellContent and shows no tab bar, so they paint
+        nothing today; they are retained so that this dictionary is a strict superset of
+        what it supersedes and adding a second Shell item cannot regress the chrome.
+        ══════════════════════════════════════════════════════════════════════════════
     -->
 
     <Style TargetType="Label">
@@ -38,8 +134,8 @@
     <!--
         Geometry-only implicit Button style.
 
-        This exists solely so that deleting the stock Button style in
-        Resources/Styles/Styles.xaml (Task 10) is a geometry no-op. The Task 4b
+        This exists solely so that deleting the stock Button style in the now-removed
+        Resources/Styles/Styles.xaml (Task 10) was a geometry no-op. The Task 4b
         measurement walked every Button in the app and found 18 of the 21 rely on
         that stock style for at least one of Padding, MinimumHeightRequest or
         CornerRadius; MAUI leaves MinimumHeightRequest unset by default, so
@@ -62,6 +158,86 @@
         <Setter Property="MinimumWidthRequest" Value="44" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="BorderWidth" Value="0" />
+
+        <!--
+            Interaction states. Opacity is not colour, so this does not breach the rule
+            above: the style still sets no TextColor, BackgroundColor, FontFamily or
+            FontSize. 19 of the app's 21 Buttons carry no Style= and therefore relied on
+            the stock implicit style for hover and press feedback; without this group they
+            would have none at all.
+
+            Normal, PointerOver and Pressed are byte-identical to the stock values (1,
+            0.82, 0.7), so hover and press are unchanged.
+
+            Disabled is deliberately NOT what the stock style did. That state swapped
+            TextColor and BackgroundColor to Gray950/Gray200/Gray600 from the template
+            palette, which was deleted with Resources/Styles/Colors.xaml in Task 10;
+            reinstating it would drag stock template colours back into the theme layer.
+            Opacity 0.45 is used instead because that is what DmButtonBase already applies
+            to its own Disabled state, so styled and unstyled Buttons now agree rather
+            than diverge. Net visible effect: a disabled Button dims instead of turning
+            grey.
+        -->
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.82" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.45" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!--
+        Geometry-only implicit Entry, Editor and Picker styles.
+
+        The two setters on each are copied verbatim from the stock styles they replace
+        (d7caa72:Resources/Styles/Styles.xaml — Editor :111-112, Entry :133-134,
+        Picker :196-197), which set MinimumHeightRequest and MinimumWidthRequest to 44 on
+        all three. Nothing else from those stock styles is carried: TextColor,
+        BackgroundColor, PlaceholderColor, FontFamily, FontSize and the Disabled visual
+        state are all deliberately omitted per the invariant at the top of this file, and
+        every Entry, Editor and Picker in the app already sets its own colour and font.
+
+        Scope, stated precisely because it is easy to get wrong: a MAUI implicit style is
+        ignored outright by any element that carries Style=, so this floor reaches exactly
+        the unstyled Entry / Editor / Picker elements — the same set the stock style
+        reached, and no more. The keyed DmEntryBase / DmEditorBase / DmPickerBase styles
+        set no minimums, so a control opting into one opts out of the floor, precisely as
+        it did before Task 10. That is preserved behaviour, not a gap: CreateDungeonPopup's
+        Entry and Editor never had the 44px minimum in the first place.
+    -->
+    <Style TargetType="Entry">
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+    </Style>
+
+    <Style TargetType="Editor">
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+    </Style>
+
+    <Style TargetType="Picker">
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
     </Style>
 
     <Style TargetType="Page" ApplyToDerivedTypes="True">

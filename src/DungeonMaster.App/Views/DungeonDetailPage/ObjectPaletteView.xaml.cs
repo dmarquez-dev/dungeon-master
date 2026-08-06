@@ -1,5 +1,6 @@
 using DungeonMaster.App.Assets.ObjectAssets;
 using DungeonMaster.App.Behaviors;
+using DungeonMaster.App.Theme;
 using DungeonMaster.Domain.Entities.Floor;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
@@ -29,7 +30,7 @@ public partial class ObjectPaletteView : ContentView
         // Apply parchment theme overrides to platform-native controls.
         // Windows: RequestedTheme + ResourceDictionary injection on the WinUI ComboBox/ScrollViewer.
         // macCatalyst: The Picker maps to a UIPickerView/UITextField. Colours set in XAML
-        //   (BackgroundColor="#C8AC78", TextColor="#5C3E10") are sufficient for the control itself.
+        //   (DmSurfaceToolChip background, DmTextToolPanel text) are sufficient for the control itself.
         //   The ScrollViewer gold-thumb override lives in Windows App.xaml only; on macCatalyst the
         //   default scroll-indicator style (dark-on-light) is acceptable against the parchment surface.
         // TODO(macOS): If the macCatalyst Picker popup (UIPickerView) appears illegible, add a
@@ -57,11 +58,11 @@ public partial class ObjectPaletteView : ContentView
             cb.BorderThickness = new Microsoft.UI.Xaml.Thickness(1);
             cb.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch;
             cb.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromArgb(255, 154, 120, 32));  // #9A7820
+                DmColors.ToPlatform(DmColors.BorderToolChip));
             cb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromArgb(255, 200, 172, 120)); // #C8AC78
+                DmColors.ToPlatform(DmColors.SurfaceToolChip));
             cb.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                Windows.UI.Color.FromArgb(255, 92, 62, 16));    // #5C3E10
+                DmColors.ToPlatform(DmColors.TextToolPanel));
 
             // Build a fresh parchment ResourceDictionary and attach it at the control level
             // so the dropdown popup (isolated visual tree) picks it up via ThemeResource lookup.
@@ -69,12 +70,12 @@ public partial class ObjectPaletteView : ContentView
             {
                 try
                 {
-                    var border  = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 154, 120,  32));
-                    var bg      = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 200, 172, 120));
-                    var popup   = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 237, 216, 160));
-                    var text    = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255,  92,  62,  16));
-                    var hover   = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 214, 190, 130));
-                    var pressed = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 184, 154,  96));
+                    var border  = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.BorderToolChip));
+                    var bg      = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceToolChip));
+                    var popup   = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceToolPanel));
+                    var text    = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.TextToolPanel));
+                    var hover   = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceComboItemHover));
+                    var pressed = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceComboItemPressed));
                     var transp  = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
                     var d = new Microsoft.UI.Xaml.ResourceDictionary();
@@ -204,7 +205,7 @@ public partial class ObjectPaletteView : ContentView
             Text = categoryName.ToUpperInvariant(),
             FontFamily = "EBGaramondRegular",
             FontSize = 13,
-            TextColor = Color.FromArgb("#5C3E10"),
+            TextColor = DmColors.TextToolPanel,
             CharacterSpacing = 0.5
         };
 
@@ -238,8 +239,8 @@ public partial class ObjectPaletteView : ContentView
             WidthRequest = 48,
             HeightRequest = 48,
             Padding = 0,
-            BackgroundColor = Color.FromArgb("#C8AC78"),
-            Stroke = new SolidColorBrush(Color.FromArgb("#9A7820")),
+            BackgroundColor = DmColors.SurfaceToolChip,
+            Stroke = new SolidColorBrush(DmColors.BorderToolChip),
             StrokeThickness = 1,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 }
         };
@@ -262,7 +263,7 @@ public partial class ObjectPaletteView : ContentView
             {
                 Text = displayName.Length > 0 ? displayName[..1] : "?",
                 FontSize = 11,
-                TextColor = Color.FromArgb("#2C1A08"),
+                TextColor = DmColors.TextParchment,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
             };
@@ -282,7 +283,7 @@ public partial class ObjectPaletteView : ContentView
         {
             Text = "···",
             FontSize = 18,
-            TextColor = Color.FromArgb("#7A5030"),
+            TextColor = DmColors.InkMuted,
             HorizontalOptions = LayoutOptions.Center,
             VerticalOptions = LayoutOptions.Center
         };
@@ -292,8 +293,8 @@ public partial class ObjectPaletteView : ContentView
             WidthRequest = 48,
             HeightRequest = 48,
             Padding = 0,
-            BackgroundColor = Color.FromArgb("#C8AC78"),
-            Stroke = new SolidColorBrush(Color.FromArgb("#9A7820")),
+            BackgroundColor = DmColors.SurfaceToolChip,
+            Stroke = new SolidColorBrush(DmColors.BorderToolChip),
             StrokeThickness = 1,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 },
             Content = label
@@ -307,10 +308,10 @@ public partial class ObjectPaletteView : ContentView
         return border;
     }
 
-    private static readonly Color ThumbNormal = Color.FromArgb("#C8AC78");
-    private static readonly Color ThumbHover   = Color.FromArgb("#E8CC9A");
-    private static readonly SolidColorBrush ThumbStrokeNormal = new(Color.FromArgb("#9A7820"));
-    private static readonly SolidColorBrush ThumbStrokeHover  = new(Color.FromArgb("#C8A040"));
+    private static readonly Color ThumbNormal = DmColors.SurfaceToolChip;
+    private static readonly Color ThumbHover   = DmColors.SurfaceToolChipHover;
+    private static readonly SolidColorBrush ThumbStrokeNormal = new(DmColors.BorderToolChip);
+    private static readonly SolidColorBrush ThumbStrokeHover  = new(DmColors.Gold);
 
     private static void AttachThumbHover(Border border)
     {

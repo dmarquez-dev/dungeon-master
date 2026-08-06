@@ -89,6 +89,30 @@ public static class DmColors
 	/// <summary>Tool-palette chip border — normal state. Mirrors the DmBorderToolChip token.</summary>
 	public static readonly Color BorderToolChip = Color.FromArgb("#9A7820");
 
+	/// <summary>Tool-palette panel surface. Mirrors the DmSurfaceToolPanel token.</summary>
+	public static readonly Color SurfaceToolPanel = Color.FromArgb("#EDD8A0");
+
+	/// <summary>Text on a tool-panel surface. Mirrors the DmTextToolPanel token.</summary>
+	public static readonly Color TextToolPanel = Color.FromArgb("#5C3E10");
+
+	/// <summary>WinUI scrollbar thumb fill. Mirrors the DmScrollbarThumb token.</summary>
+	public static readonly Color ScrollbarThumb = Color.FromArgb("#664a3820");
+
+	/// <summary>WinUI scrollbar thumb fill — disabled state. Mirrors the DmScrollbarThumbDisabled token.</summary>
+	public static readonly Color ScrollbarThumbDisabled = Color.FromArgb("#332a2010");
+
+	/// <summary>WinUI text selection highlight. Mirrors the DmTextSelection token.</summary>
+	public static readonly Color TextSelection = Color.FromArgb("#664a3820");
+
+	/// <summary>WinUI combo item surface — hover state. Mirrors the DmSurfaceComboItemHover token.</summary>
+	public static readonly Color SurfaceComboItemHover = Color.FromArgb("#D6BE82");
+
+	/// <summary>WinUI combo item surface — pressed state. Mirrors the DmSurfaceComboItemPressed token.</summary>
+	public static readonly Color SurfaceComboItemPressed = Color.FromArgb("#B89A60");
+
+	/// <summary>WinUI combo item text — disabled state. Mirrors the DmTextComboItemDisabled token.</summary>
+	public static readonly Color TextComboItemDisabled = Color.FromArgb("#9A8060");
+
 	/// <summary>Object action popup button wash — gold hover. Mirrors the DmPopupButtonHover token.</summary>
 	public static readonly Color PopupButtonHover = Color.FromArgb("#33C8A040");
 
@@ -118,4 +142,24 @@ public static class DmColors
 
 	/// <summary>Map canvas — stand-in rendering for an object with no drawable image: the "?" fallback glyph/outline and the dashed ghost-placement outline. Shares its value with <see cref="MapArea"/> and the UI golds today, but is deliberately separate because these are object-placeholder renderings, not area outlines or UI affordances, and a restyle may want to move them apart.</summary>
 	public static readonly Color MapObjectPlaceholder = Color.FromArgb("#C8A040");
+
+#if WINDOWS
+	/// <summary>
+	///		Converts a MAUI colour to the WinUI colour type used by native resource dictionaries.
+	/// </summary>
+	/// <param name="color">
+	///		The MAUI colour to convert.
+	/// </param>
+	/// <returns>
+	///		The equivalent <see cref="Windows.UI.Color"/>.
+	/// </returns>
+	public static Windows.UI.Color ToPlatform(Color color)
+	{
+		return Windows.UI.Color.FromArgb(
+			(byte)(color.Alpha * 255),
+			(byte)(color.Red * 255),
+			(byte)(color.Green * 255),
+			(byte)(color.Blue * 255));
+	}
+#endif
 }
