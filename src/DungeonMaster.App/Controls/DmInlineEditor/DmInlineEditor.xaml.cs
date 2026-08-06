@@ -72,7 +72,7 @@ public partial class DmInlineEditor : ContentView
 			nameof(TextColor),
 			typeof(Color),
 			typeof(DmInlineEditor),
-			Color.FromArgb("#F5E4B0"),
+			DmColors.TextTavern,
 			propertyChanged: (bindable, _, _) =>
 			{
 				var self = (DmInlineEditor)bindable;
@@ -88,7 +88,7 @@ public partial class DmInlineEditor : ContentView
 			nameof(PlaceholderColor),
 			typeof(Color),
 			typeof(DmInlineEditor),
-			Color.FromArgb("#A08050"),
+			DmColors.GoldMuted,
 			propertyChanged: (bindable, _, _) =>
 			{
 				var self = (DmInlineEditor)bindable;
@@ -316,7 +316,7 @@ public partial class DmInlineEditor : ContentView
 	{
 		if (!_isEditing)
 		{
-			var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
+			var gold = (Color)MauiApplication.Current!.Resources["DmAccentGoldLight"];
 			FocusBorder.Stroke = gold;
 			FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
 #if !WINDOWS
@@ -344,7 +344,7 @@ public partial class DmInlineEditor : ContentView
 		_isEditing = true;
 		_suppressUnfocusCommit = false;
 		EditingStarted?.Invoke(this, EventArgs.Empty);
-		var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
+		var gold = (Color)MauiApplication.Current!.Resources["DmAccentGoldLight"];
 		FocusBorder.Stroke = gold;
 		FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
 #if !WINDOWS

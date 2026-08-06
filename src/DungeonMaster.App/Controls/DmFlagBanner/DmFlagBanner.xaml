@@ -13,12 +13,12 @@
         <BoxView CornerRadius="0">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                    <GradientStop Color="{StaticResource DMBackground}" Offset="0.0" />
-                    <GradientStop Color="{StaticResource DMBannerEdge}" Offset="0.06" />
-                    <GradientStop Color="{StaticResource DMBannerCenter}" Offset="0.35" />
-                    <GradientStop Color="{StaticResource DMBannerCenter}" Offset="0.65" />
-                    <GradientStop Color="{StaticResource DMBannerEdge}" Offset="0.94" />
-                    <GradientStop Color="{StaticResource DMBackground}" Offset="1.0" />
+                    <GradientStop Color="{StaticResource DmSurfaceTavern}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource DmBannerEdge}" Offset="0.06" />
+                    <GradientStop Color="{StaticResource DmBannerCenter}" Offset="0.35" />
+                    <GradientStop Color="{StaticResource DmBannerCenter}" Offset="0.65" />
+                    <GradientStop Color="{StaticResource DmBannerEdge}" Offset="0.94" />
+                    <GradientStop Color="{StaticResource DmSurfaceTavern}" Offset="1.0" />
                 </LinearGradientBrush>
             </BoxView.Background>
         </BoxView>
@@ -29,10 +29,10 @@
             Text="{Binding Title, Source={x:Reference Root}}"
             HorizontalOptions="Center"
             VerticalOptions="Center"
-            FontFamily="CinzelDecorative"
-            FontSize="24"
+            FontFamily="{StaticResource DmFontTitleDecorative}"
+            FontSize="{StaticResource DmFontSizeBanner}"
             CharacterSpacing="2"
-            TextColor="{StaticResource DMTextPrimary}" />
+            TextColor="{StaticResource DmTextTavern}" />
 
         <!-- Inline editor (shown when IsTitleEditable=True) -->
         <controls:DmInlineEditor
@@ -41,8 +41,8 @@
             HorizontalOptions="Fill"
             VerticalOptions="Center"
             Margin="24,0"
-            FontFamily="CinzelDecorative"
-            FontSize="24"
+            FontFamily="{StaticResource DmFontTitleDecorative}"
+            FontSize="{StaticResource DmFontSizeBanner}"
             TextHorizontalAlignment="Center"
             AcceptsReturn="False"
             TextCommitted="OnTitleCommitted" />

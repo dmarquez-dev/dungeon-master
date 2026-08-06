@@ -13,8 +13,8 @@
 
     <Border
         StrokeShape="RoundRectangle 4"
-        Stroke="{StaticResource DMScrollBorderBrush}"
-        StrokeThickness="2">
+        Stroke="{StaticResource DmBorderParchmentBrush}"
+        StrokeThickness="{StaticResource DmStrokeEmphasis}">
 
         <!--
             The notebook floats over the floor plan, so the shadow is what separates the two.
@@ -31,8 +31,8 @@
 
         <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0.6,1">
-                <GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />
-                <GradientStop Color="{StaticResource DMParchmentDark}" Offset="1.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchment}" Offset="0.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchmentDeep}" Offset="1.0" />
             </LinearGradientBrush>
         </Border.Background>
 
@@ -52,8 +52,8 @@
 
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Grid.Background>
 
@@ -67,9 +67,9 @@
                 <Label
                     Grid.Column="0"
                     Text="&#xEA8F;"
-                    FontFamily="RpgAwesome"
-                    FontSize="18"
-                    TextColor="{StaticResource DMInk}"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeLarge}"
+                    TextColor="{StaticResource DmTextParchment}"
                     VerticalOptions="Center" />
 
                 <!-- Entity name — edited in place, committed on unfocus -->
@@ -77,10 +77,10 @@
                     x:Name="NameEditor"
                     Grid.Column="1"
                     AcceptsReturn="False"
-                    FontFamily="CinzelSemiBold"
-                    FontSize="18"
-                    TextColor="{StaticResource DMInk}"
-                    PlaceholderColor="{StaticResource DMInkMuted}"
+                    FontFamily="{StaticResource DmFontTitleStrong}"
+                    FontSize="{StaticResource DmFontSizeHeading}"
+                    TextColor="{StaticResource DmTextParchment}"
+                    PlaceholderColor="{StaticResource DmTextParchmentMuted}"
                     Placeholder="Untitled"
                     VerticalOptions="Center"
                     TextCommitted="OnNameCommitted" />
@@ -92,18 +92,18 @@
                 <Border
                     Grid.Column="2"
                     StrokeShape="RoundRectangle 2"
-                    Stroke="{StaticResource DMInk}"
-                    StrokeThickness="1"
+                    Stroke="{StaticResource DmTextParchment}"
+                    StrokeThickness="{StaticResource DmStrokeHairline}"
                     BackgroundColor="Transparent"
                     Padding="5,2"
                     Opacity="0.6"
                     VerticalOptions="Center">
                     <Label
                         x:Name="KindLabel"
-                        FontFamily="CinzelRegular"
-                        FontSize="9"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeMicro}"
                         CharacterSpacing="1.6"
-                        TextColor="{StaticResource DMInk}" />
+                        TextColor="{StaticResource DmTextParchment}" />
                 </Border>
 
                 <!-- Close -->
@@ -111,9 +111,10 @@
                     x:Name="CloseButton"
                     Grid.Column="3"
                     Text="&#x2715;"
-                    FontSize="13"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeSmall}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource DMInkMuted}"
+                    TextColor="{StaticResource DmTextParchmentMuted}"
                     Padding="5,3"
                     CornerRadius="2"
                     HeightRequest="24"
@@ -135,7 +136,7 @@
                 <BoxView
                     Grid.Column="0"
                     Grid.ColumnSpan="4"
-                    Color="#6B8B5E1A"
+                    Color="{StaticResource DmHairlineStrong}"
                     HeightRequest="1"
                     Margin="-12,0,-10,-9"
                     VerticalOptions="End" />
@@ -168,10 +169,10 @@
                     </Border.Behaviors>
                     <Label
                         Text="Read aloud"
-                        FontFamily="CinzelRegular"
-                        FontSize="10"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeMicro}"
                         CharacterSpacing="1.5"
-                        TextColor="{StaticResource DMRibbonText}"
+                        TextColor="{StaticResource DmRibbonText}"
                         VerticalOptions="Center" />
                 </Border>
 
@@ -194,13 +195,17 @@
                     <Label VerticalOptions="Center">
                         <Label.FormattedText>
                             <FormattedString>
-                                <Span Text="&#x25CF; " FontSize="10" TextColor="#E8B4B4" />
+                                <Span
+                                    Text="&#x25CF; "
+                                    FontFamily="{StaticResource DmFontBody}"
+                                    FontSize="{StaticResource DmFontSizeMicro}"
+                                    TextColor="{StaticResource DmRibbonSeal}" />
                                 <Span
                                     Text="DM only"
-                                    FontFamily="CinzelRegular"
-                                    FontSize="10"
+                                    FontFamily="{StaticResource DmFontTitle}"
+                                    FontSize="{StaticResource DmFontSizeMicro}"
                                     CharacterSpacing="1.5"
-                                    TextColor="{StaticResource DMRibbonText}" />
+                                    TextColor="{StaticResource DmRibbonText}" />
                             </FormattedString>
                         </Label.FormattedText>
                     </Label>
@@ -217,10 +222,10 @@
                     AutoSize="TextChanges"
                     MinimumHeightRequest="150"
                     BackgroundColor="Transparent"
-                    FontFamily="EBGaramondItalic"
-                    FontSize="17"
-                    TextColor="#3A2410"
-                    PlaceholderColor="#8C7A5030"
+                    FontFamily="{StaticResource DmFontBodyItalic}"
+                    FontSize="{StaticResource DmFontSizeBody}"
+                    TextColor="{StaticResource DmTextNotebook}"
+                    PlaceholderColor="{StaticResource DmTextPlaceholder}"
                     Placeholder="What the party sees when they walk in&#8230;"
                     TextChanged="OnEditorTextChanged"
                     Unfocused="OnEditorUnfocused">
@@ -235,10 +240,10 @@
                     AutoSize="TextChanges"
                     MinimumHeightRequest="150"
                     BackgroundColor="Transparent"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="17"
-                    TextColor="{StaticResource DMInk}"
-                    PlaceholderColor="#8C7A5030"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmFontSizeBody}"
+                    TextColor="{StaticResource DmTextParchment}"
+                    PlaceholderColor="{StaticResource DmTextPlaceholder}"
                     Placeholder="Secrets, stat blocks, and things the party must not hear&#8230;"
                     IsVisible="False"
                     TextChanged="OnEditorTextChanged"
@@ -263,7 +268,7 @@
                 <BoxView
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
-                    Color="#478B5E1A"
+                    Color="{StaticResource DmHairline}"
                     HeightRequest="1"
                     Margin="-14,-7,-14,0"
                     VerticalOptions="Start" />
@@ -271,17 +276,17 @@
                 <Label
                     Grid.Column="0"
                     Text="Saves as you write."
-                    FontFamily="EBGaramondItalic"
-                    FontSize="14"
-                    TextColor="{StaticResource DMInkMuted}"
+                    FontFamily="{StaticResource DmFontBodyItalic}"
+                    FontSize="{StaticResource DmFontSizeCaption}"
+                    TextColor="{StaticResource DmTextParchmentMuted}"
                     VerticalOptions="Center" />
 
                 <Label
                     x:Name="SaveStateLabel"
                     Grid.Column="1"
                     Text="SAVED"
-                    FontFamily="CinzelRegular"
-                    FontSize="10"
+                    FontFamily="{StaticResource DmFontTitle}"
+                    FontSize="{StaticResource DmFontSizeMicro}"
                     CharacterSpacing="1.4"
                     HorizontalTextAlignment="End"
                     VerticalOptions="Center" />
@@ -292,8 +297,8 @@
             <BoxView Grid.Row="4" HeightRequest="5">
                 <BoxView.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="1.0" />
                     </LinearGradientBrush>
                 </BoxView.Background>
             </BoxView>

@@ -1,3 +1,4 @@
+using DungeonMaster.App.Theme;
 using MauiApplication = Microsoft.Maui.Controls.Application;
 
 namespace DungeonMaster.App.Controls;
@@ -98,15 +99,15 @@ public partial class NotebookView : ContentView
 	private const float SelectedFoldFactor = 0.72f;
 	private const float UnselectedFoldFactor = 0.78f;
 
-	// The save stamp's two states. Green is not a themed token — it exists only here,
-	// where "committed" needs to read as reassuring rather than as an action to take.
-	private static readonly Color SavedColor = Color.FromArgb("#4A6A2A");
-	private static readonly Color UnsavedColor = Color.FromArgb("#8B2020");
+	// The save stamp's two states. The green is deliberately DmSavedStamp rather than
+	// DmConfirm: here "committed" needs to read as reassuring rather than as an action to take.
+	private static readonly Color SavedColor = DmColors.SavedStamp;
+	private static readonly Color UnsavedColor = DmColors.Destructive;
 
 	// Close button hover: destructive red on a faint red wash, matching every other icon button.
-	private static readonly Color CloseHoverText = Color.FromArgb("#8B2020");
-	private static readonly Color CloseHoverBackground = Color.FromArgb("#248B2020");
-	private static readonly Color CloseRestText = Color.FromArgb("#7A5030");
+	private static readonly Color CloseHoverText = DmColors.Destructive;
+	private static readonly Color CloseHoverBackground = DmColors.DestructiveHoverSurface;
+	private static readonly Color CloseRestText = DmColors.InkMuted;
 
 	/// <summary>
 	///		Raised when the notebook has committed an edit and the host should persist it.

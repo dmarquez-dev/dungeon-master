@@ -8,18 +8,18 @@
     <Border
         x:Name="SearchBorder"
         StrokeShape="RoundRectangle 4"
-        StrokeThickness="1"
-        Stroke="{StaticResource DMCardBorderBrush}"
-        BackgroundColor="{StaticResource DMCardSurface}"
+        StrokeThickness="{StaticResource DmStrokeHairline}"
+        Stroke="{StaticResource DmBorderTavernBrush}"
+        BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
         Padding="10,4">
         <Entry
             Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay}"
             Placeholder="Search dungeons..."
-            PlaceholderColor="{StaticResource DMTextMuted}"
-            TextColor="{StaticResource DMTextPrimary}"
+            PlaceholderColor="{StaticResource DmTextTavernMuted}"
+            TextColor="{StaticResource DmTextTavern}"
             BackgroundColor="Transparent"
-            FontFamily="EBGaramondRegular"
-            FontSize="18"
+            FontFamily="{StaticResource DmFontBody}"
+            FontSize="{StaticResource DmFontSizeBody}"
             Focused="OnSearchFocused"
             Unfocused="OnSearchUnfocused" />
     </Border>

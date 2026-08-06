@@ -10,9 +10,9 @@
     <Border
         x:Name="FloorBorder"
         StrokeShape="RoundRectangle 3"
-        StrokeThickness="1"
-        Stroke="{StaticResource DMCardBorderBrush}"
-        BackgroundColor="{StaticResource DMCardSurface}"
+        StrokeThickness="{StaticResource DmStrokeHairline}"
+        Stroke="{StaticResource DmBorderTavernBrush}"
+        BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
         Padding="8,6"
         Margin="0,0,0,4">
 
@@ -29,8 +29,9 @@
                     x:Name="ExpandToggle"
                     Grid.Column="0"
                     Text="&#x25B8;"
-                    FontSize="14"
-                    TextColor="{StaticResource DMTextMuted}"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeSmall}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
                     VerticalOptions="Center" />
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
@@ -38,9 +39,9 @@
                 <Label
                     x:Name="FloorNameLabel"
                     Grid.Column="1"
-                    FontFamily="CinzelSemiBold"
-                    FontSize="16"
-                    TextColor="{StaticResource DMScrollGoldLight}"
+                    FontFamily="{StaticResource DmFontTitleStrong}"
+                    FontSize="{StaticResource DmFontSizeSubheading}"
+                    TextColor="{StaticResource DmAccentGoldLight}"
                     Margin="0,0,6,0"
                     VerticalOptions="Center" />
 
@@ -49,10 +50,10 @@
                     x:Name="NotebookButton"
                     Grid.Column="2"
                     Text="&#xEA8F;"
-                    FontFamily="RpgAwesome"
-                    FontSize="16"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeMedium}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource DMInkMuted}"
+                    TextColor="{StaticResource DmTextParchmentMuted}"
                     Padding="4,2"
                     CornerRadius="2"
                     Clicked="OnNotebookClicked"
@@ -67,10 +68,10 @@
                     x:Name="DeleteButton"
                     Grid.Column="3"
                     Text="&#xE9FC;"
-                    FontFamily="RpgAwesome"
-                    FontSize="16"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeMedium}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource DMDestructive}"
+                    TextColor="{StaticResource DmDestructive}"
                     Padding="4,2"
                     CornerRadius="2"
                     Clicked="OnDeleteClicked"
@@ -85,8 +86,9 @@
                     x:Name="DragHandle"
                     Grid.Column="4"
                     Text="&#x22EE;"
-                    FontSize="18"
-                    TextColor="{StaticResource DMTextMuted}"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeLarge}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
                     VerticalOptions="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDragHandleTapped" />
@@ -99,7 +101,7 @@
             <BoxView
                 x:Name="AreaSeparator"
                 IsVisible="False"
-                Color="#478B5E1A"
+                Color="{StaticResource DmHairline}"
                 HeightRequest="1" />
 
             <!-- Expanded area list -->
@@ -113,9 +115,9 @@
             <Button
                 x:Name="AddAreaButton"
                 Text="+ Add area"
-                FontFamily="EBGaramondRegular"
-                FontSize="16"
-                TextColor="{StaticResource DMScrollGoldLight}"
+                FontFamily="{StaticResource DmFontBody}"
+                FontSize="{StaticResource DmFontSizeBodySmall}"
+                TextColor="{StaticResource DmAccentGoldLight}"
                 BackgroundColor="Transparent"
                 Padding="8,2"
                 HorizontalOptions="Start"

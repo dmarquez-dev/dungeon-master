@@ -34,19 +34,6 @@ public class ThemeHygieneTests
     /// </summary>
     private static readonly HashSet<string> PendingMigration = new(StringComparer.OrdinalIgnoreCase)
     {
-        // Task 5 — Controls
-        @"Controls\AreaSidebarItem\AreaSidebarItem.xaml",
-        @"Controls\DmCard\DmCard.xaml",
-        @"Controls\DmConfirmPopup\DmConfirmPopup.xaml",
-        @"Controls\DmDivider\DmDivider.xaml",
-        @"Controls\DmFlagBanner\DmFlagBanner.xaml",
-        @"Controls\DmInlineEditor\DmInlineEditor.xaml.cs",
-        @"Controls\DmPopup\DmPopup.xaml",
-        @"Controls\DmSearchBar\DmSearchBar.xaml",
-        @"Controls\FloorSidebarItem\FloorSidebarItem.xaml",
-        @"Controls\NotebookView\NotebookView.xaml",
-        @"Controls\NotebookView\NotebookView.xaml.cs",
-
         // Task 6 — CreateDungeonPopup
         @"Views\CreateDungeonPopup\CreateDungeonPopup.xaml",
 

@@ -13,7 +13,7 @@
         x:Name="FocusBorder"
         Stroke="Transparent"
         StrokeShape="RoundRectangle 3"
-        StrokeThickness="1"
+        StrokeThickness="{StaticResource DmStrokeHairline}"
         Padding="2,1">
         <Border.GestureRecognizers>
             <PointerGestureRecognizer

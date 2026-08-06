@@ -7,14 +7,14 @@
 
     <Border
         StrokeShape="RoundRectangle 4"
-        Stroke="{StaticResource DMScrollBorderBrush}"
-        StrokeThickness="2"
+        Stroke="{StaticResource DmBorderParchmentBrush}"
+        StrokeThickness="{StaticResource DmStrokeEmphasis}"
         MinimumWidthRequest="300"
         MaximumWidthRequest="420">
         <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />
-                <GradientStop Color="{StaticResource DMParchmentDark}" Offset="1.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchment}" Offset="0.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchmentDeep}" Offset="1.0" />
             </LinearGradientBrush>
         </Border.Background>
 
@@ -24,15 +24,15 @@
             <Grid Grid.Row="0" Padding="14,10">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Grid.Background>
                 <Label
                     Text="{Binding Title, Source={x:Reference Root}}"
-                    FontFamily="CinzelDecorative"
-                    FontSize="20"
-                    TextColor="{StaticResource DMInk}"
+                    FontFamily="{StaticResource DmFontTitleDecorative}"
+                    FontSize="{StaticResource DmFontSizeTitle}"
+                    TextColor="{StaticResource DmTextParchment}"
                     HorizontalOptions="Center"
                     VerticalOptions="Center" />
             </Grid>
@@ -44,8 +44,8 @@
             <BoxView Grid.Row="2" HeightRequest="5">
                 <BoxView.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="1.0" />
                     </LinearGradientBrush>
                 </BoxView.Background>
             </BoxView>

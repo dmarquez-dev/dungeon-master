@@ -37,11 +37,11 @@ public partial class DmSearchBar : ContentView
 
 	private void OnSearchFocused(object? sender, FocusEventArgs e)
 	{
-		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DMCardBorderHoverBrush"];
+		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DmBorderTavernHoverBrush"];
 	}
 
 	private void OnSearchUnfocused(object? sender, FocusEventArgs e)
 	{
-		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DMCardBorderBrush"];
+		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DmBorderTavernBrush"];
 	}
 }

@@ -11,7 +11,7 @@
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="Transparent" Offset="0.0" />
-                    <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                    <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="1.0" />
                 </LinearGradientBrush>
             </BoxView.Background>
         </BoxView>
@@ -19,15 +19,15 @@
         <Label
             Grid.Column="1"
             Text="&#xEAD4;"
-            FontFamily="RpgAwesome"
+            FontFamily="{StaticResource DmFontIcon}"
             FontSize="{Binding IconFontSize, Source={x:Reference Root}}"
-            TextColor="{StaticResource DMScrollGoldLight}"
+            TextColor="{StaticResource DmAccentGoldLight}"
             VerticalOptions="Center" />
 
         <BoxView Grid.Column="2" HeightRequest="1" VerticalOptions="Center">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
                     <GradientStop Color="Transparent" Offset="1.0" />
                 </LinearGradientBrush>
             </BoxView.Background>

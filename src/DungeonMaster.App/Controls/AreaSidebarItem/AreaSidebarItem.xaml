@@ -12,6 +12,7 @@
         BackgroundColor="Transparent"
         Stroke="Transparent"
         StrokeThickness="0"
+        StrokeShape="Rectangle"
         Padding="4,3">
 
         <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
@@ -19,8 +20,9 @@
             <!-- Diamond bullet -->
             <Label Grid.Column="0"
                    Text="&#x25C6;"
-                   FontSize="12"
-                   TextColor="{StaticResource DMTextMuted}"
+                   FontFamily="{StaticResource DmFontIcon}"
+                   FontSize="{StaticResource DmIconSizeTiny}"
+                   TextColor="{StaticResource DmTextTavernMuted}"
                    VerticalOptions="Center" />
 
             <!-- Area name (display only — edited via toolbar). Right margin keeps the name clear
@@ -28,9 +30,9 @@
             <Label
                 x:Name="AreaNameLabel"
                 Grid.Column="1"
-                FontFamily="EBGaramondRegular"
-                FontSize="17"
-                TextColor="{StaticResource DMScrollGoldLight}"
+                FontFamily="{StaticResource DmFontBody}"
+                FontSize="{StaticResource DmFontSizeBody}"
+                TextColor="{StaticResource DmAccentGoldLight}"
                 Margin="0,0,6,0"
                 VerticalOptions="Center" />
 
@@ -39,10 +41,10 @@
                 x:Name="NotebookButton"
                 Grid.Column="2"
                 Text="&#xEA8F;"
-                FontFamily="RpgAwesome"
-                FontSize="14"
+                FontFamily="{StaticResource DmFontIcon}"
+                FontSize="{StaticResource DmIconSizeSmall}"
                 BackgroundColor="Transparent"
-                TextColor="{StaticResource DMInkMuted}"
+                TextColor="{StaticResource DmTextParchmentMuted}"
                 Padding="4,0"
                 CornerRadius="2"
                 Clicked="OnNotebookClicked"
@@ -57,10 +59,10 @@
                 x:Name="DeleteButton"
                 Grid.Column="3"
                 Text="&#xE9FC;"
-                FontFamily="RpgAwesome"
-                FontSize="14"
+                FontFamily="{StaticResource DmFontIcon}"
+                FontSize="{StaticResource DmIconSizeSmall}"
                 BackgroundColor="Transparent"
-                TextColor="{StaticResource DMDestructive}"
+                TextColor="{StaticResource DmDestructive}"
                 Padding="4,0"
                 CornerRadius="2"
                 Clicked="OnDeleteClicked"

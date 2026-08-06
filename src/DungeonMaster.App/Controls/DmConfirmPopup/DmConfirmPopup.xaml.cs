@@ -42,13 +42,13 @@ public partial class DmConfirmPopup : Popup<bool>
 
 		if (isDestructive)
 		{
-			ConfirmButton.BackgroundColor = (Color)MauiApplication.Current!.Resources["DMDestructive"];
-			ConfirmButton.TextColor = (Color)MauiApplication.Current!.Resources["DMDestructiveText"];
+			ConfirmButton.BackgroundColor = (Color)MauiApplication.Current!.Resources["DmDestructive"];
+			ConfirmButton.TextColor = (Color)MauiApplication.Current!.Resources["DmDestructiveText"];
 		}
 		else
 		{
-			ConfirmButton.BackgroundColor = (Color)MauiApplication.Current!.Resources["DMConfirm"];
-			ConfirmButton.TextColor = (Color)MauiApplication.Current!.Resources["DMConfirmText"];
+			ConfirmButton.BackgroundColor = (Color)MauiApplication.Current!.Resources["DmConfirm"];
+			ConfirmButton.TextColor = (Color)MauiApplication.Current!.Resources["DmConfirmText"];
 		}
 	}
 

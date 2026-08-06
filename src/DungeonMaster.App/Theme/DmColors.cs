@@ -64,4 +64,16 @@ public static class DmColors
 
 	/// <summary>Notebook icon — muted when the entity has no authored content.</summary>
 	public static readonly Color InkMuted = Color.FromArgb("#7A5030");
+
+	/// <summary>Dark-tavern primary text gold. Mirrors the DmTextTavern token.</summary>
+	public static readonly Color TextTavern = Color.FromArgb("#F5E4B0");
+
+	/// <summary>Destructive action red. Mirrors the DmDestructive token.</summary>
+	public static readonly Color Destructive = Color.FromArgb("#8B2020");
+
+	/// <summary>Faint red wash behind a hovered destructive icon button. Mirrors the DmDestructiveHoverSurface token.</summary>
+	public static readonly Color DestructiveHoverSurface = Color.FromArgb("#248B2020");
+
+	/// <summary>The notebook's "saved" stamp green. Mirrors the DmSavedStamp token.</summary>
+	public static readonly Color SavedStamp = Color.FromArgb("#4A6A2A");
 }
