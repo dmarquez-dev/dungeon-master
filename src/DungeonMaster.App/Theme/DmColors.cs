@@ -100,4 +100,19 @@ public static class DmColors
 
 	/// <summary>Object action popup button wash — destructive pressed. Mirrors the DmPopupButtonDestructivePressed token.</summary>
 	public static readonly Color PopupButtonDestructivePressed = Color.FromArgb("#66CC3030");
+
+	/// <summary>Map canvas — grid line colour.</summary>
+	public static readonly Color MapGrid = Color.FromArgb("#1AC4862A");
+
+	/// <summary>Map canvas — committed area outline colour. Shares its value with <see cref="Gold"/> and <see cref="ScrollGoldLight"/> today, but is deliberately a separate member: the map's area colour and the UI accent gold are independent design decisions that a future restyle may want to move apart.</summary>
+	public static readonly Color MapArea = Color.FromArgb("#C8A040");
+
+	/// <summary>Map canvas — outline vertex handle colour.</summary>
+	public static readonly Color MapVertex = Color.FromArgb("#F5E4B0");
+
+	/// <summary>Map canvas — fill of the area currently being drawn.</summary>
+	public static readonly Color MapAreaFillActive = Color.FromArgb("#40C8A040");
+
+	/// <summary>Map canvas — stroke of the area currently being drawn.</summary>
+	public static readonly Color MapAreaStrokeActive = Color.FromArgb("#90C8A040");
 }

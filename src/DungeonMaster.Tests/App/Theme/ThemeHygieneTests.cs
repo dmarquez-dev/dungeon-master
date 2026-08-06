@@ -70,9 +70,6 @@ public class ThemeHygieneTests
         // with those five literals still live. They are a follow-up, not a leftover.
         // ─────────────────────────────────────────────────────────────────────────────
 
-        // Task 9 — FloorMapDrawable
-        @"Graphics\FloorMapDrawable.cs",
-
         // Task 10 — WinUI interop and stock dictionary removal
         @"Platforms\Windows\App.xaml",
         @"Views\DungeonDetailPage\ObjectPaletteView.xaml.cs",

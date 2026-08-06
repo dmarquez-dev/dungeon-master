@@ -1,4 +1,5 @@
 using DungeonMaster.App.Assets.ObjectAssets;
+using DungeonMaster.App.Theme;
 using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Floor;
@@ -15,9 +16,20 @@ namespace DungeonMaster.App.Graphics;
 /// </summary>
 public sealed class FloorMapDrawable : IDrawable
 {
-    private static readonly Color GridColor = Color.FromArgb("#1AC4862A");
-    private static readonly Color AreaColor = Color.FromArgb("#C8A040");
-    private static readonly Color VertexColor = Color.FromArgb("#F5E4B0");
+    // Static-initialiser-bound: these run on first access to the type, which can happen
+    // before Application.Current and its merged resource dictionaries exist. DmColors is a
+    // plain-literal class today so this read is safe, but Task 11 turns DmColors into a
+    // resolving accessor that looks the key up in Application.Current.Resources and throws
+    // when the key is missing. If these three fields are converted to call that resolving
+    // accessor without change, they will throw at type-initialisation time whenever this
+    // class is first touched before Application.Current.Resources exists, because the
+    // resources genuinely are not there yet — not because the key is wrong. Do not convert
+    // these three fields to the resolving accessor without first moving the read to
+    // first-draw time (e.g. lazy-init on the first Draw() call) — this exact class of bug
+    // has already been hit twice in this migration.
+    private static readonly Color GridColor = DmColors.MapGrid;
+    private static readonly Color AreaColor = DmColors.MapArea;
+    private static readonly Color VertexColor = DmColors.MapVertex;
 
     private readonly Dictionary<ObjectKind, Microsoft.Maui.Graphics.IImage?> _imageCache = new();
 
@@ -383,9 +395,9 @@ public sealed class FloorMapDrawable : IDrawable
 
         if (!isDragging && HoveredObjectId == obj.Id)
         {
-            canvas.FillColor = Color.FromArgb("#40C8A040");
+            canvas.FillColor = DmColors.MapAreaFillActive;
             canvas.FillRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
-            canvas.StrokeColor = Color.FromArgb("#90C8A040");
+            canvas.StrokeColor = DmColors.MapAreaStrokeActive;
             canvas.StrokeSize = 1.5f;
             canvas.DrawRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
         }
@@ -422,10 +434,10 @@ public sealed class FloorMapDrawable : IDrawable
 
     private static void DrawMissingObjectFallback(ICanvas canvas, float x, float y, float size)
     {
-        canvas.StrokeColor = Color.FromArgb("#C8A040");
+        canvas.StrokeColor = DmColors.MapArea;
         canvas.StrokeSize = 1.5f;
         canvas.DrawRectangle(x, y, size, size);
-        canvas.FontColor = Color.FromArgb("#C8A040");
+        canvas.FontColor = DmColors.MapArea;
         canvas.FontSize = size * 0.4f;
         canvas.DrawString("?", x, y, size, size, HorizontalAlignment.Center, VerticalAlignment.Center);
     }
@@ -462,7 +474,7 @@ public sealed class FloorMapDrawable : IDrawable
         }
         else
         {
-            canvas.StrokeColor = Color.FromArgb("#C8A040");
+            canvas.StrokeColor = DmColors.MapArea;
             canvas.StrokeDashPattern = [4f, 3f];
             canvas.StrokeSize = 1.5f;
             canvas.DrawRectangle(drawX, drawY, boxW, boxH);
