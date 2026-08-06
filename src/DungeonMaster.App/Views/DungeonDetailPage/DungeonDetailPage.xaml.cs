@@ -698,10 +698,33 @@ public partial class DungeonDetailPage : ContentPage
 
 			item.SelectRequested += (_, _) =>
 			{
-				// Re-tapping the floor card while an area is focused clears the focus.
+				// Re-tapping the floor card while an area is focused clears the focus first;
+				// a further tap falls through to the deselect branch below.
 				if (_focusedAreaId is not null && _selectedFloorId == floor.Id)
 				{
 					ClearAreaFocus();
+					return;
+				}
+
+				// Re-tapping the already-selected floor toggles it off: collapse it and route
+				// back through RefreshMap so the resulting state is identical to the page's
+				// initial no-floor-selected state rather than a hand-rolled second copy of it.
+				if (_selectedFloorId == floor.Id)
+				{
+					_selectedFloorId = null;
+					item.Deselect();
+					ResetDrawState();
+					RefreshMap();
+
+					// Collapsing the floor also closes its notebook if one is open on it or on
+					// one of its areas — the entity still exists, but its row is no longer shown
+					// selected/expanded, so keeping the notebook pinned to it reads as stale.
+					if (Notebook.CurrentId is Guid notebookId
+						&& (notebookId == floor.Id || floor.Areas.Any(areaItem => areaItem.Id == notebookId)))
+					{
+						Notebook.Close();
+					}
+
 					return;
 				}
 
