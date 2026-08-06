@@ -39,6 +39,37 @@ public class ThemeHygieneTests
     /// </summary>
     private static readonly HashSet<string> PendingMigration = new(StringComparer.OrdinalIgnoreCase)
     {
+        // ─────────────────────────────────────────────────────────────────────────────
+        // SCOPE: the two typography facts are XAML-ONLY BY DESIGN.
+        //
+        // NoRawColourLiteralsOutsideThePalette scans *.xaml AND *.cs. The font-size and
+        // font-family facts scan *.xaml alone. That asymmetry is a decision, not an
+        // oversight, and this comment is the only place that records it.
+        //
+        // Colour in code-behind has a behaviour-preserving destination: DmColors (and,
+        // after Task 11, a resource accessor), so the same literal moves to a name with
+        // no pixel change. Typography in code-behind does not. Every C# font size in the
+        // app is OFF the declared 10/12/14/16/18/20/24 scale, so migrating one is a
+        // visible restyle that needs authorisation — it cannot ride a behaviour-preserving
+        // migration, and the ratchet must not be able to force it.
+        //
+        // The known C# typography literals, deferred and visible rather than silent:
+        //
+        //   Views\DungeonDetailPage\ObjectPaletteView.xaml.cs:206   FontSize = 13
+        //                                                    :264   FontSize = 11
+        //                                                    :284   FontSize = 18
+        //   Views\DungeonDetailPage\SecondaryPaletteView.xaml.cs:53 FontSize = 11
+        //   Graphics\FloorMapDrawable.cs:529                        canvas.FontSize = 9f
+        //
+        // 13, 11, 11 and 9 are all off-scale; only the 18 maps cleanly. Extending the two
+        // typography facts to *.cs would therefore fail immediately on four offenders whose
+        // only exit is a design decision, forcing allow-list entries that no migration task
+        // can legitimately clear. That is the ratchet running backwards, so it is not done.
+        //
+        // Consequence to keep in view: this set can reach empty — "migration complete" —
+        // with those five literals still live. They are a follow-up, not a leftover.
+        // ─────────────────────────────────────────────────────────────────────────────
+
         // Task 9 — FloorMapDrawable
         @"Graphics\FloorMapDrawable.cs",
 

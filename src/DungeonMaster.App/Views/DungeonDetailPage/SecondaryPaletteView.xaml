@@ -27,7 +27,7 @@
                         Grid.Column="1"
                         Text="✕"
                         FontFamily="{StaticResource DmFontIcon}"
-                        FontSize="{StaticResource DmFontSizeMeta}"
+                        FontSize="{StaticResource DmIconSizeTiny}"
                         TextColor="{StaticResource DmTextParchmentMuted}"
                         BackgroundColor="Transparent"
                         Padding="0"

@@ -80,7 +80,7 @@ public partial class SecondaryPaletteView : ContentView
             ptr.PointerEntered += (_, _) =>
             {
                 border.BackgroundColor = DmColors.SurfaceToolChipHover;
-                border.Stroke = new SolidColorBrush(DmColors.Gold);
+                border.Stroke = new SolidColorBrush(DmColors.ScrollGoldLight);
             };
             ptr.PointerExited += (_, _) =>
             {

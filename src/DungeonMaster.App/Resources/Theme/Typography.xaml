@@ -34,11 +34,22 @@
     <x:Double x:Key="DmFontSizeBodySmall">16</x:Double>
     <x:Double x:Key="DmFontSizeCaption">14</x:Double>
     <!--
-        DmFontSizeMeta is the body ramp's 12. The ramp otherwise bottoms out at 14, but four
-        sites carry a 12pt numeric or meta readout in a body role: ControlsPaletteView.xaml:106
-        and :108, ObjectPaletteView.xaml:31 and SecondaryPaletteView.xaml:29. Reusing
-        DmFontSizeEyebrow — also 12 — would be a semantic lie: eyebrow means tracked-out caps,
-        so restyling eyebrow sizing would silently resize four numeric readouts.
+        DmFontSizeMeta is the body ramp's 12, and it has exactly one consumer:
+        ControlsPaletteView.xaml:114, the ScaleReadout label ("1.0x").
+
+        That readout is a bold, body-font numeric value. The body ramp otherwise bottoms out
+        at DmFontSizeCaption (14), so without this entry the only 12 available would be
+        DmFontSizeEyebrow on the title ramp — and eyebrow means tracked-out caps. Aliasing it
+        here would be a semantic lie: a future decision to restyle eyebrow sizing would
+        silently resize a numeric readout that is not an eyebrow and never was.
+
+        One consumer is enough. The token exists to stop a wrong pairing, not to be reused.
+
+        Deliberately NOT consumers: the two close buttons at ObjectPaletteView.xaml:32 and
+        SecondaryPaletteView.xaml:30. Both render a glyph at 12 and therefore take the icon
+        ramp's DmIconSizeTiny, which is the same value on the ramp that matches their family.
+        An earlier revision of this comment listed them, plus ControlsPaletteView.xaml:106
+        and :108 for what is one element; that list was wrong on every entry.
     -->
     <x:Double x:Key="DmFontSizeMeta">12</x:Double>
 
