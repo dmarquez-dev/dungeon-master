@@ -8,7 +8,9 @@
         at the same nominal size, which is why icons have their own ramp rather than
         sharing the body scale.
 
-        Scale: 10, 12, 14, 16, 18, 20, 24. Do not introduce a value outside it.
+        Scale: 10, 12, 14, 16, 18, 20, 24. Do not introduce a value outside it — except on the
+        icon ramp, which also permits 22 (DmIconSizeTool), the toolbar tool-icon size that sits
+        one step above DmIconSizeXL.
     -->
 
     <!-- Families -->

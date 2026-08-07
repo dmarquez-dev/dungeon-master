@@ -28,7 +28,10 @@ public static class DmTheme
 	///		Gets the active tool and focus highlight gold.
 	///		Also used as the hover stroke on object-palette thumbnails and as the WinUI
 	///		scrollbar thumb fill on pointer-over. <see cref="ScrollGoldLight"/> resolves the same
-	///		token; see the note there before trying to move the two apart.
+	///		token; see the note there before trying to move the two apart. Shares its value with
+	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/>,
+	///		<see cref="MapArea"/> and <see cref="MapObjectPlaceholder"/> today; see the
+	///		shared-colour list at the top of Tokens.xaml.
 	/// </summary>
 	public static Color Gold =>
 		Resolve<Color>("DmAccentGoldLight");
@@ -53,6 +56,10 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the selected area border gold.
+	///		Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
+	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapArea"/> and
+	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
+	///		Tokens.xaml.
 	/// </summary>
 	public static Color AreaSelectedBorder =>
 		Resolve<Color>("DmAreaSelectedBorder");
@@ -119,6 +126,10 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the drag-and-drop placeholder stroke colour.
+	///		Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
+	///		<see cref="AreaSelectedBorder"/>, <see cref="MapArea"/> and
+	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
+	///		Tokens.xaml.
 	/// </summary>
 	public static Color DragPlaceholderStroke =>
 		Resolve<Color>("DmDragPlaceholderStroke");
@@ -142,7 +153,11 @@ public static class DmTheme
 	///		Tokens.xaml and repointing this member at it, the way DmMapObjectPlaceholder was added
 	///		for <see cref="MapObjectPlaceholder"/>. The second name is kept because the call sites
 	///		read differently — this one is a content indicator, <see cref="Gold"/> is the active
-	///		tool and focus highlight — but the seam is nominal until that token exists.
+	///		tool and focus highlight — but the seam is nominal until that token exists. Also
+	///		shares its value with <see cref="AreaSelectedBorder"/>,
+	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapArea"/> and
+	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
+	///		Tokens.xaml.
 	/// </summary>
 	public static Color ScrollGoldLight =>
 		Resolve<Color>("DmAccentGoldLight");
@@ -158,7 +173,8 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the dark-tavern primary text gold.
 	///		Also used as the WinUI scrollbar thumb fill in its pressed state, which is the
-	///		brightest step of that control's three-stop ramp.
+	///		brightest step of that control's three-stop ramp. Shares its value with
+	///		<see cref="MapVertex"/> today; see the shared-colour list at the top of Tokens.xaml.
 	/// </summary>
 	public static Color TextTavern =>
 		Resolve<Color>("DmTextTavern");
@@ -291,7 +307,8 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the map canvas committed area outline colour.
-	///		Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/> and
+	///		Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
+	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/> and
 	///		<see cref="MapObjectPlaceholder"/> today, but is deliberately a separate member:
 	///		the map's area colour and the UI accent gold are independent design decisions
 	///		that a future restyle may want to move apart.
@@ -301,6 +318,8 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the map canvas outline vertex handle colour.
+	///		Shares its value with <see cref="TextTavern"/> today; see the shared-colour list at
+	///		the top of Tokens.xaml.
 	/// </summary>
 	public static Color MapVertex =>
 		Resolve<Color>("DmMapVertex");
@@ -320,9 +339,11 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the stand-in rendering colour for an object with no drawable image.
 	///		It paints the "?" fallback glyph and outline and the dashed ghost-placement
-	///		outline. Shares its value with <see cref="MapArea"/> and the UI golds today, but
-	///		is deliberately separate because these are object-placeholder renderings, not
-	///		area outlines or UI affordances, and a restyle may want to move them apart.
+	///		outline. Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
+	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/> and
+	///		<see cref="MapArea"/> today, but is deliberately separate because these are
+	///		object-placeholder renderings, not area outlines or UI affordances, and a restyle
+	///		may want to move them apart.
 	/// </summary>
 	public static Color MapObjectPlaceholder =>
 		Resolve<Color>("DmMapObjectPlaceholder");

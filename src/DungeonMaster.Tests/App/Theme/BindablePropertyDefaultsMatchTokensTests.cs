@@ -160,4 +160,61 @@ public class BindablePropertyDefaultsMatchTokensTests
                 "Resources",
                 "Theme",
                 "Typography.xaml"));
+
+    /// <summary>
+    ///		Asserts that the numeric radius argument on <c>DmBorderBase</c>'s
+    ///		<c>StrokeShape="RoundRectangle 3"</c> setter in Controls.Base.xaml equals
+    ///		<c>DmRadiusDefault</c> in Tokens.xaml. <c>StrokeShape</c>'s converter parses a shape
+    ///		name and its arguments from one string and cannot take a markup extension for the
+    ///		radius, so the value is unavoidably a literal there; the comment beside it says the
+    ///		literal must move with the token, and this is what enforces that.
+    /// </summary>
+    [Fact]
+    public void BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault()
+    {
+        var controlsBase = File.ReadAllText(
+            Path.Combine(
+                RepoPaths.AppRoot,
+                "Resources",
+                "Theme",
+                "Controls.Base.xaml"));
+
+        var strokeShapeMatch = Regex.Match(
+            controlsBase,
+            @"x:Key=""DmBorderBase""[\s\S]*?Property=""StrokeShape""\s+Value=""RoundRectangle\s+(?<value>[0-9.]+)""");
+
+        strokeShapeMatch
+            .Success
+            .Should()
+            .BeTrue("'DmBorderBase' should declare a StrokeShape='RoundRectangle n' setter in Controls.Base.xaml");
+
+        var declaredRadius = double.Parse(
+            strokeShapeMatch.Groups["value"].Value,
+            CultureInfo.InvariantCulture);
+
+        declaredRadius.Should().Be(RadiusToken("DmRadiusDefault"));
+    }
+
+    private static double RadiusToken(string key)
+    {
+        var tokens = File.ReadAllText(
+            Path.Combine(
+                RepoPaths.AppRoot,
+                "Resources",
+                "Theme",
+                "Tokens.xaml"));
+
+        var match = Regex.Match(
+            tokens,
+            $@"<x:Double x:Key=""{Regex.Escape(key)}"">(?<value>[0-9.]+)</x:Double>");
+
+        match
+            .Success
+            .Should()
+            .BeTrue($"token '{key}' should be defined in Tokens.xaml");
+
+        return double.Parse(
+            match.Groups["value"].Value,
+            CultureInfo.InvariantCulture);
+    }
 }

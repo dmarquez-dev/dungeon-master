@@ -5,7 +5,9 @@
 
     <!--
         Metrics shared by both surface families. Colour lives in Controls.Tavern.xaml and
-        Controls.Parchment.xaml, which derive from these via BasedOn. A padding or radius
+        Controls.Parchment.xaml, which derive from these via BasedOn — as does
+        Controls.Semantic.xaml, the only derived file with live consumers (DmConfirmButton,
+        DmDestructiveButton, DmNeutralButton, all BasedOn DmButtonBase). A padding or radius
         change belongs here so it lands once rather than twice.
     -->
 

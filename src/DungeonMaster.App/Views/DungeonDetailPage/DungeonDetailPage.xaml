@@ -331,7 +331,7 @@
 
                         </Grid>
 
-                        <!-- Right: always-visible Undo / Save / Discard -->
+                        <!-- Right: always-visible Undo -->
                         <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
 
                             <Button
@@ -572,7 +572,6 @@
                      height that code-behind overwrote once the toolbar rendered, which made the card
                      visibly resize on load. See the token's comment before changing the number. -->
                 <Border
-                    x:Name="DungeonCard"
                     Grid.Row="0"
                     StrokeShape="RoundRectangle 3"
                     StrokeThickness="{StaticResource DmStrokeHairline}"

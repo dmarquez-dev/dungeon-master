@@ -108,6 +108,47 @@ public class ThemeDictionaryTests
         offenders.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///		Asserts that every file under Resources/Theme is merged into App.xaml, and that every
+    ///		dictionary merged from Resources/Theme in App.xaml names a file that exists. A
+    ///		dictionary that is never merged satisfies every other guard in this class and in
+    ///		<c>DmThemeKeysResolveTests</c> — both treat "defined in any file under Resources/Theme"
+    ///		as "resolvable" — while the app throws at runtime on the first
+    ///		<c>{StaticResource}</c> reference into it. This is the only fact that would catch that.
+    /// </summary>
+    [Fact]
+    public void EveryThemeFileIsMergedInAppXaml()
+    {
+        var themeFileNames = ThemeFiles()
+            .Select(path =>
+                Path.GetFileName(path))
+            .ToHashSet(StringComparer.Ordinal);
+
+        var mergedFileNames = MergedThemeSourcesInAppXaml()
+            .Select(source =>
+                Path.GetFileName(source))
+            .ToHashSet(StringComparer.Ordinal);
+
+        themeFileNames.Should().BeEquivalentTo(mergedFileNames);
+    }
+
+    private static IReadOnlyList<string> MergedThemeSourcesInAppXaml()
+    {
+        var appXamlPath = Path.Combine(
+            RepoPaths.AppRoot,
+            "App.xaml");
+
+        var sourcePattern = new Regex(
+            @"Source=""(Resources/Theme/[A-Za-z0-9.]+\.xaml)""",
+            RegexOptions.Compiled);
+
+        return sourcePattern
+            .Matches(File.ReadAllText(appXamlPath))
+            .Select(match =>
+                match.Groups[1].Value)
+            .ToList();
+    }
+
     private static IReadOnlyList<string> ThemeFiles()
     {
         var themeDirectory = Path.Combine(

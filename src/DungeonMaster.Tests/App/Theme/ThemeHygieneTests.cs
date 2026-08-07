@@ -55,7 +55,7 @@ public class ThemeHygieneTests
     ///		again, but an entry that stops offending is itself a failure, so nothing can be
     ///		parked and forgotten.
     ///
-    ///		TWO LITERALS SURVIVE BY DESIGN, and neither is reachable by these patterns:
+    ///		TWO FILES SURVIVE BY DESIGN, and neither is reachable by these patterns:
     ///
     ///		  Controls\DmDivider\DmDivider.xaml.cs        IconFontSize default 16.0
     ///		  Controls\DmInlineEditor\DmInlineEditor.xaml.cs  FontSize 18.0, FontFamily "EBGaramondRegular"
