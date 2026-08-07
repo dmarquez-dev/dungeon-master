@@ -34,16 +34,22 @@
     <x:Double x:Key="DmFontSizeBodySmall">16</x:Double>
     <x:Double x:Key="DmFontSizeCaption">14</x:Double>
     <!--
-        DmFontSizeMeta is the body ramp's 12, and it has exactly one consumer:
-        ControlsPaletteView.xaml:114, the ScaleReadout label ("1.0x").
+        DmFontSizeMeta is the body ramp's 12. Three consumers, all body-font and all small:
 
-        That readout is a bold, body-font numeric value. The body ramp otherwise bottoms out
-        at DmFontSizeCaption (14), so without this entry the only 12 available would be
-        DmFontSizeEyebrow on the title ramp — and eyebrow means tracked-out caps. Aliasing it
-        here would be a semantic lie: a future decision to restyle eyebrow sizing would
-        silently resize a numeric readout that is not an eyebrow and never was.
+          ControlsPaletteView.xaml:114                 the ScaleReadout label ("1.0x")
+          ObjectPaletteView.xaml.cs:265                thumbnail initial-letter fallback
+          SecondaryPaletteView.xaml.cs:53              thumbnail initial-letter fallback
 
-        One consumer is enough. The token exists to stop a wrong pairing, not to be reused.
+        The readout is a bold, body-font numeric value; the two fallbacks are a single body-font
+        letter inside a 48x48 chip. The body ramp otherwise bottoms out at DmFontSizeCaption
+        (14), so without this entry the only 12 available would be DmFontSizeEyebrow on the
+        title ramp — and eyebrow means tracked-out caps. Aliasing it here would be a semantic
+        lie: a future decision to restyle eyebrow sizing would silently resize a numeric readout
+        and two glyph fallbacks that are not eyebrows and never were.
+
+        The token exists to stop a wrong pairing. Keep this consumer list correct — it has been
+        wrong twice already, once listing four sites that did not exist and once claiming a
+        single consumer after Task 11 added the two code-behind ones.
 
         Deliberately NOT consumers: the two close buttons at ObjectPaletteView.xaml:32 and
         SecondaryPaletteView.xaml:30. Both render a glyph at 12 and therefore take the icon

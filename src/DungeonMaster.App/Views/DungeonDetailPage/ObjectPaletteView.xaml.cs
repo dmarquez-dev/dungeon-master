@@ -317,6 +317,12 @@ public partial class ObjectPaletteView : ContentView
     private static Color ThumbHover =>
         DmTheme.SurfaceToolChipHover;
 
+    // These two allocate a brush per pointer event, where the colour properties above are a
+    // dictionary lookup. That is deliberate rather than overlooked: Tokens.xaml defines brushes
+    // only for DmAccentGold, DmBorderTavern, DmBorderTavernHover and DmBorderParchment, and
+    // neither DmBorderToolChip nor DmAccentGoldLight has one. Adding two brush tokens purely to
+    // avoid an allocation on hover enter/exit is not worth the token surface; if brush tokens
+    // are ever added for the tool-chip family, resolve them here instead.
     private static SolidColorBrush ThumbStrokeNormal =>
         new(DmTheme.BorderToolChip);
 

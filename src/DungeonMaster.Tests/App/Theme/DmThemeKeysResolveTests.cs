@@ -66,18 +66,21 @@ public class DmThemeKeysResolveTests
     ///		absent, and the message reads like a missing key when the real fault is the ordering.
     ///		This class of bug was hit twice during the theme migration, so it is guarded rather
     ///		than merely commented.
-    ///		The pattern is deliberately single-line and excludes <c>=&gt;</c>, so it catches the
-    ///		shape that actually occurred (<c>static readonly Color X = DmTheme.Y;</c>) while
-    ///		leaving the two safe shapes alone: an expression-bodied property, and a lambda such as
-    ///		<c>defaultValueCreator</c> that happens to sit inside a static field initialiser but
-    ///		does not run with it.
+    ///		The pattern spans lines, because every wrapped form in this codebase does: a field
+    ///		initialiser split across lines per dotnet-format.md §3, a multi-line
+    ///		<c>BindableProperty.Create</c> positional default, and a static constructor body are
+    ///		all caught. It stops at the first <c>;</c> and at the first <c>=&gt;</c>, which is what
+    ///		leaves the two safe shapes alone: an expression-bodied member, and a lambda such as
+    ///		<c>defaultValueCreator</c> that sits inside a static field initialiser but does not run
+    ///		with it.
     /// </summary>
     [Fact]
     public void NoStaticFieldInitialiserReadsDmTheme()
     {
         var staticFieldInitialiser = new Regex(
-            @"static\s+(readonly\s+)?[\w<>?\[\].]+\s+\w+\s*=(?!>)[^;\r\n]*\bDmTheme\.",
-            RegexOptions.Compiled);
+            @"(static\s+(readonly\s+)?[\w<>?\[\].]+\s+\w+\s*=(?!>)|static\s+\w+\s*\(\s*\)\s*\{)"
+            + @"((?!=>)[^;])*\bDmTheme\.",
+            RegexOptions.Compiled | RegexOptions.Singleline);
 
         var offenders = RepoPaths
             .AppSourceFiles("*.cs")

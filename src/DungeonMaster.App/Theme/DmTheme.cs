@@ -21,7 +21,8 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the active tool and focus highlight gold.
 	///		Also used as the hover stroke on object-palette thumbnails and as the WinUI
-	///		scrollbar thumb fill on pointer-over.
+	///		scrollbar thumb fill on pointer-over. <see cref="ScrollGoldLight"/> resolves the same
+	///		token; see the note there before trying to move the two apart.
 	/// </summary>
 	public static Color Gold =>
 		Resolve<Color>("DmAccentGoldLight");
@@ -130,10 +131,12 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the notebook icon gold shown when an entity has authored content.
-	///		Shares its token with <see cref="Gold"/>, <see cref="MapArea"/> and
-	///		<see cref="MapObjectPlaceholder"/> today, but is deliberately a separate member:
-	///		the notebook indicator and the UI accent gold are independent design decisions
-	///		that a future restyle may want to move apart.
+	///		This resolves the SAME token as <see cref="Gold"/>, not merely the same value, so the
+	///		two cannot be moved apart by editing a value: splitting them means adding a token to
+	///		Tokens.xaml and repointing this member at it, the way DmMapObjectPlaceholder was added
+	///		for <see cref="MapObjectPlaceholder"/>. The second name is kept because the call sites
+	///		read differently — this one is a content indicator, <see cref="Gold"/> is the active
+	///		tool and focus highlight — but the seam is nominal until that token exists.
 	/// </summary>
 	public static Color ScrollGoldLight =>
 		Resolve<Color>("DmAccentGoldLight");
