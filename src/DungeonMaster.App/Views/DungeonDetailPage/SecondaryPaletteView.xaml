@@ -6,13 +6,13 @@
     <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
             Stroke="{StaticResource DmBorderParchment}"
             StrokeThickness="{StaticResource DmStrokeHairline}"
-            Padding="8"
+            Padding="{StaticResource DmPaddingCompact}"
             WidthRequest="272"
             HorizontalOptions="Start">
         <Border.StrokeShape>
-            <RoundRectangle CornerRadius="4" />
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
         </Border.StrokeShape>
-        <VerticalStackLayout Spacing="4">
+        <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
 
             <Grid ColumnDefinitions="*,Auto">
                 <Label x:Name="TitleLabel"
@@ -40,8 +40,8 @@
                         VerticalScrollBarVisibility="Always"
                         MaximumHeightRequest="200">
                 <Grid x:Name="ObjectGrid"
-                      ColumnSpacing="4"
-                      RowSpacing="4">
+                      ColumnSpacing="{StaticResource DmSpaceXS}"
+                      RowSpacing="{StaticResource DmSpaceXS}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="48" />
                         <ColumnDefinition Width="48" />

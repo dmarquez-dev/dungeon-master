@@ -8,13 +8,13 @@
     <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
             Stroke="{StaticResource DmBorderParchment}"
             StrokeThickness="{StaticResource DmStrokeHairline}"
-            Padding="6,4,6,6"
-            WidthRequest="216"
+            Padding="{StaticResource DmPaddingCompact}"
+            WidthRequest="220"
             HorizontalOptions="Start">
         <Border.StrokeShape>
-            <RoundRectangle CornerRadius="4" />
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
         </Border.StrokeShape>
-        <VerticalStackLayout Spacing="4" MinimumWidthRequest="204">
+        <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}" MinimumWidthRequest="204">
 
             <!-- Header -->
             <Grid ColumnDefinitions="*,Auto">
@@ -48,7 +48,7 @@
 
             <!-- Category rows populated in code-behind -->
             <ScrollView x:Name="CategoryScrollView" HeightRequest="280" VerticalScrollBarVisibility="Always">
-                <VerticalStackLayout x:Name="CategoriesContainer" Spacing="7" />
+                <VerticalStackLayout x:Name="CategoriesContainer" Spacing="{StaticResource DmSpaceMedium}" />
             </ScrollView>
 
         </VerticalStackLayout>

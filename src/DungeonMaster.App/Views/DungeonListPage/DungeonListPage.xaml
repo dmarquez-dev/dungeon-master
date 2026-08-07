@@ -11,7 +11,9 @@
     Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource DmSurfaceTavern}">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,12" RowSpacing="10">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
+          Padding="{StaticResource DmPaddingPage}"
+          RowSpacing="{StaticResource DmSpaceLarge}">
 
         <controls:DmFlagBanner Grid.Row="0" Title="Dungeons" />
 
@@ -34,7 +36,7 @@
                 ItemsSource="{Binding FilteredDungeons}"
                 EmptyView="No dungeons found.">
                 <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="{StaticResource DmSpaceMedium}" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="dto:DungeonSummaryDto">
@@ -45,7 +47,7 @@
                                 <TapGestureRecognizer Tapped="OnCardTapped" />
                             </controls:DmCard.GestureRecognizers>
                             <controls:DmCard.TrailingContent>
-                                <HorizontalStackLayout Spacing="4">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}">
 
                                     <!-- Edit / Plan button -->
                                     <Button
@@ -54,8 +56,8 @@
                                         FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
                                         TextColor="{StaticResource DmAccentGoldLight}"
-                                        CornerRadius="3"
-                                        Padding="8,4"
+                                        CornerRadius="{StaticResource DmRadiusDefault}"
+                                        Padding="{StaticResource DmPaddingCompact}"
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnEditClicked"
                                         ToolTipProperties.Text="Edit dungeon">
@@ -72,8 +74,8 @@
                                             FontSize="{StaticResource DmIconSizeXL}"
                                             BackgroundColor="Transparent"
                                             TextColor="{StaticResource DmConfirm}"
-                                            CornerRadius="3"
-                                            Padding="8,4"
+                                            CornerRadius="{StaticResource DmRadiusDefault}"
+                                            Padding="{StaticResource DmPaddingCompact}"
                                             CommandParameter="{Binding Id}"
                                             IsEnabled="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
                                             <Button.Behaviors>
@@ -102,8 +104,8 @@
                                         FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
                                         TextColor="{StaticResource DmDestructive}"
-                                        CornerRadius="3"
-                                        Padding="8,4"
+                                        CornerRadius="{StaticResource DmRadiusDefault}"
+                                        Padding="{StaticResource DmPaddingCompact}"
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnDeleteClicked"
                                         ToolTipProperties.Text="Delete dungeon">

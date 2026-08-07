@@ -103,50 +103,44 @@ public class GeometryScaleTests
 
     /// <summary>
     ///		Files still carrying a literal <c>Spacing</c>, <c>RowSpacing</c>, <c>ColumnSpacing</c>
-    ///		or <c>ItemSpacing</c>. Everything here is under <c>Views/</c> and belongs to the wave
-    ///		that migrates the views.
+    ///		or <c>ItemSpacing</c>.
+    ///		<para>
+    ///		Only C# remains. The XAML under <c>Views/</c> is migrated; what is left builds its
+    ///		layout imperatively (<c>new Grid { ColumnSpacing = 4 }</c>), and there is no C# resolver
+    ///		for the geometry scales the way <c>DmTheme</c> resolves colours. Introducing one is a
+    ///		design decision, not a mechanical conversion, so these entries wait for the wave that
+    ///		makes it.
+    ///		</para>
     /// </summary>
     private static readonly HashSet<string> SpacingPendingMigration =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            Relative("Views", "CreateDungeonPopup", "CreateDungeonPopup.xaml"),
-            Relative("Views", "DungeonDetailPage", "ControlsPaletteView.xaml"),
-            Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
-            Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml"),
             Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
-            Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml"),
-            Relative("Views", "DungeonListPage", "DungeonListPage.xaml"),
         };
 
     /// <summary>
-    ///		Files still carrying a literal <c>Padding</c>.
+    ///		Files still carrying a literal <c>Padding</c>. Empty: every padding in the application
+    ///		is now a <c>DmPadding*</c> role, a documented asymmetric exception, or a zero. It is
+    ///		kept rather than deleted so the fact keeps the same shape as its two siblings and a
+    ///		future regression has an obvious place to be recorded and then removed.
     /// </summary>
     private static readonly HashSet<string> PaddingPendingMigration =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            Relative("Views", "CreateDungeonPopup", "CreateDungeonPopup.xaml"),
-            Relative("Views", "DungeonDetailPage", "ControlsPaletteView.xaml"),
-            Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
-            Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml"),
-            Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml"),
-            Relative("Views", "DungeonListPage", "DungeonListPage.xaml"),
         };
 
     /// <summary>
     ///		Files still carrying a literal <c>CornerRadius</c> or a string-form
-    ///		<c>RoundRectangle N</c>.
+    ///		<c>RoundRectangle N</c>. Only C# remains, for the reason given on
+    ///		<see cref="SpacingPendingMigration"/>: these three files construct
+    ///		<c>new RoundRectangle { CornerRadius = 2 }</c> in code-behind.
     /// </summary>
     private static readonly HashSet<string> RadiusPendingMigration =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            Relative("Views", "DungeonDetailPage", "ControlsPaletteView.xaml"),
-            Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
             Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
-            Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml"),
             Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
-            Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml"),
             Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml.cs"),
-            Relative("Views", "DungeonListPage", "DungeonListPage.xaml"),
         };
 
     /// <summary>

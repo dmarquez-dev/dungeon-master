@@ -11,18 +11,24 @@
     Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource DmSurfaceTavern}">
 
+    <!-- Page inset with the bottom edge deliberately suppressed: the map canvas and the floor
+         sidebar are the last row and run to the window edge, so a bottom inset would leave a
+         strip of tavern background under them. Left/right/top are DmPaddingPage's 16,12. -->
     <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
         <!-- Row 0: Top nav bar -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
+            <!-- Padding 0,4 below suppresses the horizontal inset so the label's ink starts flush
+                 with the page inset — this reads as a link, not a button — while the vertical
+                 inset keeps the hit target tall enough. -->
             <Button
                 Grid.Column="0"
+                Padding="0,4"
                 Text="&#x2190; Back"
                 FontFamily="{StaticResource DmFontBody}"
                 FontSize="{StaticResource DmFontSizeBodyLarge}"
                 BackgroundColor="Transparent"
                 TextColor="{StaticResource DmAccentGoldLight}"
-                Padding="0,4"
                 Clicked="OnBackClicked">
                 <Button.Behaviors>
                     <behaviors:HandCursorBehavior />
@@ -33,7 +39,7 @@
                 Grid.Column="1"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
-                Spacing="6">
+                Spacing="{StaticResource DmSpaceSmall}">
                 <Label
                     Text="&#xEA75;"
                     FontFamily="{StaticResource DmFontIcon}"
@@ -50,14 +56,17 @@
             </HorizontalStackLayout>
 
             <Grid Grid.Column="2">
+                <!-- Padding 36,6,12,6 below is an icon inset, not a role: the 36 on the leading
+                     edge clears the crossed-sword Label overlaid on this button at Margin
+                     12,0,0,0 further down, so the text starts clear of the glyph. -->
                 <Button
                     Text="Start Session"
                     FontFamily="{StaticResource DmFontBody}"
+                    Padding="36,6,12,6"
                     FontSize="{StaticResource DmFontSizeBodyLarge}"
                     BackgroundColor="{StaticResource DmConfirm}"
                     TextColor="{StaticResource DmConfirmText}"
-                    CornerRadius="3"
-                    Padding="36,6,12,6"
+                    CornerRadius="{StaticResource DmRadiusDefault}"
                     IsEnabled="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
                     <Button.Behaviors>
                         <behaviors:HandCursorBehavior />
@@ -100,7 +109,7 @@
             Margin="0,6,0,4" />
 
         <!-- Row 3: Map canvas (left) | Floors sidebar (right) -->
-        <Grid Grid.Row="3" ColumnDefinitions="*,300" ColumnSpacing="16">
+        <Grid Grid.Row="3" ColumnDefinitions="*,300" ColumnSpacing="{StaticResource DmSpaceXL}">
 
             <!-- LEFT COLUMN: toolbar (edit mode only) + map canvas -->
             <Grid Grid.Column="0" RowDefinitions="Auto,*">
@@ -109,17 +118,20 @@
                 <Border x:Name="MapToolbar" Grid.Row="0" IsVisible="False"
                         BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
                         Stroke="{StaticResource DmBorderTavernBrush}"
-                        StrokeShape="RoundRectangle 3"
                         StrokeThickness="{StaticResource DmStrokeHairline}"
-                        Padding="6,4"
+                        Padding="{StaticResource DmPaddingCompact}"
                         Margin="0,0,0,4"
                         HeightRequest="{StaticResource DmToolbarHeight}">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceXS}">
 
                         <!-- Left: context-switching area.
                              Floor context: drawing tools. Names are edited in the notebook. -->
                         <Grid x:Name="FloorContextToolbar" Grid.Column="0"
-                              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="4">
+                              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
+                              ColumnSpacing="{StaticResource DmSpaceXS}">
 
                             <!-- Draw tool — active by default -->
                             <Border
@@ -128,16 +140,18 @@
                                 BackgroundColor="Transparent"
                                 Stroke="{StaticResource DmAccentGoldLight}"
                                 StrokeThickness="{StaticResource DmStrokeHairline}"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
+                                Padding="{StaticResource DmPaddingCompact}"
                                 ToolTipProperties.Text="Draw area (D)">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                                </Border.StrokeShape>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnToolDrawClicked" />
                                 </Border.GestureRecognizers>
                                 <Border.Behaviors>
                                     <behaviors:HandCursorBehavior />
                                 </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                                     <Label
                                         x:Name="ToolDrawIcon"
                                         Text="&#xEA75;"
@@ -162,16 +176,18 @@
                                 BackgroundColor="Transparent"
                                 Stroke="Transparent"
                                 StrokeThickness="{StaticResource DmStrokeHairline}"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
+                                Padding="{StaticResource DmPaddingCompact}"
                                 ToolTipProperties.Text="Move areas (M)">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                                </Border.StrokeShape>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnToolMoveClicked" />
                                 </Border.GestureRecognizers>
                                 <Border.Behaviors>
                                     <behaviors:HandCursorBehavior />
                                 </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                                     <Label
                                         x:Name="ToolMoveIcon"
                                         Text="&#xE9D9;"
@@ -196,16 +212,18 @@
                                 BackgroundColor="Transparent"
                                 Stroke="Transparent"
                                 StrokeThickness="{StaticResource DmStrokeHairline}"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
+                                Padding="{StaticResource DmPaddingCompact}"
                                 ToolTipProperties.Text="Select area (S)">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                                </Border.StrokeShape>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnToolSelectClicked" />
                                 </Border.GestureRecognizers>
                                 <Border.Behaviors>
                                     <behaviors:HandCursorBehavior />
                                 </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                                     <Label
                                         x:Name="ToolSelectIcon"
                                         Text="&#xE9B6;"
@@ -230,16 +248,18 @@
                                 BackgroundColor="Transparent"
                                 Stroke="Transparent"
                                 StrokeThickness="{StaticResource DmStrokeHairline}"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
+                                Padding="{StaticResource DmPaddingCompact}"
                                 ToolTipProperties.Text="Erase area (E)">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                                </Border.StrokeShape>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnToolEraseClicked" />
                                 </Border.GestureRecognizers>
                                 <Border.Behaviors>
                                     <behaviors:HandCursorBehavior />
                                 </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                                     <Label
                                         x:Name="ToolEraseIcon"
                                         Text="&#xE936;"
@@ -264,16 +284,18 @@
                                 BackgroundColor="Transparent"
                                 Stroke="Transparent"
                                 StrokeThickness="{StaticResource DmStrokeHairline}"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
+                                Padding="{StaticResource DmPaddingCompact}"
                                 ToolTipProperties.Text="Place objects (P)">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                                </Border.StrokeShape>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
                                 </Border.GestureRecognizers>
                                 <Border.Behaviors>
                                     <behaviors:HandCursorBehavior />
                                 </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                                     <Label
                                         x:Name="ToolPlaceIcon"
                                         Text="&#xE9B8;"
@@ -298,16 +320,18 @@
                                 BackgroundColor="Transparent"
                                 Stroke="Transparent"
                                 StrokeThickness="{StaticResource DmStrokeHairline}"
-                                StrokeShape="RoundRectangle 3"
-                                Padding="8,4"
+                                Padding="{StaticResource DmPaddingCompact}"
                                 ToolTipProperties.Text="Pan / scroll (H)">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                                </Border.StrokeShape>
                                 <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnToolPanClicked" />
                                 </Border.GestureRecognizers>
                                 <Border.Behaviors>
                                     <behaviors:HandCursorBehavior />
                                 </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                                     <Label
                                         x:Name="ToolPanIcon"
                                         Text="&#xEA78;"
@@ -337,9 +361,9 @@
                             BackgroundColor="Transparent"
                             TextColor="{StaticResource DmAccentGoldLight}"
                             BorderColor="Transparent"
-                            BorderWidth="1"
-                            CornerRadius="3"
-                            Padding="8,4"
+                            BorderWidth="{StaticResource DmStrokeHairline}"
+                            CornerRadius="{StaticResource DmRadiusDefault}"
+                            Padding="{StaticResource DmPaddingCompact}"
                             IsEnabled="False"
                             Opacity="0.35"
                             VerticalOptions="Center"
@@ -371,7 +395,7 @@
                         HorizontalOptions="End"
                         VerticalOptions="Start"
                         Margin="0,8,12,0"
-                        Spacing="2"
+                        Spacing="{StaticResource DmSpaceXXS}"
                         InputTransparent="False">
 
                         <!--
@@ -484,7 +508,7 @@
                         HorizontalOptions="Start"
                         VerticalOptions="End"
                         Margin="8,0,0,8"
-                        Spacing="4">
+                        Spacing="{StaticResource DmSpaceXS}">
                         <palette:ControlsPaletteView
                             x:Name="ControlsPalette"
                             IsVisible="False" />
@@ -498,16 +522,20 @@
                             BackgroundColor="{StaticResource DmSurfacePopup}"
                             Stroke="{StaticResource DmBorderPopup}"
                             StrokeThickness="{StaticResource DmStrokeHairline}"
-                            StrokeShape="RoundRectangle 3"
-                            Padding="4"
+                            Padding="{StaticResource DmPaddingTight}"
                             HorizontalOptions="Start"
                             VerticalOptions="Start">
-                        <HorizontalStackLayout Spacing="2">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                        </Border.StrokeShape>
+                        <HorizontalStackLayout Spacing="{StaticResource DmSpaceXXS}">
                             <Border x:Name="PopupBtnCCW"
                                     WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 2">
+                                    StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                                </Border.StrokeShape>
                                 <!-- Measured ink-offset translation, corrected on X because
                                      Rotation precedes it — see the note above the zoom stepper.
                                      Deleted by the Phosphor migration. -->
@@ -526,8 +554,10 @@
                             <Border x:Name="PopupBtnCW"
                                     WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 2">
+                                    StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                                </Border.StrokeShape>
                                 <!-- Measured ink-offset translation, corrected on X because
                                      Rotation precedes it — see the note above the zoom stepper.
                                      Deleted by the Phosphor migration. -->
@@ -549,8 +579,10 @@
                             <Border x:Name="PopupBtnScaleDown"
                                     WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 2">
+                                    StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                                </Border.StrokeShape>
                                 <!-- Measured ink-offset translation — see the note above the zoom
                                      stepper. Deleted by the Phosphor migration. -->
                                 <Label Text="−"
@@ -567,8 +599,10 @@
                             <Border x:Name="PopupBtnScaleUp"
                                     WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 2">
+                                    StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                                </Border.StrokeShape>
                                 <!-- Measured ink-offset translation — see the note above the zoom
                                      stepper. Deleted by the Phosphor migration. -->
                                 <Label Text="+"
@@ -588,8 +622,10 @@
                             <Border x:Name="PopupBtnDelete"
                                     WidthRequest="32" HeightRequest="32"
                                     BackgroundColor="Transparent"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 2">
+                                    StrokeThickness="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                                </Border.StrokeShape>
                                 <Label Text="&#xE9FC;"
                                        FontFamily="{StaticResource DmFontIcon}"
                                        FontSize="{StaticResource DmIconSizeXL}"
@@ -615,14 +651,16 @@
                      visibly resize on load. See the token's comment before changing the number. -->
                 <Border
                     Grid.Row="0"
-                    StrokeShape="RoundRectangle 3"
                     StrokeThickness="{StaticResource DmStrokeHairline}"
                     Stroke="{StaticResource DmBorderTavernBrush}"
                     BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
-                    Padding="8,8"
+                    Padding="{StaticResource DmPaddingCompact}"
                     Margin="0,0,0,4"
                     HeightRequest="{StaticResource DmToolbarHeight}">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceSmall}">
                         <Label
                             Grid.Column="0"
                             Text="{Binding Dungeon.Name}"
@@ -630,16 +668,19 @@
                             FontSize="{StaticResource DmFontSizeSubheading}"
                             TextColor="{StaticResource DmAccentGoldLight}"
                             VerticalOptions="Center" />
+                        <!-- Padding 4,0 below suppresses the vertical inset on purpose: this
+                             button's height is pinned to 22 to match the card row, so any vertical
+                             inset would squeeze the glyph rather than grow the button. -->
                         <Button
                             x:Name="DungeonNotebookButton"
                             Grid.Column="1"
+                            Padding="4,0"
                             Text="&#xEA8F;"
                             FontFamily="{StaticResource DmFontIcon}"
                             FontSize="{StaticResource DmIconSizeSmall}"
                             BackgroundColor="Transparent"
                             TextColor="{StaticResource DmTextParchmentMuted}"
-                            Padding="4,0"
-                            CornerRadius="2"
+                            CornerRadius="{StaticResource DmRadiusTight}"
                             HeightRequest="22"
                             MinimumHeightRequest="22"
                             ToolTipProperties.Text="Open notebook"
@@ -671,7 +712,7 @@
                         FontSize="{StaticResource DmFontSizeBody}"
                         TextColor="{StaticResource DmAccentGoldLight}"
                         BackgroundColor="Transparent"
-                        Padding="4,2"
+                        Padding="{StaticResource DmPaddingTight}"
                         Clicked="OnAddFloorClicked">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />

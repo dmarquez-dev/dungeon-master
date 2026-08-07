@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 
@@ -177,12 +178,15 @@ public class ThemeTokenParityTests
             .Should()
             .BeTrue("MapToolbar should declare a Padding");
 
-        paddingMatch
-            .Groups["value"]
-            .Value
+        // Only the VERTICAL inset feeds the measured height, so that is what this pins. The
+        // horizontal inset moved 6 -> 8 when the toolbar adopted DmPaddingCompact and the
+        // measurement was unaffected, which is exactly why the literal string "6,4" was the wrong
+        // thing to assert: it made a height guard fire on a width change, and it would have gone
+        // quiet had the padding become a token whose vertical component was anything at all.
+        VerticalInset(paddingMatch.Groups["value"].Value)
             .Should()
             .Be(
-                "6,4",
+                4,
                 Remedy);
 
         ThemeSource
@@ -211,6 +215,70 @@ public class ThemeTokenParityTests
             .Be(
                 1,
                 Remedy);
+    }
+
+    /// <summary>
+    ///		Returns the vertical component of a MAUI <c>Padding</c> attribute value, resolving a
+    ///		<c>{StaticResource DmPadding*}</c> reference through the <c>Thickness</c> token that
+    ///		declares it. A one-value thickness is uniform, a two-value one is horizontal then
+    ///		vertical, and a four-value one is left/top/right/bottom — whose top and bottom must
+    ///		agree, or there is no single vertical inset for a measured height to depend on.
+    /// </summary>
+    /// <param name="attributeValue">
+    ///		The raw text of the <c>Padding</c> attribute.
+    /// </param>
+    private static double VerticalInset(string attributeValue)
+    {
+        var reference = Regex.Match(
+            attributeValue,
+            @"^\{StaticResource\s+(?<key>[A-Za-z0-9]+)\s*\}$");
+
+        var literal = attributeValue;
+
+        if (reference.Success)
+        {
+            var key = reference.Groups["key"].Value;
+
+            var declaration = Regex.Match(
+                ThemeSource.ThemeFileText("Tokens.xaml"),
+                $@"<Thickness x:Key=""{Regex.Escape(key)}"">(?<value>[^<]+)</Thickness>");
+
+            declaration
+                .Success
+                .Should()
+                .BeTrue($"padding token '{key}' should be declared as a Thickness in Tokens.xaml");
+
+            literal = declaration.Groups["value"].Value;
+        }
+
+        var components = literal
+            .Split(',')
+            .Select(component =>
+                double.Parse(
+                    component.Trim(),
+                    CultureInfo.InvariantCulture))
+            .ToList();
+
+        switch (components.Count)
+        {
+            case 1:
+                return components[0];
+
+            case 2:
+                return components[1];
+
+            case 4:
+                components[3]
+                    .Should()
+                    .Be(
+                        components[1],
+                        "a measured height needs one vertical inset, not two different ones");
+
+                return components[1];
+
+            default:
+                throw new FormatException($"'{literal}' is not a MAUI Thickness");
+        }
     }
 
     /// <summary>

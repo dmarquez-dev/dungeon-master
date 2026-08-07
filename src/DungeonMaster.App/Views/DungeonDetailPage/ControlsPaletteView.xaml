@@ -30,16 +30,16 @@
     <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
             Stroke="{StaticResource DmBorderParchment}"
             StrokeThickness="{StaticResource DmStrokeHairline}"
-            Padding="6,5,6,6"
-            WidthRequest="216"
+            Padding="{StaticResource DmPaddingCompact}"
+            WidthRequest="220"
             HorizontalOptions="Start">
         <Border.StrokeShape>
-            <RoundRectangle CornerRadius="4" />
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
         </Border.StrokeShape>
         <HorizontalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="0">
 
             <!-- ROTATE group -->
-            <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}" HorizontalOptions="Center">
                 <Label Text="ROTATE"
                        FontFamily="{StaticResource DmFontTitle}"
                        FontSize="{StaticResource DmFontSizeMicro}"
@@ -61,13 +61,15 @@
                      deterministic — is deleted by the Phosphor icon-font migration, which replaces
                      these text-font glyphs with real icon codepoints that centre by construction.
                      See docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md. -->
-                <HorizontalStackLayout Spacing="4">
+                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <!-- Measured translation — see the note above. -->
                     <Border x:Name="BtnCCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="{StaticResource DmStrokeHairline}"
-                            StrokeShape="RoundRectangle 2">
+                            StrokeThickness="{StaticResource DmStrokeHairline}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                        </Border.StrokeShape>
                         <Label Text="↺"
                                FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
@@ -84,8 +86,10 @@
                     <Border x:Name="BtnCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="{StaticResource DmStrokeHairline}"
-                            StrokeShape="RoundRectangle 2">
+                            StrokeThickness="{StaticResource DmStrokeHairline}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                        </Border.StrokeShape>
                         <Label Text="↻"
                                FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
@@ -108,7 +112,7 @@
                      VerticalOptions="Center" />
 
             <!-- SCALE group -->
-            <VerticalStackLayout Spacing="3" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}" HorizontalOptions="Center">
                 <Label Text="SCALE"
                        FontFamily="{StaticResource DmFontTitle}"
                        FontSize="{StaticResource DmFontSizeMicro}"
@@ -116,13 +120,15 @@
                        TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
-                <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
                     <!-- Measured translation — see the note in the ROTATE group above. -->
                     <Border x:Name="BtnScaleDown"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="{StaticResource DmStrokeHairline}"
-                            StrokeShape="RoundRectangle 2">
+                            StrokeThickness="{StaticResource DmStrokeHairline}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                        </Border.StrokeShape>
                         <Label Text="−"
                                FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
@@ -148,8 +154,10 @@
                     <Border x:Name="BtnScaleUp"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
-                            StrokeThickness="{StaticResource DmStrokeHairline}"
-                            StrokeShape="RoundRectangle 2">
+                            StrokeThickness="{StaticResource DmStrokeHairline}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                        </Border.StrokeShape>
                         <Label Text="+"
                                FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"

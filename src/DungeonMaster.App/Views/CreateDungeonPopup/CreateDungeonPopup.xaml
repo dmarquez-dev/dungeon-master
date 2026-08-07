@@ -15,7 +15,7 @@
 
     <controls:DmPopup x:Name="Chrome" Title="New Dungeon">
         <controls:DmPopup.Body>
-            <VerticalStackLayout Spacing="14">
+            <VerticalStackLayout Spacing="{StaticResource DmSpaceLarge}">
 
                 <!-- Error -->
                 <Label
@@ -26,7 +26,7 @@
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
                 <!-- Name field -->
-                <VerticalStackLayout Spacing="4">
+                <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <Label
                         Text="NAME *"
                         FontFamily="{StaticResource DmFontTitle}"
@@ -35,7 +35,7 @@
                         TextColor="{StaticResource DmTextParchmentMuted}" />
                     <Border
                         Style="{StaticResource DmBorderParchmentStyle}"
-                        Padding="10,4">
+                        Padding="{StaticResource DmPaddingControl}">
                         <Entry
                             Style="{StaticResource DmEntryParchment}"
                             Text="{Binding Name, Mode=TwoWay}"
@@ -44,7 +44,7 @@
                 </VerticalStackLayout>
 
                 <!-- Description field -->
-                <VerticalStackLayout Spacing="4">
+                <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <Label
                         Text="DESCRIPTION"
                         FontFamily="{StaticResource DmFontTitle}"
@@ -53,7 +53,7 @@
                         TextColor="{StaticResource DmTextParchmentMuted}" />
                     <Border
                         Style="{StaticResource DmBorderParchmentStyle}"
-                        Padding="10,4">
+                        Padding="{StaticResource DmPaddingControl}">
                         <Editor
                             Style="{StaticResource DmEditorParchment}"
                             Text="{Binding Description, Mode=TwoWay}"
@@ -64,14 +64,14 @@
                 </VerticalStackLayout>
 
                 <!-- Buttons -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource DmSpaceLarge}">
                     <Button
                         Grid.Column="0"
                         Text="CANCEL"
                         Command="{Binding CancelCommand}"
                         Style="{StaticResource DmNeutralButton}"
                         CharacterSpacing="1"
-                        BorderWidth="1.5">
+                        BorderWidth="{StaticResource DmStrokeMedium}">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>
