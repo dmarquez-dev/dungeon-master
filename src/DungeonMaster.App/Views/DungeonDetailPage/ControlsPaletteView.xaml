@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DungeonMaster.App.Views.DungeonDetail.ControlsPaletteView"
@@ -47,33 +47,49 @@
                        TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
+                <!-- The four glyph labels below (both arrows, minus and plus) carry a measured
+                     TranslationX/Y. It cancels the glyph's ink offset inside the font's line box,
+                     which VerticalTextAlignment cannot reach — that centres the line box, not the
+                     ink within it. Translation is a render transform applied after Rotation in
+                     screen space, which is why the rotated arrows are corrected on X, not Y.
+                     These numbers are font-specific: re-measure them from a rendered frame if the
+                     body font changes, if the icon size token changes, or if these glyphs are
+                     replaced by real icon-font codepoints. -->
                 <HorizontalStackLayout Spacing="4">
+                    <!-- Measured translation — see the note above. -->
                     <Border x:Name="BtnCCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
                             StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="↺"
-                               FontFamily="{StaticResource DmFontIcon}"
+                               FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
                                Rotation="-90"
                                TextColor="{StaticResource DmTextToolPanel}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center"
+                               TranslationX="-2.0"
                                InputTransparent="True" />
                     </Border>
+                    <!-- Measured translation — see the note above. -->
                     <Border x:Name="BtnCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
                             StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="↻"
-                               FontFamily="{StaticResource DmFontIcon}"
+                               FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
                                Rotation="90"
                                TextColor="{StaticResource DmTextToolPanel}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center"
+                               TranslationX="2.0"
                                InputTransparent="True" />
                     </Border>
                 </HorizontalStackLayout>
@@ -95,17 +111,21 @@
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
                 <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                    <!-- Measured translation — see the note in the ROTATE group above. -->
                     <Border x:Name="BtnScaleDown"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
                             StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="−"
-                               FontFamily="{StaticResource DmFontIcon}"
+                               FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
                                TextColor="{StaticResource DmTextToolPanel}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center"
+                               TranslationY="-2.4"
                                InputTransparent="True" />
                     </Border>
                     <Label x:Name="ScaleReadout"
@@ -118,17 +138,21 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            HorizontalTextAlignment="Center" />
+                    <!-- Measured translation — see the note in the ROTATE group above. -->
                     <Border x:Name="BtnScaleUp"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
                             StrokeThickness="{StaticResource DmStrokeHairline}"
                             StrokeShape="RoundRectangle 2">
                         <Label Text="+"
-                               FontFamily="{StaticResource DmFontIcon}"
+                               FontFamily="{StaticResource DmFontBody}"
                                FontSize="{StaticResource DmIconSizeTool}"
                                TextColor="{StaticResource DmTextToolPanel}"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
+                               HorizontalOptions="Fill"
+                               VerticalOptions="Fill"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center"
+                               TranslationY="-2.8"
                                InputTransparent="True" />
                     </Border>
                 </HorizontalStackLayout>

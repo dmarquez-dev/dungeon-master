@@ -112,7 +112,8 @@
                         StrokeShape="RoundRectangle 3"
                         StrokeThickness="{StaticResource DmStrokeHairline}"
                         Padding="6,4"
-                        Margin="0,0,0,4">
+                        Margin="0,0,0,4"
+                        HeightRequest="{StaticResource DmToolbarHeight}">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
 
                         <!-- Left: context-switching area -->
@@ -566,8 +567,10 @@
                 <!-- Dungeon-level row — always visible, styled like a floor card. Fixed above the
                      scrolling floor list (not a ScrollView child) so it never scrolls out of view
                      and survives FloorListContainer's Children.Clear() rebuilds untouched.
-                     HeightRequest below is only a pre-render fallback — the code-behind syncs this
-                     card's real height to MapToolbar's measured height once it first renders. -->
+                     Height comes from the same measured toolbar-height token the map toolbar uses,
+                     so the two line up from the very first frame. The card used to carry a guessed
+                     height that code-behind overwrote once the toolbar rendered, which made the card
+                     visibly resize on load. See the token's comment before changing the number. -->
                 <Border
                     x:Name="DungeonCard"
                     Grid.Row="0"
@@ -577,7 +580,7 @@
                     BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
                     Padding="8,8"
                     Margin="0,0,0,4"
-                    HeightRequest="41">
+                    HeightRequest="{StaticResource DmToolbarHeight}">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
                         <Label
                             Grid.Column="0"

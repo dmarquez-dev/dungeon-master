@@ -226,4 +226,19 @@
     <x:Double x:Key="DmStrokeHairline">1</x:Double>
     <x:Double x:Key="DmStrokeEmphasis">2</x:Double>
 
+    <!-- Shared height of the map toolbar and the sidebar dungeon card, so their bottom
+         edges line up across the two columns of the designer.
+
+         54.4 is NOT arithmetic — it is the toolbar's rendered height, read back from the
+         live layout on Windows at the current type scale (tool icons, tool letter labels
+         and the right-hand Undo group), and confirmed constant from a 357 DIU wide
+         toolbar up to 1157 DIU, so the row never reflows. WinUI's line height for these
+         fonts cannot be derived from the markup; an earlier attempt to compute it from
+         padding, stroke and an assumed font-size multiplier was visibly wrong on screen.
+
+         If any font size, padding or stroke inside the toolbar changes, this number must
+         be RE-MEASURED from a rendered frame, not recalculated. Too small clips the tool
+         tiles; too large leaves a gap under them. -->
+    <x:Double x:Key="DmToolbarHeight">54.4</x:Double>
+
 </ResourceDictionary>
