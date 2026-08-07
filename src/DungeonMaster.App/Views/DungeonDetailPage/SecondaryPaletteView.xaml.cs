@@ -1,5 +1,4 @@
 using DungeonMaster.App.Assets.ObjectAssets;
-using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Theme;
 using DungeonMaster.Domain.Entities.Floor;
 
@@ -75,19 +74,7 @@ public partial class SecondaryPaletteView : ContentView
                 ObjectSelected?.Invoke(this, kind);
             border.GestureRecognizers.Add(tap);
 
-            border.Behaviors.Add(new HandCursorBehavior());
-            var ptr = new PointerGestureRecognizer();
-            ptr.PointerEntered += (_, _) =>
-            {
-                border.BackgroundColor = DmTheme.SurfaceToolChipHover;
-                border.Stroke = new SolidColorBrush(DmTheme.ScrollGoldLight);
-            };
-            ptr.PointerExited += (_, _) =>
-            {
-                border.BackgroundColor = DmTheme.SurfaceToolChip;
-                border.Stroke = new SolidColorBrush(DmTheme.BorderToolChip);
-            };
-            border.GestureRecognizers.Add(ptr);
+            PaletteThumb.AttachHover(border);
 
             ObjectGrid.Add(border, i % 5, i / 5);
         }

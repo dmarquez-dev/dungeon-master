@@ -48,60 +48,60 @@ public partial class App : MauiWinUIApplication
 		var resources = Microsoft.UI.Xaml.Application.Current.Resources;
 
 		// Scrollbar thumb — gold palette.
-		resources["ScrollBarThumbFillBrush"] = Brush(DmTheme.ScrollbarThumb);
-		resources["ScrollBarThumbFillBrushPointerOver"] = Brush(DmTheme.Gold);
-		resources["ScrollBarThumbFillBrushPressed"] = Brush(DmTheme.TextTavern);
-		resources["ScrollBarThumbFillBrushDisabled"] = Brush(DmTheme.ScrollbarThumbDisabled);
+		resources["ScrollBarThumbFillBrush"] = ToBrush(DmTheme.ScrollbarThumb);
+		resources["ScrollBarThumbFillBrushPointerOver"] = ToBrush(DmTheme.Gold);
+		resources["ScrollBarThumbFillBrushPressed"] = ToBrush(DmTheme.TextTavern);
+		resources["ScrollBarThumbFillBrushDisabled"] = ToBrush(DmTheme.ScrollbarThumbDisabled);
 
 		// Text selection highlight — amber/parchment instead of system purple.
-		resources["TextControlSelectionHighlightColor"] = Brush(DmTheme.TextSelection);
+		resources["TextControlSelectionHighlightColor"] = ToBrush(DmTheme.TextSelection);
 
 		// Parchment ComboBox/Picker theme — same values for Light and Dark so the dropdown
-		// always matches the palette regardless of system theme. HighContrast deliberately
-		// omits the pressed, disabled and unselected-item entries so the system can supply
-		// its own high-contrast values for them.
+		// always matches the palette regardless of system theme.
+		//
+		// These assignments REPLACE any existing entry rather than merging into it. That is safe
+		// only because Platforms/Windows/App.xaml is deliberately empty and nothing else
+		// populates ThemeDictionaries; if a WinUI control library is ever added, merge instead.
 		resources.ThemeDictionaries["Light"] = ComboBoxTheme();
 		resources.ThemeDictionaries["Dark"] = ComboBoxTheme();
-		resources.ThemeDictionaries["HighContrast"] = ComboBoxHighContrastTheme();
+
+		// HighContrast gets the shared entries only, omitting the pressed, disabled and
+		// unselected-item entries so the system can supply its own high-contrast values.
+		resources.ThemeDictionaries["HighContrast"] = ComboBoxSharedEntries();
 	}
 
 	private static ResourceDictionary ComboBoxTheme()
 	{
 		var dictionary = ComboBoxSharedEntries();
 
-		dictionary["ComboBoxItemForegroundPressed"] = Brush(DmTheme.TextToolPanel);
-		dictionary["ComboBoxItemForegroundDisabled"] = Brush(DmTheme.TextComboItemDisabled);
+		dictionary["ComboBoxItemForegroundPressed"] = ToBrush(DmTheme.TextToolPanel);
+		dictionary["ComboBoxItemForegroundDisabled"] = ToBrush(DmTheme.TextComboItemDisabled);
 		dictionary["ComboBoxItemBackground"] = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-		dictionary["ComboBoxItemBackgroundPressed"] = Brush(DmTheme.SurfaceComboItemPressed);
+		dictionary["ComboBoxItemBackgroundPressed"] = ToBrush(DmTheme.SurfaceComboItemPressed);
 
 		return dictionary;
-	}
-
-	private static ResourceDictionary ComboBoxHighContrastTheme()
-	{
-		return ComboBoxSharedEntries();
 	}
 
 	private static ResourceDictionary ComboBoxSharedEntries()
 	{
 		return new ResourceDictionary
 		{
-			["ComboBoxDropDownBackground"] = Brush(DmTheme.SurfaceToolPanel),
-			["ComboBoxDropDownBorderBrush"] = Brush(DmTheme.BorderToolChip),
-			["ComboBoxDropDownGlyphForeground"] = Brush(DmTheme.TextToolPanel),
-			["ComboBoxDropDownGlyphForegroundFocused"] = Brush(DmTheme.TextToolPanel),
-			["ComboBoxItemForeground"] = Brush(DmTheme.TextToolPanel),
-			["ComboBoxItemForegroundPointerOver"] = Brush(DmTheme.TextToolPanel),
-			["ComboBoxItemForegroundSelected"] = Brush(DmTheme.TextToolPanel),
-			["ComboBoxItemForegroundSelectedUnfocused"] = Brush(DmTheme.TextToolPanel),
-			["ComboBoxItemBackgroundPointerOver"] = Brush(DmTheme.SurfaceComboItemHover),
-			["ComboBoxItemBackgroundSelected"] = Brush(DmTheme.SurfaceToolChip),
-			["ComboBoxItemBackgroundSelectedPointerOver"] = Brush(DmTheme.SurfaceComboItemHover),
-			["ComboBoxItemBackgroundSelectedUnfocused"] = Brush(DmTheme.SurfaceToolChip),
+			["ComboBoxDropDownBackground"] = ToBrush(DmTheme.SurfaceToolPanel),
+			["ComboBoxDropDownBorderBrush"] = ToBrush(DmTheme.BorderToolChip),
+			["ComboBoxDropDownGlyphForeground"] = ToBrush(DmTheme.TextToolPanel),
+			["ComboBoxDropDownGlyphForegroundFocused"] = ToBrush(DmTheme.TextToolPanel),
+			["ComboBoxItemForeground"] = ToBrush(DmTheme.TextToolPanel),
+			["ComboBoxItemForegroundPointerOver"] = ToBrush(DmTheme.TextToolPanel),
+			["ComboBoxItemForegroundSelected"] = ToBrush(DmTheme.TextToolPanel),
+			["ComboBoxItemForegroundSelectedUnfocused"] = ToBrush(DmTheme.TextToolPanel),
+			["ComboBoxItemBackgroundPointerOver"] = ToBrush(DmTheme.SurfaceComboItemHover),
+			["ComboBoxItemBackgroundSelected"] = ToBrush(DmTheme.SurfaceToolChip),
+			["ComboBoxItemBackgroundSelectedPointerOver"] = ToBrush(DmTheme.SurfaceComboItemHover),
+			["ComboBoxItemBackgroundSelectedUnfocused"] = ToBrush(DmTheme.SurfaceToolChip),
 		};
 	}
 
-	private static SolidColorBrush Brush(Microsoft.Maui.Graphics.Color color)
+	private static SolidColorBrush ToBrush(Microsoft.Maui.Graphics.Color color)
 	{
 		return new SolidColorBrush(DmTheme.ToPlatform(color));
 	}

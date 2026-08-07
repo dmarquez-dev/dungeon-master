@@ -9,9 +9,8 @@ namespace DungeonMaster.App.Controls;
 /// </summary>
 public partial class FloorSidebarItem : ContentView
 {
-	// Properties, not static readonly fields: a field initialiser runs at type-initialisation
-	// time, which can precede Application.Current.Resources, and DmTheme throws when those
-	// resources are absent. See the remarks on DmTheme.
+	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
+	// NoEagerDmThemeRead.
 	private static Color SurfaceNormal =>
 		DmTheme.FloorSurfaceNormal;
 

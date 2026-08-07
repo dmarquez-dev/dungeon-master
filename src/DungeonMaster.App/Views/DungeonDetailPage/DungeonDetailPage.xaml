@@ -116,245 +116,239 @@
                         HeightRequest="{StaticResource DmToolbarHeight}">
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
 
-                        <!-- Left: context-switching area -->
-                        <Grid Grid.Column="0">
+                        <!-- Left: context-switching area.
+                             Floor context: drawing tools. Names are edited in the notebook. -->
+                        <Grid x:Name="FloorContextToolbar" Grid.Column="0"
+                              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="4">
 
-                            <!-- Floor context: drawing tools. Names are edited in the notebook. -->
-                            <Grid x:Name="FloorContextToolbar" IsVisible="True"
-                                  ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="4">
+                            <!-- Draw tool — active by default -->
+                            <Border
+                                x:Name="ToolDrawBorder"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                Stroke="{StaticResource DmAccentGoldLight}"
+                                StrokeThickness="{StaticResource DmStrokeHairline}"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                ToolTipProperties.Text="Draw area (D)">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnToolDrawClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="ToolDrawIcon"
+                                        Text="&#xEA75;"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeLarge}"
+                                        TextColor="{StaticResource DmAccentGoldLight}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="ToolDrawLabel"
+                                        Text="D"
+                                        FontFamily="{StaticResource DmFontBody}"
+                                        FontSize="{StaticResource DmFontSizeCaption}"
+                                        TextColor="{StaticResource DmAccentGoldLight}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
-                                <!-- Draw tool — active by default -->
-                                <Border
-                                    x:Name="ToolDrawBorder"
-                                    Grid.Column="0"
-                                    BackgroundColor="Transparent"
-                                    Stroke="{StaticResource DmAccentGoldLight}"
-                                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Draw area (D)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolDrawClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolDrawIcon"
-                                            Text="&#xEA75;"
-                                            FontFamily="{StaticResource DmFontIcon}"
-                                            FontSize="{StaticResource DmIconSizeLarge}"
-                                            TextColor="{StaticResource DmAccentGoldLight}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolDrawLabel"
-                                            Text="D"
-                                            FontFamily="{StaticResource DmFontBody}"
-                                            FontSize="{StaticResource DmFontSizeCaption}"
-                                            TextColor="{StaticResource DmAccentGoldLight}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
+                            <!-- Move tool -->
+                            <Border
+                                x:Name="ToolMoveBorder"
+                                Grid.Column="1"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="{StaticResource DmStrokeHairline}"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                ToolTipProperties.Text="Move areas (M)">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnToolMoveClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="ToolMoveIcon"
+                                        Text="&#xE9D9;"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeLarge}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="ToolMoveLabel"
+                                        Text="M"
+                                        FontFamily="{StaticResource DmFontBody}"
+                                        FontSize="{StaticResource DmFontSizeCaption}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
-                                <!-- Move tool -->
-                                <Border
-                                    x:Name="ToolMoveBorder"
-                                    Grid.Column="1"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Move areas (M)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolMoveClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolMoveIcon"
-                                            Text="&#xE9D9;"
-                                            FontFamily="{StaticResource DmFontIcon}"
-                                            FontSize="{StaticResource DmIconSizeLarge}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolMoveLabel"
-                                            Text="M"
-                                            FontFamily="{StaticResource DmFontBody}"
-                                            FontSize="{StaticResource DmFontSizeCaption}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
+                            <!-- Select tool — click a placed object on the map to select it -->
+                            <Border
+                                x:Name="ToolSelectBorder"
+                                Grid.Column="2"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="{StaticResource DmStrokeHairline}"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                ToolTipProperties.Text="Select area (S)">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnToolSelectClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="ToolSelectIcon"
+                                        Text="&#xE9B6;"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeLarge}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="ToolSelectLabel"
+                                        Text="S"
+                                        FontFamily="{StaticResource DmFontBody}"
+                                        FontSize="{StaticResource DmFontSizeCaption}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
-                                <!-- Select tool — click a placed object on the map to select it -->
-                                <Border
-                                    x:Name="ToolSelectBorder"
-                                    Grid.Column="2"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Select area (S)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolSelectClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolSelectIcon"
-                                            Text="&#xE9B6;"
-                                            FontFamily="{StaticResource DmFontIcon}"
-                                            FontSize="{StaticResource DmIconSizeLarge}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolSelectLabel"
-                                            Text="S"
-                                            FontFamily="{StaticResource DmFontBody}"
-                                            FontSize="{StaticResource DmFontSizeCaption}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
+                            <!-- Erase tool — delete an area by clicking it on the canvas -->
+                            <Border
+                                x:Name="ToolEraseBorder"
+                                Grid.Column="3"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="{StaticResource DmStrokeHairline}"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                ToolTipProperties.Text="Erase area (E)">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnToolEraseClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="ToolEraseIcon"
+                                        Text="&#xE936;"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeLarge}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="ToolEraseLabel"
+                                        Text="E"
+                                        FontFamily="{StaticResource DmFontBody}"
+                                        FontSize="{StaticResource DmFontSizeCaption}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
-                                <!-- Erase tool — delete an area by clicking it on the canvas -->
-                                <Border
-                                    x:Name="ToolEraseBorder"
-                                    Grid.Column="3"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Erase area (E)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolEraseClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolEraseIcon"
-                                            Text="&#xE936;"
-                                            FontFamily="{StaticResource DmFontIcon}"
-                                            FontSize="{StaticResource DmIconSizeLarge}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolEraseLabel"
-                                            Text="E"
-                                            FontFamily="{StaticResource DmFontBody}"
-                                            FontSize="{StaticResource DmFontSizeCaption}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
+                            <!-- Place tool — place objects anywhere on the floor -->
+                            <Border
+                                x:Name="ToolPlaceBorder"
+                                Grid.Column="4"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="{StaticResource DmStrokeHairline}"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                ToolTipProperties.Text="Place objects (P)">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="ToolPlaceIcon"
+                                        Text="&#xE9B8;"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeLarge}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="ToolPlaceLabel"
+                                        Text="P"
+                                        FontFamily="{StaticResource DmFontBody}"
+                                        FontSize="{StaticResource DmFontSizeCaption}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
-                                <!-- Place tool — place objects anywhere on the floor -->
-                                <Border
-                                    x:Name="ToolPlaceBorder"
-                                    Grid.Column="4"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Place objects (P)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolPlaceIcon"
-                                            Text="&#xE9B8;"
-                                            FontFamily="{StaticResource DmFontIcon}"
-                                            FontSize="{StaticResource DmIconSizeLarge}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolPlaceLabel"
-                                            Text="P"
-                                            FontFamily="{StaticResource DmFontBody}"
-                                            FontSize="{StaticResource DmFontSizeCaption}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                                <!-- Pan tool -->
-                                <Border
-                                    x:Name="ToolPanBorder"
-                                    Grid.Column="5"
-                                    BackgroundColor="Transparent"
-                                    Stroke="Transparent"
-                                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                                    StrokeShape="RoundRectangle 3"
-                                    Padding="8,4"
-                                    ToolTipProperties.Text="Pan / scroll (H)">
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnToolPanClicked" />
-                                    </Border.GestureRecognizers>
-                                    <Border.Behaviors>
-                                        <behaviors:HandCursorBehavior />
-                                    </Border.Behaviors>
-                                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
-                                        <Label
-                                            x:Name="ToolPanIcon"
-                                            Text="&#xEA78;"
-                                            FontFamily="{StaticResource DmFontIcon}"
-                                            FontSize="{StaticResource DmIconSizeLarge}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                        <Label
-                                            x:Name="ToolPanLabel"
-                                            Text="H"
-                                            FontFamily="{StaticResource DmFontBody}"
-                                            FontSize="{StaticResource DmFontSizeCaption}"
-                                            TextColor="{StaticResource DmTextTavernMuted}"
-                                            VerticalOptions="Center" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                            </Grid>
+                            <!-- Pan tool -->
+                            <Border
+                                x:Name="ToolPanBorder"
+                                Grid.Column="5"
+                                BackgroundColor="Transparent"
+                                Stroke="Transparent"
+                                StrokeThickness="{StaticResource DmStrokeHairline}"
+                                StrokeShape="RoundRectangle 3"
+                                Padding="8,4"
+                                ToolTipProperties.Text="Pan / scroll (H)">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnToolPanClicked" />
+                                </Border.GestureRecognizers>
+                                <Border.Behaviors>
+                                    <behaviors:HandCursorBehavior />
+                                </Border.Behaviors>
+                                <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                                    <Label
+                                        x:Name="ToolPanIcon"
+                                        Text="&#xEA78;"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeLarge}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                    <Label
+                                        x:Name="ToolPanLabel"
+                                        Text="H"
+                                        FontFamily="{StaticResource DmFontBody}"
+                                        FontSize="{StaticResource DmFontSizeCaption}"
+                                        TextColor="{StaticResource DmTextTavernMuted}"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </Border>
 
                         </Grid>
 
                         <!-- Right: always-visible Undo -->
-                        <HorizontalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
-
-                            <Button
-                                x:Name="UndoButton"
-                                Text="&#x21A9; Undo"
-                                FontFamily="{StaticResource DmFontBody}"
-                                FontSize="{StaticResource DmFontSizeBodySmall}"
-                                BackgroundColor="Transparent"
-                                TextColor="{StaticResource DmAccentGoldLight}"
-                                BorderColor="Transparent"
-                                BorderWidth="1"
-                                CornerRadius="3"
-                                Padding="8,4"
-                                IsEnabled="False"
-                                Opacity="0.35"
-                                ToolTipProperties.Text="Undo last vertex"
-                                Clicked="OnUndoClicked">
-                                <Button.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Button.Behaviors>
-                            </Button>
-
-                        </HorizontalStackLayout>
+                        <Button
+                            x:Name="UndoButton"
+                            Grid.Column="1"
+                            Text="&#x21A9; Undo"
+                            FontFamily="{StaticResource DmFontBody}"
+                            FontSize="{StaticResource DmFontSizeBodySmall}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource DmAccentGoldLight}"
+                            BorderColor="Transparent"
+                            BorderWidth="1"
+                            CornerRadius="3"
+                            Padding="8,4"
+                            IsEnabled="False"
+                            Opacity="0.35"
+                            VerticalOptions="Center"
+                            ToolTipProperties.Text="Undo last vertex"
+                            Clicked="OnUndoClicked">
+                            <Button.Behaviors>
+                                <behaviors:HandCursorBehavior />
+                            </Button.Behaviors>
+                        </Button>
 
                     </Grid>
                 </Border>
@@ -379,6 +373,42 @@
                         Margin="0,8,12,0"
                         Spacing="2"
                         InputTransparent="False">
+
+                        <!--
+                            SCHEDULED FOR DELETION — MEASURED GLYPH TRANSLATIONS.
+
+                            Six Labels in this file carry a measured TranslationX/Y: the two zoom
+                            stepper glyphs below and the four object-action popup glyphs further
+                            down (rotate CCW/CW, resize − and +). Each is marked at its own site.
+
+                            WHY THEY EXIST. All six render a Unicode symbol out of the body text
+                            font (DmFontBody, EB Garamond) at DmIconSizeXL. A text font's ink does
+                            not sit centred in its line box — EB Garamond's designer glyphs measure
+                            about 8.7% high in theirs — so a glyph centred by layout still looks
+                            off-centre on screen. VerticalTextAlignment cannot reach this: it
+                            centres the LINE BOX inside the Label, not the ink within the line box.
+                            That was applied alone first and measured; all four popup residuals
+                            came back bit-for-bit unchanged. The working fix is a deterministic box
+                            (the Label fills its parent, so its rect is exactly the parent's) plus
+                            a Translation read back from a rendered frame. Translation is a pure
+                            render transform — no layout perturbation, no clipping — and it applies
+                            AFTER Rotation in screen space, which is why the two rotated arrows are
+                            corrected on X rather than on Y.
+
+                            RE-MEASURE, do not recalculate, if DmFontBody changes, if DmIconSizeXL
+                            changes, or if any of these glyphs is replaced. The numbers are
+                            DPI-independent but font-dependent.
+
+                            THIS IS A SCHEDULED DELETION, NOT A MECHANISM TO MAINTAIN. The Phosphor
+                            icon-font migration replaces these text-font glyphs with real icon
+                            codepoints, which centre in their em box by construction, and takes the
+                            translations with them. See
+                            docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md.
+
+                            EXCEPT FOR THE TWO ZOOM STEPPERS — read the note on them below before
+                            assuming Phosphor deletes all six.
+                        -->
+
                         <!-- Zoom in — upward triangle -->
                         <Grid WidthRequest="42" HeightRequest="36">
                             <Grid.GestureRecognizers>
@@ -393,14 +423,22 @@
                                      StrokeThickness="{StaticResource DmStrokeHairline}"
                                      HorizontalOptions="Fill"
                                      VerticalOptions="Fill" />
+                            <!-- MEASURED — and NOT purely an ink offset. Unlike the four popup
+                                 glyphs, this Label is centred over a triangular Polygon in a
+                                 42x36 box, and a triangle's centroid is not its bounding box's
+                                 centre. +3.1 here against -8.3 on the downward stepper cannot
+                                 both be the same ~8.7% ink offset of one font at one size: each
+                                 is the ink offset MIXED WITH a triangle-centroid compensation of
+                                 the opposite sign. Consequence: Phosphor will NOT delete these
+                                 two automatically. Swapping the font removes the ink component
+                                 only; the centroid component survives and must be re-measured
+                                 against the new glyph. -->
                             <Label Text="+"
                                    FontFamily="{StaticResource DmFontBody}"
                                    FontSize="{StaticResource DmIconSizeXL}"
                                    TextColor="{StaticResource DmTextTavern}"
-                                   WidthRequest="42"
-                                   HeightRequest="36"
                                    HorizontalOptions="Fill"
-                                   VerticalOptions="Center"
+                                   VerticalOptions="Fill"
                                    HorizontalTextAlignment="Center"
                                    VerticalTextAlignment="Center"
                                    TranslationY="3.1" />
@@ -427,14 +465,16 @@
                                      StrokeThickness="{StaticResource DmStrokeHairline}"
                                      HorizontalOptions="Fill"
                                      VerticalOptions="Fill" />
+                            <!-- MEASURED — mixed ink offset + triangle-centroid compensation, of
+                                 the opposite sign to the upward stepper's +3.1. See the note on
+                                 that one: Phosphor does not delete this translation, it only
+                                 removes the ink half of it. Re-measure at that point. -->
                             <Label Text="−"
                                    FontFamily="{StaticResource DmFontBody}"
                                    FontSize="{StaticResource DmIconSizeXL}"
                                    TextColor="{StaticResource DmTextTavern}"
-                                   WidthRequest="42"
-                                   HeightRequest="36"
                                    HorizontalOptions="Fill"
-                                   VerticalOptions="Center"
+                                   VerticalOptions="Fill"
                                    HorizontalTextAlignment="Center"
                                    VerticalTextAlignment="Center"
                                    TranslationY="-8.3" />
@@ -468,15 +508,16 @@
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
+                                <!-- Measured ink-offset translation, corrected on X because
+                                     Rotation precedes it — see the note above the zoom stepper.
+                                     Deleted by the Phosphor migration. -->
                                 <Label Text="↺"
                                        FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
                                        Rotation="-90"
-                                       WidthRequest="32"
-                                       HeightRequest="32"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill"
                                        HorizontalTextAlignment="Center"
                                        VerticalTextAlignment="Center"
                                        TranslationX="-1.6"
@@ -487,15 +528,16 @@
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
+                                <!-- Measured ink-offset translation, corrected on X because
+                                     Rotation precedes it — see the note above the zoom stepper.
+                                     Deleted by the Phosphor migration. -->
                                 <Label Text="↻"
                                        FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
                                        Rotation="90"
-                                       WidthRequest="32"
-                                       HeightRequest="32"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill"
                                        HorizontalTextAlignment="Center"
                                        VerticalTextAlignment="Center"
                                        TranslationX="2.0"
@@ -509,14 +551,14 @@
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
+                                <!-- Measured ink-offset translation — see the note above the zoom
+                                     stepper. Deleted by the Phosphor migration. -->
                                 <Label Text="−"
                                        FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
-                                       WidthRequest="32"
-                                       HeightRequest="32"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill"
                                        HorizontalTextAlignment="Center"
                                        VerticalTextAlignment="Center"
                                        TranslationY="-2.4"
@@ -527,14 +569,14 @@
                                     BackgroundColor="Transparent"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 2">
+                                <!-- Measured ink-offset translation — see the note above the zoom
+                                     stepper. Deleted by the Phosphor migration. -->
                                 <Label Text="+"
                                        FontFamily="{StaticResource DmFontBody}"
                                        FontSize="{StaticResource DmIconSizeXL}"
                                        TextColor="{StaticResource DmAccentGoldLight}"
-                                       WidthRequest="32"
-                                       HeightRequest="32"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center"
+                                       HorizontalOptions="Fill"
+                                       VerticalOptions="Fill"
                                        HorizontalTextAlignment="Center"
                                        VerticalTextAlignment="Center"
                                        TranslationY="-2.8"

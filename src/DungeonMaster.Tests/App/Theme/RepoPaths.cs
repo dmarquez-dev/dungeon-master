@@ -17,7 +17,10 @@ public static class RepoPaths
     ///		Gets the absolute path to the DungeonMaster.App project directory.
     /// </summary>
     public static string AppRoot =>
-        Path.Combine(Root, "src", "DungeonMaster.App");
+        Path.Combine(
+            Root,
+            "src",
+            "DungeonMaster.App");
 
     /// <summary>
     ///		Returns every file under the application project matching the supplied pattern.
@@ -31,12 +34,17 @@ public static class RepoPaths
         var separator = Path.DirectorySeparatorChar;
 
         return Directory
-            .EnumerateFiles(AppRoot, searchPattern, SearchOption.AllDirectories)
+            .EnumerateFiles(
+                AppRoot,
+                searchPattern,
+                SearchOption.AllDirectories)
             .Where(path =>
                 !path.Contains($"{separator}obj{separator}")
                 && !path.Contains($"{separator}bin{separator}"))
-            .OrderBy(path =>
-                path, StringComparer.Ordinal)
+            .OrderBy(
+                path =>
+                    path,
+                StringComparer.Ordinal)
             .ToList();
     }
 
@@ -46,7 +54,16 @@ public static class RepoPaths
 
         while (directory is not null)
         {
-            if (Directory.Exists(Path.Combine(directory.FullName, ".git")))
+            // A .git DIRECTORY marks a normal clone; a .git FILE marks a linked worktree, where
+            // it holds a "gitdir: ..." pointer into the main repository's .git/worktrees. Testing
+            // only for the directory walked straight past a worktree root and either found the
+            // wrong root or ran off the top of the drive and threw — which takes out every theme
+            // fact at once, in the one workspace layout this repository actively uses.
+            var gitPath = Path.Combine(
+                directory.FullName,
+                ".git");
+
+            if (Directory.Exists(gitPath) || File.Exists(gitPath))
             {
                 return directory.FullName;
             }

@@ -1,4 +1,4 @@
-using MauiApplication = Microsoft.Maui.Controls.Application;
+using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
 
@@ -37,11 +37,11 @@ public partial class DmSearchBar : ContentView
 
 	private void OnSearchFocused(object? sender, FocusEventArgs e)
 	{
-		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DmBorderTavernHoverBrush"];
+		SearchBorder.Stroke = DmTheme.FloorBorderActive;
 	}
 
 	private void OnSearchUnfocused(object? sender, FocusEventArgs e)
 	{
-		SearchBorder.Stroke = (Brush)MauiApplication.Current!.Resources["DmBorderTavernBrush"];
+		SearchBorder.Stroke = DmTheme.FloorBorderNormal;
 	}
 }

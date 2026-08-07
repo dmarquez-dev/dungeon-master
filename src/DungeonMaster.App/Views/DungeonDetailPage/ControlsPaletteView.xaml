@@ -47,14 +47,20 @@
                        TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
-                <!-- The four glyph labels below (both arrows, minus and plus) carry a measured
-                     TranslationX/Y. It cancels the glyph's ink offset inside the font's line box,
-                     which VerticalTextAlignment cannot reach — that centres the line box, not the
-                     ink within it. Translation is a render transform applied after Rotation in
-                     screen space, which is why the rotated arrows are corrected on X, not Y.
-                     These numbers are font-specific: re-measure them from a rendered frame if the
-                     body font changes, if the icon size token changes, or if these glyphs are
-                     replaced by real icon-font codepoints. -->
+                <!-- SCHEDULED FOR DELETION — the four glyph labels below (both arrows, minus and
+                     plus) carry a measured TranslationX/Y. It cancels the glyph's ink offset
+                     inside the font's line box, which VerticalTextAlignment cannot reach — that
+                     centres the line box, not the ink within it. Translation is a render transform
+                     applied after Rotation in screen space, which is why the rotated arrows are
+                     corrected on X, not Y. These numbers are font-specific: re-measure them from a
+                     rendered frame if the body font changes, if the icon size token changes, or if
+                     these glyphs are replaced by real icon-font codepoints.
+
+                     This is not a permanent mechanism to be maintained: the whole construct — the
+                     translations, the square Border and the Fill options that make placement
+                     deterministic — is deleted by the Phosphor icon-font migration, which replaces
+                     these text-font glyphs with real icon codepoints that centre by construction.
+                     See docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md. -->
                 <HorizontalStackLayout Spacing="4">
                     <!-- Measured translation — see the note above. -->
                     <Border x:Name="BtnCCW"

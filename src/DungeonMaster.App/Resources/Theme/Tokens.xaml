@@ -27,26 +27,73 @@
         at a usage site.
 
         ─────────────────────────────────────────────────────────────────────────
-        COLOURS SHARED ACROSS TOKENS — CHANGE THESE TOGETHER
+        COLOURS SHARED ACROSS TOKENS — CHANGE A WHOLE HUE AT ONCE
 
         The abandoned two-layer design encoded this structurally: each of these
         tokens was a reference to one palette entry, so a restyle edited one line.
-        In a single layer they are textually identical lines that must still move
-        together, and only this list says so. If you change one, change all of its
-        siblings — or deliberately split them and delete the row.
+        In a single layer they are separate lines that must still move together,
+        and only this table says so.
 
-          #C8A040   DmAccentGoldLight
-                    DmDragPlaceholderStroke
-                    DmAreaSelectedBorder
-                    DmMapArea
-                    DmMapObjectPlaceholder
-          #F5E4B0   DmTextTavern
-                    DmMapVertex
-          #664a3820 DmScrollbarThumb
-                    DmTextSelection
+        GROUPED BY BASE RGB, IGNORING ALPHA — and that is the point. An earlier
+        revision of this ledger was built by exact string equality, so it saw only
+        character-identical literals and listed 5 of the 12 tokens carrying the
+        gold. Restyling the gold by editing those 5 lines would have left seven
+        tinted derivatives sitting on the old hue. THE ALPHA DERIVATIVES ARE PART
+        OF THE RAMP AND MUST MOVE WITH THEIR BASE.
 
-        Keep this list correct when adding tokens: a literal that appears at two
-        keys and is not listed here is a latent restyle bug.
+          #C8A040 — gold accent (12 tokens)
+            (opaque) DmAccentGoldLight, DmDragPlaceholderStroke,
+                     DmAreaSelectedBorder, DmMapArea, DmMapObjectPlaceholder
+            10       DmGoldHoverTint
+            18       DmAreaSelectedTint
+            20       DmDragPlaceholderFill
+            33       DmPopupButtonHover
+            40       DmMapAreaFillActive
+            66       DmPopupButtonPressed
+            90       DmMapAreaStrokeActive
+
+          #8B5E1A — parchment border / tavern raised wash (6 tokens)
+            (opaque) DmBorderParchment
+            2E       DmSurfaceTavernRaised
+            47       DmHairline
+            52       DmSurfaceTavernRaisedHover
+            6A       DmSurfaceTavernRaisedActive
+            6B       DmHairlineStrong
+
+          #C4862A — accent gold, darker (5 tokens)
+            (opaque) DmAccentGold
+            08       DmEditorGlowTint
+            1A       DmMapGrid
+            4D       DmBorderTavern
+            A6       DmBorderTavernHover
+
+          #CC3030 — bright destructive on the near-black popup (3 tokens)
+            (opaque) DmDestructiveBright
+            33       DmPopupButtonDestructiveHover
+            66       DmPopupButtonDestructivePressed
+
+          #8B2020 — destructive on parchment (2 tokens)
+            (opaque) DmDestructive
+            24       DmDestructiveHoverSurface
+
+          #7A5030 — muted parchment ink (2 tokens)
+            (opaque) DmTextParchmentMuted
+            8C       DmTextPlaceholder
+
+          #F5E4B0 — tavern text (2 tokens)
+            (opaque) DmTextTavern, DmMapVertex
+
+          #4A3820 — WinUI scrollbar and selection wash (2 tokens)
+            66       DmScrollbarThumb, DmTextSelection
+
+        DmSurfaceTavernRaisedActive #6A8B5E1A and DmHairlineStrong #6B8B5E1A share
+        a base but differ by one in the alpha channel — see the NEAR-DUPLICATE note
+        further down; they are still one hue for restyle purposes.
+
+        Keep this table correct when adding tokens, and check it by BASE RGB rather
+        than by whole literal: a base that appears at two keys and is not grouped
+        here is a latent restyle bug. All literals in this file are uppercase so
+        that check stays a plain case-sensitive search.
         ─────────────────────────────────────────────────────────────────────────
     -->
 
@@ -156,8 +203,8 @@
          body text sitting on parchment.
     ═══════════════════════════════════════════════════════════════ -->
     <Color x:Key="DmSurfacePopup">#1A1610</Color>
-    <Color x:Key="DmBorderPopup">#4a3a1a</Color>
-    <Color x:Key="DmDivider">#3a2e1a</Color>
+    <Color x:Key="DmBorderPopup">#4A3A1A</Color>
+    <Color x:Key="DmDivider">#3A2E1A</Color>
     <Color x:Key="DmSurfaceStepper">#3D2E12</Color>
     <Color x:Key="DmTextNotebook">#3A2410</Color>
 
@@ -167,9 +214,9 @@
          Platforms/Windows/App.xaml only. DmScrollbarThumb and DmTextSelection are
          the same literal for now — see the shared-colour list at the top.
     ═══════════════════════════════════════════════════════════════ -->
-    <Color x:Key="DmScrollbarThumb">#664a3820</Color>
-    <Color x:Key="DmScrollbarThumbDisabled">#332a2010</Color>
-    <Color x:Key="DmTextSelection">#664a3820</Color>
+    <Color x:Key="DmScrollbarThumb">#664A3820</Color>
+    <Color x:Key="DmScrollbarThumbDisabled">#332A2010</Color>
+    <Color x:Key="DmTextSelection">#664A3820</Color>
     <Color x:Key="DmSurfaceComboItemHover">#D6BE82</Color>
     <Color x:Key="DmSurfaceComboItemPressed">#B89A60</Color>
     <Color x:Key="DmTextComboItemDisabled">#9A8060</Color>
@@ -193,7 +240,7 @@
          DmHairline is the common 1px separator (NotebookView footer,
          FloorSidebarItem area list). DmHairlineStrong is the heavier rule under
          the notebook header. DmSavedStamp is deliberately not DmConfirm: the
-         source note at NotebookView.xaml.cs:101 says "committed" must read as
+         source note at NotebookView.xaml.cs:102-103 says "committed" must read as
          reassuring rather than as an action to take.
     ═══════════════════════════════════════════════════════════════ -->
     <Color x:Key="DmHairline">#478B5E1A</Color>
@@ -224,6 +271,47 @@
 
     <!-- ═══════════════════════════════════════════════════════════════
          Geometry
+
+         THE RADIUS TOKENS ARE DELIBERATELY UNCONSUMED. Do not delete them as dead
+         keys, and do not migrate to them ad hoc either. Current state, counted:
+
+           DmRadiusTight (2)    0 consumers
+           DmRadiusDefault (3)  1 consumer, DmBorderBase in Controls.Base.xaml,
+                                inside this theme directory
+           DmRadiusLoose (4)    0 consumers
+
+         Meanwhile app markup carries 41 raw radius literals — 6 CornerRadius="2",
+         7 CornerRadius="3", 3 CornerRadius="4", 10 "RoundRectangle 2",
+         11 "RoundRectangle 3", 4 "RoundRectangle 4" — plus DmBorderBase's own
+         literal 3 here. EVERY ONE OF THEM IS ALREADY 2, 3 OR 4, so migrating them
+         onto these tokens is pixel-neutral by construction; nothing renders
+         differently. (Two further literals are out of scope and stay literals:
+         DungeonListPage's CornerRadius="26", which is half the FAB's own height,
+         and the implicit Button style's CornerRadius="8", which mirrors the stock
+         value it replaces.)
+
+         The migration is held for the geometry-homogenisation sweep rather than
+         done here because no hygiene pattern covers radii — the ratchet scans hex,
+         FontSize, FontFamily and legacy keys — so this note and RequiredKeys, which
+         certifies all three keys exist, are the only things keeping them alive.
+
+         BEFORE ANYONE RELIES ON IT: Controls.Base.xaml says StrokeShape
+         "unavoidably" needs a literal. That is TRUE OF THE STRING FORM ONLY. The
+         element form puts the radius in attribute position, where a StaticResource
+         does resolve:
+
+             <Border.StrokeShape>
+                 <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+             </Border.StrokeShape>
+
+         and the element form is already used three times in the tree
+         (ControlsPaletteView.xaml:36, ObjectPaletteView.xaml:14,
+         SecondaryPaletteView.xaml:12), all with a literal 4. It has NOT been built
+         with a StaticResource in that position, and the two-layer spike in this
+         file is exactly why that must not be assumed: element-content markup
+         extensions failed at build with MAUIG1010. Attribute position is the case
+         that worked, so this is expected to compile — but expected is not verified.
+         Spike it before the sweep depends on it.
     ═══════════════════════════════════════════════════════════════ -->
     <x:Double x:Key="DmRadiusTight">2</x:Double>
     <x:Double x:Key="DmRadiusDefault">3</x:Double>

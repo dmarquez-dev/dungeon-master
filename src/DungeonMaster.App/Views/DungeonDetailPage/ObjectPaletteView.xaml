@@ -51,7 +51,6 @@
                 <VerticalStackLayout x:Name="CategoriesContainer" Spacing="7" />
             </ScrollView>
 
-
         </VerticalStackLayout>
     </Border>
 </ContentView>

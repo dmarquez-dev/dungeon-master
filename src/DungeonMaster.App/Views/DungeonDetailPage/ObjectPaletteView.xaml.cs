@@ -1,5 +1,4 @@
 using DungeonMaster.App.Assets.ObjectAssets;
-using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Theme;
 using DungeonMaster.Domain.Entities.Floor;
 
@@ -273,7 +272,7 @@ public partial class ObjectPaletteView : ContentView
         tap.Tapped += (_, _) =>
             SelectObject(kind);
         border.GestureRecognizers.Add(tap);
-        AttachThumbHover(border);
+        PaletteThumb.AttachHover(border);
         return border;
     }
 
@@ -304,46 +303,8 @@ public partial class ObjectPaletteView : ContentView
         tap.Tapped += (_, _) =>
             OpenSecondaryPalette(category, allObjects);
         border.GestureRecognizers.Add(tap);
-        AttachThumbHover(border);
+        PaletteThumb.AttachHover(border);
         return border;
-    }
-
-    // Properties, not static readonly fields: a field initialiser runs at type-initialisation
-    // time, which can precede Application.Current.Resources, and DmTheme throws when those
-    // resources are absent. See the remarks on DmTheme.
-    private static Color ThumbNormal =>
-        DmTheme.SurfaceToolChip;
-
-    private static Color ThumbHover =>
-        DmTheme.SurfaceToolChipHover;
-
-    // These two allocate a brush per pointer event, where the colour properties above are a
-    // dictionary lookup. That is deliberate rather than overlooked: Tokens.xaml defines brushes
-    // only for DmAccentGold, DmBorderTavern, DmBorderTavernHover and DmBorderParchment, and
-    // neither DmBorderToolChip nor DmAccentGoldLight has one. Adding two brush tokens purely to
-    // avoid an allocation on hover enter/exit is not worth the token surface; if brush tokens
-    // are ever added for the tool-chip family, resolve them here instead.
-    private static SolidColorBrush ThumbStrokeNormal =>
-        new(DmTheme.BorderToolChip);
-
-    private static SolidColorBrush ThumbStrokeHover =>
-        new(DmTheme.Gold);
-
-    private static void AttachThumbHover(Border border)
-    {
-        border.Behaviors.Add(new HandCursorBehavior());
-        var ptr = new PointerGestureRecognizer();
-        ptr.PointerEntered += (_, _) =>
-        {
-            border.BackgroundColor = ThumbHover;
-            border.Stroke = ThumbStrokeHover;
-        };
-        ptr.PointerExited += (_, _) =>
-        {
-            border.BackgroundColor = ThumbNormal;
-            border.Stroke = ThumbStrokeNormal;
-        };
-        border.GestureRecognizers.Add(ptr);
     }
 
     private SecondaryPaletteView? _secondaryPalette;

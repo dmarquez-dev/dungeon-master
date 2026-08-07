@@ -16,22 +16,8 @@ namespace DungeonMaster.App.Graphics;
 /// </summary>
 public sealed class FloorMapDrawable : IDrawable
 {
-    // These MUST stay properties, never static readonly fields. A static field initialiser
-    // runs at type-initialisation time, which can precede Application.Current and its merged
-    // resource dictionaries; DmTheme reads those dictionaries and throws when they are absent,
-    // with a message that reads like a missing key when the real fault is the ordering. As
-    // properties the read happens at first draw, which is always after startup. This exact
-    // class of bug has already been hit twice in this migration — do not "optimise" these
-    // back into fields.
-    private static Color GridColor =>
-        DmTheme.MapGrid;
-
-    private static Color AreaColor =>
-        DmTheme.MapArea;
-
-    private static Color VertexColor =>
-        DmTheme.MapVertex;
-
+    // Colours are read from DmTheme at draw time, never cached in a static field: see DmTheme's
+    // remarks and the guard test NoEagerDmThemeRead.
     private readonly Dictionary<ObjectKind, Microsoft.Maui.Graphics.IImage?> _imageCache = new();
 
     public FloorMapDrawable() { }
@@ -161,7 +147,7 @@ public sealed class FloorMapDrawable : IDrawable
 
     private void DrawGrid(ICanvas canvas, RectF dirtyRect)
     {
-        canvas.StrokeColor = GridColor;
+        canvas.StrokeColor = DmTheme.MapGrid;
         canvas.StrokeSize = 0.5f;
 
         // Convert screen edges to canvas space so the grid fills the entire view
@@ -247,7 +233,7 @@ public sealed class FloorMapDrawable : IDrawable
         if (outline.Count == 0)
             return;
 
-        canvas.StrokeColor = AreaColor.WithAlpha(alpha);
+        canvas.StrokeColor = DmTheme.MapArea.WithAlpha(alpha);
         canvas.StrokeSize = 1.5f;
 
         // The polygon is closed, so the final segment's end point is also its start point.
@@ -491,7 +477,7 @@ public sealed class FloorMapDrawable : IDrawable
 
         if (InProgressVertices.Count >= 2)
         {
-            canvas.StrokeColor = VertexColor.WithAlpha(0.85f);
+            canvas.StrokeColor = DmTheme.MapVertex.WithAlpha(0.85f);
             canvas.StrokeSize = 1.5f;
             canvas.StrokeDashPattern = null;
 
@@ -507,7 +493,7 @@ public sealed class FloorMapDrawable : IDrawable
             canvas.DrawPath(inProgressPath);
         }
 
-        canvas.FillColor = VertexColor;
+        canvas.FillColor = DmTheme.MapVertex;
 
         foreach (var vertex in InProgressVertices)
         {
@@ -523,7 +509,7 @@ public sealed class FloorMapDrawable : IDrawable
             // Snap phantom end to nearest grid corner — same logic as actual vertex placement.
             var snapped = TileCoordinateHelper.SnapToGrid(PhantomEnd.Value.X, PhantomEnd.Value.Y, TileSize);
 
-            canvas.StrokeColor = VertexColor.WithAlpha(0.5f);
+            canvas.StrokeColor = DmTheme.MapVertex.WithAlpha(0.5f);
             canvas.StrokeSize = 1f;
             canvas.StrokeDashPattern = [4f, 4f];
             canvas.DrawLine(lastX, lastY, PhantomEnd.Value.X, PhantomEnd.Value.Y);
@@ -538,7 +524,7 @@ public sealed class FloorMapDrawable : IDrawable
                 var distFeet = (int)MathF.Round(distTiles * TileSizeInFeet);
                 var midX = (lastX + PhantomEnd.Value.X) / 2f;
                 var midY = (lastY + PhantomEnd.Value.Y) / 2f;
-                canvas.FontColor = VertexColor.WithAlpha(0.9f);
+                canvas.FontColor = DmTheme.MapVertex.WithAlpha(0.9f);
                 canvas.FontSize = (float)DmTheme.FontSizeMicro;
                 canvas.DrawString($"{distFeet}'", midX + 4f, midY - 14f, 48f, 14f,
                     HorizontalAlignment.Left, VerticalAlignment.Center);

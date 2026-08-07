@@ -102,9 +102,8 @@ public partial class NotebookView : ContentView
 	// The save stamp's two states. The green is deliberately DmSavedStamp rather than
 	// DmConfirm: here "committed" needs to read as reassuring rather than as an action to take.
 	//
-	// These are properties, not static readonly fields: a field initialiser runs at
-	// type-initialisation time, which can precede Application.Current.Resources, and DmTheme
-	// throws when those resources are absent. See the remarks on DmTheme.
+	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
+	// NoEagerDmThemeRead.
 	private static Color SavedColor =>
 		DmTheme.SavedStamp;
 
@@ -393,6 +392,8 @@ public partial class NotebookView : ContentView
 	/// </summary>
 	private static Brush RibbonBrush(bool isSelected)
 	{
+		// Raw indexer rather than DmTheme: the key is chosen at runtime, and DmTheme exposes one
+		// member per fixed key, so there is nothing here for it to route through.
 		var colorKey = isSelected ? "DmRibbonRead" : "DmRibbonReadDim";
 		var top = (Color)MauiApplication.Current!.Resources[colorKey];
 		var foot = Darken(top, isSelected ? SelectedFoldFactor : UnselectedFoldFactor);

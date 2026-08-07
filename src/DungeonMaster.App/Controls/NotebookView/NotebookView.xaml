@@ -18,8 +18,12 @@
 
         <!--
             The notebook floats over the floor plan, so the shadow is what separates the two.
-            Every property is set explicitly because the implicit Shadow style in Styles.xaml
-            casts a white shadow, which would glow rather than lift.
+            Every property is set explicitly. That began as a defence against the stock template's
+            implicit Shadow style in Resources/Styles/Styles.xaml, which cast a white shadow and
+            would have made this glow rather than lift. That file was deleted in Task 10 and there
+            is no implicit Shadow style any more, so nothing is being overridden today — but the
+            values below are the ones that were chosen and measured, and they must stay explicit:
+            with them removed the notebook gets MAUI's default (no shadow at all).
         -->
         <Border.Shadow>
             <Shadow

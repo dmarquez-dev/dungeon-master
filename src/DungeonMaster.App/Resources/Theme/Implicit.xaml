@@ -193,7 +193,7 @@
 
                 DungeonDetailPage.xaml:69       Start Session, DataTrigger FloorCount == 0
                 DungeonListPage.xaml:86         Start Session icon, same trigger
-                DungeonDetailPage.xaml:347-348  UndoButton, local IsEnabled + Opacity
+                DungeonDetailPage.xaml:343-344  UndoButton, local IsEnabled + Opacity
 
             An earlier draft of this file set Disabled to Opacity 0.45 to match
             DmButtonBase. That was wrong twice over: it overrode all three of those sites,

@@ -47,20 +47,23 @@
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<!-- Splash Screen.
+		     #1A1208 is the app's own background — the same value the theme holds under
+		     DmSurfaceTavern — replacing the .NET template's #512BD4 purple. It has to be a
+		     literal: MSBuild evaluates this before and outside MAUI, with no access to
+		     Resources/Theme/Tokens.xaml, so it cannot reference the token. Nothing scans
+		     this file for raw colours either; the theme hygiene tests read *.xaml and *.cs
+		     only. If DmSurfaceTavern moves, move this by hand. -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#1A1208" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
-		
-		<!-- Custom Fonts -->
+
+		<!-- Custom Fonts. The wildcard is the registration; do not re-list individual
+		     files beside it. An explicit list used to sit here and had already drifted —
+		     it omitted rpgawesome-webfont.ttf, reading as an authoritative registry that
+		     was missing a font while the wildcard silently kept the app working. -->
 		<MauiFont Include="Resources\Fonts\*" />
-		<MauiFont Include="Resources\Fonts\Cinzel-Regular.ttf" />
-		<MauiFont Include="Resources\Fonts\Cinzel-SemiBold.ttf" />
-		<MauiFont Include="Resources\Fonts\CinzelDecorative-Regular.ttf" />
-		<MauiFont Include="Resources\Fonts\EBGaramond-Regular.ttf" />
-		<MauiFont Include="Resources\Fonts\EBGaramond-Italic.ttf" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />

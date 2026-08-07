@@ -19,8 +19,22 @@ public class BindablePropertyDefaultsMatchTokensTests
     public static TheoryData<string, string, string> Cases =>
         new()
         {
-            { @"Controls\DmDivider\DmDivider.xaml.cs", "IconFontSize", "DmIconSizeMedium" },
-            { @"Controls\DmInlineEditor\DmInlineEditor.xaml.cs", "FontSize", "DmFontSizeBody" },
+            {
+                Path.Combine(
+                    "Controls",
+                    "DmDivider",
+                    "DmDivider.xaml.cs"),
+                "IconFontSize",
+                "DmIconSizeMedium"
+            },
+            {
+                Path.Combine(
+                    "Controls",
+                    "DmInlineEditor",
+                    "DmInlineEditor.xaml.cs"),
+                "FontSize",
+                "DmFontSizeBody"
+            },
         };
 
     /// <summary>
@@ -32,7 +46,14 @@ public class BindablePropertyDefaultsMatchTokensTests
     public static TheoryData<string, string, string> FamilyCases =>
         new()
         {
-            { @"Controls\DmInlineEditor\DmInlineEditor.xaml.cs", "FontFamily", "DmFontBody" },
+            {
+                Path.Combine(
+                    "Controls",
+                    "DmInlineEditor",
+                    "DmInlineEditor.xaml.cs"),
+                "FontFamily",
+                "DmFontBody"
+            },
         };
 
     /// <summary>
@@ -123,43 +144,15 @@ public class BindablePropertyDefaultsMatchTokensTests
             .Be(FamilyTokenValue(tokenKey));
     }
 
-    private static double TokenValue(string key)
-    {
-        var match = Regex.Match(
-            Typography(),
-            $@"<x:Double x:Key=""{Regex.Escape(key)}"">(?<value>[0-9.]+)</x:Double>");
+    private static double TokenValue(string key) =>
+        ThemeSource.DoubleToken(
+            "Typography.xaml",
+            key);
 
-        match
-            .Success
-            .Should()
-            .BeTrue($"token '{key}' should be defined in Typography.xaml");
-
-        return double.Parse(
-            match.Groups["value"].Value,
-            CultureInfo.InvariantCulture);
-    }
-
-    private static string FamilyTokenValue(string key)
-    {
-        var match = Regex.Match(
-            Typography(),
-            $@"<x:String x:Key=""{Regex.Escape(key)}"">(?<value>[^<]+)</x:String>");
-
-        match
-            .Success
-            .Should()
-            .BeTrue($"token '{key}' should be defined in Typography.xaml");
-
-        return match.Groups["value"].Value;
-    }
-
-    private static string Typography() =>
-        File.ReadAllText(
-            Path.Combine(
-                RepoPaths.AppRoot,
-                "Resources",
-                "Theme",
-                "Typography.xaml"));
+    private static string FamilyTokenValue(string key) =>
+        ThemeSource.StringToken(
+            "Typography.xaml",
+            key);
 
     /// <summary>
     ///		Asserts that the numeric radius argument on <c>DmBorderBase</c>'s
@@ -192,29 +185,11 @@ public class BindablePropertyDefaultsMatchTokensTests
             strokeShapeMatch.Groups["value"].Value,
             CultureInfo.InvariantCulture);
 
-        declaredRadius.Should().Be(RadiusToken("DmRadiusDefault"));
-    }
-
-    private static double RadiusToken(string key)
-    {
-        var tokens = File.ReadAllText(
-            Path.Combine(
-                RepoPaths.AppRoot,
-                "Resources",
-                "Theme",
-                "Tokens.xaml"));
-
-        var match = Regex.Match(
-            tokens,
-            $@"<x:Double x:Key=""{Regex.Escape(key)}"">(?<value>[0-9.]+)</x:Double>");
-
-        match
-            .Success
+        declaredRadius
             .Should()
-            .BeTrue($"token '{key}' should be defined in Tokens.xaml");
-
-        return double.Parse(
-            match.Groups["value"].Value,
-            CultureInfo.InvariantCulture);
+            .Be(
+                ThemeSource.DoubleToken(
+                    "Tokens.xaml",
+                    "DmRadiusDefault"));
     }
 }

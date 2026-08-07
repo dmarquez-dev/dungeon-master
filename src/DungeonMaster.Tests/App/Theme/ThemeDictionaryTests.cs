@@ -8,11 +8,6 @@ namespace DungeonMaster.Tests.App.Theme;
 /// </summary>
 public class ThemeDictionaryTests
 {
-    private static readonly Regex DefinitionPattern =
-        new(
-            @"x:Key=""(Dm[A-Za-z0-9]*)""",
-            RegexOptions.Compiled);
-
     /// <summary>
     ///		Gets the resource keys every theme consumer is entitled to resolve.
     /// </summary>
@@ -78,7 +73,13 @@ public class ThemeDictionaryTests
     [MemberData(nameof(RequiredKeys))]
     public void RequiredKey_IsDefinedInThemeDictionaries(string key)
     {
-        DefinedThemeKeys().Should().Contain(key);
+        DefinedThemeKeys()
+            .Should()
+            .Contain(
+                key,
+                "'{0}' is required by a theme consumer but no dictionary under Resources/Theme "
+                + "declares x:Key=\"{0}\"",
+                key);
     }
 
     /// <summary>
@@ -90,17 +91,14 @@ public class ThemeDictionaryTests
     [Fact]
     public void TokensIsTheOnlyThemeFileContainingColourLiterals()
     {
-        var hexPattern = new Regex(
-            @"#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?",
-            RegexOptions.Compiled);
-
-        var offenders = ThemeFiles()
+        var offenders = ThemeSource
+            .ThemeFiles()
             .Where(path =>
                 !path.EndsWith(
                     "Tokens.xaml",
                     StringComparison.Ordinal))
             .Where(path =>
-                hexPattern.IsMatch(File.ReadAllText(path)))
+                ThemeSource.HexLiteralPattern.IsMatch(File.ReadAllText(path)))
             .Select(path =>
                 Path.GetFileName(path))
             .ToList();
@@ -119,17 +117,98 @@ public class ThemeDictionaryTests
     [Fact]
     public void EveryThemeFileIsMergedInAppXaml()
     {
-        var themeFileNames = ThemeFiles()
-            .Select(path =>
-                Path.GetFileName(path))
+        var themeSources = ThemeSource
+            .ThemeFileSources()
             .ToHashSet(StringComparer.Ordinal);
 
-        var mergedFileNames = MergedThemeSourcesInAppXaml()
+        var mergedSources = MergedThemeSourcesInAppXaml()
+            .ToHashSet(StringComparer.Ordinal);
+
+        themeSources.Should().BeEquivalentTo(mergedSources);
+    }
+
+    /// <summary>
+    ///		Asserts that App.xaml merges the theme dictionaries in a dependency-safe order.
+    ///		A merged dictionary may reference keys from those merged before it and not from those
+    ///		merged after, so the order in App.xaml is load-bearing markup — Controls.Tavern.xaml
+    ///		derives from <c>DmButtonBase</c> in Controls.Base.xaml, and every Controls file
+    ///		references the tokens and typography above it. <c>EveryThemeFileIsMergedInAppXaml</c>
+    ///		compares sets, which is order-insensitive: the seven entries can be shuffled into any
+    ///		permutation, pass every other fact in this suite, and throw at startup on the first
+    ///		<c>{StaticResource}</c> that reaches backwards. This is the fact that reads the order.
+    /// </summary>
+    [Fact]
+    public void ThemeDictionariesAreMergedInDependencyOrder()
+    {
+        var merged = MergedThemeSourcesInAppXaml()
             .Select(source =>
                 Path.GetFileName(source))
-            .ToHashSet(StringComparer.Ordinal);
+            .ToList();
 
-        themeFileNames.Should().BeEquivalentTo(mergedFileNames);
+        var controlsIndices = merged
+            .Select((fileName, index) =>
+                (fileName, index))
+            .Where(entry =>
+                entry.fileName.StartsWith(
+                    "Controls.",
+                    StringComparison.Ordinal))
+            .ToList();
+
+        controlsIndices
+            .Should()
+            .NotBeEmpty("App.xaml must merge at least one Controls dictionary or this fact is vacuous");
+
+        var firstControls = controlsIndices.Min(entry =>
+            entry.index);
+
+        foreach (var foundation in new[] { "Tokens.xaml", "Typography.xaml" })
+        {
+            var index = merged.IndexOf(foundation);
+
+            index
+                .Should()
+                .BeGreaterThanOrEqualTo(
+                    0,
+                    $"App.xaml must merge {foundation}");
+
+            index
+                .Should()
+                .BeLessThan(
+                    firstControls,
+                    $"{foundation} defines the tokens every Controls dictionary references, so it "
+                    + $"must be merged before {merged[firstControls]}");
+        }
+
+        var controlsBaseIndex = merged.IndexOf("Controls.Base.xaml");
+
+        controlsBaseIndex
+            .Should()
+            .BeGreaterThanOrEqualTo(
+                0,
+                "App.xaml must merge Controls.Base.xaml");
+
+        var derivedControls = controlsIndices
+            .Where(entry =>
+                entry.fileName != "Controls.Base.xaml")
+            .ToList();
+
+        foreach (var derived in derivedControls)
+        {
+            derived
+                .index
+                .Should()
+                .BeGreaterThan(
+                    controlsBaseIndex,
+                    $"{derived.fileName} derives styles with BasedOn from Controls.Base.xaml, so "
+                    + "Controls.Base.xaml must be merged first");
+        }
+
+        merged[^1]
+            .Should()
+            .Be(
+                "Implicit.xaml",
+                "the implicit style floor references keys from every dictionary above it and must "
+                + "be merged last");
     }
 
     private static IReadOnlyList<string> MergedThemeSourcesInAppXaml()
@@ -138,41 +217,31 @@ public class ThemeDictionaryTests
             RepoPaths.AppRoot,
             "App.xaml");
 
+        // [A-Za-z0-9./] rather than [A-Za-z0-9.]: a dictionary in a subdirectory of
+        // Resources/Theme was invisible to this scan, so merging it or not made no difference.
         var sourcePattern = new Regex(
-            @"Source=""(Resources/Theme/[A-Za-z0-9.]+\.xaml)""",
+            @"Source=""(Resources/Theme/[A-Za-z0-9./]+\.xaml)""",
             RegexOptions.Compiled);
 
-        return sourcePattern
+        var sources = sourcePattern
             .Matches(File.ReadAllText(appXamlPath))
             .Select(match =>
                 match.Groups[1].Value)
             .ToList();
-    }
 
-    private static IReadOnlyList<string> ThemeFiles()
-    {
-        var themeDirectory = Path.Combine(
-            RepoPaths.AppRoot,
-            "Resources",
-            "Theme");
+        sources
+            .Should()
+            .NotBeEmpty("App.xaml must merge theme dictionaries or the Source regex is broken");
 
-        return Directory
-            .EnumerateFiles(
-                themeDirectory,
-                "*.xaml",
-                SearchOption.TopDirectoryOnly)
-            .OrderBy(
-                path =>
-                    path,
-                StringComparer.Ordinal)
-            .ToList();
+        return sources;
     }
 
     private static HashSet<string> DefinedThemeKeys()
     {
-        return ThemeFiles()
+        return ThemeSource
+            .ThemeFiles()
             .SelectMany(path =>
-                DefinitionPattern.Matches(File.ReadAllText(path)))
+                ThemeSource.KeyDefinitionPattern.Matches(File.ReadAllText(path)))
             .Select(match =>
                 match.Groups[1].Value)
             .ToHashSet(StringComparer.Ordinal);

@@ -119,7 +119,8 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <!-- Geometric half-height of the 52px FAB, not a style token. -->
+            <!-- CornerRadius 26 below is the geometric half of this button's own 52px height —
+                 what makes it a circle — and not a style token. -->
             <Button
                 x:Name="FabButton"
                 Text="+"

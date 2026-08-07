@@ -1,5 +1,5 @@
 using CommunityToolkit.Maui.Views;
-using MauiApplication = Microsoft.Maui.Controls.Application;
+using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
 
@@ -42,13 +42,13 @@ public partial class DmConfirmPopup : Popup<bool>
 
 		if (isDestructive)
 		{
-			ConfirmButton.BackgroundColor = (Color)MauiApplication.Current!.Resources["DmDestructive"];
-			ConfirmButton.TextColor = (Color)MauiApplication.Current!.Resources["DmDestructiveText"];
+			ConfirmButton.BackgroundColor = DmTheme.Destructive;
+			ConfirmButton.TextColor = DmTheme.DestructiveText;
 		}
 		else
 		{
-			ConfirmButton.BackgroundColor = (Color)MauiApplication.Current!.Resources["DmConfirm"];
-			ConfirmButton.TextColor = (Color)MauiApplication.Current!.Resources["DmConfirmText"];
+			ConfirmButton.BackgroundColor = DmTheme.Confirm;
+			ConfirmButton.TextColor = DmTheme.ConfirmText;
 		}
 	}
 

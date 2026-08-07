@@ -1,5 +1,4 @@
 using DungeonMaster.App.Theme;
-using MauiApplication = Microsoft.Maui.Controls.Application;
 
 namespace DungeonMaster.App.Controls;
 
@@ -328,7 +327,7 @@ public partial class DmInlineEditor : ContentView
 	{
 		if (!_isEditing)
 		{
-			var gold = (Color)MauiApplication.Current!.Resources["DmAccentGoldLight"];
+			var gold = DmTheme.Gold;
 			FocusBorder.Stroke = gold;
 			FocusBorder.BackgroundColor = DmTheme.EditorGlowTint;
 #if !WINDOWS
@@ -356,7 +355,7 @@ public partial class DmInlineEditor : ContentView
 		_isEditing = true;
 		_suppressUnfocusCommit = false;
 		EditingStarted?.Invoke(this, EventArgs.Empty);
-		var gold = (Color)MauiApplication.Current!.Resources["DmAccentGoldLight"];
+		var gold = DmTheme.Gold;
 		FocusBorder.Stroke = gold;
 		FocusBorder.BackgroundColor = DmTheme.EditorGlowTint;
 #if !WINDOWS

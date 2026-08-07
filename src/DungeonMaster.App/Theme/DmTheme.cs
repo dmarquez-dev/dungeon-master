@@ -19,8 +19,11 @@ namespace DungeonMaster.App.Theme;
 ///		static field initialiser; and a static constructor body. Read these properties from
 ///		runtime code only — an expression-bodied member, a property with a <c>get</c> body, or a
 ///		<c>defaultValueCreator</c> lambda all defer the read to first use and are safe.
-///		<c>DmThemeKeysResolveTests.NoStaticFieldInitialiserReadsDmTheme</c> enforces this list;
+///		<c>DmThemeKeysResolveTests.NoEagerDmThemeRead</c> enforces this list;
 ///		if a shape is added here it must be added there too.
+///		THREAD SAFETY: <c>ResourceDictionary</c> is not thread-safe, so these members are safe only
+///		because nothing mutates the merged dictionaries after startup and every reader runs on the
+///		UI thread; read them from the UI thread and add no post-startup mutation.
 /// </remarks>
 public static class DmTheme
 {
@@ -41,12 +44,6 @@ public static class DmTheme
 	/// </summary>
 	public static Color GoldMuted =>
 		Resolve<Color>("DmTextTavernMuted");
-
-	/// <summary>
-	///		Gets the gold used for scroll and border glow effects.
-	/// </summary>
-	public static Color ScrollGold =>
-		Resolve<Color>("DmAccentGold");
 
 	/// <summary>
 	///		Gets the subtle gold hover tint background.
@@ -99,30 +96,6 @@ public static class DmTheme
 	/// </summary>
 	public static Brush FloorBorderActive =>
 		Resolve<Brush>("DmBorderTavernHoverBrush");
-
-	/// <summary>
-	///		Gets the save action border and stroke green.
-	/// </summary>
-	public static Color SaveGreen =>
-		Resolve<Color>("DmSave");
-
-	/// <summary>
-	///		Gets the save action text and icon green.
-	/// </summary>
-	public static Color SaveGreenText =>
-		Resolve<Color>("DmSaveText");
-
-	/// <summary>
-	///		Gets the discard action border and stroke red.
-	/// </summary>
-	public static Color DiscardRed =>
-		Resolve<Color>("DmDiscard");
-
-	/// <summary>
-	///		Gets the discard action text and icon red.
-	/// </summary>
-	public static Color DiscardRedText =>
-		Resolve<Color>("DmDiscardText");
 
 	/// <summary>
 	///		Gets the drag-and-drop placeholder stroke colour.
@@ -184,6 +157,24 @@ public static class DmTheme
 	/// </summary>
 	public static Color Destructive =>
 		Resolve<Color>("DmDestructive");
+
+	/// <summary>
+	///		Gets the text colour used on a destructive action surface.
+	/// </summary>
+	public static Color DestructiveText =>
+		Resolve<Color>("DmDestructiveText");
+
+	/// <summary>
+	///		Gets the affirmative action green used by the confirmation popup's confirm button.
+	/// </summary>
+	public static Color Confirm =>
+		Resolve<Color>("DmConfirm");
+
+	/// <summary>
+	///		Gets the text colour used on an affirmative action surface.
+	/// </summary>
+	public static Color ConfirmText =>
+		Resolve<Color>("DmConfirmText");
 
 	/// <summary>
 	///		Gets the faint red wash behind a hovered destructive icon button.
@@ -394,6 +385,10 @@ public static class DmTheme
 	///		rather than the 127 a truncating cast would produce. Every colour in the theme
 	///		dictionaries is parsed from 6- or 8-digit hex and so already lands on k/255, but the
 	///		helper is also handed derived colours such as <c>WithAlpha</c> results, which do not.
+	///		Do not swap this for MAUI's own <c>ColorExtensions.ToWindowsColor</c>: its IL is
+	///		<c>mul; conv.u1</c> per channel, so it truncates toward zero and does not clamp —
+	///		<c>WithAlpha(0.5f)</c> yields 127 there against 128 here, and an out-of-range channel
+	///		wraps rather than saturating.
 	/// </remarks>
 	public static Windows.UI.Color ToPlatform(Color color)
 	{
@@ -406,8 +401,13 @@ public static class DmTheme
 
 	private static byte Channel(float value)
 	{
+		var clamped = Math.Clamp(
+			value,
+			0f,
+			1f);
+
 		return (byte)Math.Round(
-			Math.Clamp(value, 0f, 1f) * 255f,
+			clamped * 255f,
 			MidpointRounding.AwayFromZero);
 	}
 #endif
@@ -427,14 +427,26 @@ public static class DmTheme
 		// Fully qualified: the DungeonMaster.Application namespace also binds "Application" here.
 		var resources = Microsoft.Maui.Controls.Application.Current?.Resources;
 
-		if (resources?.TryGetValue(key, out var value) is true && value is T typed)
+		if (resources is null)
 		{
-			return typed;
+			throw new InvalidOperationException(
+				$"Theme resource '{key}' was read before Application.Current.Resources existed. "
+				+ "See the remarks on DmTheme.");
 		}
 
-		throw new InvalidOperationException(
-			$"Theme resource '{key}' was not found as a {typeof(T).Name}. "
-			+ "Either the key is missing from Resources/Theme, or this read ran before "
-			+ "Application.Current.Resources existed — see the remarks on DmTheme.");
+		if (!resources.TryGetValue(key, out var value))
+		{
+			throw new InvalidOperationException(
+				$"Theme resource '{key}' is not defined under Resources/Theme.");
+		}
+
+		if (value is not T typed)
+		{
+			throw new InvalidOperationException(
+				$"Theme resource '{key}' is a {value?.GetType().Name ?? "null"}, "
+				+ $"not a {typeof(T).Name}.");
+		}
+
+		return typed;
 	}
 }

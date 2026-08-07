@@ -4,11 +4,29 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!--
-        Metrics shared by both surface families. Colour lives in Controls.Tavern.xaml and
-        Controls.Parchment.xaml, which derive from these via BasedOn — as does
-        Controls.Semantic.xaml, the only derived file with live consumers (DmConfirmButton,
-        DmDestructiveButton, DmNeutralButton, all BasedOn DmButtonBase). A padding or radius
-        change belongs here so it lands once rather than twice.
+        Metrics shared by both surface families. Colour lives in Controls.Tavern.xaml,
+        Controls.Parchment.xaml and Controls.Semantic.xaml, all of which derive from the styles
+        below via BasedOn. A padding or radius change belongs here so it lands once rather than
+        once per derived file.
+
+        ADOPTION, as counted from call sites — two of the three derived files are live and one
+        is not, and the split is not the one an earlier revision of this comment claimed:
+
+          Controls.Parchment.xaml   LIVE. DmBorderParchmentStyle (CreateDungeonPopup.xaml:37
+                                    and :55), DmEntryParchment (:40), DmEditorParchment (:58).
+                                    DmButtonParchment, DmPickerParchment and DmLabelParchment
+                                    have no call sites.
+          Controls.Semantic.xaml    LIVE. DmConfirmButton (CreateDungeonPopup.xaml:82) and
+                                    DmNeutralButton (:72). DmDestructiveButton has ZERO call
+                                    sites anywhere in the repo — it is a style waiting for the
+                                    destructive confirm dialog to adopt it, not a consumer.
+          Controls.Tavern.xaml      ENTIRELY UNCONSUMED. All 8 keys, no call sites. Tavern-
+                                    surface elements set their tokens directly instead.
+
+        None of that is a defect to fix here. The unconsumed keys are a consequence of the
+        pixel-identical constraint the theme migration ran under: adopting a paired style would
+        have moved geometry. Adoption is scheduled for the geometry-homogenisation sweep, which
+        is allowed to move pixels. Keep these counts correct if you add or remove a call site.
     -->
 
     <Style x:Key="DmButtonBase" TargetType="Button">
@@ -43,6 +61,18 @@
                             <Setter Property="Opacity" Value="0.7" />
                         </VisualState.Setters>
                     </VisualState>
+                    <!-- This Disabled state is deliberate and it is OPT-IN: a keyed style is
+                         chosen at the call site, so a Button carrying one has asked for the
+                         themed disabled treatment. Implicit.xaml has no Disabled state at all,
+                         and its comment records why — a VisualState setter outranks BOTH a
+                         DataTrigger and a local value, so an implicit one would silently
+                         overrule every call site that dims itself.
+                         The same precedence applies here: this 0.45 outranks anything a
+                         consuming Button sets for itself. Nothing is affected today, because
+                         both live consumers restate the group (DmConfirmButton) or can never be
+                         disabled (DmNeutralButton on CANCEL). A future keyed style that wants
+                         its own disabled appearance must restate this whole group, not add a
+                         setter at the call site. -->
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
                             <Setter Property="Opacity" Value="0.45" />
@@ -85,9 +115,17 @@
 
     <Style x:Key="DmBorderBase" TargetType="Border">
         <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
-        <!-- The 3 mirrors DmRadiusDefault and must move with it. StrokeShape's converter
-             parses a shape name and its arguments from one string and cannot take a markup
-             extension for the radius, so the value is unavoidably a literal here.
+        <!-- The 3 mirrors DmRadiusDefault and must move with it;
+             BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault enforces that. The STRING form
+             used here cannot avoid the literal: its converter parses a shape name and its
+             arguments out of one string and has nowhere to accept a markup extension.
+
+             That limitation belongs to the string form only, and is easy to over-read as a
+             limitation of StrokeShape. The element form puts the radius back in attribute
+             position, where a StaticResource does work — see the note beside the radius tokens
+             in Tokens.xaml. It is not used here because a Style setter taking an element-form
+             shape shares one geometry instance across every Border that adopts the style, which
+             is a behaviour change and needs a spike, not a search-and-replace.
 
              This setter is a default, not a constraint, and must not be removed on the grounds
              that it "forces" a radius. MAUI value precedence puts a locally-set property above

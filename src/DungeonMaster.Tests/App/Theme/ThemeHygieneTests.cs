@@ -11,11 +11,6 @@ namespace DungeonMaster.Tests.App.Theme;
 /// </summary>
 public class ThemeHygieneTests
 {
-    private static readonly Regex HexPattern =
-        new(
-            @"#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?",
-            RegexOptions.Compiled);
-
     // (?<![A-Za-z]) stops this matching DmDivider's IconFontSize bindable property.
     private static readonly Regex BareFontSizePattern =
         new(
@@ -73,10 +68,10 @@ public class ThemeHygieneTests
     ///		Asserts that colour literals appear only in the theme dictionaries.
     /// </summary>
     [Fact]
-    public void NoRawColourLiteralsOutsideThePalette()
+    public void NoRawColourLiteralsOutsideTheThemeDictionaries()
     {
-        Offenders("*.xaml", HexPattern)
-            .Concat(Offenders("*.cs", HexPattern))
+        Offenders("*.xaml", ThemeSource.HexLiteralPattern)
+            .Concat(Offenders("*.cs", ThemeSource.HexLiteralPattern))
             .Should()
             .BeEmpty();
     }
@@ -124,6 +119,14 @@ public class ThemeHygieneTests
     ///		least one of the literals the three facts above forbid. Without this the ratchet is
     ///		not self-checking as it shrinks: a stale or mistyped entry exempts nothing, and a
     ///		migration task can "remove its entry" and see green because the entry never bit.
+    ///		<para>
+    ///		THIS FACT IS VACUOUS TODAY AND THAT IS THE POINT. <see cref="PendingMigration"/> is
+    ///		empty because the migration finished, so there is nothing to check and the loop below
+    ///		runs zero times. It is NOT dead code: it is a self-arming ratchet that starts checking
+    ///		the moment somebody adds the first new entry, which is exactly when it is needed and
+    ///		exactly when nobody would think to write it. Deleting it because "it asserts nothing"
+    ///		removes the guard from every future allow-list entry.
+    ///		</para>
     /// </summary>
     [Fact]
     public void EveryAllowListedFileExistsAndStillOffends()
@@ -131,8 +134,17 @@ public class ThemeHygieneTests
         var stale = PendingMigration
             .Where(relative =>
                 !StillOffends(relative))
-            .OrderBy(relative =>
-                relative, StringComparer.Ordinal)
+            .Select(relative =>
+                File.Exists(
+                    Path.Combine(
+                        RepoPaths.AppRoot,
+                        relative))
+                    ? $"{relative} -> no longer offends; remove it from PendingMigration"
+                    : $"{relative} -> file does not exist; the entry exempts nothing")
+            .OrderBy(
+                entry =>
+                    entry,
+                StringComparer.Ordinal)
             .ToList();
 
         stale.Should().BeEmpty();
@@ -151,7 +163,7 @@ public class ThemeHygieneTests
 
         var text = File.ReadAllText(path);
 
-        return HexPattern.IsMatch(text)
+        return ThemeSource.HexLiteralPattern.IsMatch(text)
             || BareFontSizePattern.IsMatch(text)
             || BareFontFamilyPattern.IsMatch(text)
             || CSharpBareFontSizePattern.IsMatch(text)
@@ -165,7 +177,7 @@ public class ThemeHygieneTests
     {
         var separator = Path.DirectorySeparatorChar;
 
-        return RepoPaths
+        var scanned = RepoPaths
             .AppSourceFiles(searchPattern)
             .Select(path =>
                 Path.GetRelativePath(
@@ -177,12 +189,37 @@ public class ThemeHygieneTests
                     StringComparison.OrdinalIgnoreCase))
             .Where(relative =>
                 !PendingMigration.Contains(relative))
-            .Where(relative =>
-                pattern.IsMatch(
-                    File.ReadAllText(
-                        Path.Combine(
-                            RepoPaths.AppRoot,
-                            relative))))
             .ToList();
+
+        // Without this, a directory rename or a widened exclusion turns all five hygiene facts
+        // green while they scan nothing at all — the failure mode behind three of the five
+        // structurally-inert guards this migration shipped.
+        scanned
+            .Should()
+            .NotBeEmpty($"the '{searchPattern}' scan must find application sources or every "
+                + "hygiene fact built on it is vacuous");
+
+        var offenders = new List<string>();
+
+        foreach (var relative in scanned)
+        {
+            var text = File.ReadAllText(
+                Path.Combine(
+                    RepoPaths.AppRoot,
+                    relative));
+
+            // Reported with the line number and the matched text: the bare relative path alone
+            // left a 700-line XAML file to be searched by hand for what tripped the pattern.
+            foreach (Match match in pattern.Matches(text))
+            {
+                var line = ThemeSource.LineNumber(
+                    text,
+                    match.Index);
+
+                offenders.Add($"{relative}:{line} -> {match.Value}");
+            }
+        }
+
+        return offenders;
     }
 }
