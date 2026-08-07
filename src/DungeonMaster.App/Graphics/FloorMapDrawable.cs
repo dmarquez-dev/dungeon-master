@@ -16,20 +16,21 @@ namespace DungeonMaster.App.Graphics;
 /// </summary>
 public sealed class FloorMapDrawable : IDrawable
 {
-    // Static-initialiser-bound: these run on first access to the type, which can happen
-    // before Application.Current and its merged resource dictionaries exist. DmColors is a
-    // plain-literal class today so this read is safe, but Task 11 turns DmColors into a
-    // resolving accessor that looks the key up in Application.Current.Resources and throws
-    // when the key is missing. If these three fields are converted to call that resolving
-    // accessor without change, they will throw at type-initialisation time whenever this
-    // class is first touched before Application.Current.Resources exists, because the
-    // resources genuinely are not there yet — not because the key is wrong. Do not convert
-    // these three fields to the resolving accessor without first moving the read to
-    // first-draw time (e.g. lazy-init on the first Draw() call) — this exact class of bug
-    // has already been hit twice in this migration.
-    private static readonly Color GridColor = DmColors.MapGrid;
-    private static readonly Color AreaColor = DmColors.MapArea;
-    private static readonly Color VertexColor = DmColors.MapVertex;
+    // These MUST stay properties, never static readonly fields. A static field initialiser
+    // runs at type-initialisation time, which can precede Application.Current and its merged
+    // resource dictionaries; DmTheme reads those dictionaries and throws when they are absent,
+    // with a message that reads like a missing key when the real fault is the ordering. As
+    // properties the read happens at first draw, which is always after startup. This exact
+    // class of bug has already been hit twice in this migration — do not "optimise" these
+    // back into fields.
+    private static Color GridColor =>
+        DmTheme.MapGrid;
+
+    private static Color AreaColor =>
+        DmTheme.MapArea;
+
+    private static Color VertexColor =>
+        DmTheme.MapVertex;
 
     private readonly Dictionary<ObjectKind, Microsoft.Maui.Graphics.IImage?> _imageCache = new();
 
@@ -395,9 +396,9 @@ public sealed class FloorMapDrawable : IDrawable
 
         if (!isDragging && HoveredObjectId == obj.Id)
         {
-            canvas.FillColor = DmColors.MapAreaFillActive;
+            canvas.FillColor = DmTheme.MapAreaFillActive;
             canvas.FillRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
-            canvas.StrokeColor = DmColors.MapAreaStrokeActive;
+            canvas.StrokeColor = DmTheme.MapAreaStrokeActive;
             canvas.StrokeSize = 1.5f;
             canvas.DrawRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
         }
@@ -434,10 +435,10 @@ public sealed class FloorMapDrawable : IDrawable
 
     private static void DrawMissingObjectFallback(ICanvas canvas, float x, float y, float size)
     {
-        canvas.StrokeColor = DmColors.MapObjectPlaceholder;
+        canvas.StrokeColor = DmTheme.MapObjectPlaceholder;
         canvas.StrokeSize = 1.5f;
         canvas.DrawRectangle(x, y, size, size);
-        canvas.FontColor = DmColors.MapObjectPlaceholder;
+        canvas.FontColor = DmTheme.MapObjectPlaceholder;
         canvas.FontSize = size * 0.4f;
         canvas.DrawString("?", x, y, size, size, HorizontalAlignment.Center, VerticalAlignment.Center);
     }
@@ -474,7 +475,7 @@ public sealed class FloorMapDrawable : IDrawable
         }
         else
         {
-            canvas.StrokeColor = DmColors.MapObjectPlaceholder;
+            canvas.StrokeColor = DmTheme.MapObjectPlaceholder;
             canvas.StrokeDashPattern = [4f, 3f];
             canvas.StrokeSize = 1.5f;
             canvas.DrawRectangle(drawX, drawY, boxW, boxH);
@@ -538,7 +539,7 @@ public sealed class FloorMapDrawable : IDrawable
                 var midX = (lastX + PhantomEnd.Value.X) / 2f;
                 var midY = (lastY + PhantomEnd.Value.Y) / 2f;
                 canvas.FontColor = VertexColor.WithAlpha(0.9f);
-                canvas.FontSize = 9f;
+                canvas.FontSize = (float)DmTheme.FontSizeMicro;
                 canvas.DrawString($"{distFeet}'", midX + 4f, midY - 14f, 48f, 14f,
                     HorizontalAlignment.Left, VerticalAlignment.Center);
             }

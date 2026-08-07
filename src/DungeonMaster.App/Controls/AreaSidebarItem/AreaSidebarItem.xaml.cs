@@ -78,15 +78,15 @@ public partial class AreaSidebarItem : ContentView
 			!string.IsNullOrWhiteSpace(area.Notes);
 
 		NotebookButton.TextColor = hasContent
-			? DmColors.ScrollGoldLight
-			: DmColors.InkMuted;
+			? DmTheme.ScrollGoldLight
+			: DmTheme.InkMuted;
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)
 	{
 		if (!_isSelected)
 		{
-			ItemBorder.BackgroundColor = DmColors.GoldHoverTint;
+			ItemBorder.BackgroundColor = DmTheme.GoldHoverTint;
 		}
 
 		if (Area is not null)
@@ -141,9 +141,9 @@ public partial class AreaSidebarItem : ContentView
 
 		if (editing)
 		{
-			ItemBorder.Stroke = new SolidColorBrush(DmColors.AreaSelectedBorder);
+			ItemBorder.Stroke = new SolidColorBrush(DmTheme.AreaSelectedBorder);
 			ItemBorder.StrokeThickness = 1;
-			ItemBorder.BackgroundColor = DmColors.AreaSelectedTint;
+			ItemBorder.BackgroundColor = DmTheme.AreaSelectedTint;
 		}
 		else
 		{

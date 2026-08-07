@@ -13,7 +13,7 @@
         Windows.UI.Color that SolidColorBrush.Color requires.
 
         Every brush this application overrides is therefore built in App.xaml.cs from
-        DmColors via DmColors.ToPlatform. Do not reintroduce colour literals here.
+        DmTheme via DmTheme.ToPlatform. Do not reintroduce colour literals here.
 
         The empty dictionary below is load-bearing: if Application.Resources is never set
         from XAML the native getter fails with E_FAIL, so the code-behind has nothing to

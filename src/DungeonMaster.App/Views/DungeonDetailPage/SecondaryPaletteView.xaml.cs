@@ -50,8 +50,8 @@ public partial class SecondaryPaletteView : ContentView
                 content = new Label
                 {
                     Text = name.Length > 0 ? name[..1] : "?",
-                    FontSize = 11,
-                    TextColor = DmColors.TextParchment,
+                    FontSize = DmTheme.FontSizeMeta,
+                    TextColor = DmTheme.TextParchment,
                     HorizontalOptions = LayoutOptions.Center,
                     VerticalOptions = LayoutOptions.Center
                 };
@@ -62,8 +62,8 @@ public partial class SecondaryPaletteView : ContentView
                 WidthRequest = 48,
                 HeightRequest = 48,
                 Padding = 0,
-                BackgroundColor = DmColors.SurfaceToolChip,
-                Stroke = new SolidColorBrush(DmColors.BorderToolChip),
+                BackgroundColor = DmTheme.SurfaceToolChip,
+                Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
                 StrokeThickness = 1,
                 StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 },
                 Content = content
@@ -79,13 +79,13 @@ public partial class SecondaryPaletteView : ContentView
             var ptr = new PointerGestureRecognizer();
             ptr.PointerEntered += (_, _) =>
             {
-                border.BackgroundColor = DmColors.SurfaceToolChipHover;
-                border.Stroke = new SolidColorBrush(DmColors.ScrollGoldLight);
+                border.BackgroundColor = DmTheme.SurfaceToolChipHover;
+                border.Stroke = new SolidColorBrush(DmTheme.ScrollGoldLight);
             };
             ptr.PointerExited += (_, _) =>
             {
-                border.BackgroundColor = DmColors.SurfaceToolChip;
-                border.Stroke = new SolidColorBrush(DmColors.BorderToolChip);
+                border.BackgroundColor = DmTheme.SurfaceToolChip;
+                border.Stroke = new SolidColorBrush(DmTheme.BorderToolChip);
             };
             border.GestureRecognizers.Add(ptr);
 

@@ -522,8 +522,8 @@ public partial class DungeonDetailPage : ContentPage
 			!string.IsNullOrWhiteSpace(_viewModel.DungeonNotes);
 
 		DungeonNotebookButton.TextColor = hasContent
-			? DmColors.ScrollGoldLight
-			: DmColors.InkMuted;
+			? DmTheme.ScrollGoldLight
+			: DmTheme.InkMuted;
 	}
 
 	private void OnDungeonNotebookClicked(object? sender, EventArgs e)
@@ -1102,8 +1102,8 @@ public partial class DungeonDetailPage : ContentPage
 		var isSelectActive = _viewModel.ActiveTool == MapTool.Select;
 		var isEraseActive = _viewModel.ActiveTool == MapTool.Erase;
 
-		var activeColor = DmColors.Gold;
-		var mutedColor = DmColors.GoldMuted;
+		var activeColor = DmTheme.Gold;
+		var mutedColor = DmTheme.GoldMuted;
 		var activeBrush = new SolidColorBrush(activeColor);
 		var transparentBrush = new SolidColorBrush(Colors.Transparent);
 
@@ -1836,10 +1836,20 @@ public partial class DungeonDetailPage : ContentPage
 		ObjectActionPopup.IsVisible = true;
 	}
 
-	private static readonly Color PopupBtnHoverGold    = DmColors.PopupButtonHover;
-	private static readonly Color PopupBtnHoverRed     = DmColors.PopupButtonDestructiveHover;
-	private static readonly Color PopupBtnPressGold    = DmColors.PopupButtonPressed;
-	private static readonly Color PopupBtnPressRed     = DmColors.PopupButtonDestructivePressed;
+	// Properties, not static readonly fields: a field initialiser runs at type-initialisation
+	// time, which can precede Application.Current.Resources, and DmTheme throws when those
+	// resources are absent. See the remarks on DmTheme.
+	private static Color PopupBtnHoverGold =>
+		DmTheme.PopupButtonHover;
+
+	private static Color PopupBtnHoverRed =>
+		DmTheme.PopupButtonDestructiveHover;
+
+	private static Color PopupBtnPressGold =>
+		DmTheme.PopupButtonPressed;
+
+	private static Color PopupBtnPressRed =>
+		DmTheme.PopupButtonDestructivePressed;
 
 	private static void AttachPopupButtonBehavior(Border btn, bool goldHover, Func<Task> action)
 	{
@@ -2176,10 +2186,10 @@ public partial class DungeonDetailPage : ContentPage
 		_dragPlaceholder = new Border
 		{
 			HeightRequest = 44,
-			Stroke = new SolidColorBrush(DmColors.DragPlaceholderStroke),
+			Stroke = new SolidColorBrush(DmTheme.DragPlaceholderStroke),
 			StrokeThickness = 2,
 			StrokeShape = new RoundRectangle { CornerRadius = 3 },
-			BackgroundColor = DmColors.DragPlaceholderFill,
+			BackgroundColor = DmTheme.DragPlaceholderFill,
 			Margin = new Thickness(0, 0, 0, 4)
 		};
 		_dragPlaceholder.GestureRecognizers.Add(dropGesture);

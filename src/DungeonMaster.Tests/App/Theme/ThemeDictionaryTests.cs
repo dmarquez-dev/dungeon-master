@@ -33,6 +33,7 @@ public class ThemeDictionaryTests
         "DmAreaSelectedBorder", "DmAreaSelectedTint",
         "DmGoldHoverTint", "DmEditorGlowTint",
         "DmMapGrid", "DmMapArea", "DmMapVertex", "DmMapAreaFillActive", "DmMapAreaStrokeActive",
+        "DmMapObjectPlaceholder",
         "DmAccentGoldBrush", "DmBorderTavernBrush", "DmBorderTavernHoverBrush",
         "DmBorderParchmentBrush",
         "DmRadiusTight", "DmRadiusDefault", "DmRadiusLoose",

@@ -27,54 +27,52 @@ public partial class App : MauiWinUIApplication
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
 	/// <summary>
-	///		Applies the theme resource overrides before the first window is created.
-	///		This cannot run in the constructor: <c>Application.Resources</c> is not yet
-	///		available there and its getter fails with <c>E_FAIL</c>.
-	/// </summary>
-	/// <param name="args">
-	///		The launch arguments forwarded to the base implementation.
-	/// </param>
-	protected override void OnLaunched(LaunchActivatedEventArgs args)
-	{
-		ApplyThemeResources();
-
-		base.OnLaunched(args);
-	}
-
-	/// <summary>
 	///		Overrides the WinUI system brushes that the parchment theme replaces.
 	///		These live in code rather than in App.xaml because that file is parsed by WinUI:
 	///		MAUI's merged theme dictionaries are not in scope there, so the tokens have to
-	///		arrive through <see cref="DmColors"/> and <see cref="DmColors.ToPlatform"/>.
+	///		arrive through <see cref="DmTheme"/> and <see cref="DmTheme.ToPlatform"/>.
 	/// </summary>
-	private void ApplyThemeResources()
+	/// <remarks>
+	///		CALL SITE IS DELIBERATE. This runs from the MAUI <c>App</c> constructor, and the
+	///		window either side of that point is narrow. Earlier — in this class's constructor
+	///		— <c>Application.Resources</c> is not yet available and its getter fails with
+	///		<c>E_FAIL</c>. Earlier than the MAUI <c>App</c> constructor in any form, including
+	///		the top of <c>OnLaunched</c> where this used to sit, <c>DmTheme</c> cannot resolve:
+	///		MAUI's <c>Application.Current</c> and its merged dictionaries are created inside
+	///		<c>MauiWinUIApplication.OnLaunched</c>, so every <c>DmTheme</c> read would throw.
+	///		Later, the first window has already been created. The MAUI <c>App</c> constructor,
+	///		after <c>InitializeComponent</c>, is the one point that satisfies both ends.
+	/// </remarks>
+	internal static void ApplyThemeResources()
 	{
+		var resources = Microsoft.UI.Xaml.Application.Current.Resources;
+
 		// Scrollbar thumb — gold palette.
-		this.Resources["ScrollBarThumbFillBrush"] = Brush(DmColors.ScrollbarThumb);
-		this.Resources["ScrollBarThumbFillBrushPointerOver"] = Brush(DmColors.Gold);
-		this.Resources["ScrollBarThumbFillBrushPressed"] = Brush(DmColors.TextTavern);
-		this.Resources["ScrollBarThumbFillBrushDisabled"] = Brush(DmColors.ScrollbarThumbDisabled);
+		resources["ScrollBarThumbFillBrush"] = Brush(DmTheme.ScrollbarThumb);
+		resources["ScrollBarThumbFillBrushPointerOver"] = Brush(DmTheme.Gold);
+		resources["ScrollBarThumbFillBrushPressed"] = Brush(DmTheme.TextTavern);
+		resources["ScrollBarThumbFillBrushDisabled"] = Brush(DmTheme.ScrollbarThumbDisabled);
 
 		// Text selection highlight — amber/parchment instead of system purple.
-		this.Resources["TextControlSelectionHighlightColor"] = Brush(DmColors.TextSelection);
+		resources["TextControlSelectionHighlightColor"] = Brush(DmTheme.TextSelection);
 
 		// Parchment ComboBox/Picker theme — same values for Light and Dark so the dropdown
 		// always matches the palette regardless of system theme. HighContrast deliberately
 		// omits the pressed, disabled and unselected-item entries so the system can supply
 		// its own high-contrast values for them.
-		this.Resources.ThemeDictionaries["Light"] = ComboBoxTheme();
-		this.Resources.ThemeDictionaries["Dark"] = ComboBoxTheme();
-		this.Resources.ThemeDictionaries["HighContrast"] = ComboBoxHighContrastTheme();
+		resources.ThemeDictionaries["Light"] = ComboBoxTheme();
+		resources.ThemeDictionaries["Dark"] = ComboBoxTheme();
+		resources.ThemeDictionaries["HighContrast"] = ComboBoxHighContrastTheme();
 	}
 
 	private static ResourceDictionary ComboBoxTheme()
 	{
 		var dictionary = ComboBoxSharedEntries();
 
-		dictionary["ComboBoxItemForegroundPressed"] = Brush(DmColors.TextToolPanel);
-		dictionary["ComboBoxItemForegroundDisabled"] = Brush(DmColors.TextComboItemDisabled);
+		dictionary["ComboBoxItemForegroundPressed"] = Brush(DmTheme.TextToolPanel);
+		dictionary["ComboBoxItemForegroundDisabled"] = Brush(DmTheme.TextComboItemDisabled);
 		dictionary["ComboBoxItemBackground"] = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-		dictionary["ComboBoxItemBackgroundPressed"] = Brush(DmColors.SurfaceComboItemPressed);
+		dictionary["ComboBoxItemBackgroundPressed"] = Brush(DmTheme.SurfaceComboItemPressed);
 
 		return dictionary;
 	}
@@ -88,23 +86,23 @@ public partial class App : MauiWinUIApplication
 	{
 		return new ResourceDictionary
 		{
-			["ComboBoxDropDownBackground"] = Brush(DmColors.SurfaceToolPanel),
-			["ComboBoxDropDownBorderBrush"] = Brush(DmColors.BorderToolChip),
-			["ComboBoxDropDownGlyphForeground"] = Brush(DmColors.TextToolPanel),
-			["ComboBoxDropDownGlyphForegroundFocused"] = Brush(DmColors.TextToolPanel),
-			["ComboBoxItemForeground"] = Brush(DmColors.TextToolPanel),
-			["ComboBoxItemForegroundPointerOver"] = Brush(DmColors.TextToolPanel),
-			["ComboBoxItemForegroundSelected"] = Brush(DmColors.TextToolPanel),
-			["ComboBoxItemForegroundSelectedUnfocused"] = Brush(DmColors.TextToolPanel),
-			["ComboBoxItemBackgroundPointerOver"] = Brush(DmColors.SurfaceComboItemHover),
-			["ComboBoxItemBackgroundSelected"] = Brush(DmColors.SurfaceToolChip),
-			["ComboBoxItemBackgroundSelectedPointerOver"] = Brush(DmColors.SurfaceComboItemHover),
-			["ComboBoxItemBackgroundSelectedUnfocused"] = Brush(DmColors.SurfaceToolChip),
+			["ComboBoxDropDownBackground"] = Brush(DmTheme.SurfaceToolPanel),
+			["ComboBoxDropDownBorderBrush"] = Brush(DmTheme.BorderToolChip),
+			["ComboBoxDropDownGlyphForeground"] = Brush(DmTheme.TextToolPanel),
+			["ComboBoxDropDownGlyphForegroundFocused"] = Brush(DmTheme.TextToolPanel),
+			["ComboBoxItemForeground"] = Brush(DmTheme.TextToolPanel),
+			["ComboBoxItemForegroundPointerOver"] = Brush(DmTheme.TextToolPanel),
+			["ComboBoxItemForegroundSelected"] = Brush(DmTheme.TextToolPanel),
+			["ComboBoxItemForegroundSelectedUnfocused"] = Brush(DmTheme.TextToolPanel),
+			["ComboBoxItemBackgroundPointerOver"] = Brush(DmTheme.SurfaceComboItemHover),
+			["ComboBoxItemBackgroundSelected"] = Brush(DmTheme.SurfaceToolChip),
+			["ComboBoxItemBackgroundSelectedPointerOver"] = Brush(DmTheme.SurfaceComboItemHover),
+			["ComboBoxItemBackgroundSelectedUnfocused"] = Brush(DmTheme.SurfaceToolChip),
 		};
 	}
 
 	private static SolidColorBrush Brush(Microsoft.Maui.Graphics.Color color)
 	{
-		return new SolidColorBrush(DmColors.ToPlatform(color));
+		return new SolidColorBrush(DmTheme.ToPlatform(color));
 	}
 }

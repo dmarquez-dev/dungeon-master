@@ -27,61 +27,47 @@ public class ThemeHygieneTests
             @"FontFamily=""[A-Za-z]",
             RegexOptions.Compiled);
 
+    // The C# forms of the two typography literals. (?<![A-Za-z]) keeps IconFontSize out, and
+    // =(?!>) keeps expression-bodied members out. Both patterns match an assignment only —
+    // "FontSize = 13", "canvas.FontSize = 9f", "FontFamily = \"EBGaramondRegular\"" — so
+    // "nameof(FontSize)" and a bindable property's positional default are outside their reach.
+    // That exemption is deliberate and named in the PendingMigration comment below.
+    private static readonly Regex CSharpBareFontSizePattern =
+        new(
+            @"(?<![A-Za-z])FontSize\s*=(?!>)\s*[0-9]",
+            RegexOptions.Compiled);
+
+    private static readonly Regex CSharpBareFontFamilyPattern =
+        new(
+            @"(?<![A-Za-z])FontFamily\s*=(?!>)\s*""",
+            RegexOptions.Compiled);
+
     private static readonly Regex LegacyThemeKeyPattern =
         new(
             @"\{StaticResource\s+DM[A-Za-z0-9]*\s*\}",
             RegexOptions.Compiled);
 
     /// <summary>
-    ///		Files not yet migrated onto the theme system. Each migration task deletes its own
-    ///		entries from this set BEFORE migrating, so the test fails first and passes after.
-    ///		When this set is empty, the migration is complete and this comment can go.
+    ///		Files not yet migrated onto the theme system. THE MIGRATION IS COMPLETE and this set
+    ///		is empty: every colour, font size, font family and theme key in the application
+    ///		resolves from Resources/Theme. It stays here as the ratchet's escape hatch — if a new
+    ///		file has to carry a literal for a while, name it here and the facts below go green
+    ///		again, but an entry that stops offending is itself a failure, so nothing can be
+    ///		parked and forgotten.
+    ///
+    ///		TWO LITERALS SURVIVE BY DESIGN, and neither is reachable by these patterns:
+    ///
+    ///		  Controls\DmDivider\DmDivider.xaml.cs        IconFontSize default 16.0
+    ///		  Controls\DmInlineEditor\DmInlineEditor.xaml.cs  FontSize 18.0, FontFamily "EBGaramondRegular"
+    ///
+    ///		A BindableProperty default is evaluated in a static field initialiser, which runs at
+    ///		type-initialisation time and can precede Application.Current.Resources — so it cannot
+    ///		read DmTheme without throwing. They are declared positionally
+    ///		(<c>typeof(DmDivider), 16.0</c>), not as an assignment, so the two C# patterns above
+    ///		never see them. BindablePropertyDefaultsMatchTokensTests compares each against the
+    ///		token it mirrors instead, which is the guard that actually fits their shape.
     /// </summary>
-    private static readonly HashSet<string> PendingMigration = new(StringComparer.OrdinalIgnoreCase)
-    {
-        // ─────────────────────────────────────────────────────────────────────────────
-        // SCOPE: the two typography facts are XAML-ONLY BY DESIGN.
-        //
-        // NoRawColourLiteralsOutsideThePalette scans *.xaml AND *.cs. The font-size and
-        // font-family facts scan *.xaml alone. That asymmetry is a decision, not an
-        // oversight, and this comment is the only place that records it.
-        //
-        // Colour in code-behind has a behaviour-preserving destination: DmColors (and,
-        // after Task 11, a resource accessor), so the same literal moves to a name with
-        // no pixel change. Typography in code-behind does not. Every C# font size in the
-        // app is OFF the declared 10/12/14/16/18/20/24 scale, so migrating one is a
-        // visible restyle that needs authorisation — it cannot ride a behaviour-preserving
-        // migration, and the ratchet must not be able to force it.
-        //
-        // The known C# typography literals, deferred and visible rather than silent:
-        //
-        //   Views\DungeonDetailPage\ObjectPaletteView.xaml.cs:206   FontFamily = "EBGaramondRegular"
-        //                                                    :207   FontSize = 13
-        //                                                    :265   FontSize = 11
-        //                                                    :285   FontSize = 18
-        //   Views\DungeonDetailPage\SecondaryPaletteView.xaml.cs:53 FontSize = 11
-        //   Graphics\FloorMapDrawable.cs:541                        canvas.FontSize = 9f
-        //
-        // The FontFamily is included because BareFontFamilyPattern only matches the XAML
-        // attribute form (FontFamily="..."), so a C# property assignment is invisible to
-        // the ratchet no matter which files the fact scans. It is the only one in the App
-        // project: the three other code-behind-constructed Labels — ObjectPaletteView
-        // :262 and :282, SecondaryPaletteView :50 — set no family at all and inherit
-        // DmFontBody from Resources/Theme/Implicit.xaml, which is the intended
-        // destination. See the code-behind section of the Task 3 audit.
-        //
-        // 13, 11, 11 and 9 are all off-scale; only the 18 maps cleanly. Extending the two
-        // typography facts to *.cs would therefore fail immediately on four offenders whose
-        // only exit is a design decision, forcing allow-list entries that no migration task
-        // can legitimately clear. That is the ratchet running backwards, so it is not done.
-        //
-        // Consequence to keep in view: this set can reach empty — "migration complete" —
-        // with those five literals still live. They are a follow-up, not a leftover.
-        // ─────────────────────────────────────────────────────────────────────────────
-
-        // Task 11 — DmTheme port
-        @"Theme\DmColors.cs",
-    };
+    private static readonly HashSet<string> PendingMigration = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     ///		Asserts that colour literals appear only in the theme dictionaries.
@@ -96,21 +82,29 @@ public class ThemeHygieneTests
     }
 
     /// <summary>
-    ///		Asserts that numeric font sizes appear only in the theme dictionaries.
+    ///		Asserts that numeric font sizes appear only in the theme dictionaries, in markup and
+    ///		in code-behind alike.
     /// </summary>
     [Fact]
     public void NoBareFontSizesOutsideTheThemeDictionaries()
     {
-        Offenders("*.xaml", BareFontSizePattern).Should().BeEmpty();
+        Offenders("*.xaml", BareFontSizePattern)
+            .Concat(Offenders("*.cs", CSharpBareFontSizePattern))
+            .Should()
+            .BeEmpty();
     }
 
     /// <summary>
-    ///		Asserts that font family names appear only in the theme dictionaries.
+    ///		Asserts that font family names appear only in the theme dictionaries, in markup and
+    ///		in code-behind alike.
     /// </summary>
     [Fact]
     public void NoBareFontFamiliesOutsideTheThemeDictionaries()
     {
-        Offenders("*.xaml", BareFontFamilyPattern).Should().BeEmpty();
+        Offenders("*.xaml", BareFontFamilyPattern)
+            .Concat(Offenders("*.cs", CSharpBareFontFamilyPattern))
+            .Should()
+            .BeEmpty();
     }
 
     /// <summary>
@@ -160,6 +154,8 @@ public class ThemeHygieneTests
         return HexPattern.IsMatch(text)
             || BareFontSizePattern.IsMatch(text)
             || BareFontFamilyPattern.IsMatch(text)
+            || CSharpBareFontSizePattern.IsMatch(text)
+            || CSharpBareFontFamilyPattern.IsMatch(text)
             || LegacyThemeKeyPattern.IsMatch(text);
     }
 

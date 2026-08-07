@@ -58,11 +58,11 @@ public partial class ObjectPaletteView : ContentView
             cb.BorderThickness = new Microsoft.UI.Xaml.Thickness(1);
             cb.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch;
             cb.BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                DmColors.ToPlatform(DmColors.BorderToolChip));
+                DmTheme.ToPlatform(DmTheme.BorderToolChip));
             cb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                DmColors.ToPlatform(DmColors.SurfaceToolChip));
+                DmTheme.ToPlatform(DmTheme.SurfaceToolChip));
             cb.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
-                DmColors.ToPlatform(DmColors.TextToolPanel));
+                DmTheme.ToPlatform(DmTheme.TextToolPanel));
 
             // Build a fresh parchment ResourceDictionary and attach it at the control level
             // so the dropdown popup (isolated visual tree) picks it up via ThemeResource lookup.
@@ -70,12 +70,12 @@ public partial class ObjectPaletteView : ContentView
             {
                 try
                 {
-                    var border  = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.BorderToolChip));
-                    var bg      = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceToolChip));
-                    var popup   = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceToolPanel));
-                    var text    = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.TextToolPanel));
-                    var hover   = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceComboItemHover));
-                    var pressed = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmColors.ToPlatform(DmColors.SurfaceComboItemPressed));
+                    var border  = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.BorderToolChip));
+                    var bg      = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceToolChip));
+                    var popup   = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceToolPanel));
+                    var text    = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.TextToolPanel));
+                    var hover   = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceComboItemHover));
+                    var pressed = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceComboItemPressed));
                     var transp  = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
                     var d = new Microsoft.UI.Xaml.ResourceDictionary();
@@ -203,9 +203,9 @@ public partial class ObjectPaletteView : ContentView
         var label = new Label
         {
             Text = categoryName.ToUpperInvariant(),
-            FontFamily = "EBGaramondRegular",
-            FontSize = 13,
-            TextColor = DmColors.TextToolPanel,
+            FontFamily = DmTheme.FontBody,
+            FontSize = DmTheme.FontSizeCaption,
+            TextColor = DmTheme.TextToolPanel,
             CharacterSpacing = 0.5
         };
 
@@ -239,8 +239,8 @@ public partial class ObjectPaletteView : ContentView
             WidthRequest = 48,
             HeightRequest = 48,
             Padding = 0,
-            BackgroundColor = DmColors.SurfaceToolChip,
-            Stroke = new SolidColorBrush(DmColors.BorderToolChip),
+            BackgroundColor = DmTheme.SurfaceToolChip,
+            Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
             StrokeThickness = 1,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 }
         };
@@ -262,8 +262,8 @@ public partial class ObjectPaletteView : ContentView
             border.Content = new Label
             {
                 Text = displayName.Length > 0 ? displayName[..1] : "?",
-                FontSize = 11,
-                TextColor = DmColors.TextParchment,
+                FontSize = DmTheme.FontSizeMeta,
+                TextColor = DmTheme.TextParchment,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center
             };
@@ -282,8 +282,8 @@ public partial class ObjectPaletteView : ContentView
         var label = new Label
         {
             Text = "···",
-            FontSize = 18,
-            TextColor = DmColors.InkMuted,
+            FontSize = DmTheme.FontSizeBody,
+            TextColor = DmTheme.InkMuted,
             HorizontalOptions = LayoutOptions.Center,
             VerticalOptions = LayoutOptions.Center
         };
@@ -293,8 +293,8 @@ public partial class ObjectPaletteView : ContentView
             WidthRequest = 48,
             HeightRequest = 48,
             Padding = 0,
-            BackgroundColor = DmColors.SurfaceToolChip,
-            Stroke = new SolidColorBrush(DmColors.BorderToolChip),
+            BackgroundColor = DmTheme.SurfaceToolChip,
+            Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
             StrokeThickness = 1,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 },
             Content = label
@@ -308,10 +308,20 @@ public partial class ObjectPaletteView : ContentView
         return border;
     }
 
-    private static readonly Color ThumbNormal = DmColors.SurfaceToolChip;
-    private static readonly Color ThumbHover   = DmColors.SurfaceToolChipHover;
-    private static readonly SolidColorBrush ThumbStrokeNormal = new(DmColors.BorderToolChip);
-    private static readonly SolidColorBrush ThumbStrokeHover  = new(DmColors.Gold);
+    // Properties, not static readonly fields: a field initialiser runs at type-initialisation
+    // time, which can precede Application.Current.Resources, and DmTheme throws when those
+    // resources are absent. See the remarks on DmTheme.
+    private static Color ThumbNormal =>
+        DmTheme.SurfaceToolChip;
+
+    private static Color ThumbHover =>
+        DmTheme.SurfaceToolChipHover;
+
+    private static SolidColorBrush ThumbStrokeNormal =>
+        new(DmTheme.BorderToolChip);
+
+    private static SolidColorBrush ThumbStrokeHover =>
+        new(DmTheme.Gold);
 
     private static void AttachThumbHover(Border border)
     {

@@ -39,6 +39,7 @@
                     DmDragPlaceholderStroke
                     DmAreaSelectedBorder
                     DmMapArea
+                    DmMapObjectPlaceholder
           #F5E4B0   DmTextTavern
                     DmMapVertex
           #664a3820 DmScrollbarThumb
@@ -127,6 +128,10 @@
     <Color x:Key="DmMapVertex">#F5E4B0</Color>
     <Color x:Key="DmMapAreaFillActive">#40C8A040</Color>
     <Color x:Key="DmMapAreaStrokeActive">#90C8A040</Color>
+    <!-- The stand-in for an object with no drawable image: the "?" fallback glyph and outline
+         and the dashed ghost-placement outline. Deliberately not DmMapArea, which it currently
+         matches — these are object-placeholder renderings, not area outlines. -->
+    <Color x:Key="DmMapObjectPlaceholder">#C8A040</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          Feature-specific: tool palette chrome (the parchment strip)

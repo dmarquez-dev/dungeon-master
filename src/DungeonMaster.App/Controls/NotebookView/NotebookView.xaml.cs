@@ -101,13 +101,25 @@ public partial class NotebookView : ContentView
 
 	// The save stamp's two states. The green is deliberately DmSavedStamp rather than
 	// DmConfirm: here "committed" needs to read as reassuring rather than as an action to take.
-	private static readonly Color SavedColor = DmColors.SavedStamp;
-	private static readonly Color UnsavedColor = DmColors.Destructive;
+	//
+	// These are properties, not static readonly fields: a field initialiser runs at
+	// type-initialisation time, which can precede Application.Current.Resources, and DmTheme
+	// throws when those resources are absent. See the remarks on DmTheme.
+	private static Color SavedColor =>
+		DmTheme.SavedStamp;
+
+	private static Color UnsavedColor =>
+		DmTheme.Destructive;
 
 	// Close button hover: destructive red on a faint red wash, matching every other icon button.
-	private static readonly Color CloseHoverText = DmColors.Destructive;
-	private static readonly Color CloseHoverBackground = DmColors.DestructiveHoverSurface;
-	private static readonly Color CloseRestText = DmColors.InkMuted;
+	private static Color CloseHoverText =>
+		DmTheme.Destructive;
+
+	private static Color CloseHoverBackground =>
+		DmTheme.DestructiveHoverSurface;
+
+	private static Color CloseRestText =>
+		DmTheme.InkMuted;
 
 	/// <summary>
 	///		Raised when the notebook has committed an edit and the host should persist it.
