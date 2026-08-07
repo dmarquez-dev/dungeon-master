@@ -306,18 +306,133 @@
 
          and the element form is already used three times in the tree
          (ControlsPaletteView.xaml:36, ObjectPaletteView.xaml:14,
-         SecondaryPaletteView.xaml:12), all with a literal 4. It has NOT been built
-         with a StaticResource in that position, and the two-layer spike in this
-         file is exactly why that must not be assumed: element-content markup
-         extensions failed at build with MAUIG1010. Attribute position is the case
-         that worked, so this is expected to compile — but expected is not verified.
-         Spike it before the sweep depends on it.
+         SecondaryPaletteView.xaml:12), all with a literal 4.
+
+         SPIKED AND CONFIRMED WORKING, 2026-08-07. The x:Double resolves, converts
+         through CornerRadius's implicit double conversion, and REACHES THE SCREEN —
+         it does not silently land on 0 or a default. Evidence: DmSearchBar's Border
+         was moved to the element form bound to a temporary 20-valued radius token,
+         built, LAUNCHED, and screenshotted; its corner arc was unmistakably 20
+         against the DmCard directly below it still carrying the literal 4, then
+         rebound to DmRadiusLoose and confirmed pixel-identical to the pre-change
+         frame. Build success alone was NOT taken as the answer: Task 10 of the theme
+         migration had a resource reference build clean AND launch clean and still
+         throw on first lookup, because WinUI creates dictionary entries lazily.
+
+         CONSEQUENCE: all 30 RoundRectangle literals can move onto these tokens via
+         the element form, and BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault —
+         which exists only to keep DmBorderBase's string-form literal in step — stops
+         being necessary once DmBorderBase itself moves. Do not delete that guard
+         until the setter it guards is actually converted.
     ═══════════════════════════════════════════════════════════════ -->
     <x:Double x:Key="DmRadiusTight">2</x:Double>
     <x:Double x:Key="DmRadiusDefault">3</x:Double>
     <x:Double x:Key="DmRadiusLoose">4</x:Double>
     <x:Double x:Key="DmStrokeHairline">1</x:Double>
     <x:Double x:Key="DmStrokeEmphasis">2</x:Double>
+    <!-- The outline-CANCEL border weight, and the only value on this ladder that is not an
+         integer. It is not drift: it was authored twice, on the same role, before any theme
+         work (DmConfirmPopup.xaml:36 and CreateDungeonPopup.xaml:74 — both the CANCEL button
+         of a two-button popup row, whose sibling is a FILLED button). On an outline button the
+         border carries the whole visual weight, so a heavier stroke than the hairline used for
+         incidental separators is a real design decision, and this token records it rather than
+         letting a magic 1.5 sit at two call sites. It has exactly those two consumers; if a
+         reviewer decides the role does not warrant its own weight, collapse both to
+         DmStrokeHairline and DELETE this token rather than leaving it orphaned. -->
+    <x:Double x:Key="DmStrokeMedium">1.5</x:Double>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry: the spacing scale
+
+         Seven steps — 2, 4, 6, 8, 12, 16, 20 — for Spacing, RowSpacing and ColumnSpacing.
+         Bind them in ATTRIBUTE position, which is proven to resolve; see the spike note
+         below the padding roles.
+
+         WHY SEVEN AND NOT SIX: 6 is in genuine use at six sites and forcing it to 4 or 8 is a
+         33% jump on a tight icon/label row.
+
+         WHY WORDS AND NOT NUMBERS: DmSpace4 would bake a value into its own name, so a
+         rescale would have to touch every call site to stay honest. Nothing else in this
+         theme names itself after its value — DmRadiusTight, DmStrokeHairline,
+         DmFontSizeBody, DmIconSizeSmall — and the ramp below deliberately reuses
+         DmIconSize's own vocabulary (Small / Medium / Large / XL) extended symmetrically at
+         both ends, so the two double-valued ramps read the same way.
+
+         ─────────────────────────────────────────────────────────────────────────
+         SNAPPING TABLE — the applying wave's ONLY source for these decisions.
+         Fixed by docs/superpowers/specs/2026-08-07-design-system-completion-design.md §3.1.
+         Do not re-derive them per call site; a second opinion here is how a scale drifts.
+
+             0  →  0   KEEP AS A LITERAL. "No spacing" is the absence of a scale value,
+                       not the smallest one, and giving it a token invites DmSpaceNone to
+                       be used where a real step was meant.
+             2  →  2   already on scale
+             3  →  4   DmSpaceXS
+             4  →  4   already on scale
+             5  →  4   DmSpaceXS — six sites, all icon/label rows
+             6  →  6   already on scale
+             7  →  8   DmSpaceMedium
+             8  →  8   already on scale
+             9  →  8   DmSpaceMedium
+            10  →  12  DmSpaceLarge — button rows; 12 reads better against its neighbours
+            14  →  12  DmSpaceLarge
+            16  →  16  already on scale
+            20  →  20  already on scale
+
+         Note the two directions at 10 and 14: 10 rounds UP and 14 rounds DOWN, both onto 12.
+         That is intended — it collapses the button-row cluster onto one step — and it is why
+         this table exists rather than a "snap to nearest" rule.
+         ─────────────────────────────────────────────────────────────────────────
+    ═══════════════════════════════════════════════════════════════ -->
+    <!-- Hairline gaps inside a single control: a glyph and its caption. -->
+    <x:Double x:Key="DmSpaceXXS">2</x:Double>
+    <!-- Related items in one visual group: label above its field, icon beside its text. -->
+    <x:Double x:Key="DmSpaceXS">4</x:Double>
+    <!-- A tight row that still needs to read as separate items: stacked tool captions. -->
+    <x:Double x:Key="DmSpaceSmall">6</x:Double>
+    <!-- The default gap between sibling controls in a row or column. -->
+    <x:Double x:Key="DmSpaceMedium">8</x:Double>
+    <!-- Between button-row buttons, and between fields in a form. -->
+    <x:Double x:Key="DmSpaceLarge">12</x:Double>
+    <!-- Between distinct groups within one panel or page section. -->
+    <x:Double x:Key="DmSpaceXL">16</x:Double>
+    <!-- Between major page sections; the widest deliberate gap on the scale. -->
+    <x:Double x:Key="DmSpaceXXL">20</x:Double>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry: the padding roles
+
+         ROLES, NOT A SCALE. 30 distinct Padding values exist today, many legitimately
+         asymmetric (an inset that shapes one icon, a notebook pane's four-value tuck). A flat
+         numeric scale would either flatten that real intent or fail to cover it, so these are
+         named after the SURFACE they pad. Pick the role, not the number.
+
+         Everything not covered snaps to the nearest role. Asymmetric four-value paddings
+         survive as documented exceptions and each must carry a one-line comment saying what
+         it is shaping; an undocumented asymmetric padding is a defect.
+
+         SPIKE RESULT (2026-08-07, verified at RUNTIME, not merely at build):
+         a Thickness token DOES resolve from {StaticResource} in attribute position. Proved by
+         binding DmSearchBar's Border to a temporary 40,30 Thickness and to a temporary
+         RoundRectangle CornerRadius of 20 in the ELEMENT form, launching the app, and
+         observing both the fat inset and the large corner arc against the DmCard below it,
+         which still carried the literal 4. A silent default would have rendered 0 padding and
+         a square corner; neither happened. A clean build alone would NOT have shown this —
+         Platforms/Windows/App.xaml once built clean, launched clean, and then threw
+         COMException on the first actual lookup, so build success is not evidence here.
+    ═══════════════════════════════════════════════════════════════ -->
+    <!-- Compact icon buttons: the glyph is the content and the box only needs to be hittable. -->
+    <Thickness x:Key="DmPaddingTight">4,2</Thickness>
+    <!-- Standard action buttons and tool chips. -->
+    <Thickness x:Key="DmPaddingCompact">8,4</Thickness>
+    <!-- Text inputs — Entry, Editor and SearchBar surfaces. -->
+    <Thickness x:Key="DmPaddingControl">10,4</Thickness>
+    <!-- Card and list-row surfaces. -->
+    <Thickness x:Key="DmPaddingCard">12,10</Thickness>
+    <!-- Popup bodies and palette panels. -->
+    <Thickness x:Key="DmPaddingPanel">14,10</Thickness>
+    <!-- Page roots — the outermost inset of a ContentPage. -->
+    <Thickness x:Key="DmPaddingPage">16,12</Thickness>
 
     <!-- Shared height of the map toolbar and the sidebar dungeon card, so their bottom
          edges line up across the two columns of the designer.

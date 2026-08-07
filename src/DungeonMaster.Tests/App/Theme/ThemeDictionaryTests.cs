@@ -32,7 +32,16 @@ public class ThemeDictionaryTests
         "DmAccentGoldBrush", "DmBorderTavernBrush", "DmBorderTavernHoverBrush",
         "DmBorderParchmentBrush",
         "DmRadiusTight", "DmRadiusDefault", "DmRadiusLoose",
-        "DmStrokeHairline", "DmStrokeEmphasis",
+        "DmStrokeHairline", "DmStrokeEmphasis", "DmStrokeMedium",
+        // The spacing scale and the padding roles. Like the radius tokens above them these
+        // have no consumers yet — the wave that defines a scale is not the wave that applies
+        // it — so nothing else in this suite would notice one being dropped, renamed or never
+        // added at all. This is the only fact standing between the applying wave and a
+        // resource key that silently does not exist.
+        "DmSpaceXXS", "DmSpaceXS", "DmSpaceSmall", "DmSpaceMedium",
+        "DmSpaceLarge", "DmSpaceXL", "DmSpaceXXL",
+        "DmPaddingTight", "DmPaddingCompact", "DmPaddingControl",
+        "DmPaddingCard", "DmPaddingPanel", "DmPaddingPage",
         // Shared height of the map toolbar and the sidebar dungeon card. Both bind it, so
         // losing the key would silently let the two drift apart again at runtime.
         "DmToolbarHeight",
