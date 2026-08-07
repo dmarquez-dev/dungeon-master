@@ -66,21 +66,28 @@ public class DmThemeKeysResolveTests
     ///		absent, and the message reads like a missing key when the real fault is the ordering.
     ///		This class of bug was hit twice during the theme migration, so it is guarded rather
     ///		than merely commented.
-    ///		The pattern spans lines, because every wrapped form in this codebase does: a field
-    ///		initialiser split across lines per dotnet-format.md §3, a multi-line
-    ///		<c>BindableProperty.Create</c> positional default, and a static constructor body are
-    ///		all caught. It stops at the first <c>;</c> and at the first <c>=&gt;</c>, which is what
-    ///		leaves the two safe shapes alone: an expression-bodied member, and a lambda such as
-    ///		<c>defaultValueCreator</c> that sits inside a static field initialiser but does not run
-    ///		with it.
+    ///		Four eager shapes are caught, one per alternative plus the wrapped form of each: a
+    ///		static field initialiser (including one split across lines per dotnet-format.md §3),
+    ///		a <c>BindableProperty.Create</c> positional default, a static auto-property
+    ///		initialiser (<c>static Color X { get; } = …</c>, which the compiler emits as a
+    ///		backing-field initialiser and which therefore runs at type-init time), and a static
+    ///		constructor body. Two lazy shapes are deliberately left alone: an expression-bodied
+    ///		member, and a lambda such as <c>defaultValueCreator</c> that sits inside a static
+    ///		field initialiser but does not run with it.
     /// </summary>
     [Fact]
     public void NoStaticFieldInitialiserReadsDmTheme()
     {
+        // Line-spanning comes from [^;] and the (?!=>) guard, NOT from RegexOptions.Singleline:
+        // there is no unescaped '.' outside a character class here, so that option would be inert
+        // and is not set. The match runs from the declaration to the first ';' or the first '=>',
+        // whichever comes first — the '=>' bound is what keeps the lazy shapes out.
         var staticFieldInitialiser = new Regex(
-            @"(static\s+(readonly\s+)?[\w<>?\[\].]+\s+\w+\s*=(?!>)|static\s+\w+\s*\(\s*\)\s*\{)"
+            @"(static\s+(readonly\s+)?[\w<>?\[\].]+\s+\w+\s*=(?!>)"
+            + @"|static\s+[\w<>?\[\].]+\s+\w+\s*\{[^}]*\}\s*=(?!>)"
+            + @"|static\s+\w+\s*\(\s*\)\s*\{)"
             + @"((?!=>)[^;])*\bDmTheme\.",
-            RegexOptions.Compiled | RegexOptions.Singleline);
+            RegexOptions.Compiled);
 
         var offenders = RepoPaths
             .AppSourceFiles("*.cs")

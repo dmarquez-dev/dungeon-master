@@ -10,11 +10,17 @@ namespace DungeonMaster.App.Theme;
 /// <remarks>
 ///		LIFETIME: every member here reads <c>Application.Current.Resources</c>. That object
 ///		does not exist until the MAUI <c>App</c> constructor has run <c>InitializeComponent</c>,
-///		so no static field initialiser, static constructor or <c>BindableProperty.Create</c>
-///		default may call into this class. Those sites run at type-initialisation time, which
-///		can precede application startup, and they will throw with a message that reads like a
-///		missing key when the real fault is the ordering. Read these properties from runtime
-///		code only.
+///		so nothing that runs at type-initialisation time may call into this class. Those sites
+///		throw with a message that reads like a missing key when the real fault is the ordering.
+///		The eager shapes, all four of which C# runs before startup can be guaranteed, are:
+///		a static field initialiser; a static auto-property initialiser
+///		(<c>static Color X { get; } = …</c>, which the compiler emits as a backing-field
+///		initialiser); a <c>BindableProperty.Create</c> positional default, which is itself a
+///		static field initialiser; and a static constructor body. Read these properties from
+///		runtime code only — an expression-bodied member, a property with a <c>get</c> body, or a
+///		<c>defaultValueCreator</c> lambda all defer the read to first use and are safe.
+///		<c>DmThemeKeysResolveTests.NoStaticFieldInitialiserReadsDmTheme</c> enforces this list;
+///		if a shape is added here it must be added there too.
 /// </remarks>
 public static class DmTheme
 {

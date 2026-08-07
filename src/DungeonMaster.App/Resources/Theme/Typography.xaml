@@ -36,9 +36,13 @@
     <!--
         DmFontSizeMeta is the body ramp's 12. Three consumers, all body-font and all small:
 
-          ControlsPaletteView.xaml:114                 the ScaleReadout label ("1.0x")
-          ObjectPaletteView.xaml.cs:265                thumbnail initial-letter fallback
-          SecondaryPaletteView.xaml.cs:53              thumbnail initial-letter fallback
+          ControlsPaletteView.xaml:134       the ScaleReadout label ("1.0x")
+          ObjectPaletteView.xaml.cs:265      thumbnail initial-letter fallback, via DmTheme
+          SecondaryPaletteView.xaml.cs:53    thumbnail initial-letter fallback, via DmTheme
+
+        Each line number is the FontSize line itself, not the element that opens above it —
+        ScaleReadout's <Label> tag is at :131 and an earlier revision of this comment cited that
+        neighbourhood as ":114", which resolved to nothing.
 
         The readout is a bold, body-font numeric value; the two fallbacks are a single body-font
         letter inside a 48x48 chip. The body ramp otherwise bottoms out at DmFontSizeCaption
