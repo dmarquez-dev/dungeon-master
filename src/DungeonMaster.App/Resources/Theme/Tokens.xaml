@@ -272,28 +272,24 @@
     <!-- ═══════════════════════════════════════════════════════════════
          Geometry
 
-         THE RADIUS TOKENS ARE DELIBERATELY UNCONSUMED. Do not delete them as dead
-         keys, and do not migrate to them ad hoc either. Current state, counted:
+         THE RADIUS TOKENS ARE NOW CONSUMED, AND THE RATCHET KEEPS THEM THAT WAY.
+         An earlier revision of this note said they were deliberately unconsumed and
+         that migrating them was held for a later sweep "because no hygiene pattern
+         covers radii". Both halves are now out of date: GeometryScaleTests.
+         NoBareRadiusValues is that pattern, and Controls/ and the implicit styles
+         have been converted. Views/ is allow-listed in that fact until the wave that
+         owns it removes its entries.
 
-           DmRadiusTight (2)    0 consumers
-           DmRadiusDefault (3)  1 consumer, DmBorderBase in Controls.Base.xaml,
-                                inside this theme directory
-           DmRadiusLoose (4)    0 consumers
+         Every literal that was converted was already exactly 2, 3 or 4, so those
+         conversions are pixel-neutral by construction. ONE IS NOT, and it is
+         deliberate: the implicit Button style's radius moved from 8 to DmRadiusLoose
+         (4), so every unstyled Button in the app changed shape to match the surfaces
+         around it. That reasoning is recorded at the style itself in Implicit.xaml.
 
-         Meanwhile app markup carries 41 raw radius literals — 6 CornerRadius="2",
-         7 CornerRadius="3", 3 CornerRadius="4", 10 "RoundRectangle 2",
-         11 "RoundRectangle 3", 4 "RoundRectangle 4" — plus DmBorderBase's own
-         literal 3 here. EVERY ONE OF THEM IS ALREADY 2, 3 OR 4, so migrating them
-         onto these tokens is pixel-neutral by construction; nothing renders
-         differently. (Two further literals are out of scope and stay literals:
-         DungeonListPage's CornerRadius="26", which is half the FAB's own height,
-         and the implicit Button style's CornerRadius="8", which mirrors the stock
-         value it replaces.)
-
-         The migration is held for the geometry-homogenisation sweep rather than
-         done here because no hygiene pattern covers radii — the ratchet scans hex,
-         FontSize, FontFamily and legacy keys — so this note and RequiredKeys, which
-         certifies all three keys exist, are the only things keeping them alive.
+         Two literals survive on purpose, and each is named in the ratchet rather
+         than merely left alone: DungeonListPage's CornerRadius 26, which is half the
+         FAB's own 52px height and so is geometry rather than style, and
+         DmBorderBase's string-form 3 — see the setter note below.
 
          BEFORE ANYONE RELIES ON IT: Controls.Base.xaml says StrokeShape
          "unavoidably" needs a literal. That is TRUE OF THE STRING FORM ONLY. The
@@ -319,11 +315,17 @@
          migration had a resource reference build clean AND launch clean and still
          throw on first lookup, because WinUI creates dictionary entries lazily.
 
-         CONSEQUENCE: all 30 RoundRectangle literals can move onto these tokens via
-         the element form, and BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault —
-         which exists only to keep DmBorderBase's string-form literal in step — stops
-         being necessary once DmBorderBase itself moves. Do not delete that guard
-         until the setter it guards is actually converted.
+         BUT THE STYLE SETTER IS A DIFFERENT CASE, AND IT IS THE EXCEPTION. The spike
+         above covers a Border ELEMENT. Putting an element-form shape inside a
+         <Setter> was spiked separately and FAILED on behaviour, not on binding: the
+         shape is built once when the dictionary is parsed and the SAME INSTANCE is
+         handed to every Border adopting the style. Two Borders returned
+         ReferenceEquals true, both reported the LAST Border as the shape's Parent,
+         and mutating the radius through one visibly changed what the other rendered.
+         DmBorderBase therefore KEEPS its string-form literal, the reasoning is
+         recorded in full at Controls.Base.xaml, and
+         BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault stays — it is the only
+         thing keeping that literal in step with DmRadiusDefault. Do not delete it.
     ═══════════════════════════════════════════════════════════════ -->
     <x:Double x:Key="DmRadiusTight">2</x:Double>
     <x:Double x:Key="DmRadiusDefault">3</x:Double>

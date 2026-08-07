@@ -13,9 +13,9 @@
         Stroke="Transparent"
         StrokeThickness="0"
         StrokeShape="Rectangle"
-        Padding="4,3">
+        Padding="{StaticResource DmPaddingTight}">
 
-        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
             <!-- Diamond bullet -->
             <Label Grid.Column="0"
@@ -26,7 +26,7 @@
                    VerticalOptions="Center" />
 
             <!-- Area name (display only — edited via toolbar). Right margin keeps the name clear
-                 of the action buttons now that ColumnSpacing is tightened to 2. -->
+                 of the action buttons now that the row is on the tightest spacing step. -->
             <Label
                 x:Name="AreaNameLabel"
                 Grid.Column="1"
@@ -45,8 +45,8 @@
                 FontSize="{StaticResource DmIconSizeSmall}"
                 BackgroundColor="Transparent"
                 TextColor="{StaticResource DmTextParchmentMuted}"
-                Padding="4,0"
-                CornerRadius="2"
+                Padding="{StaticResource DmPaddingTight}"
+                CornerRadius="{StaticResource DmRadiusTight}"
                 Clicked="OnNotebookClicked"
                 ToolTipProperties.Text="Open notebook">
                 <Button.Behaviors>
@@ -63,8 +63,8 @@
                 FontSize="{StaticResource DmIconSizeSmall}"
                 BackgroundColor="Transparent"
                 TextColor="{StaticResource DmDestructive}"
-                Padding="4,0"
-                CornerRadius="2"
+                Padding="{StaticResource DmPaddingTight}"
+                CornerRadius="{StaticResource DmRadiusTight}"
                 Clicked="OnDeleteClicked"
                 ToolTipProperties.Text="Delete area">
                 <Button.Behaviors>

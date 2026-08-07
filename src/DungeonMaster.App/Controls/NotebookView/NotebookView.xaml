@@ -12,9 +12,12 @@
     IsVisible="False">
 
     <Border
-        StrokeShape="RoundRectangle 4"
         Stroke="{StaticResource DmBorderParchmentBrush}"
         StrokeThickness="{StaticResource DmStrokeEmphasis}">
+
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
 
         <!--
             The notebook floats over the floor plan, so the shadow is what separates the two.
@@ -47,11 +50,16 @@
                 to the whole control would start a drag from inside the text editors.
                 Chrome matches DmPopup's header bar (gold gradient, DmTextParchment content) rather than
                 the translucent brown wash this used to have.
+
+                DOCUMENTED ASYMMETRIC PADDING (12,8,10,8): it shapes the header bar around a
+                right-hand close button, which needs less inset than the left-hand glyph. The
+                hairline BoxView below negates these exact edges (Margin -12 / -10) so it can
+                bleed to the bar's full width; the two must move together.
             -->
             <Grid
                 Grid.Row="0"
                 ColumnDefinitions="Auto,*,Auto,Auto"
-                ColumnSpacing="9"
+                ColumnSpacing="{StaticResource DmSpaceMedium}"
                 Padding="12,8,10,8">
 
                 <Grid.Background>
@@ -95,13 +103,15 @@
                      DmAccentGoldLight and DmAccentGoldDark, and clearly subordinate to the name. -->
                 <Border
                     Grid.Column="2"
-                    StrokeShape="RoundRectangle 2"
                     Stroke="{StaticResource DmTextParchment}"
                     StrokeThickness="{StaticResource DmStrokeHairline}"
                     BackgroundColor="Transparent"
-                    Padding="5,2"
+                    Padding="{StaticResource DmPaddingTight}"
                     Opacity="0.6"
                     VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                    </Border.StrokeShape>
                     <Label
                         x:Name="KindLabel"
                         FontFamily="{StaticResource DmFontTitle}"
@@ -119,8 +129,8 @@
                     FontSize="{StaticResource DmIconSizeSmall}"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource DmTextParchmentMuted}"
-                    Padding="5,3"
-                    CornerRadius="2"
+                    Padding="{StaticResource DmPaddingTight}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     HeightRequest="24"
                     MinimumHeightRequest="24"
                     VerticalOptions="Center"
@@ -149,13 +159,21 @@
             <!--
                 Row 1 — the ribbon rail. Ribbons hang from the top edge, so each border is
                 anchored Start and grows downward when selected (60) or shrinks when not (40).
+
+                DOCUMENTED ASYMMETRIC PADDING (14,0): it shapes a horizontal-only inset. The
+                ribbons must touch the top edge of the row to read as hanging from the header,
+                so a vertical inset from a padding role would break the metaphor, and the 14
+                aligns their left edge with the pane below.
             -->
             <HorizontalStackLayout
                 x:Name="RibbonRail"
                 Grid.Row="1"
-                Spacing="9"
+                Spacing="{StaticResource DmSpaceMedium}"
                 Padding="14,0">
 
+                <!-- Padding 6,0,6,10: a documented asymmetric inset that shapes the label
+                     inside the bookmark tab, clearing the 10-deep notch cut from its
+                     bottom edge by BookmarkTabShape below. -->
                 <Border
                     x:Name="ReadRibbon"
                     StrokeThickness="0"
@@ -180,6 +198,8 @@
                         VerticalOptions="Center" />
                 </Border>
 
+                <!-- Padding 6,0,6,10: same documented asymmetric inset as ReadRibbon above —
+                     it clears the same 10-deep BookmarkTabShape notch. -->
                 <Border
                     x:Name="DmRibbon"
                     StrokeThickness="0"
@@ -217,7 +237,10 @@
 
             </HorizontalStackLayout>
 
-            <!-- Row 2 — the two panes; exactly one is visible at a time. -->
+            <!-- Row 2 — the two panes; exactly one is visible at a time.
+                 DOCUMENTED ASYMMETRIC PADDING (14,4,14,12): it shapes the writing surface —
+                 a shallow 4 at the top so the editor sits close under the ribbon it belongs
+                 to, and a deeper 12 at the bottom to hold it clear of the save-state rule. -->
             <Grid Grid.Row="2" Padding="14,4,14,12">
 
                 <!-- Read aloud: player-facing prose, italic to mark it as spoken text. -->
@@ -262,11 +285,16 @@
             <!--
                 Row 3 — the save-state stamp. This is the user's only proof that autosave
                 fired, so it is functional chrome rather than decoration.
+
+                DOCUMENTED ASYMMETRIC PADDING (14,7,14,9): it shapes the stamp row around the
+                hairline that opens it. The BoxView below negates the top 14/7 (Margin
+                -14,-7,-14,0) so the rule spans the full width; the 9 at the bottom is the
+                optical match for that 7 once the rule is drawn.
             -->
             <Grid
                 Grid.Row="3"
                 ColumnDefinitions="*,Auto"
-                ColumnSpacing="8"
+                ColumnSpacing="{StaticResource DmSpaceMedium}"
                 Padding="14,7,14,9">
 
                 <BoxView

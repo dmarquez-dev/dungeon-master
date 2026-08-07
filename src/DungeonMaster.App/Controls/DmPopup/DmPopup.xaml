@@ -6,11 +6,13 @@
     x:Name="Root">
 
     <Border
-        StrokeShape="RoundRectangle 4"
         Stroke="{StaticResource DmBorderParchmentBrush}"
         StrokeThickness="{StaticResource DmStrokeEmphasis}"
         MinimumWidthRequest="300"
         MaximumWidthRequest="420">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
         <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="{StaticResource DmSurfaceParchment}" Offset="0.0" />
@@ -21,7 +23,7 @@
         <Grid RowDefinitions="Auto,*,Auto">
 
             <!-- Header bar -->
-            <Grid Grid.Row="0" Padding="14,10">
+            <Grid Grid.Row="0" Padding="{StaticResource DmPaddingPanel}">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                         <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
@@ -38,7 +40,7 @@
             </Grid>
 
             <!-- Body content slot -->
-            <ContentView x:Name="BodyPresenter" Grid.Row="1" Padding="18,14" />
+            <ContentView x:Name="BodyPresenter" Grid.Row="1" Padding="{StaticResource DmPaddingPanel}" />
 
             <!-- Bottom scroll bar -->
             <BoxView Grid.Row="2" HeightRequest="5">

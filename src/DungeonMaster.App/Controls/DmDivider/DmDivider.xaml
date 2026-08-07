@@ -5,7 +5,7 @@
     x:Class="DungeonMaster.App.Controls.DmDivider"
     x:Name="Root">
 
-    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
+    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="{StaticResource DmSpaceMedium}">
 
         <BoxView Grid.Column="0" HeightRequest="1" VerticalOptions="Center">
             <BoxView.Background>

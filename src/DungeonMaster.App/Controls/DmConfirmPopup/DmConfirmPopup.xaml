@@ -14,7 +14,7 @@
 
     <controls:DmPopup x:Name="Chrome">
         <controls:DmPopup.Body>
-            <VerticalStackLayout Spacing="20">
+            <VerticalStackLayout Spacing="{StaticResource DmSpaceXXL}">
 
                 <Label
                     x:Name="MessageLabel"
@@ -23,7 +23,7 @@
                     TextColor="{StaticResource DmTextParchment}"
                     LineBreakMode="WordWrap" />
 
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource DmSpaceLarge}">
                     <Button
                         x:Name="CancelButton"
                         Grid.Column="0"
@@ -33,8 +33,8 @@
                         BackgroundColor="{StaticResource DmNeutralSurface}"
                         TextColor="{StaticResource DmTextParchment}"
                         BorderColor="{StaticResource DmNeutralBorder}"
-                        BorderWidth="1.5"
-                        CornerRadius="3"
+                        BorderWidth="{StaticResource DmStrokeMedium}"
+                        CornerRadius="{StaticResource DmRadiusDefault}"
                         Clicked="OnCancel">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
@@ -46,7 +46,7 @@
                         FontFamily="{StaticResource DmFontTitle}"
                         FontSize="{StaticResource DmFontSizeAction}"
                         CharacterSpacing="1"
-                        CornerRadius="3"
+                        CornerRadius="{StaticResource DmRadiusDefault}"
                         Clicked="OnConfirm">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />

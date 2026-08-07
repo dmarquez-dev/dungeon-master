@@ -9,20 +9,23 @@
 
     <Border
         x:Name="FloorBorder"
-        StrokeShape="RoundRectangle 3"
         StrokeThickness="{StaticResource DmStrokeHairline}"
         Stroke="{StaticResource DmBorderTavernBrush}"
         BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
-        Padding="8,6"
+        Padding="{StaticResource DmPaddingCompact}"
         Margin="0,0,0,4">
 
-        <VerticalStackLayout Spacing="4">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+        </Border.StrokeShape>
+
+        <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
             <VerticalStackLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCardTapped" />
             </VerticalStackLayout.GestureRecognizers>
 
             <!-- Header row -->
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="2">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
                 <!-- Expand toggle (visual indicator only — card tap handles expand) -->
                 <Label
@@ -35,7 +38,7 @@
                     VerticalOptions="Center" />
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
-                     name clear of the action buttons now that ColumnSpacing is tightened to 2. -->
+                     name clear of the action buttons now that the row is on the tightest spacing step. -->
                 <Label
                     x:Name="FloorNameLabel"
                     Grid.Column="1"
@@ -54,8 +57,8 @@
                     FontSize="{StaticResource DmIconSizeMedium}"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource DmTextParchmentMuted}"
-                    Padding="4,2"
-                    CornerRadius="2"
+                    Padding="{StaticResource DmPaddingTight}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     Clicked="OnNotebookClicked"
                     ToolTipProperties.Text="Open notebook">
                     <Button.Behaviors>
@@ -72,8 +75,8 @@
                     FontSize="{StaticResource DmIconSizeMedium}"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource DmDestructive}"
-                    Padding="4,2"
-                    CornerRadius="2"
+                    Padding="{StaticResource DmPaddingTight}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     Clicked="OnDeleteClicked"
                     ToolTipProperties.Text="Delete floor">
                     <Button.Behaviors>
@@ -104,7 +107,9 @@
                 Color="{StaticResource DmHairline}"
                 HeightRequest="1" />
 
-            <!-- Expanded area list -->
+            <!-- Expanded area list. The padding indents the area rows under their own floor
+                 row and is asymmetric by design: no bottom or right inset, so the Add-area
+                 button sits tight beneath the last area and the rows run to the card edge. -->
             <VerticalStackLayout
                 x:Name="AreaContainer"
                 IsVisible="False"
@@ -119,7 +124,7 @@
                 FontSize="{StaticResource DmFontSizeBodySmall}"
                 TextColor="{StaticResource DmAccentGoldLight}"
                 BackgroundColor="Transparent"
-                Padding="8,2"
+                Padding="{StaticResource DmPaddingCompact}"
                 HorizontalOptions="Start"
                 IsVisible="False"
                 Clicked="OnAddAreaClicked">

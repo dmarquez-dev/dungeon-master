@@ -162,16 +162,39 @@
         derivatives; duplicating either here would give the app two sources of
         truth for the same property.
 
-        None of the five values below matches an existing token in Tokens.xaml
-        (the radius tokens are 2/3/4, the stroke tokens are 1/2), so all five are
-        literals. CornerRadius="8" in particular mirrors the stock Styles.xaml
-        value it replaces and is not a candidate for a new radius token.
+        THE RADIUS IS NOW A TOKEN, AND IT MOVED. An earlier revision of this comment
+        said the corner radius "mirrors the stock Styles.xaml value it replaces and is
+        not a candidate for a new radius token". That was true only while the theme
+        migration held pixel-identity. That constraint is lifted, and an 8 here was
+        never a design decision — it is the .NET MAUI template's own default, inherited
+        verbatim from a stock style this project has since deleted. It made every
+        unstyled Button in the app twice as round as every other rounded surface, all
+        of which sit on 2, 3 or 4.
+
+        It is now bound to DmRadiusLoose (4). This is the most visible single change in
+        the design-system-completion sweep: every Button that carries no Style= — 19 of
+        the app's 21 — changes shape. That is intended. Buttons now match the cards,
+        popups, chips and panels around them.
+
+        The remaining four values stay literals, and each for its own reason rather
+        than for want of a token:
+
+          Padding 14,10          matches DmPaddingPanel by value, but a Button is not a
+                                 panel. Binding a popup-body role here would make a
+                                 later rescale of that role silently resize every
+                                 button in the app. The button footprint is settled by
+                                 adopting the paired DmButton* styles (spec §4.4), not
+                                 by borrowing a role that happens to share its numbers.
+          MinimumHeightRequest   44, and MinimumWidthRequest 44 — the platform touch
+          MinimumWidthRequest    target, not a spacing step.
+          BorderWidth 0          zero means "none"; it is the absence of a stroke
+                                 rather than the smallest one on the stroke ladder.
     -->
     <Style TargetType="Button">
         <Setter Property="Padding" Value="14,10" />
         <Setter Property="MinimumHeightRequest" Value="44" />
         <Setter Property="MinimumWidthRequest" Value="44" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="{StaticResource DmRadiusLoose}" />
         <Setter Property="BorderWidth" Value="0" />
 
         <!--

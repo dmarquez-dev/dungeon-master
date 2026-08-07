@@ -7,9 +7,12 @@
 
     <Border
         x:Name="CardBorder"
-        StrokeShape="RoundRectangle 4"
         StrokeThickness="{StaticResource DmStrokeHairline}"
-        Padding="12,10">
+        Padding="{StaticResource DmPaddingCard}">
+
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroupList>
@@ -31,7 +34,7 @@
         </VisualStateManager.VisualStateGroups>
 
         <Grid ColumnDefinitions="*,Auto">
-            <VerticalStackLayout Grid.Column="0" Spacing="3">
+            <VerticalStackLayout Grid.Column="0" Spacing="{StaticResource DmSpaceXS}">
                 <Label
                     Text="{Binding Title, Source={x:Reference Root}}"
                     FontFamily="{StaticResource DmFontTitleStrong}"

@@ -7,11 +7,13 @@
 
     <Border
         x:Name="SearchBorder"
-        StrokeShape="RoundRectangle 4"
         StrokeThickness="{StaticResource DmStrokeHairline}"
         Stroke="{StaticResource DmBorderTavernBrush}"
         BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
-        Padding="10,4">
+        Padding="{StaticResource DmPaddingControl}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
         <Entry
             Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay}"
             Placeholder="Search dungeons..."
