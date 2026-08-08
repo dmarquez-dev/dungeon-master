@@ -464,21 +464,31 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the tightest corner radius, used by icon buttons and palette thumbnails.
+	///		<para>
+	///		The three radius accessors return <c>int</c>, not <c>double</c>, because the tokens
+	///		are declared <c>x:Int32</c> — <c>Button.CornerRadius</c> is <c>System.Int32</c> and
+	///		silently rejects a double. <see cref="Resolve{T}"/> matches on <c>value is T</c>, so
+	///		widening these back to <c>double</c> makes every read throw. The full reasoning,
+	///		and the measurements behind it, are recorded beside the tokens in Tokens.xaml.
+	///		Assigning one to a <c>CornerRadius</c>-typed property still compiles and still
+	///		renders: C# widens the int to double and then applies CornerRadius's implicit
+	///		conversion.
+	///		</para>
 	/// </summary>
-	public static double RadiusTight =>
-		Resolve<double>("DmRadiusTight");
+	public static int RadiusTight =>
+		Resolve<int>("DmRadiusTight");
 
 	/// <summary>
 	///		Gets the default corner radius.
 	/// </summary>
-	public static double RadiusDefault =>
-		Resolve<double>("DmRadiusDefault");
+	public static int RadiusDefault =>
+		Resolve<int>("DmRadiusDefault");
 
 	/// <summary>
 	///		Gets the loosest corner radius, used by cards, popups and panels.
 	/// </summary>
-	public static double RadiusLoose =>
-		Resolve<double>("DmRadiusLoose");
+	public static int RadiusLoose =>
+		Resolve<int>("DmRadiusLoose");
 
 #if WINDOWS
 	/// <summary>

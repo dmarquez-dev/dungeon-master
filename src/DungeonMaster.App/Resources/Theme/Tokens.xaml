@@ -310,8 +310,10 @@
          (ControlsPaletteView.xaml:36, ObjectPaletteView.xaml:14,
          SecondaryPaletteView.xaml:12), all with a literal 4.
 
-         SPIKED AND CONFIRMED WORKING, 2026-08-07. The x:Double resolves, converts
+         SPIKED AND CONFIRMED WORKING, 2026-08-07. The token resolves, converts
          through CornerRadius's implicit double conversion, and REACHES THE SCREEN —
+         (the spike ran while these were x:Double; they are x:Int32 now and the
+         element form was re-measured on screen after the retype — see below) —
          it does not silently land on 0 or a default. Evidence: DmSearchBar's Border
          was moved to the element form bound to a temporary 20-valued radius token,
          built, LAUNCHED, and screenshotted; its corner arc was unmistakably 20
@@ -333,9 +335,66 @@
          BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault stays — it is the only
          thing keeping that literal in step with DmRadiusDefault. Do not delete it.
     ═══════════════════════════════════════════════════════════════ -->
-    <x:Double x:Key="DmRadiusTight">2</x:Double>
-    <x:Double x:Key="DmRadiusDefault">3</x:Double>
-    <x:Double x:Key="DmRadiusLoose">4</x:Double>
+    <!-- ───────────────────────────────────────────────────────────────
+         THE RADIUS TOKENS ARE x:Int32, AND THAT IS NOT A STYLE CHOICE.
+
+         They were x:Double until 2026-08-07 and it was a live defect, not a latent one.
+         MAUI's corner-radius properties DO NOT SHARE A TYPE, and the divergence is the
+         whole trap:
+
+             Button.CornerRadius                       System.Int32
+             ImageButton.CornerRadius                  System.Int32
+             Frame.CornerRadius                        System.Single
+             BoxView.CornerRadius                      Microsoft.Maui.CornerRadius
+             Shapes.RoundRectangle.CornerRadius        Microsoft.Maui.CornerRadius
+             Border.StrokeShape                        Microsoft.Maui.Graphics.IShape
+
+         Read off Microsoft.Maui.Controls.dll 10.0.41 by reflection, not from memory.
+
+         BindableProperty.TryConvert will NOT narrow a double to an int. So every
+         Button.CornerRadius="{StaticResource DmRadius…}" — the implicit Button style, the
+         DmButtonBase setter, and eleven inline sites — was REJECTED at every evaluation.
+         Each rejection logged
+
+             BindableObject: Warning: Cannot convert 4 to type 'System.Int32'
+
+         and left the property on its default of -1, i.e. NO BUTTON IN THE APP HAD A THEMED
+         CORNER RADIUS AT ALL. It looked plausible because -1 renders as the platform's own
+         button rounding, which is near enough to 3-4px on WinUI to pass a glance. Clicking
+         a placed object re-evaluated the popup's buttons and produced visible console spam.
+
+         WHY x:Int32 IS THE FIX AND NOT A SECOND SET OF TOKENS. int is the only one of the
+         two candidate types that every current consumer accepts. Measured against MAUI
+         10.0.41 by calling SetValue and reading the property back — build success proves
+         nothing here, because the failure mode IS a clean build:
+
+             Button.CornerRadius         <- int 7      ACCEPTED, reads back 7
+             Button.CornerRadius         <- double 7   REJECTED, stays -1
+             RoundRectangle.CornerRadius <- int 7      ACCEPTED, reads back (7,7,7,7)
+             RoundRectangle.CornerRadius <- double 7   ACCEPTED, reads back (7,7,7,7)
+             BoxView.CornerRadius        <- int 7      ACCEPTED, reads back (7,7,7,7)
+
+         int reaches CornerRadius because TryConvert widens int to double and then applies
+         CornerRadius's implicit double conversion. Do not take that on trust if you change
+         these — it is exactly the kind of chained conversion that is easy to assume and
+         wrong; re-measure it.
+
+         So a single int-typed token serves the Button sites AND the twenty
+         <RoundRectangle CornerRadius="…"/> sites. Adding int siblings alongside the doubles
+         would have duplicated all three values for no gain and invited them to drift.
+
+         THE COST, STATED PLAINLY: a radius on this ladder must be a whole number. All three
+         already were. If a design ever needs a fractional radius it cannot join this ladder
+         while any Button consumes it — split the ladder then, deliberately, and record why.
+
+         Note this does NOT apply to the stroke ladder below. StrokeThickness and BorderWidth
+         are both System.Double, DmStrokeMedium is 1.5, and those tokens stay x:Double.
+         TokenTypeMatchesTargetPropertyTests is the fact that keeps every token in step with
+         the type of the property it is bound to.
+    ─────────────────────────────────────────────────────────────── -->
+    <x:Int32 x:Key="DmRadiusTight">2</x:Int32>
+    <x:Int32 x:Key="DmRadiusDefault">3</x:Int32>
+    <x:Int32 x:Key="DmRadiusLoose">4</x:Int32>
     <x:Double x:Key="DmStrokeHairline">1</x:Double>
     <x:Double x:Key="DmStrokeEmphasis">2</x:Double>
     <!-- The outline-CANCEL border weight, and the only value on this ladder that is not an

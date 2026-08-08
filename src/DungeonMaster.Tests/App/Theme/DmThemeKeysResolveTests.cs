@@ -34,6 +34,11 @@ public class DmThemeKeysResolveTests
             ["Color"] = "Color",
             ["Brush"] = "SolidColorBrush",
             ["double"] = "x:Double",
+            // int is the radius ladder, and it is int rather than double because
+            // Button.CornerRadius is System.Int32 and rejects a double outright. Resolve<T>
+            // matches on 'value is T', which does no numeric widening at all, so an x:Double
+            // token read as int throws just as hard as a missing key.
+            ["int"] = "x:Int32",
             ["string"] = "x:String",
             ["Thickness"] = "Thickness",
             ["Style"] = "Style",

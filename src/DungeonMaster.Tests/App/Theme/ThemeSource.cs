@@ -151,6 +151,39 @@ internal static class ThemeSource
     }
 
     /// <summary>
+    ///		Returns the value of an <c>x:Int32</c> token declared in the named dictionary.
+    ///		<para>
+    ///		Separate from <see cref="DoubleToken"/> on purpose. Both would happily parse "3",
+    ///		so a single lenient reader that accepted either element would keep passing through
+    ///		exactly the retype that broke the radius tokens — and the declaring element is the
+    ///		thing that decides whether the token binds at all.
+    ///		</para>
+    /// </summary>
+    /// <param name="fileName">
+    ///		The declaring dictionary's file name, for example "Tokens.xaml".
+    /// </param>
+    /// <param name="key">
+    ///		The token's resource key.
+    /// </param>
+    public static int Int32Token(
+        string fileName,
+        string key)
+    {
+        var match = Regex.Match(
+            ThemeFileText(fileName),
+            $@"<x:Int32 x:Key=""{Regex.Escape(key)}"">(?<value>-?[0-9]+)</x:Int32>");
+
+        match
+            .Success
+            .Should()
+            .BeTrue($"token '{key}' should be defined as an x:Int32 in {fileName}");
+
+        return int.Parse(
+            match.Groups["value"].Value,
+            CultureInfo.InvariantCulture);
+    }
+
+    /// <summary>
     ///		Returns the value of an <c>x:String</c> token declared in the named dictionary.
     /// </summary>
     /// <param name="fileName">

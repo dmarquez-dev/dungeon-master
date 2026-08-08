@@ -185,10 +185,13 @@ public class BindablePropertyDefaultsMatchTokensTests
             strokeShapeMatch.Groups["value"].Value,
             CultureInfo.InvariantCulture);
 
+        // DmRadiusDefault is an x:Int32, not an x:Double — see the note beside the radius
+        // tokens in Tokens.xaml. The literal here is still compared as a double because it is
+        // parsed out of a StrokeShape string, where "3" and "3.0" would both be legal.
         declaredRadius
             .Should()
             .Be(
-                ThemeSource.DoubleToken(
+                ThemeSource.Int32Token(
                     "Tokens.xaml",
                     "DmRadiusDefault"));
     }
