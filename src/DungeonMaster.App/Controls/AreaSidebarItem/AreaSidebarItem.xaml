@@ -9,6 +9,7 @@
 
     <Border
         x:Name="ItemBorder"
+        AutomationId="AreaRow"
         BackgroundColor="Transparent"
         Stroke="Transparent"
         StrokeThickness="0"
@@ -17,12 +18,15 @@
 
         <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
-            <!-- Diamond bullet -->
+            <!-- Diamond bullet. Its whole label is a glyph, so a reader announces nothing
+                 without the description; "Area" is what the bullet means, and it lands just
+                 before the name that follows it. -->
             <Label Grid.Column="0"
                    Text="&#x25C6;"
                    FontFamily="{StaticResource DmFontIcon}"
                    FontSize="{StaticResource DmIconSizeTiny}"
                    TextColor="{StaticResource DmTextTavernMuted}"
+                   SemanticProperties.Description="Area"
                    VerticalOptions="Center" />
 
             <!-- Area name (display only — edited via toolbar). Right margin keeps the name clear
@@ -36,10 +40,14 @@
                 Margin="0,0,6,0"
                 VerticalOptions="Center" />
 
-            <!-- Always-visible notebook button — colour reflects whether this area has authored content -->
+            <!-- Always-visible notebook button — colour reflects whether this area has authored
+                 content. The colour is the ONLY sighted cue for that, so the description carries
+                 the same state in words and Populate rewrites it whenever it rewrites TextColor.
+                 The value here is the empty state, which is what an unpopulated row shows. -->
             <Button
                 x:Name="NotebookButton"
                 Grid.Column="2"
+                AutomationId="AreaNotebookButton"
                 Text="&#xEA8F;"
                 FontFamily="{StaticResource DmFontIcon}"
                 FontSize="{StaticResource DmIconSizeSmall}"
@@ -48,6 +56,8 @@
                 Padding="{StaticResource DmPaddingTight}"
                 CornerRadius="{StaticResource DmRadiusTight}"
                 Clicked="OnNotebookClicked"
+                SemanticProperties.Description="Notebook, empty"
+                SemanticProperties.Hint="Opens the notebook for this area."
                 ToolTipProperties.Text="Open notebook">
                 <Button.Behaviors>
                     <behaviors:HandCursorBehavior />
@@ -58,6 +68,7 @@
             <Button
                 x:Name="DeleteButton"
                 Grid.Column="3"
+                AutomationId="AreaDeleteButton"
                 Text="&#xE9FC;"
                 FontFamily="{StaticResource DmFontIcon}"
                 FontSize="{StaticResource DmIconSizeSmall}"
@@ -66,6 +77,8 @@
                 Padding="{StaticResource DmPaddingTight}"
                 CornerRadius="{StaticResource DmRadiusTight}"
                 Clicked="OnDeleteClicked"
+                SemanticProperties.Description="Delete area"
+                SemanticProperties.Hint="Asks for confirmation, then removes this area from its floor."
                 ToolTipProperties.Text="Delete area">
                 <Button.Behaviors>
                     <behaviors:HandCursorBehavior />

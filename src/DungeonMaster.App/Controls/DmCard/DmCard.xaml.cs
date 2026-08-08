@@ -86,62 +86,29 @@ public partial class DmCard : ContentView
 
 	private void WireHover()
 	{
-		var behavior = new HoverOrLongPressBehavior();
-		behavior.HoverEntered += OnHoverEntered;
-		behavior.HoverExited += OnHoverExited;
-		Behaviors.Add(behavior);
+		// The hand cursor comes from HandCursorBehavior, the same one every other hoverable
+		// surface in the app uses. This control used to carry a private copy of it — a #if
+		// WINDOWS ProtectedCursor reflection block and a #elif MACCATALYST NSCursor block —
+		// which is the duplication shape a previous review found in the palette views.
+		Behaviors.Add(new HandCursorBehavior());
+
+		var hover = new HoverOrLongPressBehavior();
+		hover.HoverEntered += OnHoverEntered;
+		hover.HoverExited += OnHoverExited;
+		Behaviors.Add(hover);
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)
 	{
 		Microsoft.Maui.Controls.VisualStateManager.GoToState(CardBorder, "PointerOver");
 		TrailingPresenter.IsVisible = true;
-#if WINDOWS
-		SetPlatformCursor(active: true);
-#elif MACCATALYST
-		SetPlatformCursor(active: true);
-#endif
 	}
 
 	private void OnHoverExited(object? sender, EventArgs e)
 	{
 		Microsoft.Maui.Controls.VisualStateManager.GoToState(CardBorder, "Normal");
 		TrailingPresenter.IsVisible = false;
-#if WINDOWS
-		SetPlatformCursor(active: false);
-#elif MACCATALYST
-		SetPlatformCursor(active: false);
-#endif
 	}
-
-#if WINDOWS
-	private void SetPlatformCursor(bool active)
-	{
-		if (Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement element)
-		{
-			var shape = active
-				? Microsoft.UI.Input.InputSystemCursorShape.Hand
-				: Microsoft.UI.Input.InputSystemCursorShape.Arrow;
-			var cursor = Microsoft.UI.Input.InputSystemCursor.Create(shape);
-			var prop = typeof(Microsoft.UI.Xaml.UIElement)
-				.GetProperty(
-					"ProtectedCursor",
-					System.Reflection.BindingFlags.Instance |
-					System.Reflection.BindingFlags.NonPublic |
-					System.Reflection.BindingFlags.Public);
-
-			prop?.SetValue(element, cursor);
-		}
-	}
-#elif MACCATALYST
-	private void SetPlatformCursor(bool active)
-	{
-		if (active)
-			AppKit.NSCursor.PointingHandCursor.Set();
-		else
-			AppKit.NSCursor.ArrowCursor.Set();
-	}
-#endif
 
 	private void UpdateSubtitleVisibility() =>
 		SubtitleLabel.IsVisible = !string.IsNullOrEmpty(Subtitle);

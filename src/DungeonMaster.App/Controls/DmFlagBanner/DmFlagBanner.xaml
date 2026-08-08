@@ -26,6 +26,7 @@
         <!-- Static title label (default) -->
         <Label
             x:Name="TitleLabel"
+            AutomationId="FlagBannerTitle"
             Text="{Binding Title, Source={x:Reference Root}}"
             HorizontalOptions="Center"
             VerticalOptions="Center"

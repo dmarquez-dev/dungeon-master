@@ -208,7 +208,7 @@ public partial class ObjectPaletteView : ContentView
             CharacterSpacing = 0.5
         };
 
-        var grid = new Grid { ColumnSpacing = 4, RowSpacing = 4 };
+        var grid = new Grid { ColumnSpacing = DmTheme.SpaceXS, RowSpacing = DmTheme.SpaceXS };
         for (var i = 0; i < cols; i++)
         {
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = 48 });
@@ -228,7 +228,9 @@ public partial class ObjectPaletteView : ContentView
             grid.Add(BuildExpanderButton(categoryName, available), primaryCount % cols, primaryCount / cols);
         }
 
-        return new VerticalStackLayout { Spacing = 3, Children = { label, grid } };
+        // Was a bare 3, which is not a step on the spacing scale; snapped up to DmSpaceXS (4),
+        // so the category caption now sits 1 DIU further from its thumbnail grid.
+        return new VerticalStackLayout { Spacing = DmTheme.SpaceXS, Children = { label, grid } };
     }
 
     private View BuildThumbButton(ObjectKind kind)
@@ -241,11 +243,18 @@ public partial class ObjectPaletteView : ContentView
             BackgroundColor = DmTheme.SurfaceToolChip,
             Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
             StrokeThickness = 1,
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 }
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
+            {
+                CornerRadius = DmTheme.RadiusTight
+            }
         };
 
         var displayName = ObjectKindInfo.GetDisplayName(kind);
+
+        // The tooltip is a hover affordance and reaches nobody who is not holding a mouse; the
+        // chip's only other content is an image, so the description is its one text alternative.
         ToolTipProperties.SetText(border, displayName);
+        SemanticProperties.SetDescription(border, displayName);
 
         if (ObjectAssetCatalogue.Paths.TryGetValue(kind, out var path))
         {
@@ -295,9 +304,19 @@ public partial class ObjectPaletteView : ContentView
             BackgroundColor = DmTheme.SurfaceToolChip,
             Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
             StrokeThickness = 1,
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 },
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
+            {
+                CornerRadius = DmTheme.RadiusTight
+            },
             Content = label
         };
+
+        // The label is an ellipsis and nothing else, so the description is the whole of what a
+        // reader gets; it names the category the expander opens.
+        SemanticProperties.SetDescription(border, $"More {category}");
+        SemanticProperties.SetHint(
+            border,
+            "Opens the full list of objects in this category.");
 
         var tap = new TapGestureRecognizer();
         tap.Tapped += (_, _) =>

@@ -16,12 +16,16 @@
             </BoxView.Background>
         </BoxView>
 
+        <!-- The ornament's whole label is a glyph. It is decorative, but MAUI has no "ignore
+             this" flag that survives the platform mapping, so it announces what it structurally
+             is rather than nothing at all. -->
         <Label
             Grid.Column="1"
             Text="&#xEAD4;"
             FontFamily="{StaticResource DmFontIcon}"
             FontSize="{Binding IconFontSize, Source={x:Reference Root}}"
             TextColor="{StaticResource DmAccentGoldLight}"
+            SemanticProperties.Description="Section divider"
             VerticalOptions="Center" />
 
         <BoxView Grid.Column="2" HeightRequest="1" VerticalOptions="Center">

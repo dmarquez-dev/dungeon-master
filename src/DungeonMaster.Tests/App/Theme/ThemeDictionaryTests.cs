@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using FluentAssertions;
 
 namespace DungeonMaster.Tests.App.Theme;
@@ -42,9 +42,6 @@ public class ThemeDictionaryTests
         "DmSpaceLarge", "DmSpaceXL", "DmSpaceXXL",
         "DmPaddingTight", "DmPaddingCompact", "DmPaddingControl",
         "DmPaddingCard", "DmPaddingPanel", "DmPaddingPage",
-        // Shared height of the map toolbar and the sidebar dungeon card. Both bind it, so
-        // losing the key would silently let the two drift apart again at runtime.
-        "DmToolbarHeight",
         // Font families. Bound as FontFamily="..." by Tasks 4-11; a typo in one of
         // these fails silently at runtime rather than at build, so they are guarded.
         "DmFontTitle", "DmFontTitleStrong", "DmFontTitleDecorative",

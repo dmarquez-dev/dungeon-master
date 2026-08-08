@@ -15,7 +15,9 @@
 
     <controls:DmPopup x:Name="Chrome" Title="New Dungeon">
         <controls:DmPopup.Body>
-            <VerticalStackLayout Spacing="{StaticResource DmSpaceLarge}">
+            <!-- No Spacing here: DmPopup.ContentSpacing supplies it, so every popup
+                 body shares one value. Setting it locally would opt out. -->
+            <VerticalStackLayout>
 
                 <!-- Error -->
                 <Label
@@ -64,7 +66,7 @@
                 </VerticalStackLayout>
 
                 <!-- Buttons -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource DmSpaceLarge}">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="{Binding ButtonRowSpacing, Source={x:Reference Chrome}}">
                     <Button
                         Grid.Column="0"
                         Text="CANCEL"

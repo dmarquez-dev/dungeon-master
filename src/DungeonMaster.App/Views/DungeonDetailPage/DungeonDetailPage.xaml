@@ -11,40 +11,47 @@
     Shell.NavBarIsVisible="False"
     BackgroundColor="{StaticResource DmSurfaceTavern}">
 
+    <ContentPage.Resources>
+        <!-- The five square icon buttons of the object-action popup. Only their chrome is shared
+             — the content of each differs (a rotated glyph, a shape, an icon codepoint), so a
+             Style is as far as this factors.
+
+             StrokeShape is deliberately NOT set here. Wave 2a proved that an element-form
+             RoundRectangle inside a Setter is a single instance shared by every Border the style
+             touches, mutable through any one of them and reporting the last of them as its
+             parent; each Border therefore declares its own. -->
+        <Style x:Key="PopupIconButton" TargetType="Border">
+            <Setter Property="WidthRequest" Value="32" />
+            <Setter Property="HeightRequest" Value="32" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+            <Setter Property="StrokeThickness" Value="0" />
+        </Style>
+    </ContentPage.Resources>
+
     <!-- Page inset with the bottom edge deliberately suppressed: the map canvas and the floor
          sidebar are the last row and run to the window edge, so a bottom inset would leave a
          strip of tavern background under them. Left/right/top are DmPaddingPage's 16,12. -->
     <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
-        <!-- Row 0: Top nav bar -->
+        <!-- Row 0: Top nav bar.
+             Column 0 is deliberately empty. It used to hold an in-page "← Back" button, which
+             duplicated the Shell's own back arrow in the Windows title bar — that arrow is
+             present and working on this page even with Shell.NavBarIsVisible false, and it is
+             what returns to the dungeon list now. Verified by clicking it, not by reading. -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
-            <!-- Padding 0,4 below suppresses the horizontal inset so the label's ink starts flush
-                 with the page inset — this reads as a link, not a button — while the vertical
-                 inset keeps the hit target tall enough. -->
-            <Button
-                Grid.Column="0"
-                Padding="0,4"
-                Text="&#x2190; Back"
-                FontFamily="{StaticResource DmFontBody}"
-                FontSize="{StaticResource DmFontSizeBodyLarge}"
-                BackgroundColor="Transparent"
-                TextColor="{StaticResource DmAccentGoldLight}"
-                Clicked="OnBackClicked">
-                <Button.Behaviors>
-                    <behaviors:HandCursorBehavior />
-                </Button.Behaviors>
-            </Button>
-
             <HorizontalStackLayout
                 Grid.Column="1"
                 HorizontalOptions="Center"
                 VerticalOptions="Center"
                 Spacing="{StaticResource DmSpaceSmall}">
+                <!-- Decorative: the DUNGEON EDITOR wordmark beside it is the announcement, so
+                     this glyph is kept out of the accessibility tree rather than described. -->
                 <Label
                     Text="&#xEA75;"
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeSmall}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    AutomationProperties.IsInAccessibleTree="False"
                     VerticalOptions="Center" />
                 <Label
                     Text="DUNGEON EDITOR"
@@ -61,6 +68,7 @@
                      12,0,0,0 further down, so the text starts clear of the glyph. -->
                 <Button
                     Text="Start Session"
+                    AutomationId="StartSessionButton"
                     FontFamily="{StaticResource DmFontBody}"
                     Padding="36,6,12,6"
                     FontSize="{StaticResource DmFontSizeBodyLarge}"
@@ -79,7 +87,8 @@
                         </DataTrigger>
                     </Button.Triggers>
                 </Button>
-                <!-- Crossed-sword icon overlaid on the left of the button -->
+                <!-- Crossed-sword icon overlaid on the left of the button. Decorative: the
+                     button it sits on is already labelled "Start Session". -->
                 <Label Text="&#xE97D;"
                        FontFamily="{StaticResource DmFontIcon}"
                        FontSize="{StaticResource DmIconSizeMedium}"
@@ -87,6 +96,7 @@
                        HorizontalOptions="Start"
                        VerticalOptions="Center"
                        Margin="12,0,0,0"
+                       AutomationProperties.IsInAccessibleTree="False"
                        InputTransparent="True" />
                 <!-- Transparent overlay carries tooltip when button is disabled -->
                 <BoxView
@@ -108,595 +118,465 @@
             Grid.Row="2"
             Margin="0,6,0,4" />
 
-        <!-- Row 3: Map canvas (left) | Floors sidebar (right) -->
-        <Grid Grid.Row="3" ColumnDefinitions="*,300" ColumnSpacing="{StaticResource DmSpaceXL}">
+        <!-- Row 3: map toolbar + canvas (left) | dungeon card + floor list (right).
 
-            <!-- LEFT COLUMN: toolbar (edit mode only) + map canvas -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,*">
+             Row 0 of THIS grid is shared by the map toolbar and the sidebar dungeon card, and
+             that shared Auto row is the entire reason their bottom edges line up: it takes the
+             height of whichever is taller, at the first frame, with nothing measured. The two
+             used to be row 0 of two SEPARATE sub-grids, which is why they needed a hand-measured
+             DmToolbarHeight constant to agree — a number read off a screenshot, which went stale
+             silently whenever the toolbar's contents grew and clipped the tool tiles. -->
+        <Grid Grid.Row="3"
+              ColumnDefinitions="*,300"
+              RowDefinitions="Auto,*"
+              ColumnSpacing="{StaticResource DmSpaceXL}">
 
-                <!-- Map toolbar (hidden until a floor is selected) -->
-                <Border x:Name="MapToolbar" Grid.Row="0" IsVisible="False"
-                        BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
-                        Stroke="{StaticResource DmBorderTavernBrush}"
-                        StrokeThickness="{StaticResource DmStrokeHairline}"
+            <!-- Map toolbar. Hidden until a floor is selected with Opacity, NOT IsVisible: a
+                 collapsed element contributes nothing to an Auto row, so IsVisible="False" would
+                 let the shared row size itself to the dungeon card alone and then jump when the
+                 first floor was picked. InputTransparent keeps it genuinely non-interactive for
+                 as long as it is invisible. -->
+            <Border x:Name="MapToolbar"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Opacity="0"
+                    InputTransparent="True"
+                    BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
+                    Stroke="{StaticResource DmBorderTavernBrush}"
+                    StrokeThickness="{StaticResource DmStrokeHairline}"
+                    Padding="{StaticResource DmPaddingCompact}"
+                    Margin="0,0,0,4">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceXS}">
+
+                    <!-- Left: context-switching area.
+                         Floor context: drawing tools. Names are edited in the notebook.
+
+                         A HorizontalStackLayout, not a Grid: the six tiles are laid out
+                         left-to-right at a uniform gap and nothing spans or aligns to a column,
+                         so the seven ColumnDefinitions and six Grid.Column indices this used to
+                         carry only bought the cost of renumbering them whenever a tool is added.
+                         The trailing star column is gone too — the parent Grid's own star column
+                         already absorbs the slack. -->
+                    <HorizontalStackLayout
+                        x:Name="FloorContextToolbar"
+                        Grid.Column="0"
+                        Spacing="{StaticResource DmSpaceXS}">
+
+                        <palette:ToolTileView
+                            x:Name="ToolDrawTile"
+                            Glyph="&#xEA75;"
+                            Shortcut="D"
+                            AutomationId="ToolDrawTile"
+                            ToolTipProperties.Text="Draw area (D)"
+                            SemanticProperties.Description="Draw area"
+                            SemanticProperties.Hint="Click the map to lay out an area's corners"
+                            Clicked="OnToolDrawClicked" />
+
+                        <palette:ToolTileView
+                            x:Name="ToolMoveTile"
+                            Glyph="&#xE9D9;"
+                            Shortcut="M"
+                            AutomationId="ToolMoveTile"
+                            ToolTipProperties.Text="Move areas (M)"
+                            SemanticProperties.Description="Move areas"
+                            SemanticProperties.Hint="Drag an area on the map to reposition it"
+                            Clicked="OnToolMoveClicked" />
+
+                        <palette:ToolTileView
+                            x:Name="ToolSelectTile"
+                            Glyph="&#xE9B6;"
+                            Shortcut="S"
+                            AutomationId="ToolSelectTile"
+                            ToolTipProperties.Text="Select area (S)"
+                            SemanticProperties.Description="Select area"
+                            SemanticProperties.Hint="Click an area or a placed object to select it"
+                            Clicked="OnToolSelectClicked" />
+
+                        <palette:ToolTileView
+                            x:Name="ToolEraseTile"
+                            Glyph="&#xE936;"
+                            Shortcut="E"
+                            AutomationId="ToolEraseTile"
+                            ToolTipProperties.Text="Erase area (E)"
+                            SemanticProperties.Description="Erase area"
+                            SemanticProperties.Hint="Click an area on the map to delete it"
+                            Clicked="OnToolEraseClicked" />
+
+                        <palette:ToolTileView
+                            x:Name="ToolPlaceTile"
+                            Glyph="&#xE9B8;"
+                            Shortcut="P"
+                            AutomationId="ToolPlaceTile"
+                            ToolTipProperties.Text="Place objects (P)"
+                            SemanticProperties.Description="Place objects"
+                            SemanticProperties.Hint="Opens the object palette, then click the map to place"
+                            Clicked="OnToolPlaceClicked" />
+
+                        <palette:ToolTileView
+                            x:Name="ToolPanTile"
+                            Glyph="&#xEA78;"
+                            Shortcut="H"
+                            AutomationId="ToolPanTile"
+                            ToolTipProperties.Text="Pan / scroll (H)"
+                            SemanticProperties.Description="Pan and scroll"
+                            SemanticProperties.Hint="Drag the map to move the view without editing"
+                            Clicked="OnToolPanClicked" />
+
+                    </HorizontalStackLayout>
+
+                    <!-- Right: always-visible Undo -->
+                    <Button
+                        x:Name="UndoButton"
+                        Grid.Column="1"
+                        Text="&#x21A9; Undo"
+                        FontFamily="{StaticResource DmFontBody}"
+                        FontSize="{StaticResource DmFontSizeBodySmall}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource DmAccentGoldLight}"
+                        BorderColor="Transparent"
+                        BorderWidth="{StaticResource DmStrokeHairline}"
+                        CornerRadius="{StaticResource DmRadiusDefault}"
                         Padding="{StaticResource DmPaddingCompact}"
-                        Margin="0,0,0,4"
-                        HeightRequest="{StaticResource DmToolbarHeight}">
+                        IsEnabled="False"
+                        Opacity="0.35"
+                        VerticalOptions="Center"
+                        AutomationId="UndoButton"
+                        SemanticProperties.Description="Undo last vertex"
+                        ToolTipProperties.Text="Undo last vertex"
+                        Clicked="OnUndoClicked">
+                        <Button.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Button.Behaviors>
+                    </Button>
+
+                </Grid>
+            </Border>
+
+            <!-- Map canvas + zoom overlay -->
+            <Grid x:Name="MapOverlay" Grid.Row="1" Grid.Column="0">
+                <GraphicsView
+                    x:Name="MapCanvas"
+                    StartInteraction="OnMapStartInteraction"
+                    DragInteraction="OnMapDragInteraction"
+                    EndInteraction="OnMapEndInteraction"
+                    MoveHoverInteraction="OnMapMoveHover"
+                    EndHoverInteraction="OnMapEndHover">
+                    <GraphicsView.GestureRecognizers>
+                        <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnMapDoubleTapped" />
+                        <TapGestureRecognizer Buttons="Secondary" Tapped="OnMapSecondaryTapped" />
+                    </GraphicsView.GestureRecognizers>
+                </GraphicsView>
+                <VerticalStackLayout
+                    HorizontalOptions="End"
+                    VerticalOptions="Start"
+                    Margin="0,8,12,0"
+                    Spacing="{StaticResource DmSpaceXXS}"
+                    InputTransparent="False">
+
+                    <!--
+                        THE ZOOM GLYPHS ARE SHAPES, NOT TEXT.
+
+                        A plus is two straight lines and a minus is one, so both are drawn as a
+                        Path in the SAME coordinate space as the Polygon they sit on — the 42x36
+                        stepper cell, Aspect left at its default so the numbers below are absolute
+                        DIU, exactly like the Polygon's Points.
+
+                        This is what the two measured TranslationYs (+3.1 and -8.3) used to buy,
+                        badly. Each was a font's ink offset — a text font's ink does not sit
+                        centred in its line box, and VerticalTextAlignment centres the LINE BOX,
+                        not the ink inside it — MIXED WITH a compensation for the fact that a
+                        triangle's centroid is not its bounding box's centre. Two components of
+                        opposite sign in one number, read off a screenshot, and only the ink half
+                        would have gone away when the icon font changed.
+
+                        Both numbers below are derivable instead of measured. The horizontal
+                        centre is the Polygon's own apex x (21). The vertical centre is the
+                        triangle's centroid, the mean of its three vertex ys: (1+35+35)/3 = 23.7
+                        for the upward stepper, (1+1+35)/3 = 12.3 for the downward one.
+
+                        The lengths reproduce what EB Garamond rendered at DmIconSizeXL (20): its
+                        plus is 9.94 x 9.81 DIU and its minus 10.00 x 1.19.
+
+                        The stroke weights do NOT come from the outline, and this is worth knowing
+                        before anyone "corrects" them. Drawn at the outline's own 0.85 and 1.19 the
+                        shapes came back visibly lighter than the text they replaced — 16.25 units
+                        of ink against 23.90 for the plus, measured off two rendered frames at the
+                        same window rect. DirectWrite darkens light-on-dark stems, so the glyph's
+                        0.85 stem paints like 1.27 and its 1.19 bar like 1.43. A filled shape gets
+                        no such help, so the weights below are the RENDERED weights, which is what
+                        keeps the toolbar looking unchanged.
+                    -->
+
+                    <!-- Zoom in — upward triangle -->
+                    <Grid WidthRequest="42" HeightRequest="36"
+                          AutomationId="ZoomInStepper"
+                          SemanticProperties.Description="Zoom in"
+                          ToolTipProperties.Text="Zoom in">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnZoomInClicked" />
+                        </Grid.GestureRecognizers>
+                        <Grid.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Grid.Behaviors>
+                        <Polygon Points="21,1 41,35 1,35"
+                                 Fill="{StaticResource DmSurfaceStepper}"
+                                 Stroke="{StaticResource DmAccentGoldLight}"
+                                 StrokeThickness="{StaticResource DmStrokeHairline}"
+                                 HorizontalOptions="Fill"
+                                 VerticalOptions="Fill" />
+                        <Path Data="M 16,23.7 H 26 M 21,18.7 V 28.7"
+                              Stroke="{StaticResource DmTextTavern}"
+                              StrokeThickness="1.25"
+                              HorizontalOptions="Fill"
+                              VerticalOptions="Fill"
+                              InputTransparent="True" />
+                    </Grid>
+                    <Label x:Name="ZoomPercentLabel"
+                           Text="100%"
+                           FontFamily="{StaticResource DmFontBody}"
+                           FontSize="{StaticResource DmFontSizeBodySmall}"
+                           TextColor="{StaticResource DmTextTavern}"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           AutomationId="ZoomPercentLabel"
+                           WidthRequest="42" />
+                    <!-- Zoom out — downward triangle -->
+                    <Grid WidthRequest="42" HeightRequest="36"
+                          AutomationId="ZoomOutStepper"
+                          SemanticProperties.Description="Zoom out"
+                          ToolTipProperties.Text="Zoom out">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnZoomOutClicked" />
+                        </Grid.GestureRecognizers>
+                        <Grid.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Grid.Behaviors>
+                        <Polygon Points="1,1 41,1 21,35"
+                                 Fill="{StaticResource DmSurfaceStepper}"
+                                 Stroke="{StaticResource DmAccentGoldLight}"
+                                 StrokeThickness="{StaticResource DmStrokeHairline}"
+                                 HorizontalOptions="Fill"
+                                 VerticalOptions="Fill" />
+                        <Path Data="M 16,12.3 H 26"
+                              Stroke="{StaticResource DmTextTavern}"
+                              StrokeThickness="1.45"
+                              HorizontalOptions="Fill"
+                              VerticalOptions="Fill"
+                              InputTransparent="True" />
+                    </Grid>
+                </VerticalStackLayout>
+                <VerticalStackLayout
+                    HorizontalOptions="Start"
+                    VerticalOptions="End"
+                    Margin="8,0,0,8"
+                    Spacing="{StaticResource DmSpaceXS}">
+                    <palette:ControlsPaletteView
+                        x:Name="ControlsPalette"
+                        IsVisible="False" />
+                    <palette:ObjectPaletteView
+                        x:Name="ObjectPalette"
+                        IsVisible="False" />
+                </VerticalStackLayout>
+                <!-- Object action popup: rotate CCW/CW | resize − /+ | delete -->
+                <Border x:Name="ObjectActionPopup"
+                        IsVisible="False"
+                        BackgroundColor="{StaticResource DmSurfacePopup}"
+                        Stroke="{StaticResource DmBorderPopup}"
+                        StrokeThickness="{StaticResource DmStrokeHairline}"
+                        Padding="{StaticResource DmPaddingTight}"
+                        HorizontalOptions="Start"
+                        VerticalOptions="Start">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
                     </Border.StrokeShape>
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceXS}">
-
-                        <!-- Left: context-switching area.
-                             Floor context: drawing tools. Names are edited in the notebook. -->
-                        <Grid x:Name="FloorContextToolbar" Grid.Column="0"
-                              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*"
-                              ColumnSpacing="{StaticResource DmSpaceXS}">
-
-                            <!-- Draw tool — active by default -->
-                            <Border
-                                x:Name="ToolDrawBorder"
-                                Grid.Column="0"
-                                BackgroundColor="Transparent"
-                                Stroke="{StaticResource DmAccentGoldLight}"
-                                StrokeThickness="{StaticResource DmStrokeHairline}"
-                                Padding="{StaticResource DmPaddingCompact}"
-                                ToolTipProperties.Text="Draw area (D)">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                                </Border.StrokeShape>
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnToolDrawClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="ToolDrawIcon"
-                                        Text="&#xEA75;"
-                                        FontFamily="{StaticResource DmFontIcon}"
-                                        FontSize="{StaticResource DmIconSizeLarge}"
-                                        TextColor="{StaticResource DmAccentGoldLight}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="ToolDrawLabel"
-                                        Text="D"
-                                        FontFamily="{StaticResource DmFontBody}"
-                                        FontSize="{StaticResource DmFontSizeCaption}"
-                                        TextColor="{StaticResource DmAccentGoldLight}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                            <!-- Move tool -->
-                            <Border
-                                x:Name="ToolMoveBorder"
-                                Grid.Column="1"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="{StaticResource DmStrokeHairline}"
-                                Padding="{StaticResource DmPaddingCompact}"
-                                ToolTipProperties.Text="Move areas (M)">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                                </Border.StrokeShape>
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnToolMoveClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="ToolMoveIcon"
-                                        Text="&#xE9D9;"
-                                        FontFamily="{StaticResource DmFontIcon}"
-                                        FontSize="{StaticResource DmIconSizeLarge}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="ToolMoveLabel"
-                                        Text="M"
-                                        FontFamily="{StaticResource DmFontBody}"
-                                        FontSize="{StaticResource DmFontSizeCaption}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                            <!-- Select tool — click a placed object on the map to select it -->
-                            <Border
-                                x:Name="ToolSelectBorder"
-                                Grid.Column="2"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="{StaticResource DmStrokeHairline}"
-                                Padding="{StaticResource DmPaddingCompact}"
-                                ToolTipProperties.Text="Select area (S)">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                                </Border.StrokeShape>
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnToolSelectClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="ToolSelectIcon"
-                                        Text="&#xE9B6;"
-                                        FontFamily="{StaticResource DmFontIcon}"
-                                        FontSize="{StaticResource DmIconSizeLarge}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="ToolSelectLabel"
-                                        Text="S"
-                                        FontFamily="{StaticResource DmFontBody}"
-                                        FontSize="{StaticResource DmFontSizeCaption}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                            <!-- Erase tool — delete an area by clicking it on the canvas -->
-                            <Border
-                                x:Name="ToolEraseBorder"
-                                Grid.Column="3"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="{StaticResource DmStrokeHairline}"
-                                Padding="{StaticResource DmPaddingCompact}"
-                                ToolTipProperties.Text="Erase area (E)">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                                </Border.StrokeShape>
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnToolEraseClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="ToolEraseIcon"
-                                        Text="&#xE936;"
-                                        FontFamily="{StaticResource DmFontIcon}"
-                                        FontSize="{StaticResource DmIconSizeLarge}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="ToolEraseLabel"
-                                        Text="E"
-                                        FontFamily="{StaticResource DmFontBody}"
-                                        FontSize="{StaticResource DmFontSizeCaption}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                            <!-- Place tool — place objects anywhere on the floor -->
-                            <Border
-                                x:Name="ToolPlaceBorder"
-                                Grid.Column="4"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="{StaticResource DmStrokeHairline}"
-                                Padding="{StaticResource DmPaddingCompact}"
-                                ToolTipProperties.Text="Place objects (P)">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                                </Border.StrokeShape>
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnToolPlaceClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="ToolPlaceIcon"
-                                        Text="&#xE9B8;"
-                                        FontFamily="{StaticResource DmFontIcon}"
-                                        FontSize="{StaticResource DmIconSizeLarge}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="ToolPlaceLabel"
-                                        Text="P"
-                                        FontFamily="{StaticResource DmFontBody}"
-                                        FontSize="{StaticResource DmFontSizeCaption}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                            <!-- Pan tool -->
-                            <Border
-                                x:Name="ToolPanBorder"
-                                Grid.Column="5"
-                                BackgroundColor="Transparent"
-                                Stroke="Transparent"
-                                StrokeThickness="{StaticResource DmStrokeHairline}"
-                                Padding="{StaticResource DmPaddingCompact}"
-                                ToolTipProperties.Text="Pan / scroll (H)">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                                </Border.StrokeShape>
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnToolPanClicked" />
-                                </Border.GestureRecognizers>
-                                <Border.Behaviors>
-                                    <behaviors:HandCursorBehavior />
-                                </Border.Behaviors>
-                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                                    <Label
-                                        x:Name="ToolPanIcon"
-                                        Text="&#xEA78;"
-                                        FontFamily="{StaticResource DmFontIcon}"
-                                        FontSize="{StaticResource DmIconSizeLarge}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                    <Label
-                                        x:Name="ToolPanLabel"
-                                        Text="H"
-                                        FontFamily="{StaticResource DmFontBody}"
-                                        FontSize="{StaticResource DmFontSizeCaption}"
-                                        TextColor="{StaticResource DmTextTavernMuted}"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-                            </Border>
-
-                        </Grid>
-
-                        <!-- Right: always-visible Undo -->
-                        <Button
-                            x:Name="UndoButton"
-                            Grid.Column="1"
-                            Text="&#x21A9; Undo"
-                            FontFamily="{StaticResource DmFontBody}"
-                            FontSize="{StaticResource DmFontSizeBodySmall}"
-                            BackgroundColor="Transparent"
-                            TextColor="{StaticResource DmAccentGoldLight}"
-                            BorderColor="Transparent"
-                            BorderWidth="{StaticResource DmStrokeHairline}"
-                            CornerRadius="{StaticResource DmRadiusDefault}"
-                            Padding="{StaticResource DmPaddingCompact}"
-                            IsEnabled="False"
-                            Opacity="0.35"
-                            VerticalOptions="Center"
-                            ToolTipProperties.Text="Undo last vertex"
-                            Clicked="OnUndoClicked">
-                            <Button.Behaviors>
-                                <behaviors:HandCursorBehavior />
-                            </Button.Behaviors>
-                        </Button>
-
-                    </Grid>
-                </Border>
-
-                <!-- Map canvas + zoom overlay -->
-                <Grid x:Name="MapOverlay" Grid.Row="1">
-                    <GraphicsView
-                        x:Name="MapCanvas"
-                        StartInteraction="OnMapStartInteraction"
-                        DragInteraction="OnMapDragInteraction"
-                        EndInteraction="OnMapEndInteraction"
-                        MoveHoverInteraction="OnMapMoveHover"
-                        EndHoverInteraction="OnMapEndHover">
-                        <GraphicsView.GestureRecognizers>
-                            <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnMapDoubleTapped" />
-                            <TapGestureRecognizer Buttons="Secondary" Tapped="OnMapSecondaryTapped" />
-                        </GraphicsView.GestureRecognizers>
-                    </GraphicsView>
-                    <VerticalStackLayout
-                        HorizontalOptions="End"
-                        VerticalOptions="Start"
-                        Margin="0,8,12,0"
-                        Spacing="{StaticResource DmSpaceXXS}"
-                        InputTransparent="False">
-
-                        <!--
-                            SCHEDULED FOR DELETION — MEASURED GLYPH TRANSLATIONS.
-
-                            Six Labels in this file carry a measured TranslationX/Y: the two zoom
-                            stepper glyphs below and the four object-action popup glyphs further
-                            down (rotate CCW/CW, resize − and +). Each is marked at its own site.
-
-                            WHY THEY EXIST. All six render a Unicode symbol out of the body text
-                            font (DmFontBody, EB Garamond) at DmIconSizeXL. A text font's ink does
-                            not sit centred in its line box — EB Garamond's designer glyphs measure
-                            about 8.7% high in theirs — so a glyph centred by layout still looks
-                            off-centre on screen. VerticalTextAlignment cannot reach this: it
-                            centres the LINE BOX inside the Label, not the ink within the line box.
-                            That was applied alone first and measured; all four popup residuals
-                            came back bit-for-bit unchanged. The working fix is a deterministic box
-                            (the Label fills its parent, so its rect is exactly the parent's) plus
-                            a Translation read back from a rendered frame. Translation is a pure
-                            render transform — no layout perturbation, no clipping — and it applies
-                            AFTER Rotation in screen space, which is why the two rotated arrows are
-                            corrected on X rather than on Y.
-
-                            RE-MEASURE, do not recalculate, if DmFontBody changes, if DmIconSizeXL
-                            changes, or if any of these glyphs is replaced. The numbers are
-                            DPI-independent but font-dependent.
-
-                            THIS IS A SCHEDULED DELETION, NOT A MECHANISM TO MAINTAIN. The Phosphor
-                            icon-font migration replaces these text-font glyphs with real icon
-                            codepoints, which centre in their em box by construction, and takes the
-                            translations with them. See
-                            docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md.
-
-                            EXCEPT FOR THE TWO ZOOM STEPPERS — read the note on them below before
-                            assuming Phosphor deletes all six.
-                        -->
-
-                        <!-- Zoom in — upward triangle -->
-                        <Grid WidthRequest="42" HeightRequest="36">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnZoomInClicked" />
-                            </Grid.GestureRecognizers>
-                            <Grid.Behaviors>
-                                <behaviors:HandCursorBehavior />
-                            </Grid.Behaviors>
-                            <Polygon Points="21,1 41,35 1,35"
-                                     Fill="{StaticResource DmSurfaceStepper}"
-                                     Stroke="{StaticResource DmAccentGoldLight}"
-                                     StrokeThickness="{StaticResource DmStrokeHairline}"
-                                     HorizontalOptions="Fill"
-                                     VerticalOptions="Fill" />
-                            <!-- MEASURED — and NOT purely an ink offset. Unlike the four popup
-                                 glyphs, this Label is centred over a triangular Polygon in a
-                                 42x36 box, and a triangle's centroid is not its bounding box's
-                                 centre. +3.1 here against -8.3 on the downward stepper cannot
-                                 both be the same ~8.7% ink offset of one font at one size: each
-                                 is the ink offset MIXED WITH a triangle-centroid compensation of
-                                 the opposite sign. Consequence: Phosphor will NOT delete these
-                                 two automatically. Swapping the font removes the ink component
-                                 only; the centroid component survives and must be re-measured
-                                 against the new glyph. -->
-                            <Label Text="+"
+                    <HorizontalStackLayout Spacing="{StaticResource DmSpaceXXS}">
+                        <!-- The arrows keep their measured translation: no bundled font carries a
+                             rotation arrow as line work, so unlike the plus and minus below they
+                             cannot become shapes without inventing the artwork. The Phosphor
+                             migration replaces them and takes the numbers with it. Each is
+                             corrected on X because Translation applies AFTER Rotation, in screen
+                             space. -->
+                        <Border x:Name="PopupBtnCCW"
+                                Style="{StaticResource PopupIconButton}"
+                                AutomationId="PopupBtnCCW"
+                                SemanticProperties.Description="Rotate anticlockwise"
+                                ToolTipProperties.Text="Rotate anticlockwise">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                            </Border.StrokeShape>
+                            <Label Text="↺"
                                    FontFamily="{StaticResource DmFontBody}"
                                    FontSize="{StaticResource DmIconSizeXL}"
-                                   TextColor="{StaticResource DmTextTavern}"
+                                   TextColor="{StaticResource DmAccentGoldLight}"
+                                   Rotation="-90"
                                    HorizontalOptions="Fill"
                                    VerticalOptions="Fill"
                                    HorizontalTextAlignment="Center"
                                    VerticalTextAlignment="Center"
-                                   TranslationY="3.1" />
-                        </Grid>
-                        <Label x:Name="ZoomPercentLabel"
-                               Text="100%"
-                               FontFamily="{StaticResource DmFontBody}"
-                               FontSize="{StaticResource DmFontSizeBodySmall}"
-                               TextColor="{StaticResource DmTextTavern}"
-                               HorizontalOptions="Center"
-                               HorizontalTextAlignment="Center"
-                               WidthRequest="42" />
-                        <!-- Zoom out — downward triangle -->
-                        <Grid WidthRequest="42" HeightRequest="36">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnZoomOutClicked" />
-                            </Grid.GestureRecognizers>
-                            <Grid.Behaviors>
-                                <behaviors:HandCursorBehavior />
-                            </Grid.Behaviors>
-                            <Polygon Points="1,1 41,1 21,35"
-                                     Fill="{StaticResource DmSurfaceStepper}"
-                                     Stroke="{StaticResource DmAccentGoldLight}"
-                                     StrokeThickness="{StaticResource DmStrokeHairline}"
-                                     HorizontalOptions="Fill"
-                                     VerticalOptions="Fill" />
-                            <!-- MEASURED — mixed ink offset + triangle-centroid compensation, of
-                                 the opposite sign to the upward stepper's +3.1. See the note on
-                                 that one: Phosphor does not delete this translation, it only
-                                 removes the ink half of it. Re-measure at that point. -->
-                            <Label Text="−"
+                                   TranslationX="-1.6"
+                                   AutomationProperties.IsInAccessibleTree="False"
+                                   InputTransparent="True" />
+                        </Border>
+                        <Border x:Name="PopupBtnCW"
+                                Style="{StaticResource PopupIconButton}"
+                                AutomationId="PopupBtnCW"
+                                SemanticProperties.Description="Rotate clockwise"
+                                ToolTipProperties.Text="Rotate clockwise">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                            </Border.StrokeShape>
+                            <Label Text="↻"
                                    FontFamily="{StaticResource DmFontBody}"
                                    FontSize="{StaticResource DmIconSizeXL}"
-                                   TextColor="{StaticResource DmTextTavern}"
+                                   TextColor="{StaticResource DmAccentGoldLight}"
+                                   Rotation="90"
                                    HorizontalOptions="Fill"
                                    VerticalOptions="Fill"
                                    HorizontalTextAlignment="Center"
                                    VerticalTextAlignment="Center"
-                                   TranslationY="-8.3" />
-                        </Grid>
-                    </VerticalStackLayout>
-                    <VerticalStackLayout
-                        HorizontalOptions="Start"
-                        VerticalOptions="End"
-                        Margin="8,0,0,8"
-                        Spacing="{StaticResource DmSpaceXS}">
-                        <palette:ControlsPaletteView
-                            x:Name="ControlsPalette"
-                            IsVisible="False" />
-                        <palette:ObjectPaletteView
-                            x:Name="ObjectPalette"
-                            IsVisible="False" />
-                    </VerticalStackLayout>
-                    <!-- Object action popup: rotate CCW/CW | resize − /+ | delete -->
-                    <Border x:Name="ObjectActionPopup"
-                            IsVisible="False"
-                            BackgroundColor="{StaticResource DmSurfacePopup}"
-                            Stroke="{StaticResource DmBorderPopup}"
-                            StrokeThickness="{StaticResource DmStrokeHairline}"
-                            Padding="{StaticResource DmPaddingTight}"
-                            HorizontalOptions="Start"
-                            VerticalOptions="Start">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                        </Border.StrokeShape>
-                        <HorizontalStackLayout Spacing="{StaticResource DmSpaceXXS}">
-                            <Border x:Name="PopupBtnCCW"
-                                    WidthRequest="32" HeightRequest="32"
-                                    BackgroundColor="Transparent"
-                                    StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
-                                </Border.StrokeShape>
-                                <!-- Measured ink-offset translation, corrected on X because
-                                     Rotation precedes it — see the note above the zoom stepper.
-                                     Deleted by the Phosphor migration. -->
-                                <Label Text="↺"
-                                       FontFamily="{StaticResource DmFontBody}"
-                                       FontSize="{StaticResource DmIconSizeXL}"
-                                       TextColor="{StaticResource DmAccentGoldLight}"
-                                       Rotation="-90"
-                                       HorizontalOptions="Fill"
-                                       VerticalOptions="Fill"
-                                       HorizontalTextAlignment="Center"
-                                       VerticalTextAlignment="Center"
-                                       TranslationX="-1.6"
-                                       InputTransparent="True" />
-                            </Border>
-                            <Border x:Name="PopupBtnCW"
-                                    WidthRequest="32" HeightRequest="32"
-                                    BackgroundColor="Transparent"
-                                    StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
-                                </Border.StrokeShape>
-                                <!-- Measured ink-offset translation, corrected on X because
-                                     Rotation precedes it — see the note above the zoom stepper.
-                                     Deleted by the Phosphor migration. -->
-                                <Label Text="↻"
-                                       FontFamily="{StaticResource DmFontBody}"
-                                       FontSize="{StaticResource DmIconSizeXL}"
-                                       TextColor="{StaticResource DmAccentGoldLight}"
-                                       Rotation="90"
-                                       HorizontalOptions="Fill"
-                                       VerticalOptions="Fill"
-                                       HorizontalTextAlignment="Center"
-                                       VerticalTextAlignment="Center"
-                                       TranslationX="2.0"
-                                       InputTransparent="True" />
-                            </Border>
-                            <BoxView WidthRequest="1" HeightRequest="18"
-                                     Color="{StaticResource DmDivider}"
-                                     VerticalOptions="Center" />
-                            <Border x:Name="PopupBtnScaleDown"
-                                    WidthRequest="32" HeightRequest="32"
-                                    BackgroundColor="Transparent"
-                                    StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
-                                </Border.StrokeShape>
-                                <!-- Measured ink-offset translation — see the note above the zoom
-                                     stepper. Deleted by the Phosphor migration. -->
-                                <Label Text="−"
-                                       FontFamily="{StaticResource DmFontBody}"
-                                       FontSize="{StaticResource DmIconSizeXL}"
-                                       TextColor="{StaticResource DmAccentGoldLight}"
-                                       HorizontalOptions="Fill"
-                                       VerticalOptions="Fill"
-                                       HorizontalTextAlignment="Center"
-                                       VerticalTextAlignment="Center"
-                                       TranslationY="-2.4"
-                                       InputTransparent="True" />
-                            </Border>
-                            <Border x:Name="PopupBtnScaleUp"
-                                    WidthRequest="32" HeightRequest="32"
-                                    BackgroundColor="Transparent"
-                                    StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
-                                </Border.StrokeShape>
-                                <!-- Measured ink-offset translation — see the note above the zoom
-                                     stepper. Deleted by the Phosphor migration. -->
-                                <Label Text="+"
-                                       FontFamily="{StaticResource DmFontBody}"
-                                       FontSize="{StaticResource DmIconSizeXL}"
-                                       TextColor="{StaticResource DmAccentGoldLight}"
-                                       HorizontalOptions="Fill"
-                                       VerticalOptions="Fill"
-                                       HorizontalTextAlignment="Center"
-                                       VerticalTextAlignment="Center"
-                                       TranslationY="-2.8"
-                                       InputTransparent="True" />
-                            </Border>
-                            <BoxView WidthRequest="1" HeightRequest="18"
-                                     Color="{StaticResource DmDivider}"
-                                     VerticalOptions="Center" />
-                            <Border x:Name="PopupBtnDelete"
-                                    WidthRequest="32" HeightRequest="32"
-                                    BackgroundColor="Transparent"
-                                    StrokeThickness="0">
-                                <Border.StrokeShape>
-                                    <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
-                                </Border.StrokeShape>
-                                <Label Text="&#xE9FC;"
-                                       FontFamily="{StaticResource DmFontIcon}"
-                                       FontSize="{StaticResource DmIconSizeXL}"
-                                       TextColor="{StaticResource DmDestructiveBright}"
+                                   TranslationX="2.0"
+                                   AutomationProperties.IsInAccessibleTree="False"
+                                   InputTransparent="True" />
+                        </Border>
+                        <BoxView WidthRequest="1" HeightRequest="18"
+                                 Color="{StaticResource DmDivider}"
+                                 VerticalOptions="Center" />
+                        <!-- Minus and plus are line work, so they are Rectangles centred in the
+                             32x32 button rather than text nudged into place by a measured
+                             TranslationY. The sizes reproduce what EB Garamond rendered at
+                             DmIconSizeXL (20): a minus 10.00 x 1.19 DIU, a plus 9.94 x 9.81 with
+                             bars 0.81 and 0.88 thick, 0.85 being used for both. The font's own
+                             minus is noticeably heavier than its plus's bars; that difference is
+                             reproduced rather than smoothed, because this pass is not meant to
+                             change what is on screen. -->
+                        <Border x:Name="PopupBtnScaleDown"
+                                Style="{StaticResource PopupIconButton}"
+                                AutomationId="PopupBtnScaleDown"
+                                SemanticProperties.Description="Shrink object"
+                                ToolTipProperties.Text="Shrink object">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                            </Border.StrokeShape>
+                            <Rectangle Fill="{StaticResource DmAccentGoldLight}"
+                                       StrokeThickness="0"
+                                       WidthRequest="10"
+                                       HeightRequest="1.45"
                                        HorizontalOptions="Center"
                                        VerticalOptions="Center"
                                        InputTransparent="True" />
-                            </Border>
-                        </HorizontalStackLayout>
-                    </Border>
-                </Grid>
+                        </Border>
+                        <Border x:Name="PopupBtnScaleUp"
+                                Style="{StaticResource PopupIconButton}"
+                                AutomationId="PopupBtnScaleUp"
+                                SemanticProperties.Description="Grow object"
+                                ToolTipProperties.Text="Grow object">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                            </Border.StrokeShape>
+                            <Grid InputTransparent="True">
+                                <Rectangle Fill="{StaticResource DmAccentGoldLight}"
+                                           StrokeThickness="0"
+                                           WidthRequest="10"
+                                           HeightRequest="1.25"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                <Rectangle Fill="{StaticResource DmAccentGoldLight}"
+                                           StrokeThickness="0"
+                                           WidthRequest="1.25"
+                                           HeightRequest="10"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                        <BoxView WidthRequest="1" HeightRequest="18"
+                                 Color="{StaticResource DmDivider}"
+                                 VerticalOptions="Center" />
+                        <Border x:Name="PopupBtnDelete"
+                                Style="{StaticResource PopupIconButton}"
+                                AutomationId="PopupBtnDelete"
+                                SemanticProperties.Description="Delete object"
+                                SemanticProperties.Hint="Removes the selected object from the floor"
+                                ToolTipProperties.Text="Delete object">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                            </Border.StrokeShape>
+                            <Label Text="&#xE9FC;"
+                                   FontFamily="{StaticResource DmFontIcon}"
+                                   FontSize="{StaticResource DmIconSizeXL}"
+                                   TextColor="{StaticResource DmDestructiveBright}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   AutomationProperties.IsInAccessibleTree="False"
+                                   InputTransparent="True" />
+                        </Border>
+                    </HorizontalStackLayout>
+                </Border>
             </Grid>
 
-            <!-- RIGHT SIDEBAR -->
-            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,*" BackgroundColor="Transparent">
+            <!-- Dungeon-level row — always visible, styled like a floor card. Declared as
+                 row 0 of the grid above rather than as part of the floor sidebar below, so it is
+                 fixed above the scrolling floor list (not a ScrollView child), never scrolls out
+                 of view, and survives FloorListContainer's Children.Clear() rebuilds untouched.
+                 Its height is whatever the shared row is, which is the map toolbar's height
+                 whenever the toolbar is the taller of the two — no HeightRequest, no measured
+                 token, and nothing for code-behind to overwrite after the first frame. -->
+            <Border
+                Grid.Row="0"
+                Grid.Column="1"
+                StrokeThickness="{StaticResource DmStrokeHairline}"
+                Stroke="{StaticResource DmBorderTavernBrush}"
+                BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
+                Padding="{StaticResource DmPaddingCompact}"
+                Margin="0,0,0,4">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+                </Border.StrokeShape>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceSmall}">
+                    <Label
+                        Grid.Column="0"
+                        Text="{Binding Dungeon.Name}"
+                        FontFamily="{StaticResource DmFontTitleStrong}"
+                        FontSize="{StaticResource DmFontSizeSubheading}"
+                        TextColor="{StaticResource DmAccentGoldLight}"
+                        VerticalOptions="Center" />
+                    <!-- Padding 4,0 below suppresses the vertical inset on purpose: this
+                         button's height is pinned to 22 to match the card row, so any vertical
+                         inset would squeeze the glyph rather than grow the button. -->
+                    <Button
+                        x:Name="DungeonNotebookButton"
+                        Grid.Column="1"
+                        Padding="4,0"
+                        Text="&#xEA8F;"
+                        FontFamily="{StaticResource DmFontIcon}"
+                        FontSize="{StaticResource DmIconSizeSmall}"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource DmTextParchmentMuted}"
+                        CornerRadius="{StaticResource DmRadiusTight}"
+                        HeightRequest="22"
+                        MinimumHeightRequest="22"
+                        AutomationId="DungeonNotebookButton"
+                        SemanticProperties.Description="Open notebook"
+                        SemanticProperties.Hint="Opens this dungeon's notes and lets you rename it"
+                        ToolTipProperties.Text="Open notebook"
+                        Clicked="OnDungeonNotebookClicked">
+                        <Button.Behaviors>
+                            <behaviors:HandCursorBehavior />
+                        </Button.Behaviors>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- Dungeon-level row — always visible, styled like a floor card. Fixed above the
-                     scrolling floor list (not a ScrollView child) so it never scrolls out of view
-                     and survives FloorListContainer's Children.Clear() rebuilds untouched.
-                     Height comes from the same measured toolbar-height token the map toolbar uses,
-                     so the two line up from the very first frame. The card used to carry a guessed
-                     height that code-behind overwrote once the toolbar rendered, which made the card
-                     visibly resize on load. See the token's comment before changing the number. -->
-                <Border
-                    Grid.Row="0"
-                    StrokeThickness="{StaticResource DmStrokeHairline}"
-                    Stroke="{StaticResource DmBorderTavernBrush}"
-                    BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
-                    Padding="{StaticResource DmPaddingCompact}"
-                    Margin="0,0,0,4"
-                    HeightRequest="{StaticResource DmToolbarHeight}">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                    </Border.StrokeShape>
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceSmall}">
-                        <Label
-                            Grid.Column="0"
-                            Text="{Binding Dungeon.Name}"
-                            FontFamily="{StaticResource DmFontTitleStrong}"
-                            FontSize="{StaticResource DmFontSizeSubheading}"
-                            TextColor="{StaticResource DmAccentGoldLight}"
-                            VerticalOptions="Center" />
-                        <!-- Padding 4,0 below suppresses the vertical inset on purpose: this
-                             button's height is pinned to 22 to match the card row, so any vertical
-                             inset would squeeze the glyph rather than grow the button. -->
-                        <Button
-                            x:Name="DungeonNotebookButton"
-                            Grid.Column="1"
-                            Padding="4,0"
-                            Text="&#xEA8F;"
-                            FontFamily="{StaticResource DmFontIcon}"
-                            FontSize="{StaticResource DmIconSizeSmall}"
-                            BackgroundColor="Transparent"
-                            TextColor="{StaticResource DmTextParchmentMuted}"
-                            CornerRadius="{StaticResource DmRadiusTight}"
-                            HeightRequest="22"
-                            MinimumHeightRequest="22"
-                            ToolTipProperties.Text="Open notebook"
-                            Clicked="OnDungeonNotebookClicked">
-                            <Button.Behaviors>
-                                <behaviors:HandCursorBehavior />
-                            </Button.Behaviors>
-                        </Button>
-                    </Grid>
-                </Border>
+            <!-- RIGHT SIDEBAR -->
+            <Grid Grid.Row="1" Grid.Column="1" RowDefinitions="Auto,Auto,*" BackgroundColor="Transparent">
 
                 <!-- Fixed divider between the dungeon card and the scrolling floor list -->
-                <controls:DmDivider Grid.Row="1" Margin="0,0,0,4" IconFontSize="{StaticResource DmIconSizeTiny}" />
+                <controls:DmDivider Grid.Row="0" Margin="0,0,0,4" IconFontSize="{StaticResource DmIconSizeTiny}" />
 
                 <!-- Sidebar header -->
-                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
                     <Label
                         Grid.Column="0"
                         Text="FLOORS"
@@ -708,6 +588,7 @@
                     <Button
                         Grid.Column="1"
                         Text="+ Add Floor"
+                        AutomationId="AddFloorButton"
                         FontFamily="{StaticResource DmFontBody}"
                         FontSize="{StaticResource DmFontSizeBody}"
                         TextColor="{StaticResource DmAccentGoldLight}"
@@ -721,7 +602,7 @@
                 </Grid>
 
                 <!-- Floor list (built in code-behind) -->
-                <ScrollView Grid.Row="3">
+                <ScrollView Grid.Row="2">
                     <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
                 </ScrollView>
 

@@ -82,12 +82,14 @@
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeLarge}"
                     TextColor="{StaticResource DmTextParchment}"
+                    SemanticProperties.Description="Notebook"
                     VerticalOptions="Center" />
 
                 <!-- Entity name — edited in place, committed on unfocus -->
                 <controls:DmInlineEditor
                     x:Name="NameEditor"
                     Grid.Column="1"
+                    AutomationId="NotebookNameEditor"
                     AcceptsReturn="False"
                     FontFamily="{StaticResource DmFontTitleStrong}"
                     FontSize="{StaticResource DmFontSizeHeading}"
@@ -124,6 +126,9 @@
                 <Button
                     x:Name="CloseButton"
                     Grid.Column="3"
+                    AutomationId="NotebookCloseButton"
+                    SemanticProperties.Description="Close notebook"
+                    SemanticProperties.Hint="Saves any pending edit and hides the notebook."
                     Text="&#x2715;"
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeSmall}"
@@ -176,6 +181,8 @@
                      bottom edge by BookmarkTabShape below. -->
                 <Border
                     x:Name="ReadRibbon"
+                    AutomationId="NotebookReadRibbon"
+                    SemanticProperties.Hint="Shows the player-facing read-aloud text."
                     StrokeThickness="0"
                     Padding="6,0,6,10"
                     HeightRequest="60"
@@ -202,6 +209,8 @@
                      it clears the same 10-deep BookmarkTabShape notch. -->
                 <Border
                     x:Name="DmRibbon"
+                    AutomationId="NotebookDmRibbon"
+                    SemanticProperties.Hint="Shows the DM-only notes, which the party must not hear."
                     StrokeThickness="0"
                     Padding="6,0,6,10"
                     HeightRequest="40"
@@ -316,6 +325,7 @@
                 <Label
                     x:Name="SaveStateLabel"
                     Grid.Column="1"
+                    AutomationId="NotebookSaveState"
                     Text="SAVED"
                     FontFamily="{StaticResource DmFontTitle}"
                     FontSize="{StaticResource DmFontSizeMicro}"

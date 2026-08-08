@@ -31,6 +31,7 @@
                     </LinearGradientBrush>
                 </Grid.Background>
                 <Label
+                    AutomationId="PopupTitle"
                     Text="{Binding Title, Source={x:Reference Root}}"
                     FontFamily="{StaticResource DmFontTitleDecorative}"
                     FontSize="{StaticResource DmFontSizeTitle}"
@@ -39,8 +40,13 @@
                     VerticalOptions="Center" />
             </Grid>
 
-            <!-- Body content slot -->
-            <ContentView x:Name="BodyPresenter" Grid.Row="1" Padding="{StaticResource DmPaddingPanel}" />
+            <!-- Body content slot. The inset comes from this control's own BodyPadding rather
+                 than from the role token directly, so a host can override it in one place and
+                 every other host keeps the shared default. -->
+            <ContentView
+                x:Name="BodyPresenter"
+                Grid.Row="1"
+                Padding="{Binding BodyPadding, Source={x:Reference Root}}" />
 
             <!-- Bottom scroll bar -->
             <BoxView Grid.Row="2" HeightRequest="5">

@@ -436,19 +436,12 @@
     <!-- Page roots — the outermost inset of a ContentPage. -->
     <Thickness x:Key="DmPaddingPage">16,12</Thickness>
 
-    <!-- Shared height of the map toolbar and the sidebar dungeon card, so their bottom
-         edges line up across the two columns of the designer.
-
-         54.4 is NOT arithmetic — it is the toolbar's rendered height, read back from the
-         live layout on Windows at the current type scale (tool icons, tool letter labels
-         and the right-hand Undo group), and confirmed constant from a 357 DIU wide
-         toolbar up to 1157 DIU, so the row never reflows. WinUI's line height for these
-         fonts cannot be derived from the markup; an earlier attempt to compute it from
-         padding, stroke and an assumed font-size multiplier was visibly wrong on screen.
-
-         If any font size, padding or stroke inside the toolbar changes, this number must
-         be RE-MEASURED from a rendered frame, not recalculated. Too small clips the tool
-         tiles; too large leaves a gap under them. -->
-    <x:Double x:Key="DmToolbarHeight">54.4</x:Double>
+    <!-- There is deliberately no toolbar-height token here any more.
+         DmToolbarHeight (54.4) existed only because the designer's map toolbar and its sidebar
+         dungeon card were row 0 of two SEPARATE sub-grids, so nothing but a shared number could
+         make them agree — and that number had to be read off a screenshot, which meant it went
+         stale silently whenever the toolbar's contents grew. Both now sit in ONE Auto row of the
+         parent grid in DungeonDetailPage.xaml, which sizes itself to the taller of the two at the
+         first frame with no measurement at all. -->
 
 </ResourceDictionary>

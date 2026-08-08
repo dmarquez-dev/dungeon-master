@@ -332,6 +332,14 @@ public partial class NotebookView : ContentView
 		_isDirty = dirty;
 		SaveStateLabel.Text = dirty ? "UNSAVED" : "SAVED";
 		SaveStateLabel.TextColor = dirty ? UnsavedColor : SavedColor;
+
+		// The stamp's own text reads as a bare word out of context; the description names what
+		// the word is about, and moves with it.
+		SemanticProperties.SetDescription(
+			SaveStateLabel,
+			dirty
+				? "Unsaved changes"
+				: "All changes saved");
 	}
 
 	private void OnReadRibbonTapped(object? sender, TappedEventArgs e) =>
@@ -359,6 +367,20 @@ public partial class NotebookView : ContentView
 		SetRibbonHeight(DmRibbon, readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight, animate);
 		DmRibbon.Background = RibbonBrush(!readSelected);
 		DmRibbon.Opacity = readSelected ? 0.78 : 1;
+
+		// Which ribbon is selected is expressed only in height, opacity and shade, none of which
+		// a reader conveys, so the description carries it in words alongside them.
+		SemanticProperties.SetDescription(
+			ReadRibbon,
+			readSelected
+				? "Read aloud, selected"
+				: "Read aloud");
+
+		SemanticProperties.SetDescription(
+			DmRibbon,
+			readSelected
+				? "DM only"
+				: "DM only, selected");
 	}
 
 	/// <summary>

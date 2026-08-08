@@ -327,18 +327,7 @@ public partial class DmInlineEditor : ContentView
 	{
 		if (!_isEditing)
 		{
-			var gold = DmTheme.Gold;
-			FocusBorder.Stroke = gold;
-			FocusBorder.BackgroundColor = DmTheme.EditorGlowTint;
-#if !WINDOWS
-			FocusBorder.Shadow = new Shadow
-			{
-				Brush = new SolidColorBrush(gold),
-				Offset = new Point(0, 0),
-				Radius = 10,
-				Opacity = 0.4f
-			};
-#endif
+			ApplyFocusGlow();
 		}
 	}
 
@@ -355,6 +344,13 @@ public partial class DmInlineEditor : ContentView
 		_isEditing = true;
 		_suppressUnfocusCommit = false;
 		EditingStarted?.Invoke(this, EventArgs.Empty);
+		ApplyFocusGlow();
+	}
+
+	// The hover glow and the focus glow are the same treatment; they were written out twice and
+	// had to be kept in step by hand. ClearFocusGlow is the other half of this pair.
+	private void ApplyFocusGlow()
+	{
 		var gold = DmTheme.Gold;
 		FocusBorder.Stroke = gold;
 		FocusBorder.BackgroundColor = DmTheme.EditorGlowTint;

@@ -369,6 +369,112 @@ public static class DmTheme
 	public static double FontSizeMicro =>
 		Resolve<double>("DmFontSizeMicro");
 
+	// GEOMETRY. The three scales below exist for code-behind that builds layout imperatively —
+	// new Grid { ColumnSpacing = … }, new RoundRectangle { CornerRadius = … } — which cannot
+	// write {StaticResource}. XAML must keep using StaticResource: routing markup through here
+	// would trade a compile-time-checked key for a runtime one. The geometry ratchets in
+	// GeometryScaleTests scan *.cs as well as *.xaml, so a literal in either form is a failure
+	// and these members are the only legal answer in C#.
+	//
+	// Every one is an expression-bodied member for the reason in the remarks above: geometry is
+	// as unreadable before Application.Current.Resources exists as colour is.
+
+	/// <summary>
+	///		Gets the smallest gap on the spacing scale.
+	/// </summary>
+	public static double SpaceXXS =>
+		Resolve<double>("DmSpaceXXS");
+
+	/// <summary>
+	///		Gets the tight gap used by icon and label rows.
+	/// </summary>
+	public static double SpaceXS =>
+		Resolve<double>("DmSpaceXS");
+
+	/// <summary>
+	///		Gets the small gap that sits between the two tightest steps and the default.
+	/// </summary>
+	public static double SpaceSmall =>
+		Resolve<double>("DmSpaceSmall");
+
+	/// <summary>
+	///		Gets the default gap on the spacing scale.
+	/// </summary>
+	public static double SpaceMedium =>
+		Resolve<double>("DmSpaceMedium");
+
+	/// <summary>
+	///		Gets the gap used between grouped controls such as a popup's button row.
+	/// </summary>
+	public static double SpaceLarge =>
+		Resolve<double>("DmSpaceLarge");
+
+	/// <summary>
+	///		Gets the gap used between sections of a pane.
+	/// </summary>
+	public static double SpaceXL =>
+		Resolve<double>("DmSpaceXL");
+
+	/// <summary>
+	///		Gets the largest gap on the spacing scale.
+	/// </summary>
+	public static double SpaceXXL =>
+		Resolve<double>("DmSpaceXXL");
+
+	/// <summary>
+	///		Gets the inset role for compact icon buttons.
+	/// </summary>
+	public static Thickness PaddingTight =>
+		Resolve<Thickness>("DmPaddingTight");
+
+	/// <summary>
+	///		Gets the inset role for standard action buttons and tool chips.
+	/// </summary>
+	public static Thickness PaddingCompact =>
+		Resolve<Thickness>("DmPaddingCompact");
+
+	/// <summary>
+	///		Gets the inset role for text inputs.
+	/// </summary>
+	public static Thickness PaddingControl =>
+		Resolve<Thickness>("DmPaddingControl");
+
+	/// <summary>
+	///		Gets the inset role for card and list-row surfaces.
+	/// </summary>
+	public static Thickness PaddingCard =>
+		Resolve<Thickness>("DmPaddingCard");
+
+	/// <summary>
+	///		Gets the inset role for popup bodies and palette panels.
+	/// </summary>
+	public static Thickness PaddingPanel =>
+		Resolve<Thickness>("DmPaddingPanel");
+
+	/// <summary>
+	///		Gets the inset role for page roots.
+	/// </summary>
+	public static Thickness PaddingPage =>
+		Resolve<Thickness>("DmPaddingPage");
+
+	/// <summary>
+	///		Gets the tightest corner radius, used by icon buttons and palette thumbnails.
+	/// </summary>
+	public static double RadiusTight =>
+		Resolve<double>("DmRadiusTight");
+
+	/// <summary>
+	///		Gets the default corner radius.
+	/// </summary>
+	public static double RadiusDefault =>
+		Resolve<double>("DmRadiusDefault");
+
+	/// <summary>
+	///		Gets the loosest corner radius, used by cards, popups and panels.
+	/// </summary>
+	public static double RadiusLoose =>
+		Resolve<double>("DmRadiusLoose");
+
 #if WINDOWS
 	/// <summary>
 	///		Converts a MAUI colour to the WinUI colour type used by native resource dictionaries.

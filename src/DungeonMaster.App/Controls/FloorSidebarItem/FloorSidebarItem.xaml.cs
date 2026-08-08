@@ -154,6 +154,14 @@ public partial class FloorSidebarItem : ContentView
 			? DmTheme.ScrollGoldLight
 			: DmTheme.InkMuted;
 
+		// The gold/muted swap above is the only sighted cue that this floor has authored content,
+		// so the description has to carry the same state — a colour is not a text alternative.
+		SemanticProperties.SetDescription(
+			NotebookButton,
+			hasContent
+				? "Notebook, has content"
+				: "Notebook, empty");
+
 		RebuildAreas(floor);
 	}
 
@@ -225,6 +233,15 @@ public partial class FloorSidebarItem : ContentView
 	{
 		_isExpanded = expanded;
 		ExpandToggle.Text = expanded ? "▾" : "▸";
+
+		// The glyph IS the state, so the description moves with it. Set here rather than in XAML
+		// for the same reason the glyph is.
+		SemanticProperties.SetDescription(
+			ExpandToggle,
+			expanded
+				? "Expanded"
+				: "Collapsed");
+
 		AreaSeparator.IsVisible = expanded;
 		AreaContainer.IsVisible = expanded;
 		AddAreaButton.IsVisible = expanded;

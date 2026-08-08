@@ -35,6 +35,7 @@ public class DmThemeKeysResolveTests
             ["Brush"] = "SolidColorBrush",
             ["double"] = "x:Double",
             ["string"] = "x:String",
+            ["Thickness"] = "Thickness",
         };
 
     /// <summary>

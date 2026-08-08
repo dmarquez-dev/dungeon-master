@@ -64,10 +64,17 @@ public partial class SecondaryPaletteView : ContentView
                 BackgroundColor = DmTheme.SurfaceToolChip,
                 Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
                 StrokeThickness = 1,
-                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 2 },
+                StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
+                {
+                    CornerRadius = DmTheme.RadiusTight
+                },
                 Content = content
             };
+            // The tooltip is a hover affordance and reaches nobody who is not holding a mouse;
+            // the chip's only other content is an image, so the description is its one text
+            // alternative.
             ToolTipProperties.SetText(border, name);
+            SemanticProperties.SetDescription(border, name);
 
             var tap = new TapGestureRecognizer();
             tap.Tapped += (_, _) =>

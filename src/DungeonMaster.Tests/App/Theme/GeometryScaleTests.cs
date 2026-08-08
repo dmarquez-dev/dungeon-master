@@ -103,19 +103,14 @@ public class GeometryScaleTests
 
     /// <summary>
     ///		Files still carrying a literal <c>Spacing</c>, <c>RowSpacing</c>, <c>ColumnSpacing</c>
-    ///		or <c>ItemSpacing</c>.
-    ///		<para>
-    ///		Only C# remains. The XAML under <c>Views/</c> is migrated; what is left builds its
-    ///		layout imperatively (<c>new Grid { ColumnSpacing = 4 }</c>), and there is no C# resolver
-    ///		for the geometry scales the way <c>DmTheme</c> resolves colours. Introducing one is a
-    ///		design decision, not a mechanical conversion, so these entries wait for the wave that
-    ///		makes it.
-    ///		</para>
+    ///		or <c>ItemSpacing</c>. Empty: the C# resolver this list was waiting for now exists as
+    ///		<c>DmTheme.Space*</c>, so code-behind that builds layout imperatively reads the same
+    ///		scale the markup does. Kept rather than deleted so the fact keeps the same shape as
+    ///		its two siblings and a future regression has an obvious place to be recorded.
     /// </summary>
     private static readonly HashSet<string> SpacingPendingMigration =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
         };
 
     /// <summary>
@@ -131,16 +126,15 @@ public class GeometryScaleTests
 
     /// <summary>
     ///		Files still carrying a literal <c>CornerRadius</c> or a string-form
-    ///		<c>RoundRectangle N</c>. Only C# remains, for the reason given on
-    ///		<see cref="SpacingPendingMigration"/>: these three files construct
-    ///		<c>new RoundRectangle { CornerRadius = 2 }</c> in code-behind.
+    ///		<c>RoundRectangle N</c>. One C# file remains: the two palette views now build their
+    ///		thumbnails with <c>DmTheme.RadiusTight</c>, but the map page's code-behind was not in
+    ///		the migrating wave's file scope. It is a mechanical conversion now that
+    ///		<c>DmTheme.Radius*</c> exists, not a blocked one.
     /// </summary>
     private static readonly HashSet<string> RadiusPendingMigration =
         new(StringComparer.OrdinalIgnoreCase)
         {
             Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
-            Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
-            Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml.cs"),
         };
 
     /// <summary>

@@ -27,14 +27,19 @@
             <!-- Header row -->
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
-                <!-- Expand toggle (visual indicator only — card tap handles expand) -->
+                <!-- Expand toggle (visual indicator only — card tap handles expand). The glyph
+                     flips between ▸ and ▾ in SetExpanded, so the description is rewritten there
+                     alongside it; the value here is the collapsed state the glyph starts in. -->
                 <Label
                     x:Name="ExpandToggle"
                     Grid.Column="0"
+                    AutomationId="FloorExpandToggle"
                     Text="&#x25B8;"
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeSmall}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    SemanticProperties.Description="Collapsed"
+                    SemanticProperties.Hint="Tap the floor card to expand or collapse its areas."
                     VerticalOptions="Center" />
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
@@ -48,10 +53,16 @@
                     Margin="0,0,6,0"
                     VerticalOptions="Center" />
 
-                <!-- Always-visible notebook button — colour reflects whether this floor has authored content -->
+                <!-- Always-visible notebook button — colour reflects whether this floor has
+                     authored content. That colour is the only sighted cue for it, so Populate
+                     rewrites the description whenever it rewrites TextColor; the value here is
+                     the empty state an unpopulated row shows. -->
                 <Button
                     x:Name="NotebookButton"
                     Grid.Column="2"
+                    AutomationId="FloorNotebookButton"
+                    SemanticProperties.Description="Notebook, empty"
+                    SemanticProperties.Hint="Opens the notebook for this floor."
                     Text="&#xEA8F;"
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeMedium}"
@@ -70,6 +81,9 @@
                 <Button
                     x:Name="DeleteButton"
                     Grid.Column="3"
+                    AutomationId="FloorDeleteButton"
+                    SemanticProperties.Description="Delete floor"
+                    SemanticProperties.Hint="Asks for confirmation, then removes this floor and its areas."
                     Text="&#xE9FC;"
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeMedium}"
@@ -88,10 +102,13 @@
                 <Label
                     x:Name="DragHandle"
                     Grid.Column="4"
+                    AutomationId="FloorDragHandle"
                     Text="&#x22EE;"
                     FontFamily="{StaticResource DmFontIcon}"
                     FontSize="{StaticResource DmIconSizeLarge}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    SemanticProperties.Description="Reorder floor"
+                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order."
                     VerticalOptions="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDragHandleTapped" />
@@ -119,6 +136,7 @@
             <!-- Add area row (visible when expanded) -->
             <Button
                 x:Name="AddAreaButton"
+                AutomationId="AddAreaButton"
                 Text="+ Add area"
                 FontFamily="{StaticResource DmFontBody}"
                 FontSize="{StaticResource DmFontSizeBodySmall}"

@@ -681,7 +681,7 @@ public partial class DungeonDetailPage : ContentPage
 					_drawable.Floor = null;
 					_drawable.HoveredAreaId = null;
 					ResetDrawState();
-					MapToolbar.IsVisible = false;
+					SetMapToolbarShown(false);
 				}
 
 				await _viewModel.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
@@ -1017,22 +1017,22 @@ public partial class DungeonDetailPage : ContentPage
 		UpdateToolbarButtonState();
 	}
 
-	private void OnToolDrawClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolDrawClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Draw);
 
-	private void OnToolMoveClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolMoveClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Move);
 
-	private void OnToolSelectClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolSelectClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Select);
 
-	private void OnToolPanClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolPanClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Pan);
 
-	private void OnToolPlaceClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolPlaceClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Place);
 
-	private void OnToolEraseClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolEraseClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Erase);
 
 	private async void EraseAreaAsync(Guid floorId, AreaDto area)
@@ -1093,6 +1093,26 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
+	/// <summary>
+	///		Shows or hides the map toolbar without letting it leave the layout.
+	/// </summary>
+	/// <param name="shown">
+	///		<see langword="true"/> once a floor is selected and the drawing tools apply.
+	/// </param>
+	/// <remarks>
+	///		Opacity rather than <c>IsVisible</c>, on purpose. The toolbar and the sidebar dungeon
+	///		card share one <c>Auto</c> row of the designer's grid, which is what makes their bottom
+	///		edges agree without a measured height token; a collapsed element contributes nothing to
+	///		an <c>Auto</c> row, so hiding this one with <c>IsVisible</c> would shrink that row to
+	///		the card and then jump the whole map down when the first floor was picked.
+	///		<c>InputTransparent</c> is what keeps it genuinely un-clickable in the meantime.
+	/// </remarks>
+	private void SetMapToolbarShown(bool shown)
+	{
+		MapToolbar.Opacity = shown ? 1 : 0;
+		MapToolbar.InputTransparent = !shown;
+	}
+
 	private void UpdateToolbarButtonState()
 	{
 		var isDrawActive = _viewModel.ActiveTool == MapTool.Draw;
@@ -1102,34 +1122,12 @@ public partial class DungeonDetailPage : ContentPage
 		var isSelectActive = _viewModel.ActiveTool == MapTool.Select;
 		var isEraseActive = _viewModel.ActiveTool == MapTool.Erase;
 
-		var activeColor = DmTheme.Gold;
-		var mutedColor = DmTheme.GoldMuted;
-		var activeBrush = new SolidColorBrush(activeColor);
-		var transparentBrush = new SolidColorBrush(Colors.Transparent);
-
-		ToolDrawBorder.Stroke = isDrawActive ? activeBrush : transparentBrush;
-		ToolDrawIcon.TextColor = isDrawActive ? activeColor : mutedColor;
-		ToolDrawLabel.TextColor = isDrawActive ? activeColor : mutedColor;
-
-		ToolMoveBorder.Stroke = isMoveActive ? activeBrush : transparentBrush;
-		ToolMoveIcon.TextColor = isMoveActive ? activeColor : mutedColor;
-		ToolMoveLabel.TextColor = isMoveActive ? activeColor : mutedColor;
-
-		ToolSelectBorder.Stroke = isSelectActive ? activeBrush : transparentBrush;
-		ToolSelectIcon.TextColor = isSelectActive ? activeColor : mutedColor;
-		ToolSelectLabel.TextColor = isSelectActive ? activeColor : mutedColor;
-
-		ToolEraseBorder.Stroke = isEraseActive ? activeBrush : transparentBrush;
-		ToolEraseIcon.TextColor = isEraseActive ? activeColor : mutedColor;
-		ToolEraseLabel.TextColor = isEraseActive ? activeColor : mutedColor;
-
-		ToolPlaceBorder.Stroke = isPlaceActive ? activeBrush : transparentBrush;
-		ToolPlaceIcon.TextColor = isPlaceActive ? activeColor : mutedColor;
-		ToolPlaceLabel.TextColor = isPlaceActive ? activeColor : mutedColor;
-
-		ToolPanBorder.Stroke = isPanActive ? activeBrush : transparentBrush;
-		ToolPanIcon.TextColor = isPanActive ? activeColor : mutedColor;
-		ToolPanLabel.TextColor = isPanActive ? activeColor : mutedColor;
+		ToolDrawTile.IsActive = isDrawActive;
+		ToolMoveTile.IsActive = isMoveActive;
+		ToolSelectTile.IsActive = isSelectActive;
+		ToolEraseTile.IsActive = isEraseActive;
+		ToolPlaceTile.IsActive = isPlaceActive;
+		ToolPanTile.IsActive = isPanActive;
 
 		var hasVertices = _viewModel.DrawingSession.Vertices.Count > 0;
 		UndoButton.IsEnabled = hasVertices;
@@ -2034,7 +2032,7 @@ public partial class DungeonDetailPage : ContentPage
 			_drawable.PhantomEnd = null;
 		}
 
-		MapToolbar.IsVisible = _selectedFloorId is not null;
+		SetMapToolbarShown(_selectedFloorId is not null);
 
 		if (_selectedFloorId is not null && _drawState == DrawState.Idle)
 			SetActiveTool(MapTool.Pan);
@@ -2209,9 +2207,6 @@ public partial class DungeonDetailPage : ContentPage
 	}
 
 	// ─── Nav and dungeon-level editors ──────────────────────────────────────────
-
-	private void OnBackClicked(object? sender, EventArgs e) =>
-		Shell.Current.GoToAsync("..");
 
 	private async void OnAddFloorClicked(object? sender, EventArgs e)
 	{

@@ -44,8 +44,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<!-- App Icon.
+		     #1A1208 is the app's own background — the same value the theme holds under
+		     DmSurfaceTavern — replacing the .NET template's #512BD4 purple, which was a
+		     framework default on a parchment-and-tavern app. It has to be a literal for the
+		     same reason the splash colour below is: MSBuild evaluates this before and outside
+		     MAUI, with no access to Resources/Theme/Tokens.xaml, so it cannot reference the
+		     token. Changing it regenerates the icon assets. If DmSurfaceTavern moves, move
+		     this and the splash by hand. -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#1A1208" />
 
 		<!-- Splash Screen.
 		     #1A1208 is the app's own background — the same value the theme holds under
@@ -75,7 +82,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Plugin.Maui.KeyListener" Version="1.0.0-preview4" />
 	</ItemGroup>

@@ -60,6 +60,9 @@
                                         Padding="{StaticResource DmPaddingCompact}"
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnEditClicked"
+                                        AutomationId="EditDungeonButton"
+                                        SemanticProperties.Description="Edit dungeon"
+                                        SemanticProperties.Hint="Opens this dungeon in the floor and map designer"
                                         ToolTipProperties.Text="Edit dungeon">
                                         <Button.Behaviors>
                                             <behaviors:HandCursorBehavior />
@@ -77,6 +80,10 @@
                                             CornerRadius="{StaticResource DmRadiusDefault}"
                                             Padding="{StaticResource DmPaddingCompact}"
                                             CommandParameter="{Binding Id}"
+                                            AutomationId="StartSessionButton"
+                                            SemanticProperties.Description="Start session"
+                                            SemanticProperties.Hint="Runs this dungeon at the table; needs at least one floor"
+                                            ToolTipProperties.Text="Start session"
                                             IsEnabled="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
                                             <Button.Behaviors>
                                                 <behaviors:HandCursorBehavior />
@@ -108,6 +115,9 @@
                                         Padding="{StaticResource DmPaddingCompact}"
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnDeleteClicked"
+                                        AutomationId="DeleteDungeonButton"
+                                        SemanticProperties.Description="Delete dungeon"
+                                        SemanticProperties.Hint="Asks for confirmation first"
                                         ToolTipProperties.Text="Delete dungeon">
                                         <Button.Behaviors>
                                             <behaviors:HandCursorBehavior />
@@ -126,6 +136,9 @@
             <Button
                 x:Name="FabButton"
                 Text="+"
+                AutomationId="CreateDungeonButton"
+                SemanticProperties.Description="New dungeon"
+                ToolTipProperties.Text="New dungeon"
                 FontFamily="{StaticResource DmFontTitle}"
                 FontSize="{StaticResource DmFontSizeBanner}"
                 WidthRequest="52"

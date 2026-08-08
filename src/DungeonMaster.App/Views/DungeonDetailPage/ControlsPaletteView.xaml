@@ -47,25 +47,28 @@
                        TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
-                <!-- SCHEDULED FOR DELETION — the four glyph labels below (both arrows, minus and
-                     plus) carry a measured TranslationX/Y. It cancels the glyph's ink offset
-                     inside the font's line box, which VerticalTextAlignment cannot reach — that
-                     centres the line box, not the ink within it. Translation is a render transform
-                     applied after Rotation in screen space, which is why the rotated arrows are
-                     corrected on X, not Y. These numbers are font-specific: re-measure them from a
-                     rendered frame if the body font changes, if the icon size token changes, or if
-                     these glyphs are replaced by real icon-font codepoints.
+                <!-- The two arrow labels below carry a measured TranslationX/Y. It cancels the
+                     glyph's ink offset inside the font's line box, which VerticalTextAlignment
+                     cannot reach — that centres the line box, not the ink within it. Translation
+                     is a render transform applied after Rotation in screen space, which is why
+                     these two are corrected on X, not Y. The numbers are font-specific:
+                     re-measure them from a rendered frame if the body font changes, if the icon
+                     size token changes, or if these glyphs are replaced.
 
-                     This is not a permanent mechanism to be maintained: the whole construct — the
-                     translations, the square Border and the Fill options that make placement
-                     deterministic — is deleted by the Phosphor icon-font migration, which replaces
-                     these text-font glyphs with real icon codepoints that centre by construction.
-                     See docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md. -->
+                     Only the arrows still need this. The SCALE group's minus and plus became
+                     Rectangles, which are centred by layout and need no correction at all; no
+                     bundled font draws a rotation arrow as line work, so the same trick is not
+                     available to them. The Phosphor icon-font migration replaces both arrows with
+                     real icon codepoints that centre by construction and deletes the numbers with
+                     them. See docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md. -->
                 <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <!-- Measured translation — see the note above. -->
                     <Border x:Name="BtnCCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
+                            AutomationId="PaletteRotateCounterClockwise"
+                            SemanticProperties.Description="Rotate anticlockwise"
+                            ToolTipProperties.Text="Rotate anticlockwise"
                             StrokeThickness="{StaticResource DmStrokeHairline}">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
@@ -80,12 +83,16 @@
                                HorizontalTextAlignment="Center"
                                VerticalTextAlignment="Center"
                                TranslationX="-2.0"
+                               AutomationProperties.IsInAccessibleTree="False"
                                InputTransparent="True" />
                     </Border>
                     <!-- Measured translation — see the note above. -->
                     <Border x:Name="BtnCW"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
+                            AutomationId="PaletteRotateClockwise"
+                            SemanticProperties.Description="Rotate clockwise"
+                            ToolTipProperties.Text="Rotate clockwise"
                             StrokeThickness="{StaticResource DmStrokeHairline}">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
@@ -100,6 +107,7 @@
                                HorizontalTextAlignment="Center"
                                VerticalTextAlignment="Center"
                                TranslationX="2.0"
+                               AutomationProperties.IsInAccessibleTree="False"
                                InputTransparent="True" />
                     </Border>
                 </HorizontalStackLayout>
@@ -120,28 +128,39 @@
                        TextColor="{StaticResource DmTextParchmentMuted}"
                        TextTransform="Uppercase"
                        HorizontalOptions="Center" />
+                <!-- Minus and plus are line work, so they are Rectangles centred in the 32x32
+                     button rather than text nudged into place by a measured TranslationY. The
+                     lengths reproduce what EB Garamond rendered at DmIconSizeTool (22): a minus
+                     11.00 DIU wide, a plus 10.94 x 10.81.
+
+                     The bar weights are the RENDERED weights, not the outline's 0.81/0.88/1.31.
+                     DirectWrite darkens light-on-dark stems and a filled shape gets no such help,
+                     so drawing the outline weight verbatim came back about a third too light when
+                     the same measurement was taken on the zoom steppers. The font's own minus is
+                     heavier than its plus's bars; that difference is reproduced rather than
+                     smoothed, because this pass is not meant to change what is on screen. -->
                 <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}" VerticalOptions="Center">
-                    <!-- Measured translation — see the note in the ROTATE group above. -->
                     <Border x:Name="BtnScaleDown"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
+                            AutomationId="PaletteScaleDown"
+                            SemanticProperties.Description="Shrink object"
+                            ToolTipProperties.Text="Shrink object"
                             StrokeThickness="{StaticResource DmStrokeHairline}">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
                         </Border.StrokeShape>
-                        <Label Text="−"
-                               FontFamily="{StaticResource DmFontBody}"
-                               FontSize="{StaticResource DmIconSizeTool}"
-                               TextColor="{StaticResource DmTextToolPanel}"
-                               HorizontalOptions="Fill"
-                               VerticalOptions="Fill"
-                               HorizontalTextAlignment="Center"
-                               VerticalTextAlignment="Center"
-                               TranslationY="-2.4"
-                               InputTransparent="True" />
+                        <Rectangle Fill="{StaticResource DmTextToolPanel}"
+                                   StrokeThickness="0"
+                                   WidthRequest="11"
+                                   HeightRequest="1.6"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   InputTransparent="True" />
                     </Border>
                     <Label x:Name="ScaleReadout"
                            Text="1.0×"
+                           AutomationId="PaletteScaleReadout"
                            FontFamily="{StaticResource DmFontBody}"
                            FontSize="{StaticResource DmFontSizeMeta}"
                            FontAttributes="Bold"
@@ -150,24 +169,30 @@
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            HorizontalTextAlignment="Center" />
-                    <!-- Measured translation — see the note in the ROTATE group above. -->
                     <Border x:Name="BtnScaleUp"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
+                            AutomationId="PaletteScaleUp"
+                            SemanticProperties.Description="Grow object"
+                            ToolTipProperties.Text="Grow object"
                             StrokeThickness="{StaticResource DmStrokeHairline}">
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
                         </Border.StrokeShape>
-                        <Label Text="+"
-                               FontFamily="{StaticResource DmFontBody}"
-                               FontSize="{StaticResource DmIconSizeTool}"
-                               TextColor="{StaticResource DmTextToolPanel}"
-                               HorizontalOptions="Fill"
-                               VerticalOptions="Fill"
-                               HorizontalTextAlignment="Center"
-                               VerticalTextAlignment="Center"
-                               TranslationY="-2.8"
-                               InputTransparent="True" />
+                        <Grid InputTransparent="True">
+                            <Rectangle Fill="{StaticResource DmTextToolPanel}"
+                                       StrokeThickness="0"
+                                       WidthRequest="11"
+                                       HeightRequest="1.35"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            <Rectangle Fill="{StaticResource DmTextToolPanel}"
+                                       StrokeThickness="0"
+                                       WidthRequest="1.35"
+                                       HeightRequest="11"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                        </Grid>
                     </Border>
                 </HorizontalStackLayout>
             </VerticalStackLayout>

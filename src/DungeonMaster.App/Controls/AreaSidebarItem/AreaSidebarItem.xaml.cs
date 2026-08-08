@@ -80,6 +80,16 @@ public partial class AreaSidebarItem : ContentView
 		NotebookButton.TextColor = hasContent
 			? DmTheme.ScrollGoldLight
 			: DmTheme.InkMuted;
+
+		// The gold/muted swap above is the only sighted cue that this area has authored content,
+		// so the description has to carry the same state — a colour is not a text alternative.
+		// It is set here rather than in XAML for the same reason the colour is: it depends on the
+		// data, and the XAML value is only the unpopulated default.
+		SemanticProperties.SetDescription(
+			NotebookButton,
+			hasContent
+				? "Notebook, has content"
+				: "Notebook, empty");
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)
