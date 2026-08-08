@@ -9,7 +9,7 @@
             <Setter Property="Stroke" Value="{StaticResource DmBorderToolChip}" />
             <Setter Property="VisualStateManager.VisualStateGroups">
                 <VisualStateGroupList>
-                    <VisualStateGroup Name="CommonStates">
+                    <VisualStateGroup x:Name="CommonStates">
                         <VisualState Name="Normal">
                             <VisualState.Setters>
                                 <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceToolChip}" />
