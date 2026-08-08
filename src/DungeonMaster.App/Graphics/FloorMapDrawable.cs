@@ -233,7 +233,7 @@ public sealed class FloorMapDrawable : IDrawable
         if (outline.Count == 0)
             return;
 
-        canvas.StrokeColor = DmTheme.MapArea.WithAlpha(alpha);
+        canvas.StrokeColor = DmTheme.MapAreaStroke.WithAlpha(alpha);
         canvas.StrokeSize = 1.5f;
 
         // The polygon is closed, so the final segment's end point is also its start point.

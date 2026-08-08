@@ -54,7 +54,7 @@ public partial class App : MauiWinUIApplication
 		resources["ScrollBarThumbFillBrushDisabled"] = ToBrush(DmTheme.ScrollbarThumbDisabled);
 
 		// Text selection highlight — amber/parchment instead of system purple.
-		resources["TextControlSelectionHighlightColor"] = ToBrush(DmTheme.TextSelection);
+		resources["TextControlSelectionHighlightColor"] = ToBrush(DmTheme.SurfaceTextSelection);
 
 		// Parchment ComboBox/Picker theme — same values for Light and Dark so the dropdown
 		// always matches the palette regardless of system theme.

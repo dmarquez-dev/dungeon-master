@@ -99,13 +99,13 @@ public partial class NotebookView : ContentView
 	private const float SelectedFoldFactor = 0.72f;
 	private const float UnselectedFoldFactor = 0.78f;
 
-	// The save stamp's two states. The green is deliberately DmSavedStamp rather than
+	// The save stamp's two states. The green is deliberately DmSavedStampText rather than
 	// DmConfirm: here "committed" needs to read as reassuring rather than as an action to take.
 	//
 	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
 	// NoEagerDmThemeRead.
 	private static Color SavedColor =>
-		DmTheme.SavedStamp;
+		DmTheme.SavedStampText;
 
 	private static Color UnsavedColor =>
 		DmTheme.Destructive;

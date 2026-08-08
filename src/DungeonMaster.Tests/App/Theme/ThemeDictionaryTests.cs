@@ -41,7 +41,8 @@ public class ThemeDictionaryTests
         "DmDragPlaceholderStroke", "DmDragPlaceholderFill",
         "DmAreaSelectedBorder", "DmAreaSelectedTint",
         "DmGoldHoverTint", "DmEditorGlowTint",
-        "DmMapGrid", "DmMapArea", "DmMapVertex", "DmMapAreaFillActive", "DmMapAreaStrokeActive",
+        "DmMapGrid", "DmMapAreaStroke", "DmMapVertex", "DmMapAreaFillActive",
+        "DmMapAreaStrokeActive",
         "DmMapObjectPlaceholder",
         // DmAccentGoldBrush was here and is gone: it had no consumer anywhere in the repo and
         // was deleted with the orphaned styles rather than kept as a spare alias. Every gold
@@ -76,14 +77,14 @@ public class ThemeDictionaryTests
         // their usage sites; see task-2-report.md for the full inventory.
         "DmSurfaceToolPanel", "DmSurfaceToolChip", "DmSurfaceToolChipHover",
         "DmBorderToolChip", "DmTextToolPanel",
-        "DmSurfacePopup", "DmBorderPopup", "DmDivider", "DmSurfaceStepper",
+        "DmSurfacePopup", "DmBorderPopup", "DmSurfaceStepper",
         "DmTextNotebook",
-        "DmScrollbarThumb", "DmScrollbarThumbDisabled", "DmTextSelection",
+        "DmScrollbarThumb", "DmScrollbarThumbDisabled", "DmSurfaceTextSelection",
         "DmSurfaceComboItemHover", "DmSurfaceComboItemPressed", "DmTextComboItemDisabled",
-        "DmDestructiveBright", "DmPopupButtonHover", "DmPopupButtonPressed",
+        "DmDestructiveOnPopup", "DmPopupButtonHover", "DmPopupButtonPressed",
         "DmPopupButtonDestructiveHover", "DmPopupButtonDestructivePressed",
-        "DmHairline", "DmHairlineStrong", "DmTextPlaceholder",
-        "DmDestructiveHoverSurface", "DmSavedStamp",
+        "DmHairline", "DmHairlineStrong", "DmHairlineSolid", "DmTextPlaceholder",
+        "DmDestructiveHoverSurface", "DmSavedStampText",
     ];
 
     /// <summary>

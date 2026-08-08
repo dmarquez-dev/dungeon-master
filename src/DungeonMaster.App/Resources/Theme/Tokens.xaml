@@ -4,6 +4,86 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <!--
+        THE NAMING RULE — read this before adding or renaming any token.
+
+        Settled 2026-08-07. Two orderings had drifted into this file
+        (DmSurfaceTavern category-first, DmNeutralSurface role-first) and the obvious
+        fix — "category-first everywhere" — was tried on paper and REJECTED, because it
+        produces DmTextConfirm and DmSurfaceScrollbarThumb, which are worse than the
+        names they replace. The orderings are not drift. They are TWO FAMILIES, and
+        each is internally coherent:
+
+        ─────────────────────────────────────────────────────────────────────────
+        FAMILY 1 — STRUCTURAL.  Dm<Category><SurfaceFamily><Variant>
+
+          The shared surfaces every screen is built out of. The qualifier is the
+          SURFACE FAMILY, so the category leads and the family groups.
+
+            Category      Surface | Border | Text
+            SurfaceFamily Tavern, Parchment, Popup, ToolPanel, ToolChip, ComboItem,
+                          Stepper, Notebook, TextSelection
+            Variant       Raised, Deep, Muted, Hover, Pressed, Active, Disabled
+
+            DmSurfaceTavernRaisedHover   DmBorderParchment   DmTextComboItemDisabled
+
+          Sorting a structural token by its own name puts it next to its family. That
+          is the whole benefit and it is why the category leads.
+
+          DmTextPlaceholder is the one structural token whose qualifier is a text ROLE
+          rather than a surface family, and it is registered as such in the test.
+
+        FAMILY 2 — SEMANTIC.  Dm<Role>[<SurfaceFamily>][<Category>][<Variant>]
+
+          A named action role, or a named feature part that is drawn rather than
+          inhabited. The ROLE is the identity, so the role leads. A category suffix
+          appears only where the role owns more than one colour.
+
+            Role          Confirm, Destructive, Save, Discard, Neutral, AccentGold,
+                          Gold, Ribbon, Banner, Map, DragPlaceholder, AreaSelected,
+                          EditorGlow, Scrollbar, PopupButton, Hairline, SavedStamp
+            Category      Surface | Border | Stroke | Fill | Tint | Text
+
+            DmConfirm  DmConfirmText  DmDestructive  DmDestructiveOnPopup
+            DmMapAreaStroke  DmMapAreaFillActive  DmDragPlaceholderFill
+
+        ─────────────────────────────────────────────────────────────────────────
+        THE TWO CLAUSES THAT MAKE IT DECIDABLE
+
+        (a) A STRUCTURAL token's name begins with Surface, Border or Text. A SEMANTIC
+            token's name does NOT. That is the mechanical half, and
+            TokenNamingTests.EveryColourTokenObeysTheNamingRule reads it.
+
+        (b) A token STATES THE CATEGORY IT PAINTS unless it names a drawn element that
+            has exactly one paintable part. DmMapGrid, DmRibbonRead, DmScrollbarThumb
+            and DmBannerEdge each paint one thing and need no category word; DmMapArea
+            did not, which is why it is now DmMapAreaStroke — its own siblings already
+            spelled Fill and Stroke.
+
+        A role hue with NO category — DmDestructive, DmDestructiveOnPopup, DmConfirm —
+        is deliberate, not an omission: a role hue may paint a fill, a label or a
+        stroke as the site requires, and DmDestructive does all three today. Its
+        CATEGORISED DERIVATIVES are the ones that carry a category word
+        (DmDestructiveText, DmDestructiveHoverSurface).
+
+        On<SurfaceFamily> is the sanctioned way to say "this role hue as rendered on a
+        named surface". It has exactly one instance today, DmDestructiveOnPopup, and
+        is preferred over an adjective: the rejected DmDestructiveBright named the
+        symptom (it is lighter) rather than the reason (the popup is near-black).
+
+        STYLE KEYS TAKE A "Style" SUFFIX IF AND ONLY IF A COLOUR OF THE SAME NAME
+        EXISTS. §5 of the design spec called DmBorderTavernStyle "the only style key
+        with a Style suffix"; that was wrong — DmBorderParchmentStyle has one too, and
+        those two are exactly the two style keys that collide with a colour token
+        (DmBorderTavern, DmBorderParchment). No other style key collides and none
+        carries the suffix. The suffix is disambiguation, not decoration, and
+        TokenNamingTests.StyleKeysCarryTheStyleSuffixExactlyWhenTheyCollideWithAColour
+        holds the rule in both directions.
+
+        THE STANDING EXCEPTIONS, each with its reason, are listed in that same test
+        rather than here, so that a token cannot be exempted without the exemption
+        being read by something.
+        ─────────────────────────────────────────────────────────────────────────
+
         SINGLE-LAYER DECISION — read this before adding tokens (Tasks 4-11).
 
         This file was planned as two dictionaries: Palette.xaml holding raw named
@@ -43,7 +123,7 @@
 
           #C8A040 — gold accent (12 tokens)
             (opaque) DmAccentGoldLight, DmDragPlaceholderStroke,
-                     DmAreaSelectedBorder, DmMapArea, DmMapObjectPlaceholder
+                     DmAreaSelectedBorder, DmMapAreaStroke, DmMapObjectPlaceholder
             10       DmGoldHoverTint
             18       DmAreaSelectedTint
             20       DmDragPlaceholderFill
@@ -67,8 +147,8 @@
             4D       DmBorderTavern
             A6       DmBorderTavernHover
 
-          #CC3030 — bright destructive on the near-black popup (3 tokens)
-            (opaque) DmDestructiveBright
+          #CC3030 — destructive on the near-black popup (3 tokens)
+            (opaque) DmDestructiveOnPopup
             33       DmPopupButtonDestructiveHover
             66       DmPopupButtonDestructivePressed
 
@@ -84,7 +164,7 @@
             (opaque) DmTextTavern, DmMapVertex
 
           #4A3820 — WinUI scrollbar and selection wash (2 tokens)
-            66       DmScrollbarThumb, DmTextSelection
+            66       DmScrollbarThumb, DmSurfaceTextSelection
 
         DmSurfaceTavernRaisedActive #6A8B5E1A and DmHairlineStrong #6B8B5E1A share
         a base but differ by one in the alpha channel — see the NEAR-DUPLICATE note
@@ -171,13 +251,22 @@
          Feature-specific: FloorMapDrawable
     ═══════════════════════════════════════════════════════════════ -->
     <Color x:Key="DmMapGrid">#1AC4862A</Color>
-    <Color x:Key="DmMapArea">#C8A040</Color>
+    <!-- The outline of a COMMITTED area. It was DmMapArea until the naming pass: it is only ever
+         assigned to canvas.StrokeColor (FloorMapDrawable.cs:236) and its two immediate siblings
+         already spelled Fill and Stroke, so the bare name was the odd one out AND read as though
+         it were the area's fill. There is deliberately no DmMapAreaFill — a committed area is
+         drawn as an outline only; the active pair below exists because the area being drawn is
+         the one case that IS filled. -->
+    <Color x:Key="DmMapAreaStroke">#C8A040</Color>
     <Color x:Key="DmMapVertex">#F5E4B0</Color>
     <Color x:Key="DmMapAreaFillActive">#40C8A040</Color>
     <Color x:Key="DmMapAreaStrokeActive">#90C8A040</Color>
     <!-- The stand-in for an object with no drawable image: the "?" fallback glyph and outline
-         and the dashed ghost-placement outline. Deliberately not DmMapArea, which it currently
-         matches — these are object-placeholder renderings, not area outlines. -->
+         and the dashed ghost-placement outline. Deliberately not DmMapAreaStroke, which it
+         currently matches — these are object-placeholder renderings, not area outlines.
+         It carries no category word although it paints BOTH a stroke and a glyph; splitting it
+         would create two tokens equal by construction. Registered as an exception in
+         TokenNamingTests. -->
     <Color x:Key="DmMapObjectPlaceholder">#C8A040</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -199,24 +288,31 @@
          Feature-specific: designer canvas chrome
 
          The object action popup (DungeonDetailPage.xaml), the zoom stepper
-         triangles, the hairline dividers between button groups, and the notebook
-         body text sitting on parchment.
+         triangles, and the notebook body text sitting on parchment.
+
+         The rules between button groups used to live here as DmDivider; they are now
+         DmHairlineSolid, declared with the other two hairlines further down.
     ═══════════════════════════════════════════════════════════════ -->
     <Color x:Key="DmSurfacePopup">#1A1610</Color>
     <Color x:Key="DmBorderPopup">#4A3A1A</Color>
-    <Color x:Key="DmDivider">#3A2E1A</Color>
     <Color x:Key="DmSurfaceStepper">#3D2E12</Color>
     <Color x:Key="DmTextNotebook">#3A2410</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          Feature-specific: WinUI scrollbar, text selection and combo items
 
-         Platforms/Windows/App.xaml only. DmScrollbarThumb and DmTextSelection are
-         the same literal for now — see the shared-colour list at the top.
+         Platforms/Windows/App.xaml.cs only. DmScrollbarThumb and DmSurfaceTextSelection
+         are the same literal for now — see the shared-colour list at the top.
+
+         DmSurfaceTextSelection was DmTextSelection until the naming pass. Read
+         category-first — and the token beside it, DmTextComboItemDisabled, must be —
+         "DmText…" claims a TEXT colour. It is not one: it is the wash painted BEHIND
+         selected text (WinUI TextControlSelectionHighlightColor), so it is a Surface in
+         the TextSelection family.
     ═══════════════════════════════════════════════════════════════ -->
     <Color x:Key="DmScrollbarThumb">#664A3820</Color>
     <Color x:Key="DmScrollbarThumbDisabled">#332A2010</Color>
-    <Color x:Key="DmTextSelection">#664A3820</Color>
+    <Color x:Key="DmSurfaceTextSelection">#664A3820</Color>
     <Color x:Key="DmSurfaceComboItemHover">#D6BE82</Color>
     <Color x:Key="DmSurfaceComboItemPressed">#B89A60</Color>
     <Color x:Key="DmTextComboItemDisabled">#9A8060</Color>
@@ -224,11 +320,23 @@
     <!-- ═══════════════════════════════════════════════════════════════
          Feature-specific: object action popup buttons
 
-         DungeonDetailPage.xaml.cs PopupBtn* states. DmDestructiveBright is the
-         delete glyph: a lighter red than DmDestructive (#8B2020) because it sits
-         on the near-black popup surface rather than on parchment.
+         DungeonDetailPage.xaml.cs PopupBtn* states.
+
+         DmDestructiveOnPopup was DmDestructiveBright until the naming pass. It is the
+         destructive role hue as rendered on the near-black popup — a lighter red than
+         DmDestructive (#8B2020) because that surface is near-black rather than
+         parchment. "Bright" named the symptom and read as a surface shade of
+         DmDestructive; worse, DmDestructiveText already exists and means something
+         else entirely (the LABEL colour on a destructive fill). Today it paints the
+         delete glyph at DungeonDetailPage.xaml, and the two Destructive washes below
+         are its alpha derivatives — which is why it carries no category word: like
+         DmDestructive itself it is a role hue, not one categorised use of one.
+
+         The four DmPopupButton* washes below carry no category word either, and that
+         is rule-conformant: a popup button's state colour paints exactly one thing,
+         its background. Registered in TokenNamingTests with that reason.
     ═══════════════════════════════════════════════════════════════ -->
-    <Color x:Key="DmDestructiveBright">#CC3030</Color>
+    <Color x:Key="DmDestructiveOnPopup">#CC3030</Color>
     <Color x:Key="DmPopupButtonHover">#33C8A040</Color>
     <Color x:Key="DmPopupButtonPressed">#66C8A040</Color>
     <Color x:Key="DmPopupButtonDestructiveHover">#33CC3030</Color>
@@ -237,17 +345,52 @@
     <!-- ═══════════════════════════════════════════════════════════════
          Feature-specific: hairlines, placeholders and notebook state
 
-         DmHairline is the common 1px separator (NotebookView footer,
-         FloorSidebarItem area list). DmHairlineStrong is the heavier rule under
-         the notebook header. DmSavedStamp is deliberately not DmConfirm: the
-         source note at NotebookView.xaml.cs:102-103 says "committed" must read as
-         reassuring rather than as an action to take.
+         THE THREE RULES — ONE ROLE, THREE VALUES, AND THE VALUES ARE LOAD-BEARING.
+         DmDivider used to sit six sections up, in a second vocabulary, for the same
+         job these two do. The naming pass asked whether the three are one concept and
+         the answer is NO — they are one ROLE (a 1px separating rule) carried by three
+         colours that cannot substitute for one another:
+
+           DmHairline       #478B5E1A  28% of DmBorderParchment. Horizontal rules:
+                                       NotebookView.xaml:312 (footer),
+                                       FloorSidebarItem.xaml:125 (AreaSeparator).
+           DmHairlineStrong #6B8B5E1A  42% of the same base. One consumer, the heavier
+                                       rule under the notebook header,
+                                       NotebookView.xaml:158.
+           DmHairlineSolid  #3A2E1A    OPAQUE, and off that ramp entirely. Vertical
+                                       rules between icon-button groups:
+                                       ControlsPaletteView.xaml (on the #EDD8A0
+                                       parchment tool panel) and DungeonDetailPage.xaml
+                                       twice (on the #1A1610 popup).
+
+         So they were NOT collapsed. The first two are alpha washes of the parchment
+         border and sink into whatever they lie on — they are listed under #8B5E1A in
+         the shared-colour table at the top and must move with it. The third is opaque
+         precisely BECAUSE it has to read on two surfaces at opposite ends of the value
+         range: a 28% wash of #8B5E1A over #EDD8A0 parchment is nearly invisible, and
+         over #1A1610 it is a dark ghost. Merging any pair would change rendered pixels,
+         which is a restyle decision and not this pass's to make.
+
+         What WAS wrong was the vocabulary. "Divider" named a colour after a component
+         — and after a component that exists: Controls/DmDivider is a ContentView, so
+         the token and the type shared a name. "Hairline" is already this theme's word
+         for a 1px rule (see DmStrokeHairline, the thickness), two of the three tokens
+         already used it, and "Solid" states the axis that actually varies rather than
+         implying a third weight step between Hairline and HairlineStrong.
+
+         DmSavedStampText is deliberately not DmConfirm: the source note at
+         NotebookView.xaml.cs:102-103 says "committed" must read as reassuring rather
+         than as an action to take. It gained its Text suffix in the naming pass — it
+         sets SaveStateLabel.TextColor and nothing else, and its four action-role
+         neighbours (DmConfirmText, DmSaveText, DmDiscardText, DmRibbonText) all spell
+         it. Bare "SavedStamp" invited it to be read as a badge fill.
     ═══════════════════════════════════════════════════════════════ -->
     <Color x:Key="DmHairline">#478B5E1A</Color>
     <Color x:Key="DmHairlineStrong">#6B8B5E1A</Color>
+    <Color x:Key="DmHairlineSolid">#3A2E1A</Color>
     <Color x:Key="DmTextPlaceholder">#8C7A5030</Color>
     <Color x:Key="DmDestructiveHoverSurface">#248B2020</Color>
-    <Color x:Key="DmSavedStamp">#4A6A2A</Color>
+    <Color x:Key="DmSavedStampText">#4A6A2A</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          NEAR-DUPLICATE COLOURS — DO NOT COLLAPSE

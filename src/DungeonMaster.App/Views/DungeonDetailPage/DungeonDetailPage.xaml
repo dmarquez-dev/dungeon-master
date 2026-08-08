@@ -445,7 +445,7 @@
                                    InputTransparent="True" />
                         </Border>
                         <BoxView WidthRequest="1" HeightRequest="18"
-                                 Color="{StaticResource DmDivider}"
+                                 Color="{StaticResource DmHairlineSolid}"
                                  VerticalOptions="Center" />
                         <!-- Minus and plus are line work, so they are Rectangles centred in the
                              32x32 button rather than text nudged into place by a measured
@@ -495,7 +495,7 @@
                             </Grid>
                         </Border>
                         <BoxView WidthRequest="1" HeightRequest="18"
-                                 Color="{StaticResource DmDivider}"
+                                 Color="{StaticResource DmHairlineSolid}"
                                  VerticalOptions="Center" />
                         <Border x:Name="PopupBtnDelete"
                                 Style="{StaticResource PopupIconButton}"
@@ -509,7 +509,7 @@
                             <Label Text="&#xE9FC;"
                                    FontFamily="{StaticResource DmFontIcon}"
                                    FontSize="{StaticResource DmIconSizeXL}"
-                                   TextColor="{StaticResource DmDestructiveBright}"
+                                   TextColor="{StaticResource DmDestructiveOnPopup}"
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center"
                                    AutomationProperties.IsInAccessibleTree="False"

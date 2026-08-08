@@ -115,7 +115,7 @@
 
             <!-- Divider -->
             <BoxView WidthRequest="1" HeightRequest="44"
-                     Color="{StaticResource DmDivider}"
+                     Color="{StaticResource DmHairlineSolid}"
                      Margin="8,0"
                      VerticalOptions="Center" />
 

@@ -33,7 +33,7 @@ public static class DmTheme
 	///		scrollbar thumb fill on pointer-over. <see cref="ScrollGoldLight"/> resolves the same
 	///		token; see the note there before trying to move the two apart. Shares its value with
 	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/>,
-	///		<see cref="MapArea"/> and <see cref="MapObjectPlaceholder"/> today; see the
+	///		<see cref="MapAreaStroke"/> and <see cref="MapObjectPlaceholder"/> today; see the
 	///		shared-colour list at the top of Tokens.xaml.
 	/// </summary>
 	public static Color Gold =>
@@ -54,7 +54,7 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the selected area border gold.
 	///		Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
-	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapArea"/> and
+	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapAreaStroke"/> and
 	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
 	///		Tokens.xaml.
 	/// </summary>
@@ -100,7 +100,7 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the drag-and-drop placeholder stroke colour.
 	///		Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
-	///		<see cref="AreaSelectedBorder"/>, <see cref="MapArea"/> and
+	///		<see cref="AreaSelectedBorder"/>, <see cref="MapAreaStroke"/> and
 	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
 	///		Tokens.xaml.
 	/// </summary>
@@ -128,7 +128,7 @@ public static class DmTheme
 	///		read differently — this one is a content indicator, <see cref="Gold"/> is the active
 	///		tool and focus highlight — but the seam is nominal until that token exists. Also
 	///		shares its value with <see cref="AreaSelectedBorder"/>,
-	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapArea"/> and
+	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapAreaStroke"/> and
 	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
 	///		Tokens.xaml.
 	/// </summary>
@@ -190,8 +190,8 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the notebook's "saved" stamp green.
 	/// </summary>
-	public static Color SavedStamp =>
-		Resolve<Color>("DmSavedStamp");
+	public static Color SavedStampText =>
+		Resolve<Color>("DmSavedStampText");
 
 	/// <summary>
 	///		Gets the parchment ink used for text on a tool-panel surface.
@@ -231,7 +231,7 @@ public static class DmTheme
 
 	/// <summary>
 	///		Gets the WinUI scrollbar thumb fill.
-	///		Shares its value with <see cref="TextSelection"/> today, but is deliberately a
+	///		Shares its value with <see cref="SurfaceTextSelection"/> today, but is deliberately a
 	///		separate member: the scrollbar thumb and the text-selection wash are independent
 	///		design decisions that a future restyle may want to move apart. Tokens.xaml lists
 	///		the pair under "colours shared across tokens".
@@ -250,8 +250,8 @@ public static class DmTheme
 	///		Shares its value with <see cref="ScrollbarThumb"/> today, but is deliberately a
 	///		separate member for the same reason given there.
 	/// </summary>
-	public static Color TextSelection =>
-		Resolve<Color>("DmTextSelection");
+	public static Color SurfaceTextSelection =>
+		Resolve<Color>("DmSurfaceTextSelection");
 
 	/// <summary>
 	///		Gets the WinUI combo item surface in its hover state.
@@ -309,8 +309,8 @@ public static class DmTheme
 	///		the map's area colour and the UI accent gold are independent design decisions
 	///		that a future restyle may want to move apart.
 	/// </summary>
-	public static Color MapArea =>
-		Resolve<Color>("DmMapArea");
+	public static Color MapAreaStroke =>
+		Resolve<Color>("DmMapAreaStroke");
 
 	/// <summary>
 	///		Gets the map canvas outline vertex handle colour.
@@ -337,7 +337,7 @@ public static class DmTheme
 	///		It paints the "?" fallback glyph and outline and the dashed ghost-placement
 	///		outline. Shares its value with <see cref="Gold"/>, <see cref="ScrollGoldLight"/>,
 	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/> and
-	///		<see cref="MapArea"/> today, but is deliberately separate because these are
+	///		<see cref="MapAreaStroke"/> today, but is deliberately separate because these are
 	///		object-placeholder renderings, not area outlines or UI affordances, and a restyle
 	///		may want to move them apart.
 	/// </summary>
