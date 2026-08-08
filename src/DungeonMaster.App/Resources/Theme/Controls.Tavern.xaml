@@ -3,39 +3,46 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Dark Tavern chrome: page background, sidebar, toolbars, cards. -->
+    <!--
+        Dark Tavern chrome: page background, sidebar, toolbars, cards.
 
-    <Style x:Key="DmButtonTavern" TargetType="Button" BasedOn="{StaticResource DmButtonBase}">
-        <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
-        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
-        <Setter Property="BorderColor" Value="{StaticResource DmBorderTavern}" />
-    </Style>
+        THIS FILE USED TO CARRY SEVEN KEYS AND CONSUME NONE OF THEM. Five were deleted in the
+        adoption pass rather than kept as aspiration, and the reason each went is recorded here
+        so nobody re-adds it on the assumption it was an oversight:
 
+          DmButtonTavern     No Button in the app wants a raised tavern surface with a border.
+                             Every tavern-surface Button is a transparent-background gold glyph
+                             or gold text (the Undo chip, + Add Floor, + Add area, the list-page
+                             icon buttons). Adopting it would have PAINTED A SURFACE AND A
+                             BORDER onto controls that deliberately have neither.
+          DmEditorTavern     The only Editor on a tavern surface is DmInlineEditor's, whose font
+                             and colours are bindable pass-throughs from its host — and its one
+                             host, NotebookView, is parchment. Nothing to adopt it.
+          DmPickerTavern     The app's one Picker (ObjectPaletteView's pack picker) is on a TOOL
+                             PANEL: DmTextToolPanel on DmSurfaceToolChip, which is neither the
+                             tavern nor the parchment pair. DmPickerParchment went with it, and
+                             DmPickerBase with both.
+          DmSearchBarTavern  THERE IS NO SearchBar ELEMENT IN THE APP. DmSearchBar is a
+                             ContentView wrapping an Entry in a Border, so this style — and the
+                             DmSearchBarBase it derived from — could never have had a consumer.
+          DmLabelTavern      DmLabelBase is DmFontBody at DmFontSizeBody. No Label carrying
+                             DmTextTavern uses that pair: DmCard's title is DmFontTitleStrong at
+                             DmFontSizeTitle, DmFlagBanner's is its own banner face, and the zoom
+                             readout is DmFontSizeBodySmall. Adopting would have RESIZED TEXT.
+
+        The two that remain are consumed. Keep it that way: NoOrphanedStyleKeys fails the build
+        for any Style key here with no call site outside a comment.
+    -->
+
+    <!-- Consumed by DmSearchBar.xaml's Entry. -->
     <Style x:Key="DmEntryTavern" TargetType="Entry" BasedOn="{StaticResource DmEntryBase}">
         <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource DmTextTavernMuted}" />
     </Style>
 
-    <Style x:Key="DmEditorTavern" TargetType="Editor" BasedOn="{StaticResource DmEditorBase}">
-        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextTavernMuted}" />
-    </Style>
-
-    <Style x:Key="DmPickerTavern" TargetType="Picker" BasedOn="{StaticResource DmPickerBase}">
-        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
-        <Setter Property="TitleColor" Value="{StaticResource DmTextTavernMuted}" />
-    </Style>
-
-    <Style x:Key="DmSearchBarTavern" TargetType="SearchBar" BasedOn="{StaticResource DmSearchBarBase}">
-        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
-        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextTavernMuted}" />
-        <Setter Property="CancelButtonColor" Value="{StaticResource DmAccentGold}" />
-    </Style>
-
-    <Style x:Key="DmLabelTavern" TargetType="Label" BasedOn="{StaticResource DmLabelBase}">
-        <Setter Property="TextColor" Value="{StaticResource DmTextTavern}" />
-    </Style>
-
+    <!-- Consumed by DmSearchBar's Border, FloorSidebarItem's card, and the map toolbar and
+         dungeon card in DungeonDetailPage. Each of those restates BackgroundColor: DmBorderBase
+         sets it to Transparent, so a Border with its own surface MUST say so again. -->
     <Style x:Key="DmBorderTavernStyle" TargetType="Border" BasedOn="{StaticResource DmBorderBase}">
         <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
     </Style>

@@ -40,16 +40,19 @@ public partial class DmConfirmPopup : Popup<bool>
 		CancelButton.Text = cancelText;
 		ConfirmButton.Text = confirmText;
 
-		if (isDestructive)
-		{
-			ConfirmButton.BackgroundColor = DmTheme.Destructive;
-			ConfirmButton.TextColor = DmTheme.DestructiveText;
-		}
-		else
-		{
-			ConfirmButton.BackgroundColor = DmTheme.Confirm;
-			ConfirmButton.TextColor = DmTheme.ConfirmText;
-		}
+		// THE STYLE IS SWAPPED, NOT THE COLOURS, AND THAT IS LOAD-BEARING.
+		// DmConfirmButton declares its own CommonStates group whose Normal state sets
+		// BackgroundColor and TextColor. A VisualState setter outranks a locally-assigned
+		// value, so the earlier form of this method — ConfirmButton.BackgroundColor =
+		// DmTheme.Destructive — was overruled the instant the button entered Normal, which is
+		// immediately. Every destructive dialog would have rendered confirm-green, with a
+		// clean build, no warning and nothing wrong-looking in the markup.
+		// DmDestructiveButton has no states of its own: it inherits DmButtonBase's group,
+		// whose Normal state sets Opacity and no colour, so its BackgroundColor setter is what
+		// reaches the pixel. Do not give it one.
+		ConfirmButton.Style = isDestructive
+			? DmTheme.DestructiveButton
+			: DmTheme.ConfirmButton;
 	}
 
 	private void OnConfirm(object? sender, EventArgs e) =>

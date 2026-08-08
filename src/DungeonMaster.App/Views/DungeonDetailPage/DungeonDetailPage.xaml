@@ -135,20 +135,23 @@
                  collapsed element contributes nothing to an Auto row, so IsVisible="False" would
                  let the shared row size itself to the dungeon card alone and then jump when the
                  first floor was picked. InputTransparent keeps it genuinely non-interactive for
-                 as long as it is invisible. -->
+                 as long as it is invisible.
+
+                 DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and
+                 the DmRadiusDefault corner — the same three values this element used to spell
+                 out. BackgroundColor is NOT one of them and is restated deliberately: the style
+                 inherits BackgroundColor="Transparent" from DmBorderBase, so a Border with a
+                 surface of its own has to say so again. -->
+
             <Border x:Name="MapToolbar"
                     Grid.Row="0"
                     Grid.Column="0"
                     Opacity="0"
                     InputTransparent="True"
+                    Style="{StaticResource DmBorderTavernStyle}"
                     BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
-                    Stroke="{StaticResource DmBorderTavernBrush}"
-                    StrokeThickness="{StaticResource DmStrokeHairline}"
                     Padding="{StaticResource DmPaddingCompact}"
                     Margin="0,0,0,4">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                </Border.StrokeShape>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceXS}">
 
                     <!-- Left: context-switching area.
@@ -522,18 +525,18 @@
                  of view, and survives FloorListContainer's Children.Clear() rebuilds untouched.
                  Its height is whatever the shared row is, which is the map toolbar's height
                  whenever the toolbar is the taller of the two — no HeightRequest, no measured
-                 token, and nothing for code-behind to overwrite after the first frame. -->
+                 token, and nothing for code-behind to overwrite after the first frame.
+
+                 Same chrome as the map toolbar and the floor cards, and now the same source for
+                 it: DmBorderTavernStyle. BackgroundColor is restated because the style inherits
+                 Transparent from DmBorderBase. -->
             <Border
                 Grid.Row="0"
                 Grid.Column="1"
-                StrokeThickness="{StaticResource DmStrokeHairline}"
-                Stroke="{StaticResource DmBorderTavernBrush}"
+                Style="{StaticResource DmBorderTavernStyle}"
                 BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
                 Padding="{StaticResource DmPaddingCompact}"
                 Margin="0,0,0,4">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-                </Border.StrokeShape>
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource DmSpaceSmall}">
                     <Label
                         Grid.Column="0"

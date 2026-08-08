@@ -9,24 +9,30 @@
         below via BasedOn. A padding or radius change belongs here so it lands once rather than
         once per derived file.
 
-        ADOPTION, as counted from call sites — two of the three derived files are live and one
-        is not, and the split is not the one an earlier revision of this comment claimed:
+        ADOPTION IS NOW COMPLETE AND RATCHETED. Every Style key in this file and its three
+        derivatives has at least one call site outside a comment, and
+        ThemeDictionaryTests.NoOrphanedStyleKeys fails the build if that stops being true. DO
+        NOT ADD A STYLE HERE "for later": the previous revision of this comment was a hand
+        census of 17 dead keys, it was WRONG (it counted DmBorderTavernStyle as live on the
+        strength of a mention inside this very comment), and the styles it was tracking were
+        eventually deleted rather than adopted.
 
-          Controls.Parchment.xaml   LIVE. DmBorderParchmentStyle (CreateDungeonPopup.xaml:37
-                                    and :55), DmEntryParchment (:40), DmEditorParchment (:58).
-                                    DmButtonParchment, DmPickerParchment and DmLabelParchment
-                                    have no call sites.
-          Controls.Semantic.xaml    LIVE. DmConfirmButton (CreateDungeonPopup.xaml:82) and
-                                    DmNeutralButton (:72). DmDestructiveButton has ZERO call
-                                    sites anywhere in the repo — it is a style waiting for the
-                                    destructive confirm dialog to adopt it, not a consumer.
-          Controls.Tavern.xaml      ENTIRELY UNCONSUMED. All 8 keys, no call sites. Tavern-
-                                    surface elements set their tokens directly instead.
+        The keys that no longer exist, and why, are recorded in the file that used to declare
+        each: Controls.Tavern.xaml lost five, Controls.Parchment.xaml two, and this file lost
+        DmSearchBarBase (there is no SearchBar element in the app at all) and DmPickerBase
+        (its two derivatives went, and the one Picker is on a tool-panel surface that is
+        neither family).
 
-        None of that is a defect to fix here. The unconsumed keys are a consequence of the
-        pixel-identical constraint the theme migration ran under: adopting a paired style would
-        have moved geometry. Adoption is scheduled for the geometry-homogenisation sweep, which
-        is allowed to move pixels. Keep these counts correct if you add or remove a call site.
+        THE TWO TRAPS THAT GOVERN ANY FUTURE ADOPTION, both hit during this sweep:
+
+          1. A VisualState setter OUTRANKS AN IMPERATIVE ASSIGNMENT. DmConfirmButton's Normal
+             state sets BackgroundColor, and DmConfirmPopup used to switch its confirm button
+             between green and red by assigning BackgroundColor in code-behind. Putting the two
+             together would have rendered EVERY DESTRUCTIVE DIALOG GREEN, with a clean build
+             and no warning. The fix is to swap the STYLE — the popup now assigns
+             DmTheme.DestructiveButton or DmTheme.ConfirmButton — not to fight the state.
+          2. DmBorderBase sets BackgroundColor to Transparent, so a Border with a surface of
+             its own must restate it when it adopts a paired style. Four do.
     -->
 
     <Style x:Key="DmButtonBase" TargetType="Button">
@@ -68,11 +74,12 @@
                          DataTrigger and a local value, so an implicit one would silently
                          overrule every call site that dims itself.
                          The same precedence applies here: this 0.45 outranks anything a
-                         consuming Button sets for itself. Nothing is affected today, because
-                         both live consumers restate the group (DmConfirmButton) or can never be
-                         disabled (DmNeutralButton on CANCEL). A future keyed style that wants
-                         its own disabled appearance must restate this whole group, not add a
-                         setter at the call site. -->
+                         consuming Button sets for itself. Nothing is affected today. Of the
+                         three live consumers, DmConfirmButton restates the whole group, and
+                         neither DmNeutralButton (both CANCEL buttons) nor DmDestructiveButton
+                         (DmConfirmPopup's confirm button in destructive mode) is ever disabled.
+                         A future keyed style that wants its own disabled appearance must
+                         restate this whole group, not add a setter at the call site. -->
                     <VisualState x:Name="Disabled">
                         <VisualState.Setters>
                             <Setter Property="Opacity" Value="0.45" />
@@ -94,18 +101,6 @@
         <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="AutoSize" Value="Disabled" />
-    </Style>
-
-    <Style x:Key="DmPickerBase" TargetType="Picker">
-        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
-        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBodySmall}" />
-        <Setter Property="BackgroundColor" Value="Transparent" />
-    </Style>
-
-    <Style x:Key="DmSearchBarBase" TargetType="SearchBar">
-        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
-        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
-        <Setter Property="BackgroundColor" Value="Transparent" />
     </Style>
 
     <Style x:Key="DmLabelBase" TargetType="Label">

@@ -21,39 +21,43 @@
                 <Label
                     x:Name="MessageLabel"
                     AutomationId="ConfirmPopupMessage"
-                    FontFamily="{StaticResource DmFontBody}"
-                    FontSize="{StaticResource DmFontSizeBody}"
-                    TextColor="{StaticResource DmTextParchment}"
+                    Style="{StaticResource DmLabelParchment}"
                     LineBreakMode="WordWrap" />
 
                 <Grid
                     ColumnDefinitions="*,*"
                     ColumnSpacing="{Binding ButtonRowSpacing, Source={x:Reference Chrome}}">
+                    <!-- CharacterSpacing and BorderWidth stay local and the rest is now the
+                         style's. CharacterSpacing is per-button typesetting that DmButtonBase
+                         deliberately does not own. BorderWidth is DELIBERATELY HEAVIER than the
+                         DmStrokeHairline the base sets: a CANCEL button carries a visible
+                         outline instead of a fill, and CreateDungeonPopup's CANCEL does the
+                         same. -->
                     <Button
                         x:Name="CancelButton"
                         Grid.Column="0"
                         AutomationId="ConfirmPopupCancelButton"
-                        FontFamily="{StaticResource DmFontTitle}"
-                        FontSize="{StaticResource DmFontSizeAction}"
+                        Style="{StaticResource DmNeutralButton}"
                         CharacterSpacing="1"
-                        BackgroundColor="{StaticResource DmNeutralSurface}"
-                        TextColor="{StaticResource DmTextParchment}"
-                        BorderColor="{StaticResource DmNeutralBorder}"
                         BorderWidth="{StaticResource DmStrokeMedium}"
-                        CornerRadius="{StaticResource DmRadiusDefault}"
                         Clicked="OnCancel">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>
                     </Button>
+                    <!-- DmConfirmButton here is the NON-destructive default, and code-behind
+                         REPLACES THE STYLE — it does not assign colours — when the action is
+                         destructive. DmConfirmButton's Normal visual state sets BackgroundColor,
+                         and a VisualState setter outranks an imperative assignment, so setting
+                         ConfirmButton.BackgroundColor from code would render every delete
+                         confirmation green the moment the button entered Normal, with a clean
+                         build and nothing to see in the markup. See DmConfirmPopup.xaml.cs. -->
                     <Button
                         x:Name="ConfirmButton"
                         Grid.Column="1"
                         AutomationId="ConfirmPopupConfirmButton"
-                        FontFamily="{StaticResource DmFontTitle}"
-                        FontSize="{StaticResource DmFontSizeAction}"
+                        Style="{StaticResource DmConfirmButton}"
                         CharacterSpacing="1"
-                        CornerRadius="{StaticResource DmRadiusDefault}"
                         Clicked="OnConfirm">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />

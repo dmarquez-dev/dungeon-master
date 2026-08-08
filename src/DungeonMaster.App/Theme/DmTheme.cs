@@ -158,23 +158,28 @@ public static class DmTheme
 	public static Color Destructive =>
 		Resolve<Color>("DmDestructive");
 
-	/// <summary>
-	///		Gets the text colour used on a destructive action surface.
-	/// </summary>
-	public static Color DestructiveText =>
-		Resolve<Color>("DmDestructiveText");
+	// THE TWO BUTTON STYLES BELOW ARE THE ONLY Style ACCESSORS HERE, AND THEY EXIST FOR ONE
+	// REASON: DmConfirmPopup has to choose between an affirmative and a destructive confirm
+	// button at construction time, and choosing by assigning BackgroundColor does not work.
+	// DmConfirmButton's Normal visual state sets BackgroundColor, and a VisualState setter
+	// outranks a locally-assigned value, so the assignment is silently overruled and every
+	// destructive dialog renders green. Swapping the whole Style is the only form that wins.
+	// This is not a licence to resolve styles from code in general — XAML must keep using
+	// Style="{StaticResource …}", which is checked when the markup is compiled.
 
 	/// <summary>
-	///		Gets the affirmative action green used by the confirmation popup's confirm button.
+	///		Gets the button style for a destructive confirmation, used when
+	///		<c>DmConfirmPopup</c> is opened in destructive mode.
 	/// </summary>
-	public static Color Confirm =>
-		Resolve<Color>("DmConfirm");
+	public static Style DestructiveButton =>
+		Resolve<Style>("DmDestructiveButton");
 
 	/// <summary>
-	///		Gets the text colour used on an affirmative action surface.
+	///		Gets the button style for an affirmative confirmation, used when
+	///		<c>DmConfirmPopup</c> is opened in its default mode.
 	/// </summary>
-	public static Color ConfirmText =>
-		Resolve<Color>("DmConfirmText");
+	public static Style ConfirmButton =>
+		Resolve<Style>("DmConfirmButton");
 
 	/// <summary>
 	///		Gets the faint red wash behind a hovered destructive icon button.

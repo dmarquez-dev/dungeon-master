@@ -36,6 +36,7 @@ public class DmThemeKeysResolveTests
             ["double"] = "x:Double",
             ["string"] = "x:String",
             ["Thickness"] = "Thickness",
+            ["Style"] = "Style",
         };
 
     /// <summary>

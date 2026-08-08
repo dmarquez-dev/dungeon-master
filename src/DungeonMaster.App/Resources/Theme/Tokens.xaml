@@ -263,8 +263,14 @@
     <!-- ═══════════════════════════════════════════════════════════════
          Brushes. {StaticResource} works here because it sits in attribute
          position rather than element content — see the note at the top.
+
+         A brush alias exists only where a Brush-typed property needs one that a Color
+         cannot serve directly. There is no DmAccentGoldBrush: it was declared with the
+         three below, never referenced by anything, and deleted in the adoption pass.
+         Every gold stroke in the app names DmAccentGoldLight, which MAUI converts to a
+         brush at the point of use. Do not re-add an alias speculatively — add it when a
+         property needs it.
     ═══════════════════════════════════════════════════════════════ -->
-    <SolidColorBrush x:Key="DmAccentGoldBrush" Color="{StaticResource DmAccentGold}" />
     <SolidColorBrush x:Key="DmBorderTavernBrush" Color="{StaticResource DmBorderTavern}" />
     <SolidColorBrush x:Key="DmBorderTavernHoverBrush" Color="{StaticResource DmBorderTavernHover}" />
     <SolidColorBrush x:Key="DmBorderParchmentBrush" Color="{StaticResource DmBorderParchment}" />

@@ -14,6 +14,18 @@
         style replaces the base group wholesale, so inheriting here would have silently
         turned the disabled CREATE button in CreateDungeonPopup from grey-brown back to
         green at 0.45 opacity. The states below reproduce the old appearance exactly.
+
+        THAT SAME GROUP IS WHY DmConfirmPopup SWAPS STYLES RATHER THAN COLOURS. Its confirm
+        button is green or red depending on whether the action is destructive. A VisualState
+        setter outranks an imperative assignment, so the Normal state below beats
+        ConfirmButton.BackgroundColor = DmTheme.Destructive — silently, at the moment the button
+        enters Normal, with a clean build. The popup therefore assigns
+        DmTheme.DestructiveButton or DmTheme.ConfirmButton to Style instead.
+
+        DmDestructiveButton MUST NOT GAIN A CommonStates GROUP OF ITS OWN. It works precisely
+        because it inherits DmButtonBase's, whose Normal state sets Opacity and nothing else, so
+        its own BackgroundColor setter is what reaches the pixel. Give it a Normal state that
+        names a colour and the destructive dialog goes green again by the same mechanism.
     -->
 
     <Style x:Key="DmConfirmButton" TargetType="Button" BasedOn="{StaticResource DmButtonBase}">

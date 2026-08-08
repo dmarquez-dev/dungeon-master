@@ -7,17 +7,18 @@
     x:Class="DungeonMaster.App.Controls.FloorSidebarItem"
     x:Name="Root">
 
+    <!-- DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and the
+         DmRadiusDefault corner. BackgroundColor is restated because the style inherits
+         BackgroundColor="Transparent" from DmBorderBase. Both Stroke and BackgroundColor are
+         then rewritten imperatively by the hover, active and drag-over handlers below; an
+         assignment is a local value and outranks a Style setter, so the style is the first
+         frame's appearance and the resting state the handlers return to. -->
     <Border
         x:Name="FloorBorder"
-        StrokeThickness="{StaticResource DmStrokeHairline}"
-        Stroke="{StaticResource DmBorderTavernBrush}"
+        Style="{StaticResource DmBorderTavernStyle}"
         BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
         Padding="{StaticResource DmPaddingCompact}"
         Margin="0,0,0,4">
-
-        <Border.StrokeShape>
-            <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
-        </Border.StrokeShape>
 
         <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
             <VerticalStackLayout.GestureRecognizers>

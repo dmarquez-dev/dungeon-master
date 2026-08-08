@@ -8,6 +8,20 @@ namespace DungeonMaster.Tests.App.Theme;
 /// </summary>
 public class ThemeDictionaryTests
 {
+    // Matches a <Style … x:Key="Dm…"> declaration. Anchored on the element name so a keyed
+    // Color, SolidColorBrush, x:Double or Thickness is not read as a style: those are tokens,
+    // and a token with no consumer today is covered by RequiredKeys above, not by
+    // NoOrphanedStyleKeys. [^>]*? rather than .*? so it cannot run past the element it opened.
+    private static readonly Regex StyleKeyPattern =
+        new(
+            @"<Style[^>]*?x:Key=""(?<key>Dm[A-Za-z0-9]*)""",
+            RegexOptions.Compiled);
+
+    private static readonly Regex CSharpLineCommentPattern =
+        new(
+            @"//.*$",
+            RegexOptions.Compiled | RegexOptions.Multiline);
+
     /// <summary>
     ///		Gets the resource keys every theme consumer is entitled to resolve.
     /// </summary>
@@ -29,7 +43,10 @@ public class ThemeDictionaryTests
         "DmGoldHoverTint", "DmEditorGlowTint",
         "DmMapGrid", "DmMapArea", "DmMapVertex", "DmMapAreaFillActive", "DmMapAreaStrokeActive",
         "DmMapObjectPlaceholder",
-        "DmAccentGoldBrush", "DmBorderTavernBrush", "DmBorderTavernHoverBrush",
+        // DmAccentGoldBrush was here and is gone: it had no consumer anywhere in the repo and
+        // was deleted with the orphaned styles rather than kept as a spare alias. Every gold
+        // stroke in the app names DmAccentGoldLight and lets MAUI convert it.
+        "DmBorderTavernBrush", "DmBorderTavernHoverBrush",
         "DmBorderParchmentBrush",
         "DmRadiusTight", "DmRadiusDefault", "DmRadiusLoose",
         "DmStrokeHairline", "DmStrokeEmphasis", "DmStrokeMedium",
@@ -215,6 +232,113 @@ public class ThemeDictionaryTests
                 "Implicit.xaml",
                 "the implicit style floor references keys from every dictionary above it and must "
                 + "be merged last");
+    }
+
+    /// <summary>
+    ///		Asserts that every <c>Style</c> declared with an <c>x:Key</c> under Resources/Theme has
+    ///		at least one consumer OUTSIDE A COMMENT.
+    ///		<para>
+    ///		The "outside a comment" clause is the entire point and it is not defensive coding. The
+    ///		hand census this fact replaces recorded <c>DmBorderTavernStyle</c> as live on the
+    ///		strength of a single grep hit — which turned out to be a mention of the key inside the
+    ///		prose comment at the top of Controls.Base.xaml. It had no call site at all. Seventeen
+    ///		keys were dead when that census said six were, and every one of them shipped, built
+    ///		clean and rendered nothing.
+    ///		</para>
+    ///		<para>
+    ///		A consumer is a <c>{StaticResource Key}</c> reference in any application markup —
+    ///		including a <c>BasedOn</c>, which is how a base style earns its keep — or a
+    ///		<c>"Key"</c> string literal in application code, which is how <c>DmTheme</c> resolves
+    ///		the two button styles <c>DmConfirmPopup</c> swaps between. Comments are stripped from
+    ///		both before anything is counted.
+    ///		</para>
+    ///		<para>
+    ///		A style consumed only by another style that is itself orphaned is reported one layer at
+    ///		a time: the leaf fails, and deleting it exposes the base on the next run. That is
+    ///		deliberate — resolving the whole chain in one pass would name files whose only fault is
+    ///		being downstream of the real one.
+    ///		</para>
+    /// </summary>
+    [Fact]
+    public void NoOrphanedStyleKeys()
+    {
+        var styleKeys = ThemeSource
+            .ThemeFiles()
+            .SelectMany(path =>
+                StyleKeyPattern
+                    .Matches(StripComments(File.ReadAllText(path)))
+                    .Select(match =>
+                        new
+                        {
+                            Key = match.Groups["key"].Value,
+                            File = Path.GetFileName(path),
+                        }))
+            .ToList();
+
+        styleKeys
+            .Should()
+            .NotBeEmpty("the theme dictionaries must declare keyed styles or this fact is vacuous");
+
+        var markup = RepoPaths
+            .AppSourceFiles("*.xaml")
+            .Select(path =>
+                StripComments(File.ReadAllText(path)))
+            .ToList();
+
+        var code = RepoPaths
+            .AppSourceFiles("*.cs")
+            .Select(path =>
+                StripCSharpComments(File.ReadAllText(path)))
+            .ToList();
+
+        var orphans = new List<string>();
+
+        foreach (var style in styleKeys)
+        {
+            var markupReference = new Regex(
+                $@"\{{StaticResource\s+{Regex.Escape(style.Key)}\s*\}}",
+                RegexOptions.Compiled);
+
+            var codeReference = new Regex(
+                $@"""{Regex.Escape(style.Key)}""",
+                RegexOptions.Compiled);
+
+            var consumed =
+                markup.Any(text =>
+                    markupReference.IsMatch(text))
+                || code.Any(text =>
+                    codeReference.IsMatch(text));
+
+            if (!consumed)
+            {
+                orphans.Add(
+                    $"{style.File} -> {style.Key} is declared as a Style but nothing outside a "
+                    + "comment consumes it; adopt it at a call site or delete it");
+            }
+        }
+
+        orphans
+            .Should()
+            .BeEmpty(
+                "an unconsumed style is an abstraction that renders nowhere — it builds clean, "
+                + "launches clean and is invisible until somebody counts");
+    }
+
+    private static string StripComments(string text)
+    {
+        return ThemeSource.XmlCommentPattern.Replace(
+            text,
+            string.Empty);
+    }
+
+    private static string StripCSharpComments(string text)
+    {
+        // Line comments only. A theme key inside a /* */ block would be missed, and the
+        // application has none; a block-comment stripper that does not understand string
+        // literals would corrupt more than it cleaned.
+        return CSharpLineCommentPattern.Replace(
+            text,
+            string.Empty);
     }
 
     private static IReadOnlyList<string> MergedThemeSourcesInAppXaml()
