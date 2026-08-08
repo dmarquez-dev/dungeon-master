@@ -118,8 +118,9 @@ public class ImplicitStyleTests
     /// <summary>
     ///		Asserts that the implicit Button style carries the interaction states it was written
     ///		for. Task 4b measured only padding and minimum size and missed the state group entirely,
-    ///		leaving 19 unstyled Buttons with no hover or press feedback at all; the values here are
-    ///		byte-identical to the stock ones this file replaces.
+    ///		leaving every unstyled Button with no hover or press feedback at all — 16 of the app's
+    ///		20 Button elements today; the values here are byte-identical to the stock ones this file
+    ///		replaces.
     /// </summary>
     [Fact]
     public void ImplicitButtonStyle_CarriesItsCommonStates()
@@ -132,8 +133,8 @@ public class ImplicitStyleTests
             .Should()
             .Contain(
                 "CommonStates",
-                "without the CommonStates group the 19 unstyled Buttons have no hover or press "
-                + "feedback at all");
+                "without the CommonStates group every Button that carries no Style= has no hover "
+                + "or press feedback at all");
 
         var states = Names(
             button,

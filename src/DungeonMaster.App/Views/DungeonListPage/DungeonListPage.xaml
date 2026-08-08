@@ -69,7 +69,20 @@
                                         </Button.Behaviors>
                                     </Button>
 
-                                    <!-- Start Session button -->
+                                    <!-- Start Session button.
+
+                                         UNWIRED. This carries neither Clicked nor Command, here
+                                         or anywhere in the repository, and clicking it was
+                                         confirmed at runtime to do nothing and log nothing. The
+                                         CommandParameter below binds to a Command that does not
+                                         exist. Wiring it is a feature, not a fix.
+
+                                         The Hint therefore says the session cannot be started
+                                         yet rather than describing what starting one would do:
+                                         a screen reader reads the Hint out as a promise, and the
+                                         accessibility layer must not assert something the
+                                         control cannot deliver. Restore a descriptive Hint at
+                                         the same time as the handler, not before. -->
                                     <Grid>
                                         <Button
                                             Text="&#xE97D;"
@@ -82,7 +95,7 @@
                                             CommandParameter="{Binding Id}"
                                             AutomationId="StartSessionButton"
                                             SemanticProperties.Description="Start session"
-                                            SemanticProperties.Hint="Runs this dungeon at the table; needs at least one floor"
+                                            SemanticProperties.Hint="Sessions are not available yet; this button performs no action."
                                             ToolTipProperties.Text="Start session"
                                             IsEnabled="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
                                             <Button.Behaviors>

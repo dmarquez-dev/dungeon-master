@@ -30,8 +30,12 @@ public partial class ObjectPaletteView : ContentView
         // Windows: RequestedTheme + ResourceDictionary injection on the WinUI ComboBox/ScrollViewer.
         // macCatalyst: The Picker maps to a UIPickerView/UITextField. Colours set in XAML
         //   (DmSurfaceToolChip background, DmTextToolPanel text) are sufficient for the control itself.
-        //   The ScrollViewer gold-thumb override lives in Windows App.xaml only; on macCatalyst the
-        //   default scroll-indicator style (dark-on-light) is acceptable against the parchment surface.
+        //   The ScrollViewer gold-thumb override lives in Platforms/Windows/App.xaml.cs
+        //   (ApplyThemeResources), which writes the ScrollBarThumbFill* keys at the application
+        //   level AND into the Light and Dark theme dictionaries — the RequestedTheme=Light below
+        //   sends this ScrollViewer's ThemeResource lookup to the Light dictionary, so an
+        //   application-level entry alone would not reach it. On macCatalyst the default
+        //   scroll-indicator style (dark-on-light) is acceptable against the parchment surface.
         // TODO(macOS): If the macCatalyst Picker popup (UIPickerView) appears illegible, add a
         //   #if MACCATALYST HandlerChanged block here to set UIPickerView.BackgroundColor and
         //   apply UILabel foreground styling via a custom UIPickerViewDelegate.

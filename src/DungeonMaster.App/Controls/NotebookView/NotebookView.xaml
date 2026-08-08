@@ -130,7 +130,7 @@
                     SemanticProperties.Description="Close notebook"
                     SemanticProperties.Hint="Saves any pending edit and hides the notebook."
                     Text="&#x2715;"
-                    FontFamily="{StaticResource DmFontIcon}"
+                    FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeSmall}"
                     BackgroundColor="Transparent"
                     TextColor="{StaticResource DmTextParchmentMuted}"

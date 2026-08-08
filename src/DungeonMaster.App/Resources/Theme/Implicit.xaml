@@ -36,7 +36,7 @@
         stock implicit styles were quietly load-bearing, and removing them without a
         replacement was a regression twice over:
 
-          1. GEOMETRY. 19 of the app's 21 Button elements carry no Style= at all, and all
+          1. GEOMETRY. 16 of the app's 20 Button elements carry no Style= at all, and all
              3 Entry elements are likewise unstyled or only partly styled. They took
              Padding, CornerRadius and the 44px minimum touch target from the stock
              styles. MAUI leaves MinimumHeightRequest unset by default, so without this
@@ -48,7 +48,7 @@
 
           2. INTERACTION STATES. The stock Button style also carried a CommonStates group
              (hover and press opacity). Task 4b measured only padding and min-size and
-             missed it, so the first cut of this file left all 19 unstyled Buttons with no
+             missed it, so the first cut of this file left every unstyled Button with no
              hover or press feedback at all. See the Button style below.
 
         Editor and Picker get the same minimums even though, today, both are inert: every
@@ -151,7 +151,8 @@
 
         This exists solely so that deleting the stock Button style in the now-removed
         Resources/Styles/Styles.xaml (Task 10) was a geometry no-op. The Task 4b
-        measurement walked every Button in the app and found 18 of the 21 rely on
+        measurement walked every Button in the app and found 18 of the 21 then present
+        relied on
         that stock style for at least one of Padding, MinimumHeightRequest or
         CornerRadius; MAUI leaves MinimumHeightRequest unset by default, so
         removing the stock style without this one would shrink buttons below the
@@ -172,8 +173,8 @@
         of which sit on 2, 3 or 4.
 
         It is now bound to DmRadiusLoose (4). This is the most visible single change in
-        the design-system-completion sweep: every Button that carries no Style= — 19 of
-        the app's 21 — changes shape. That is intended. Buttons now match the cards,
+        the design-system-completion sweep: every Button that carries no Style= — 16 of
+        the app's 20 — changes shape. That is intended. Buttons now match the cards,
         popups, chips and panels around them.
 
         The remaining four values stay literals, and each for its own reason rather
@@ -200,7 +201,7 @@
         <!--
             Interaction states. Opacity is not colour, so this does not breach the rule
             above: the style still sets no TextColor, BackgroundColor, FontFamily or
-            FontSize. 19 of the app's 21 Buttons carry no Style= and therefore relied on
+            FontSize. 16 of the app's 20 Buttons carry no Style= and therefore relied on
             the stock implicit style for hover and press feedback; without this group they
             would have none at all.
 
@@ -214,9 +215,13 @@
 
             Three unstyled Buttons do choose for themselves, all at Opacity 0.35:
 
-                DungeonDetailPage.xaml:69       Start Session, DataTrigger FloorCount == 0
-                DungeonListPage.xaml:86         Start Session icon, same trigger
-                DungeonDetailPage.xaml:343-344  UndoButton, local IsEnabled + Opacity
+                DungeonDetailPage StartSessionButton  DataTrigger FloorCount == 0
+                DungeonListPage   StartSessionButton  Start Session icon, same trigger
+                DungeonDetailPage UndoButton          local IsEnabled + Opacity
+
+            Named rather than cited by line: the line numbers here were wrong on all three
+            within one wave of being written, which is the whole reason the census above was
+            recounted. A name survives an edit above it.
 
             An earlier draft of this file set Disabled to Opacity 0.45 to match
             DmButtonBase. That was wrong twice over: it overrode all three of those sites,

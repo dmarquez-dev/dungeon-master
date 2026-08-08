@@ -31,7 +31,7 @@
                         AutomationId="ObjectPaletteCloseButton"
                         SemanticProperties.Description="Close the object palette"
                         ToolTipProperties.Text="Close"
-                        FontFamily="{StaticResource DmFontIcon}"
+                        FontFamily="{StaticResource DmFontBody}"
                         FontSize="{StaticResource DmIconSizeTiny}"
                         TextColor="{StaticResource DmTextParchmentMuted}"
                         BackgroundColor="Transparent"

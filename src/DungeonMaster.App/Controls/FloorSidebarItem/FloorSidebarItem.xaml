@@ -20,7 +20,17 @@
         Padding="{StaticResource DmPaddingCompact}"
         Margin="0,0,0,4">
 
-        <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
+        <!-- This layout, not the toggle glyph, is the tap target that expands and collapses the
+             floor — and expanding is the only route to a floor's areas. ExpandToggle below tells
+             the user to "tap the floor card", so the card has to be in the accessibility tree
+             and has to say what it is; without a description it was an unlabelled target that
+             another control pointed at. The description is static because the toggle beside it
+             already carries the expanded/collapsed state, rewritten in SetExpanded. -->
+        <VerticalStackLayout
+            Spacing="{StaticResource DmSpaceXS}"
+            AutomationId="FloorCard"
+            SemanticProperties.Description="Floor card"
+            SemanticProperties.Hint="Tap to expand or collapse this floor's areas.">
             <VerticalStackLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCardTapped" />
             </VerticalStackLayout.GestureRecognizers>
@@ -36,7 +46,7 @@
                     Grid.Column="0"
                     AutomationId="FloorExpandToggle"
                     Text="&#x25B8;"
-                    FontFamily="{StaticResource DmFontIcon}"
+                    FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeSmall}"
                     TextColor="{StaticResource DmTextTavernMuted}"
                     SemanticProperties.Description="Collapsed"
@@ -105,7 +115,7 @@
                     Grid.Column="4"
                     AutomationId="FloorDragHandle"
                     Text="&#x22EE;"
-                    FontFamily="{StaticResource DmFontIcon}"
+                    FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeLarge}"
                     TextColor="{StaticResource DmTextTavernMuted}"
                     SemanticProperties.Description="Reorder floor"

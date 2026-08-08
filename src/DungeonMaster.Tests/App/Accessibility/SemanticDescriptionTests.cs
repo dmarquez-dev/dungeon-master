@@ -44,6 +44,17 @@ public class SemanticDescriptionTests
             RegexOptions.Compiled);
 
     /// <summary>
+    ///		Matches the description attribute AND captures its value, which is the part that
+    ///		matters. Testing only for the attribute's presence passed
+    ///		<c>SemanticProperties.Description=""</c> — proved by construction — and an empty
+    ///		description announces exactly nothing, which is the state this fact exists to prevent.
+    /// </summary>
+    private static readonly Regex DescriptionAttribute =
+        new(
+            @"SemanticProperties\.Description\s*=\s*""(?<value>[^""]*)""",
+            RegexOptions.Compiled);
+
+    /// <summary>
     ///		Files whose icon-only controls are knowingly still undescribed. Empty, and meant to
     ///		stay that way: every offender this fact found when it was written was fixed rather than
     ///		listed, so an entry here is a regression with a note attached, not a normal state.
@@ -66,6 +77,7 @@ public class SemanticDescriptionTests
     public void EveryIconOnlyControlHasASemanticDescription()
     {
         var offenders = new List<string>();
+        var reached = new List<string>();
 
         foreach (var path in RepoPaths.AppSourceFiles("*.xaml"))
         {
@@ -97,21 +109,28 @@ public class SemanticDescriptionTests
                     continue;
                 }
 
-                if (attributes.Contains("SemanticProperties.Description")
-                    || attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False"""))
-                {
-                    continue;
-                }
-
                 var line = source
                     .Take(tag.Index)
                     .Count(character =>
                         character == '\n') + 1;
 
+                reached.Add($"{relative}:{line}");
+
+                if (HasUsableDescription(attributes)
+                    || attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False"""))
+                {
+                    continue;
+                }
+
+                var declared = DescriptionAttribute.Match(attributes);
+
                 offenders.Add(
                     $"{relative}:{line} -> <{tag.Groups["element"].Value} "
-                    + $"Text=\"U+{(int)glyph[0]:X4}\"> has no SemanticProperties.Description "
-                    + "and is not excluded from the accessibility tree");
+                    + $"Text=\"U+{(int)glyph[0]:X4}\"> has "
+                    + (declared.Success
+                        ? "a blank SemanticProperties.Description"
+                        : "no SemanticProperties.Description")
+                    + " and is not excluded from the accessibility tree");
             }
         }
 
@@ -119,9 +138,32 @@ public class SemanticDescriptionTests
             .Should()
             .BeEmpty(
                 "a control whose whole label is an icon codepoint announces nothing to a screen "
-                + "reader unless it carries SemanticProperties.Description, or is marked "
-                + @"AutomationProperties.IsInAccessibleTree=""False"" because something beside it "
-                + "already says the same thing");
+                + "reader unless it carries a non-blank SemanticProperties.Description, or is "
+                + @"marked AutomationProperties.IsInAccessibleTree=""False"" because something "
+                + "beside it already says the same thing");
+
+        // Anti-vacuity, and the only scanner in the suite that was missing one. Four plausible
+        // edits make this scan reach nothing while staying green — a glyph moved into element
+        // content, a decimal character entity, single-quoted attributes, or a Text written from
+        // code-behind — and §4.2 of this branch converted glyph Labels to vector shapes, which is
+        // exactly the kind of change that shrinks it. A guard that has stopped looking must say so.
+        reached
+            .Should()
+            .NotBeEmpty(
+                "the scan must reach at least one icon-only control, or this fact passes because "
+                + "it found nothing rather than because everything it found was described");
+    }
+
+    /// <summary>
+    ///		Whether the control carries a description a screen reader can actually read out.
+    /// </summary>
+    private static bool HasUsableDescription(string attributes)
+    {
+        var declared = DescriptionAttribute.Match(attributes);
+
+        return declared.Success
+            && !string.IsNullOrWhiteSpace(
+                Decode(declared.Groups["value"].Value));
     }
 
     /// <summary>
@@ -173,7 +215,7 @@ public class SemanticDescriptionTests
 
                 return text.Success
                     && IsIconOnly(Decode(text.Groups["value"].Value))
-                    && !attributes.Contains("SemanticProperties.Description")
+                    && !HasUsableDescription(attributes)
                     && !attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False""");
             });
 

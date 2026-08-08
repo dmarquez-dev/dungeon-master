@@ -381,6 +381,13 @@ public static class DmTheme
 	// GeometryScaleTests scan *.cs as well as *.xaml, so a literal in either form is a failure
 	// and these members are the only legal answer in C#.
 	//
+	// That last sentence was FALSE until the ratchets were corrected. The C# patterns required
+	// the value to start with a digit — Padding = 7 fired, and the form C# actually writes,
+	// Padding = new Thickness(7, 3), did not; nor did new CornerRadius(9), while
+	// DungeonDetailPage.xaml.cs was already constructing Thicknesses. Both constructor forms are
+	// covered now, together with a NoBareMarginValues ratchet that did not exist at all. A
+	// comment asserting a guard exists is worth nothing until the guard has been made to fire.
+	//
 	// Every one is an expression-bodied member for the reason in the remarks above: geometry is
 	// as unreadable before Application.Current.Resources exists as colour is.
 

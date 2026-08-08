@@ -65,7 +65,14 @@
             <Grid Grid.Column="2">
                 <!-- Padding 36,6,12,6 below is an icon inset, not a role: the 36 on the leading
                      edge clears the crossed-sword Label overlaid on this button at Margin
-                     12,0,0,0 further down, so the text starts clear of the glyph. -->
+                     12,0,0,0 further down, so the text starts clear of the glyph.
+
+                     UNWIRED. This button carries neither Clicked nor Command, here or anywhere
+                     in the repository, and clicking it was confirmed at runtime to do nothing
+                     and log nothing. It is deliberately left without a SemanticProperties.Hint:
+                     its Text already names it, and a Hint describing what starting a session
+                     would do is a promise the control cannot keep. The sibling on
+                     DungeonListPage.xaml carries the same note. Wiring it is a feature. -->
                 <Button
                     Text="Start Session"
                     AutomationId="StartSessionButton"
