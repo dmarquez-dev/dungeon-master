@@ -14,39 +14,50 @@
 
     <controls:DmPopup x:Name="Chrome">
         <controls:DmPopup.Body>
-            <VerticalStackLayout Spacing="20">
+            <!-- No Spacing here: DmPopup owns the gap between body sections, so this popup and
+                 every other one share it. Setting Spacing would take it back. -->
+            <VerticalStackLayout>
 
                 <Label
                     x:Name="MessageLabel"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="18"
-                    TextColor="{StaticResource DMInk}"
+                    AutomationId="ConfirmPopupMessage"
+                    Style="{StaticResource DmLabelParchment}"
                     LineBreakMode="WordWrap" />
 
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="{Binding ButtonRowSpacing, Source={x:Reference Chrome}}">
+                    <!-- CharacterSpacing and BorderWidth stay local and the rest is now the
+                         style's. CharacterSpacing is per-button typesetting that DmButtonBase
+                         deliberately does not own. BorderWidth is DELIBERATELY HEAVIER than the
+                         DmStrokeHairline the base sets: a CANCEL button carries a visible
+                         outline instead of a fill, and CreateDungeonPopup's CANCEL does the
+                         same. -->
                     <Button
                         x:Name="CancelButton"
                         Grid.Column="0"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        AutomationId="ConfirmPopupCancelButton"
+                        Style="{StaticResource DmNeutralButton}"
                         CharacterSpacing="1"
-                        BackgroundColor="{StaticResource DMNeutralSurface}"
-                        TextColor="{StaticResource DMInk}"
-                        BorderColor="{StaticResource DMNeutralBorder}"
-                        BorderWidth="1.5"
-                        CornerRadius="3"
+                        BorderWidth="{StaticResource DmStrokeMedium}"
                         Clicked="OnCancel">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>
                     </Button>
+                    <!-- DmConfirmButton here is the NON-destructive default, and code-behind
+                         REPLACES THE STYLE — it does not assign colours — when the action is
+                         destructive. DmConfirmButton's Normal visual state sets BackgroundColor,
+                         and a VisualState setter outranks an imperative assignment, so setting
+                         ConfirmButton.BackgroundColor from code would render every delete
+                         confirmation green the moment the button entered Normal, with a clean
+                         build and nothing to see in the markup. See DmConfirmPopup.xaml.cs. -->
                     <Button
                         x:Name="ConfirmButton"
                         Grid.Column="1"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        AutomationId="ConfirmPopupConfirmButton"
+                        Style="{StaticResource DmConfirmButton}"
                         CharacterSpacing="1"
-                        CornerRadius="3"
                         Clicked="OnConfirm">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        Light Parchment surfaces: popups, scrolls, the notebook.
+
+        Two keys were deleted in the adoption pass rather than kept unconsumed:
+
+          DmButtonParchment  Its three setters were BYTE-IDENTICAL to DmNeutralButton's
+                             (DmNeutralSurface / DmTextParchment / DmNeutralBorder), which is
+                             live on both popups' CANCEL buttons. Two keys for one appearance
+                             is worse than one, and the semantic name is the honest one — a
+                             CANCEL button is neutral by role, not parchment by surface.
+          DmPickerParchment  The app's one Picker is on a tool panel (DmTextToolPanel on
+                             DmSurfaceToolChip), which is neither surface family. Deleted
+                             alongside DmPickerTavern, and DmPickerBase with them.
+    -->
+
+    <!-- Consumed by CreateDungeonPopup's name field. -->
+    <Style x:Key="DmEntryParchment" TargetType="Entry" BasedOn="{StaticResource DmEntryBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextParchment}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextParchmentMuted}" />
+    </Style>
+
+    <!-- Consumed by CreateDungeonPopup's description field. -->
+    <Style x:Key="DmEditorParchment" TargetType="Editor" BasedOn="{StaticResource DmEditorBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextParchment}" />
+        <Setter Property="PlaceholderColor" Value="{StaticResource DmTextParchmentMuted}" />
+    </Style>
+
+    <!-- Consumed by DmConfirmPopup's message label. -->
+    <Style x:Key="DmLabelParchment" TargetType="Label" BasedOn="{StaticResource DmLabelBase}">
+        <Setter Property="TextColor" Value="{StaticResource DmTextParchment}" />
+    </Style>
+
+    <!-- Consumed by CreateDungeonPopup's two field borders. -->
+    <Style x:Key="DmBorderParchmentStyle" TargetType="Border" BasedOn="{StaticResource DmBorderBase}">
+        <Setter Property="Stroke" Value="{StaticResource DmBorderParchmentBrush}" />
+    </Style>
+
+</ResourceDictionary>

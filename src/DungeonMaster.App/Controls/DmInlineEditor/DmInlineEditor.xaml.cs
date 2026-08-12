@@ -1,5 +1,4 @@
 using DungeonMaster.App.Theme;
-using MauiApplication = Microsoft.Maui.Controls.Application;
 
 namespace DungeonMaster.App.Controls;
 
@@ -45,6 +44,10 @@ public partial class DmInlineEditor : ContentView
 
 	/// <summary>
 	///		Identifies the <see cref="FontFamily"/> bindable property.
+	///		The default mirrors <c>DmFontBody</c> and stays a literal deliberately: a bindable default
+	///		is evaluated in this static field initialiser, which can run before
+	///		<c>Application.Current.Resources</c> exists, so it cannot read <c>DmTheme</c>.
+	///		<c>BindablePropertyDefaultsMatchTokensTests</c> fails if the two drift apart.
 	/// </summary>
 	public static readonly BindableProperty FontFamilyProperty =
 		BindableProperty.Create(
@@ -55,6 +58,8 @@ public partial class DmInlineEditor : ContentView
 
 	/// <summary>
 	///		Identifies the <see cref="FontSize"/> bindable property.
+	///		The default mirrors <c>DmFontSizeBody</c> and stays a literal for the same reason given on
+	///		<see cref="FontFamilyProperty"/>.
 	/// </summary>
 	public static readonly BindableProperty FontSizeProperty =
 		BindableProperty.Create(
@@ -66,34 +71,40 @@ public partial class DmInlineEditor : ContentView
 	/// <summary>
 	///		Identifies the <see cref="TextColor"/> bindable property.
 	///		Defaults to the dark-tavern primary text gold; parchment-hosted editors override it with an ink colour.
+	///		The default arrives through <c>defaultValueCreator</c> rather than as a constant because a
+	///		constant is evaluated in this static field initialiser, which can run before
+	///		<c>Application.Current.Resources</c> exists; the creator runs on first read of an instance.
 	/// </summary>
 	public static readonly BindableProperty TextColorProperty =
 		BindableProperty.Create(
 			nameof(TextColor),
 			typeof(Color),
 			typeof(DmInlineEditor),
-			Color.FromArgb("#F5E4B0"),
 			propertyChanged: (bindable, _, _) =>
 			{
 				var self = (DmInlineEditor)bindable;
 				self.SyncDisplay(self.Text);
-			});
+			},
+			defaultValueCreator: _ =>
+				DmTheme.TextTavern);
 
 	/// <summary>
 	///		Identifies the <see cref="PlaceholderColor"/> bindable property.
-	///		Defaults to the dark-tavern muted text colour.
+	///		Defaults to the dark-tavern muted text colour, resolved lazily for the reason given on
+	///		<see cref="TextColorProperty"/>.
 	/// </summary>
 	public static readonly BindableProperty PlaceholderColorProperty =
 		BindableProperty.Create(
 			nameof(PlaceholderColor),
 			typeof(Color),
 			typeof(DmInlineEditor),
-			Color.FromArgb("#A08050"),
 			propertyChanged: (bindable, _, _) =>
 			{
 				var self = (DmInlineEditor)bindable;
 				self.SyncDisplay(self.Text);
-			});
+			},
+			defaultValueCreator: _ =>
+				DmTheme.GoldMuted);
 
 	/// <summary>
 	///		Identifies the <see cref="TextHorizontalAlignment"/> bindable property.
@@ -316,18 +327,7 @@ public partial class DmInlineEditor : ContentView
 	{
 		if (!_isEditing)
 		{
-			var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
-			FocusBorder.Stroke = gold;
-			FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
-#if !WINDOWS
-			FocusBorder.Shadow = new Shadow
-			{
-				Brush = new SolidColorBrush(gold),
-				Offset = new Point(0, 0),
-				Radius = 10,
-				Opacity = 0.4f
-			};
-#endif
+			ApplyFocusGlow();
 		}
 	}
 
@@ -344,9 +344,16 @@ public partial class DmInlineEditor : ContentView
 		_isEditing = true;
 		_suppressUnfocusCommit = false;
 		EditingStarted?.Invoke(this, EventArgs.Empty);
-		var gold = (Color)MauiApplication.Current!.Resources["DMScrollGoldLight"];
+		ApplyFocusGlow();
+	}
+
+	// The hover glow and the focus glow are the same treatment; they were written out twice and
+	// had to be kept in step by hand. ClearFocusGlow is the other half of this pair.
+	private void ApplyFocusGlow()
+	{
+		var gold = DmTheme.Gold;
 		FocusBorder.Stroke = gold;
-		FocusBorder.BackgroundColor = DmColors.EditorGlowTint;
+		FocusBorder.BackgroundColor = DmTheme.EditorGlowTint;
 #if !WINDOWS
 		FocusBorder.Shadow = new Shadow
 		{

@@ -209,7 +209,6 @@ public partial class DungeonDetailPage : ContentPage
 		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed += OnObjectLongPressed;
 		Notebook.SaveRequested += OnNotebookSaveRequested;
-		MapToolbar.SizeChanged += OnMapToolbarSizeChanged;
 
 		// Plugin.Maui.KeyListener: fires regardless of which element has focus,
 		// solving the GraphicsView focus-sink problem on Windows.
@@ -240,7 +239,6 @@ public partial class DungeonDetailPage : ContentPage
 		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed -= OnObjectLongPressed;
 		Notebook.SaveRequested -= OnNotebookSaveRequested;
-		MapToolbar.SizeChanged -= OnMapToolbarSizeChanged;
 
 		if (_keyboardBehavior is not null)
 		{
@@ -524,28 +522,8 @@ public partial class DungeonDetailPage : ContentPage
 			!string.IsNullOrWhiteSpace(_viewModel.DungeonNotes);
 
 		DungeonNotebookButton.TextColor = hasContent
-			? DmColors.ScrollGoldLight
-			: DmColors.InkMuted;
-	}
-
-	/// <summary>
-	///		Keeps the sidebar dungeon card the same height as the map toolbar so their bottom edges
-	///		line up across the two columns. The two controls have unrelated content (a title/button
-	///		row versus a full toolbar of icon buttons), and WinUI's rendered line height for the fonts
-	///		involved cannot be derived from the markup — an earlier attempt computed it from padding,
-	///		stroke and an assumed font-size multiplier and was visibly wrong on screen despite being
-	///		"within 1px on paper". Measuring the toolbar's actual rendered height at runtime and
-	///		copying it is the only reliable source of truth; do not replace this with static math.
-	/// </summary>
-	private void OnMapToolbarSizeChanged(object? sender, EventArgs e)
-	{
-		// MapToolbar starts hidden (IsVisible="False") until a floor is selected, and while hidden
-		// its Height reports -1 or 0. Propagating that would collapse the card, so the card keeps
-		// its markup fallback until the toolbar first renders with a real height.
-		if (MapToolbar.Height > 0)
-		{
-			DungeonCard.HeightRequest = MapToolbar.Height;
-		}
+			? DmTheme.ScrollGoldLight
+			: DmTheme.InkMuted;
 	}
 
 	private void OnDungeonNotebookClicked(object? sender, EventArgs e)
@@ -703,7 +681,7 @@ public partial class DungeonDetailPage : ContentPage
 					_drawable.Floor = null;
 					_drawable.HoveredAreaId = null;
 					ResetDrawState();
-					MapToolbar.IsVisible = false;
+					SetMapToolbarShown(false);
 				}
 
 				await _viewModel.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
@@ -1039,22 +1017,22 @@ public partial class DungeonDetailPage : ContentPage
 		UpdateToolbarButtonState();
 	}
 
-	private void OnToolDrawClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolDrawClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Draw);
 
-	private void OnToolMoveClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolMoveClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Move);
 
-	private void OnToolSelectClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolSelectClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Select);
 
-	private void OnToolPanClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolPanClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Pan);
 
-	private void OnToolPlaceClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolPlaceClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Place);
 
-	private void OnToolEraseClicked(object? sender, TappedEventArgs e) =>
+	private void OnToolEraseClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Erase);
 
 	private async void EraseAreaAsync(Guid floorId, AreaDto area)
@@ -1115,6 +1093,26 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
+	/// <summary>
+	///		Shows or hides the map toolbar without letting it leave the layout.
+	/// </summary>
+	/// <param name="shown">
+	///		<see langword="true"/> once a floor is selected and the drawing tools apply.
+	/// </param>
+	/// <remarks>
+	///		Opacity rather than <c>IsVisible</c>, on purpose. The toolbar and the sidebar dungeon
+	///		card share one <c>Auto</c> row of the designer's grid, which is what makes their bottom
+	///		edges agree without a measured height token; a collapsed element contributes nothing to
+	///		an <c>Auto</c> row, so hiding this one with <c>IsVisible</c> would shrink that row to
+	///		the card and then jump the whole map down when the first floor was picked.
+	///		<c>InputTransparent</c> is what keeps it genuinely un-clickable in the meantime.
+	/// </remarks>
+	private void SetMapToolbarShown(bool shown)
+	{
+		MapToolbar.Opacity = shown ? 1 : 0;
+		MapToolbar.InputTransparent = !shown;
+	}
+
 	private void UpdateToolbarButtonState()
 	{
 		var isDrawActive = _viewModel.ActiveTool == MapTool.Draw;
@@ -1124,34 +1122,12 @@ public partial class DungeonDetailPage : ContentPage
 		var isSelectActive = _viewModel.ActiveTool == MapTool.Select;
 		var isEraseActive = _viewModel.ActiveTool == MapTool.Erase;
 
-		var activeColor = DmColors.Gold;
-		var mutedColor = DmColors.GoldMuted;
-		var activeBrush = new SolidColorBrush(activeColor);
-		var transparentBrush = new SolidColorBrush(Colors.Transparent);
-
-		ToolDrawBorder.Stroke = isDrawActive ? activeBrush : transparentBrush;
-		ToolDrawIcon.TextColor = isDrawActive ? activeColor : mutedColor;
-		ToolDrawLabel.TextColor = isDrawActive ? activeColor : mutedColor;
-
-		ToolMoveBorder.Stroke = isMoveActive ? activeBrush : transparentBrush;
-		ToolMoveIcon.TextColor = isMoveActive ? activeColor : mutedColor;
-		ToolMoveLabel.TextColor = isMoveActive ? activeColor : mutedColor;
-
-		ToolSelectBorder.Stroke = isSelectActive ? activeBrush : transparentBrush;
-		ToolSelectIcon.TextColor = isSelectActive ? activeColor : mutedColor;
-		ToolSelectLabel.TextColor = isSelectActive ? activeColor : mutedColor;
-
-		ToolEraseBorder.Stroke = isEraseActive ? activeBrush : transparentBrush;
-		ToolEraseIcon.TextColor = isEraseActive ? activeColor : mutedColor;
-		ToolEraseLabel.TextColor = isEraseActive ? activeColor : mutedColor;
-
-		ToolPlaceBorder.Stroke = isPlaceActive ? activeBrush : transparentBrush;
-		ToolPlaceIcon.TextColor = isPlaceActive ? activeColor : mutedColor;
-		ToolPlaceLabel.TextColor = isPlaceActive ? activeColor : mutedColor;
-
-		ToolPanBorder.Stroke = isPanActive ? activeBrush : transparentBrush;
-		ToolPanIcon.TextColor = isPanActive ? activeColor : mutedColor;
-		ToolPanLabel.TextColor = isPanActive ? activeColor : mutedColor;
+		ToolDrawTile.IsActive = isDrawActive;
+		ToolMoveTile.IsActive = isMoveActive;
+		ToolSelectTile.IsActive = isSelectActive;
+		ToolEraseTile.IsActive = isEraseActive;
+		ToolPlaceTile.IsActive = isPlaceActive;
+		ToolPanTile.IsActive = isPanActive;
 
 		var hasVertices = _viewModel.DrawingSession.Vertices.Count > 0;
 		UndoButton.IsEnabled = hasVertices;
@@ -1858,10 +1834,19 @@ public partial class DungeonDetailPage : ContentPage
 		ObjectActionPopup.IsVisible = true;
 	}
 
-	private static readonly Color PopupBtnHoverGold    = Color.FromArgb("#33C8A040");
-	private static readonly Color PopupBtnHoverRed     = Color.FromArgb("#33CC3030");
-	private static readonly Color PopupBtnPressGold    = Color.FromArgb("#66C8A040");
-	private static readonly Color PopupBtnPressRed     = Color.FromArgb("#66CC3030");
+	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
+	// NoEagerDmThemeRead.
+	private static Color PopupBtnHoverGold =>
+		DmTheme.PopupButtonHover;
+
+	private static Color PopupBtnHoverRed =>
+		DmTheme.PopupButtonDestructiveHover;
+
+	private static Color PopupBtnPressGold =>
+		DmTheme.PopupButtonPressed;
+
+	private static Color PopupBtnPressRed =>
+		DmTheme.PopupButtonDestructivePressed;
 
 	private static void AttachPopupButtonBehavior(Border btn, bool goldHover, Func<Task> action)
 	{
@@ -2047,7 +2032,7 @@ public partial class DungeonDetailPage : ContentPage
 			_drawable.PhantomEnd = null;
 		}
 
-		MapToolbar.IsVisible = _selectedFloorId is not null;
+		SetMapToolbarShown(_selectedFloorId is not null);
 
 		if (_selectedFloorId is not null && _drawState == DrawState.Idle)
 			SetActiveTool(MapTool.Pan);
@@ -2198,10 +2183,10 @@ public partial class DungeonDetailPage : ContentPage
 		_dragPlaceholder = new Border
 		{
 			HeightRequest = 44,
-			Stroke = new SolidColorBrush(DmColors.DragPlaceholderStroke),
+			Stroke = new SolidColorBrush(DmTheme.DragPlaceholderStroke),
 			StrokeThickness = 2,
 			StrokeShape = new RoundRectangle { CornerRadius = 3 },
-			BackgroundColor = DmColors.DragPlaceholderFill,
+			BackgroundColor = DmTheme.DragPlaceholderFill,
 			Margin = new Thickness(0, 0, 0, 4)
 		};
 		_dragPlaceholder.GestureRecognizers.Add(dropGesture);
@@ -2222,9 +2207,6 @@ public partial class DungeonDetailPage : ContentPage
 	}
 
 	// ─── Nav and dungeon-level editors ──────────────────────────────────────────
-
-	private void OnBackClicked(object? sender, EventArgs e) =>
-		Shell.Current.GoToAsync("..");
 
 	private async void OnAddFloorClicked(object? sender, EventArgs e)
 	{

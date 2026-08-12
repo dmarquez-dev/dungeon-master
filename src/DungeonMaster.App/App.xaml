@@ -7,8 +7,14 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
-                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+                <!-- Order matters: each dictionary may reference keys from those above it. -->
+                <ResourceDictionary Source="Resources/Theme/Tokens.xaml" />
+                <ResourceDictionary Source="Resources/Theme/Typography.xaml" />
+                <ResourceDictionary Source="Resources/Theme/Controls.Base.xaml" />
+                <ResourceDictionary Source="Resources/Theme/Controls.Tavern.xaml" />
+                <ResourceDictionary Source="Resources/Theme/Controls.Parchment.xaml" />
+                <ResourceDictionary Source="Resources/Theme/Controls.Semantic.xaml" />
+                <ResourceDictionary Source="Resources/Theme/Implicit.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <converters:NotNullConverter x:Key="NotNullConverter" />

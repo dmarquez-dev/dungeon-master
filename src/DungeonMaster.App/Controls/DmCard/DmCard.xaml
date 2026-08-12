@@ -7,23 +7,27 @@
 
     <Border
         x:Name="CardBorder"
-        StrokeShape="RoundRectangle 4"
-        StrokeThickness="1"
-        Padding="12,10">
+        AutomationId="DmCard"
+        StrokeThickness="{StaticResource DmStrokeHairline}"
+        Padding="{StaticResource DmPaddingCard}">
+
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
 
         <VisualStateManager.VisualStateGroups>
             <VisualStateGroupList>
-                <VisualStateGroup>
+                <VisualStateGroup x:Name="CommonStates">
                     <VisualState x:Name="Normal">
                         <VisualState.Setters>
-                            <Setter Property="BackgroundColor" Value="{StaticResource DMCardSurface}" />
-                            <Setter Property="Stroke" Value="{StaticResource DMCardBorderBrush}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
                         </VisualState.Setters>
                     </VisualState>
                     <VisualState x:Name="PointerOver">
                         <VisualState.Setters>
-                            <Setter Property="BackgroundColor" Value="{StaticResource DMCardSurfaceHover}" />
-                            <Setter Property="Stroke" Value="{StaticResource DMCardBorderHoverBrush}" />
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaisedHover}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernHoverBrush}" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
@@ -31,18 +35,18 @@
         </VisualStateManager.VisualStateGroups>
 
         <Grid ColumnDefinitions="*,Auto">
-            <VerticalStackLayout Grid.Column="0" Spacing="3">
+            <VerticalStackLayout Grid.Column="0" Spacing="{StaticResource DmSpaceXS}">
                 <Label
                     Text="{Binding Title, Source={x:Reference Root}}"
-                    FontFamily="CinzelSemiBold"
-                    FontSize="20"
-                    TextColor="{StaticResource DMTextPrimary}" />
+                    FontFamily="{StaticResource DmFontTitleStrong}"
+                    FontSize="{StaticResource DmFontSizeTitle}"
+                    TextColor="{StaticResource DmTextTavern}" />
                 <Label
                     x:Name="SubtitleLabel"
                     Text="{Binding Subtitle, Source={x:Reference Root}}"
-                    FontFamily="EBGaramondItalic"
-                    FontSize="18"
-                    TextColor="{StaticResource DMTextMuted}"
+                    FontFamily="{StaticResource DmFontBodyItalic}"
+                    FontSize="{StaticResource DmFontSizeBody}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
                     IsVisible="False" />
             </VerticalStackLayout>
             <ContentView x:Name="TrailingPresenter"

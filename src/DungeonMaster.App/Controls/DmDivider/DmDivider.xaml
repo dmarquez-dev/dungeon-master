@@ -5,29 +5,41 @@
     x:Class="DungeonMaster.App.Controls.DmDivider"
     x:Name="Root">
 
-    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="8">
+    <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="{StaticResource DmSpaceMedium}">
 
         <BoxView Grid.Column="0" HeightRequest="1" VerticalOptions="Center">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                     <GradientStop Color="Transparent" Offset="0.0" />
-                    <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                    <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="1.0" />
                 </LinearGradientBrush>
             </BoxView.Background>
         </BoxView>
 
+        <!-- The ornament's whole label is a glyph, and it is purely decorative: the two hairline
+             rules either side of it carry the same meaning visually, and nothing about the
+             divider is information a reader needs read out. It is therefore taken out of the
+             accessibility tree rather than given a description.
+
+             An earlier comment here claimed MAUI has no exclusion flag that survives the
+             platform mapping. That is false. AutomationProperties.IsInAccessibleTree is used at
+             nine other sites on this branch and a forced clean rebuild under
+             TreatWarningsAsErrors is 0 warnings. DmDivider is instantiated four times, so the
+             description it used to carry made a Narrator user hear "Section divider" four times
+             for no information at all. -->
         <Label
             Grid.Column="1"
             Text="&#xEAD4;"
-            FontFamily="RpgAwesome"
+            FontFamily="{StaticResource DmFontIcon}"
             FontSize="{Binding IconFontSize, Source={x:Reference Root}}"
-            TextColor="{StaticResource DMScrollGoldLight}"
+            TextColor="{StaticResource DmAccentGoldLight}"
+            AutomationProperties.IsInAccessibleTree="False"
             VerticalOptions="Center" />
 
         <BoxView Grid.Column="2" HeightRequest="1" VerticalOptions="Center">
             <BoxView.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                    <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
                     <GradientStop Color="Transparent" Offset="1.0" />
                 </LinearGradientBrush>
             </BoxView.Background>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        Metrics shared by both surface families. Colour lives in Controls.Tavern.xaml,
+        Controls.Parchment.xaml and Controls.Semantic.xaml, all of which derive from the styles
+        below via BasedOn. A padding or radius change belongs here so it lands once rather than
+        once per derived file.
+
+        ADOPTION IS NOW COMPLETE AND RATCHETED. Every Style key in this file and its three
+        derivatives has at least one call site outside a comment, and
+        ThemeDictionaryTests.NoOrphanedStyleKeys fails the build if that stops being true. DO
+        NOT ADD A STYLE HERE "for later": the previous revision of this comment was a hand
+        census of 17 dead keys, it was WRONG (it counted DmBorderTavernStyle as live on the
+        strength of a mention inside this very comment), and the styles it was tracking were
+        eventually deleted rather than adopted.
+
+        The keys that no longer exist, and why, are recorded in the file that used to declare
+        each: Controls.Tavern.xaml lost five, Controls.Parchment.xaml two, and this file lost
+        DmSearchBarBase (there is no SearchBar element in the app at all) and DmPickerBase
+        (its two derivatives went, and the one Picker is on a tool-panel surface that is
+        neither family).
+
+        THE TWO TRAPS THAT GOVERN ANY FUTURE ADOPTION, both hit during this sweep:
+
+          1. A VisualState setter OUTRANKS AN IMPERATIVE ASSIGNMENT. DmConfirmButton's Normal
+             state sets BackgroundColor, and DmConfirmPopup used to switch its confirm button
+             between green and red by assigning BackgroundColor in code-behind. Putting the two
+             together would have rendered EVERY DESTRUCTIVE DIALOG GREEN, with a clean build
+             and no warning. The fix is to swap the STYLE — the popup now assigns
+             DmTheme.DestructiveButton or DmTheme.ConfirmButton — not to fight the state.
+          2. DmBorderBase sets BackgroundColor to Transparent, so a Border with a surface of
+             its own must restate it when it adopts a paired style. Four do.
+    -->
+
+    <Style x:Key="DmButtonBase" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontTitle}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeAction}" />
+        <Setter Property="CornerRadius" Value="{StaticResource DmRadiusDefault}" />
+        <Setter Property="BorderWidth" Value="{StaticResource DmStrokeHairline}" />
+        <!-- Padding and the minimum size requests deliberately match the geometry-only
+             implicit Button style in Implicit.xaml, so a themed button and an
+             unstyled one settle on the same footprint instead of fighting each
+             other. CornerRadius stays bound to DmRadiusDefault: a button that
+             opts into a keyed style is opting into the themed 3px radius on
+             purpose. -->
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.82" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <!-- This Disabled state is deliberate and it is OPT-IN: a keyed style is
+                         chosen at the call site, so a Button carrying one has asked for the
+                         themed disabled treatment. Implicit.xaml has no Disabled state at all,
+                         and its comment records why — a VisualState setter outranks BOTH a
+                         DataTrigger and a local value, so an implicit one would silently
+                         overrule every call site that dims itself.
+                         The same precedence applies here: this 0.45 outranks anything a
+                         consuming Button sets for itself. Nothing is affected today. Of the
+                         three live consumers, DmConfirmButton restates the whole group, and
+                         neither DmNeutralButton (both CANCEL buttons) nor DmDestructiveButton
+                         (DmConfirmPopup's confirm button in destructive mode) is ever disabled.
+                         A future keyed style that wants its own disabled appearance must
+                         restate this whole group, not add a setter at the call site. -->
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.45" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DmEntryBase" TargetType="Entry">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="DmEditorBase" TargetType="Editor">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="AutoSize" Value="Disabled" />
+    </Style>
+
+    <Style x:Key="DmLabelBase" TargetType="Label">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+        <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />
+    </Style>
+
+    <Style x:Key="DmBorderBase" TargetType="Border">
+        <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
+        <!-- The 3 mirrors DmRadiusDefault and must move with it;
+             BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault enforces that. The STRING form
+             used here cannot avoid the literal: its converter parses a shape name and its
+             arguments out of one string and has nowhere to accept a markup extension.
+
+             THE STRING FORM IS KEPT HERE DELIBERATELY, AND THE REASON IS NOT "the token will
+             not bind". It binds. The element form puts the radius back in attribute position,
+             where a StaticResource resolves — that was spiked on a Border ELEMENT and proved at
+             runtime (see the note beside the radius tokens in Tokens.xaml), and every Border
+             element in Controls/ now uses it.
+
+             The reason is the SETTER, which is a different case and was spiked separately on
+             2026-08-07. A Style setter holding an element-form shape creates the shape ONCE,
+             when the dictionary is parsed, and hands the SAME INSTANCE to every Border that
+             adopts the style. Measured, not reasoned, by giving this setter an element-form
+             RoundRectangle and applying the style to two Borders:
+
+               ReferenceEquals(a.StrokeShape, b.StrokeShape)  ->  True  (identical hash codes)
+               a.StrokeShape.Parent, b.StrokeShape.Parent     ->  BOTH report the SECOND Border
+
+             Two consequences follow, and only the first is benign. Rendering is safe: the path
+             is computed per call from the bounds the Border passes in, so unmutated, both
+             Borders rendered the correct — and deliberately exaggerated — radius, confirmed by
+             screenshot. But the instance is shared MUTABLE state: setting CornerRadius through
+             one Border changed what the OTHER Border rendered, observed on screen in the same
+             frame. And the shape's logical Parent is hijacked by whichever Border adopted the
+             style last, so anything the shape ever needs to inherit — a BindingContext, a
+             resource lookup — would resolve against the wrong element.
+
+             A string-form literal has neither problem: the converter builds a fresh shape per
+             Border. So this setter keeps its literal, and the guard keeps it honest. Do not
+             "finish the migration" by converting it.
+
+             This setter is a default, not a constraint, and must not be removed on the grounds
+             that it "forces" a radius. MAUI value precedence puts a locally-set property above
+             a Style setter, so a Border may carry Style="{StaticResource DmBorderTavernStyle}"
+             AND its own StrokeShape="RoundRectangle 4" attribute — or a <Border.StrokeShape>
+             element carrying a custom geometry — and keep its own shape. Adopting a paired
+             style alongside a different shape is intended usage; CreateDungeonPopup.xaml does
+             exactly this. -->
+        <Setter Property="StrokeShape" Value="RoundRectangle 3" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+</ResourceDictionary>

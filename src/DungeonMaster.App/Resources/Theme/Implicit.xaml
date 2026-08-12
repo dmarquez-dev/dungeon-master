@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        ══════════════════════════════════════════════════════════════════════════════
+        THE GEOMETRY-AND-STATES FLOOR
+
+        This file is not decoration and it is not redundant. Do not delete it because
+        "the keyed Dm* styles already cover everything" — they do not, and the way we
+        found out is recorded below.
+
+        WHAT IT IS
+
+        A floor of TargetType-only styles for Button, Entry, Editor and Picker, plus the
+        Label family default and the Page / Shell chrome. It supplies the properties a
+        control needs when nobody has said otherwise: minimum touch targets, padding,
+        corner radius, and Button interaction states.
+
+        THE INVARIANT: NO COLOUR, NO FONT, AT CONTROL LEVEL
+
+        The Button / Entry / Editor / Picker styles set no TextColor, BackgroundColor,
+        PlaceholderColor, FontFamily or FontSize. Those belong exclusively to the keyed
+        Dm* styles in Controls.Base.xaml and its derivatives; putting them here too would
+        give the app two sources of truth for the same property. The Label style is the
+        single, deliberate exception — one FontFamily setter, explained where it sits.
+
+        Page and Shell do carry colour tokens. They are app chrome with exactly one
+        instance each and no keyed alternative to defer to, so the invariant is about the
+        control-level styles, not about this file as a whole.
+
+        WHY IT EXISTS — measured, not assumed
+
+        Task 10 deleted the stock MAUI template's Resources/Styles/Styles.xaml. Those
+        stock implicit styles were quietly load-bearing, and removing them without a
+        replacement was a regression twice over:
+
+          1. GEOMETRY. 16 of the app's 20 Button elements carry no Style= at all, and all
+             3 Entry elements are likewise unstyled or only partly styled. They took
+             Padding, CornerRadius and the 44px minimum touch target from the stock
+             styles. MAUI leaves MinimumHeightRequest unset by default, so without this
+             floor they simply shrink. This was measured, not predicted: a pixel diff of
+             the running app against the pre-deletion build showed the DmSearchBar Entry
+             on the dungeon list page dropping from 51px tall to 42px, with everything
+             below it shifting up 9px — and dropping the field under the 44px touch
+             target the Button style is careful to keep.
+
+          2. INTERACTION STATES. The stock Button style also carried a CommonStates group
+             (hover and press opacity). Task 4b measured only padding and min-size and
+             missed it, so the first cut of this file left every unstyled Button with no
+             hover or press feedback at all. See the Button style below.
+
+        Editor and Picker get the same minimums even though, today, both are inert: every
+        Editor in the app sets an explicit height, and ObjectPaletteView.xaml.cs sets
+        cb.MinWidth = 0 on the Windows ComboBox behind the one Picker. They are here for
+        consistency — so the next Editor or Picker added to the app gets the same floor
+        every Button and Entry already has, rather than silently getting none.
+
+        THERE IS STILL NO IMPLICIT Border STYLE — and that one is a measured conclusion
+
+        The stock template had one (Stroke Gray200/Gray500, StrokeShape Rectangle,
+        StrokeThickness 1). It is the one case where "deliberately thin" survived contact
+        with measurement. The Task 3 audit walked all 33 real Border elements — the
+        often-quoted 61 counted 28 property elements such as the Shadow and StrokeShape
+        sub-elements as if they were Borders — and found that NONE of them paints the
+        stock grey: 21 set Stroke themselves, 5 receive it from a keyed style or from
+        visual states, and 7 set StrokeThickness to zero. Nothing was lost by dropping it,
+        so every Border states its own intent at the point of use rather than inheriting
+        an outline nobody chose.
+
+        Exactly one Border property was genuinely inherited: AreaSidebarItem.xaml set no
+        StrokeShape and took Rectangle from the stock style. It is re-declared explicitly
+        at AreaSidebarItem.xaml:15.
+
+        THE BoxView QUESTION, ASKED AND ANSWERED: NO LOSS
+
+        The stock BoxView style set BackgroundColor to Gray950/Gray200. Three BoxViews set
+        a semi-transparent Color and no background of their own, which on paper means that
+        grey composited behind them and no longer does:
+
+            NotebookView.xaml:136      Color DmHairlineStrong  (alpha 42%)
+            NotebookView.xaml:268      Color DmHairline        (alpha 28%)
+            FloorSidebarItem.xaml:101  Color DmHairline        (alpha 28%)
+
+        Measured rather than argued: all three were photographed on both sides of the
+        deletion (the notebook with its header and footer rules open, and a floor expanded
+        so FloorSidebarItem's AreaSeparator is visible — it is IsVisible="False" until
+        then). All came out at ZERO differing pixels.
+
+        WHY, verified — because a wrong mechanism here is worse than none, and the first
+        draft of this note had one. It claimed BoxView "paints Color over its full bounds
+        so the background never reached a pixel", which cannot be right: a 28%-alpha fill
+        composites with whatever is beneath it rather than erasing it, and that is the very
+        premise that predicted a loss.
+
+        The actual reason is that BackgroundColor never reaches the platform view at all.
+        Two runtime probes on AreaSeparator, on Windows:
+
+          1. Setting BackgroundColor="Red" on it renders nothing red. The bar draws only
+             its semi-transparent DmHairline fill over the sidebar surface.
+          2. AreaSeparator.Handler.PlatformView is a
+             Microsoft.Maui.Graphics.Win2D.W2DGraphicsView — a drawing canvas, not a
+             Control, Border or Panel. MAUI's Windows background mapper has no target on
+             it. The MAUI-side property is set correctly (the probe read back
+             Alpha=1 Red=1); it simply has nowhere to go.
+
+        So the stock style's BackgroundColor was inert on every BoxView in the app, opaque
+        Color or not. There is deliberately no implicit BoxView style and nothing was lost.
+
+        For the record, had the loss been real the fix would NOT have been to restore the
+        grey — that would put stock template colour back into the theme layer, which is
+        the exact thing this refactor removes.
+
+        THE Label DEFAULT
+
+        Exists only so no text falls back to a platform font now that the OpenSans
+        registrations have been removed (Task 10).
+
+        Three Labels genuinely still depend on it, and they are the only text in the app
+        whose font actually changed when the stock styles went. All three are built in
+        code-behind, which is why the Task 3 audit — an XAML sweep — never listed them and
+        Tasks 5-8 never gave them an explicit family:
+
+            ObjectPaletteView.xaml.cs:282     the "···" category expander glyph
+            ObjectPaletteView.xaml.cs:262     single-letter fallback for an object with no image
+            SecondaryPaletteView.xaml.cs:50   the same fallback in the secondary palette
+
+        They rendered in OpenSansRegular by accident and now render in EB Garamond by
+        design, which is the intended destination. The measured effect on the one that is
+        routinely on screen (the "···") is 84 differing pixels: the glyph sits about 2px
+        lower. Left as-is deliberately — inheriting DmFontBody from this style IS the
+        correct answer for them; they are named here so the change is on the record rather
+        than discovered later as a mystery.
+
+        THE Shell STYLE
+
+        Keeps the four TabBar setters carried by the stock style it replaces. AppShell
+        currently declares a single ShellContent and shows no tab bar, so they paint
+        nothing today; they are retained so that this dictionary is a strict superset of
+        what it supersedes and adding a second Shell item cannot regress the chrome.
+        ══════════════════════════════════════════════════════════════════════════════
+    -->
+
+    <Style TargetType="Label">
+        <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
+    </Style>
+
+    <!--
+        Geometry-only implicit Button style.
+
+        This exists solely so that deleting the stock Button style in the now-removed
+        Resources/Styles/Styles.xaml (Task 10) was a geometry no-op. The Task 4b
+        measurement walked every Button in the app and found 18 of the 21 then present
+        relied on
+        that stock style for at least one of Padding, MinimumHeightRequest or
+        CornerRadius; MAUI leaves MinimumHeightRequest unset by default, so
+        removing the stock style without this one would shrink buttons below the
+        44px minimum touch target across the whole app.
+
+        Colour and font are deliberately excluded here. They remain the exclusive
+        property of the keyed DmButton* styles in Controls.Base.xaml and its
+        derivatives; duplicating either here would give the app two sources of
+        truth for the same property.
+
+        THE RADIUS IS NOW A TOKEN, AND IT MOVED. An earlier revision of this comment
+        said the corner radius "mirrors the stock Styles.xaml value it replaces and is
+        not a candidate for a new radius token". That was true only while the theme
+        migration held pixel-identity. That constraint is lifted, and an 8 here was
+        never a design decision — it is the .NET MAUI template's own default, inherited
+        verbatim from a stock style this project has since deleted. It made every
+        unstyled Button in the app twice as round as every other rounded surface, all
+        of which sit on 2, 3 or 4.
+
+        It is now bound to DmRadiusLoose (4). This is the most visible single change in
+        the design-system-completion sweep: every Button that carries no Style= — 16 of
+        the app's 20 — changes shape. That is intended. Buttons now match the cards,
+        popups, chips and panels around them.
+
+        The remaining four values stay literals, and each for its own reason rather
+        than for want of a token:
+
+          Padding 14,10          matches DmPaddingPanel by value, but a Button is not a
+                                 panel. Binding a popup-body role here would make a
+                                 later rescale of that role silently resize every
+                                 button in the app. The button footprint is settled by
+                                 adopting the paired DmButton* styles (spec §4.4), not
+                                 by borrowing a role that happens to share its numbers.
+          MinimumHeightRequest   44, and MinimumWidthRequest 44 — the platform touch
+          MinimumWidthRequest    target, not a spacing step.
+          BorderWidth 0          zero means "none"; it is the absence of a stroke
+                                 rather than the smallest one on the stroke ladder.
+    -->
+    <Style TargetType="Button">
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="CornerRadius" Value="{StaticResource DmRadiusLoose}" />
+        <Setter Property="BorderWidth" Value="0" />
+
+        <!--
+            Interaction states. Opacity is not colour, so this does not breach the rule
+            above: the style still sets no TextColor, BackgroundColor, FontFamily or
+            FontSize. 16 of the app's 20 Buttons carry no Style= and therefore relied on
+            the stock implicit style for hover and press feedback; without this group they
+            would have none at all.
+
+            Normal, PointerOver and Pressed are byte-identical to the stock values (1,
+            0.82, 0.7), so hover and press are unchanged.
+
+            THERE IS DELIBERATELY NO Disabled STATE HERE, and the reason is a precedence
+            rule that is easy to miss: a VisualState setter outranks BOTH a DataTrigger and
+            a local value set on the element. Anything this group put on Disabled would
+            silently overrule what a call site had chosen for itself.
+
+            Three unstyled Buttons do choose for themselves, all at Opacity 0.35:
+
+                DungeonDetailPage StartSessionButton  DataTrigger FloorCount == 0
+                DungeonListPage   StartSessionButton  Start Session icon, same trigger
+                DungeonDetailPage UndoButton          local IsEnabled + Opacity
+
+            Named rather than cited by line: the line numbers here were wrong on all three
+            within one wave of being written, which is the whole reason the census above was
+            recounted. A name survives an edit above it.
+
+            An earlier draft of this file set Disabled to Opacity 0.45 to match
+            DmButtonBase. That was wrong twice over: it overrode all three of those sites,
+            rendering them LESS dim than their authors chose and weakening the disabled
+            affordance — and it did not match stock either. The stock Disabled state set
+            TextColor and BackgroundColor to Gray950/Gray200/Gray600 and NO Opacity at all.
+
+            Omitting the state therefore reproduces stock's opacity behaviour exactly for
+            those three sites and merely drops the greys, which was the goal: those came
+            from the template palette deleted with Resources/Styles/Colors.xaml in Task 10,
+            and reinstating them would drag stock template colour back into the theme
+            layer. A Button that wants a disabled look states it at the point of use, or
+            opts into a keyed DmButton* style, which carries its own Disabled state.
+        -->
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.82" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!--
+        Geometry-only implicit Entry, Editor and Picker styles.
+
+        The two setters on each are copied verbatim from the stock styles they replace
+        (d7caa72:Resources/Styles/Styles.xaml — Editor :111-112, Entry :133-134,
+        Picker :196-197), which set MinimumHeightRequest and MinimumWidthRequest to 44 on
+        all three. Nothing else from those stock styles is carried: TextColor,
+        BackgroundColor, PlaceholderColor, FontFamily, FontSize and the Disabled visual
+        state are all deliberately omitted per the invariant at the top of this file, and
+        every Entry, Editor and Picker in the app already sets its own colour and font.
+
+        Scope, stated precisely because it is easy to get wrong: a MAUI implicit style is
+        ignored outright by any element that carries Style=, so this floor reaches exactly
+        the unstyled Entry / Editor / Picker elements — the same set the stock style
+        reached, and no more. The keyed DmEntryBase / DmEditorBase / DmPickerBase styles
+        set no minimums, so a control opting into one opts out of the floor, precisely as
+        it did before Task 10. That is preserved behaviour, not a gap: CreateDungeonPopup's
+        Entry and Editor never had the 44px minimum in the first place.
+    -->
+    <Style TargetType="Entry">
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+    </Style>
+
+    <Style TargetType="Editor">
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+    </Style>
+
+    <Style TargetType="Picker">
+        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumWidthRequest" Value="44" />
+    </Style>
+
+    <Style TargetType="Page" ApplyToDerivedTypes="True">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavern}" />
+    </Style>
+
+    <Style TargetType="Shell" ApplyToDerivedTypes="True">
+        <Setter Property="Shell.BackgroundColor" Value="{StaticResource DmSurfaceTavern}" />
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource DmAccentGold}" />
+        <Setter Property="Shell.TitleColor" Value="{StaticResource DmTextTavern}" />
+        <Setter Property="Shell.DisabledColor" Value="{StaticResource DmTextTavernMuted}" />
+        <Setter Property="Shell.UnselectedColor" Value="{StaticResource DmTextTavernMuted}" />
+        <Setter Property="Shell.NavBarHasShadow" Value="False" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource DmSurfaceTavern}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource DmAccentGold}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource DmAccentGold}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource DmTextTavernMuted}" />
+    </Style>
+
+</ResourceDictionary>

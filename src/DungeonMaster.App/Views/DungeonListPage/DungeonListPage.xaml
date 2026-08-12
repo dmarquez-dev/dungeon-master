@@ -9,18 +9,20 @@
     x:Class="DungeonMaster.App.Views.DungeonListPage"
     x:DataType="vm:DungeonListViewModel"
     Shell.NavBarIsVisible="False"
-    BackgroundColor="{StaticResource DMBackground}">
+    BackgroundColor="{StaticResource DmSurfaceTavern}">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Padding="16,12" RowSpacing="10">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*"
+          Padding="{StaticResource DmPaddingPage}"
+          RowSpacing="{StaticResource DmSpaceLarge}">
 
         <controls:DmFlagBanner Grid.Row="0" Title="Dungeons" />
 
         <Label
             Grid.Row="1"
             Text="{Binding ErrorMessage}"
-            FontFamily="EBGaramondRegular"
-            FontSize="18"
-            TextColor="{StaticResource DMDestructive}"
+            FontFamily="{StaticResource DmFontBody}"
+            FontSize="{StaticResource DmFontSizeBody}"
+            TextColor="{StaticResource DmDestructive}"
             IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
         <controls:DmSearchBar
@@ -34,7 +36,7 @@
                 ItemsSource="{Binding FilteredDungeons}"
                 EmptyView="No dungeons found.">
                 <CollectionView.ItemsLayout>
-                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="8" />
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="{StaticResource DmSpaceMedium}" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="dto:DungeonSummaryDto">
@@ -45,36 +47,56 @@
                                 <TapGestureRecognizer Tapped="OnCardTapped" />
                             </controls:DmCard.GestureRecognizers>
                             <controls:DmCard.TrailingContent>
-                                <HorizontalStackLayout Spacing="4">
+                                <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}">
 
                                     <!-- Edit / Plan button -->
                                     <Button
                                         Text="&#xEA75;"
-                                        FontFamily="RpgAwesome"
-                                        FontSize="20"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
-                                        TextColor="{StaticResource DMScrollGoldLight}"
-                                        CornerRadius="3"
-                                        Padding="8,4"
+                                        TextColor="{StaticResource DmAccentGoldLight}"
+                                        CornerRadius="{StaticResource DmRadiusDefault}"
+                                        Padding="{StaticResource DmPaddingCompact}"
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnEditClicked"
+                                        AutomationId="EditDungeonButton"
+                                        SemanticProperties.Description="Edit dungeon"
+                                        SemanticProperties.Hint="Opens this dungeon in the floor and map designer"
                                         ToolTipProperties.Text="Edit dungeon">
                                         <Button.Behaviors>
                                             <behaviors:HandCursorBehavior />
                                         </Button.Behaviors>
                                     </Button>
 
-                                    <!-- Start Session button -->
+                                    <!-- Start Session button.
+
+                                         UNWIRED. This carries neither Clicked nor Command, here
+                                         or anywhere in the repository, and clicking it was
+                                         confirmed at runtime to do nothing and log nothing. The
+                                         CommandParameter below binds to a Command that does not
+                                         exist. Wiring it is a feature, not a fix.
+
+                                         The Hint therefore says the session cannot be started
+                                         yet rather than describing what starting one would do:
+                                         a screen reader reads the Hint out as a promise, and the
+                                         accessibility layer must not assert something the
+                                         control cannot deliver. Restore a descriptive Hint at
+                                         the same time as the handler, not before. -->
                                     <Grid>
                                         <Button
                                             Text="&#xE97D;"
-                                            FontFamily="RpgAwesome"
-                                            FontSize="20"
+                                            FontFamily="{StaticResource DmFontIcon}"
+                                            FontSize="{StaticResource DmIconSizeXL}"
                                             BackgroundColor="Transparent"
-                                            TextColor="{StaticResource DMConfirm}"
-                                            CornerRadius="3"
-                                            Padding="8,4"
+                                            TextColor="{StaticResource DmConfirm}"
+                                            CornerRadius="{StaticResource DmRadiusDefault}"
+                                            Padding="{StaticResource DmPaddingCompact}"
                                             CommandParameter="{Binding Id}"
+                                            AutomationId="StartSessionButton"
+                                            SemanticProperties.Description="Start session"
+                                            SemanticProperties.Hint="Sessions are not available yet; this button performs no action."
+                                            ToolTipProperties.Text="Start session"
                                             IsEnabled="{Binding FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
                                             <Button.Behaviors>
                                                 <behaviors:HandCursorBehavior />
@@ -98,14 +120,17 @@
                                     <!-- Delete button -->
                                     <Button
                                         Text="&#xE9FC;"
-                                        FontFamily="RpgAwesome"
-                                        FontSize="20"
+                                        FontFamily="{StaticResource DmFontIcon}"
+                                        FontSize="{StaticResource DmIconSizeXL}"
                                         BackgroundColor="Transparent"
-                                        TextColor="{StaticResource DMDestructive}"
-                                        CornerRadius="3"
-                                        Padding="8,4"
+                                        TextColor="{StaticResource DmDestructive}"
+                                        CornerRadius="{StaticResource DmRadiusDefault}"
+                                        Padding="{StaticResource DmPaddingCompact}"
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnDeleteClicked"
+                                        AutomationId="DeleteDungeonButton"
+                                        SemanticProperties.Description="Delete dungeon"
+                                        SemanticProperties.Hint="Asks for confirmation first"
                                         ToolTipProperties.Text="Delete dungeon">
                                         <Button.Behaviors>
                                             <behaviors:HandCursorBehavior />
@@ -119,10 +144,16 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
+            <!-- CornerRadius 26 below is the geometric half of this button's own 52px height —
+                 what makes it a circle — and not a style token. -->
             <Button
                 x:Name="FabButton"
                 Text="+"
-                FontSize="26"
+                AutomationId="CreateDungeonButton"
+                SemanticProperties.Description="New dungeon"
+                ToolTipProperties.Text="New dungeon"
+                FontFamily="{StaticResource DmFontTitle}"
+                FontSize="{StaticResource DmFontSizeBanner}"
                 WidthRequest="52"
                 HeightRequest="52"
                 CornerRadius="26"
@@ -130,8 +161,8 @@
                 HorizontalOptions="End"
                 VerticalOptions="End"
                 Margin="0,0,4,4"
-                BackgroundColor="{StaticResource DMGold}"
-                TextColor="{StaticResource DMBackground}"
+                BackgroundColor="{StaticResource DmAccentGold}"
+                TextColor="{StaticResource DmSurfaceTavern}"
                 Clicked="OnCreateClicked">
                 <Button.GestureRecognizers>
                     <PointerGestureRecognizer

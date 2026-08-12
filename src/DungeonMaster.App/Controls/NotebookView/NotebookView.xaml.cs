@@ -1,3 +1,4 @@
+using DungeonMaster.App.Theme;
 using MauiApplication = Microsoft.Maui.Controls.Application;
 
 namespace DungeonMaster.App.Controls;
@@ -98,15 +99,26 @@ public partial class NotebookView : ContentView
 	private const float SelectedFoldFactor = 0.72f;
 	private const float UnselectedFoldFactor = 0.78f;
 
-	// The save stamp's two states. Green is not a themed token — it exists only here,
-	// where "committed" needs to read as reassuring rather than as an action to take.
-	private static readonly Color SavedColor = Color.FromArgb("#4A6A2A");
-	private static readonly Color UnsavedColor = Color.FromArgb("#8B2020");
+	// The save stamp's two states. The green is deliberately DmSavedStampText rather than
+	// DmConfirm: here "committed" needs to read as reassuring rather than as an action to take.
+	//
+	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
+	// NoEagerDmThemeRead.
+	private static Color SavedColor =>
+		DmTheme.SavedStampText;
+
+	private static Color UnsavedColor =>
+		DmTheme.Destructive;
 
 	// Close button hover: destructive red on a faint red wash, matching every other icon button.
-	private static readonly Color CloseHoverText = Color.FromArgb("#8B2020");
-	private static readonly Color CloseHoverBackground = Color.FromArgb("#248B2020");
-	private static readonly Color CloseRestText = Color.FromArgb("#7A5030");
+	private static Color CloseHoverText =>
+		DmTheme.Destructive;
+
+	private static Color CloseHoverBackground =>
+		DmTheme.DestructiveHoverSurface;
+
+	private static Color CloseRestText =>
+		DmTheme.InkMuted;
 
 	/// <summary>
 	///		Raised when the notebook has committed an edit and the host should persist it.
@@ -320,6 +332,14 @@ public partial class NotebookView : ContentView
 		_isDirty = dirty;
 		SaveStateLabel.Text = dirty ? "UNSAVED" : "SAVED";
 		SaveStateLabel.TextColor = dirty ? UnsavedColor : SavedColor;
+
+		// The stamp's own text reads as a bare word out of context; the description names what
+		// the word is about, and moves with it.
+		SemanticProperties.SetDescription(
+			SaveStateLabel,
+			dirty
+				? "Unsaved changes"
+				: "All changes saved");
 	}
 
 	private void OnReadRibbonTapped(object? sender, TappedEventArgs e) =>
@@ -347,6 +367,20 @@ public partial class NotebookView : ContentView
 		SetRibbonHeight(DmRibbon, readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight, animate);
 		DmRibbon.Background = RibbonBrush(!readSelected);
 		DmRibbon.Opacity = readSelected ? 0.78 : 1;
+
+		// Which ribbon is selected is expressed only in height, opacity and shade, none of which
+		// a reader conveys, so the description carries it in words alongside them.
+		SemanticProperties.SetDescription(
+			ReadRibbon,
+			readSelected
+				? "Read aloud, selected"
+				: "Read aloud");
+
+		SemanticProperties.SetDescription(
+			DmRibbon,
+			readSelected
+				? "DM only"
+				: "DM only, selected");
 	}
 
 	/// <summary>
@@ -380,7 +414,9 @@ public partial class NotebookView : ContentView
 	/// </summary>
 	private static Brush RibbonBrush(bool isSelected)
 	{
-		var colorKey = isSelected ? "DMRibbonRead" : "DMRibbonReadDim";
+		// Raw indexer rather than DmTheme: the key is chosen at runtime, and DmTheme exposes one
+		// member per fixed key, so there is nothing here for it to route through.
+		var colorKey = isSelected ? "DmRibbonRead" : "DmRibbonReadDim";
 		var top = (Color)MauiApplication.Current!.Resources[colorKey];
 		var foot = Darken(top, isSelected ? SelectedFoldFactor : UnselectedFoldFactor);
 

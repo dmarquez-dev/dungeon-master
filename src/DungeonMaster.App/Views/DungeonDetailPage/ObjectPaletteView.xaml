@@ -5,31 +5,34 @@
              x:Class="DungeonMaster.App.Views.DungeonDetail.ObjectPaletteView"
              IsVisible="False">
 
-    <Border BackgroundColor="#EDD8A0"
-            Stroke="#8B5E1A"
-            StrokeThickness="1"
-            Padding="6,4,6,6"
-            WidthRequest="216"
+    <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
+            Stroke="{StaticResource DmBorderParchment}"
+            StrokeThickness="{StaticResource DmStrokeHairline}"
+            Padding="{StaticResource DmPaddingCompact}"
+            WidthRequest="220"
             HorizontalOptions="Start">
         <Border.StrokeShape>
-            <RoundRectangle CornerRadius="4" />
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
         </Border.StrokeShape>
-        <VerticalStackLayout Spacing="4" MinimumWidthRequest="204">
+        <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}" MinimumWidthRequest="204">
 
             <!-- Header -->
             <Grid ColumnDefinitions="*,Auto">
                 <Label Text="Objects"
-                       FontFamily="CinzelDecorative"
-                       FontSize="17"
-                       TextColor="#5C3E10"
+                       FontFamily="{StaticResource DmFontTitleDecorative}"
+                       FontSize="{StaticResource DmFontSizeHeading}"
+                       TextColor="{StaticResource DmTextToolPanel}"
                        TextTransform="Uppercase"
                        CharacterSpacing="1"
                        VerticalOptions="Center" />
-                <Button x:Name="CloseButton"
-                        Grid.Column="1"
+                <Button Grid.Column="1"
                         Text="✕"
-                        FontSize="12"
-                        TextColor="#7A5030"
+                        AutomationId="ObjectPaletteCloseButton"
+                        SemanticProperties.Description="Close the object palette"
+                        ToolTipProperties.Text="Close"
+                        FontFamily="{StaticResource DmFontBody}"
+                        FontSize="{StaticResource DmIconSizeTiny}"
+                        TextColor="{StaticResource DmTextParchmentMuted}"
                         BackgroundColor="Transparent"
                         Padding="0"
                         WidthRequest="22" HeightRequest="22"
@@ -38,18 +41,17 @@
 
             <!-- Pack picker — styled via WinUI handler in code-behind -->
             <Picker x:Name="PackPicker"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="15"
-                    TextColor="#5C3E10"
-                    BackgroundColor="#C8AC78"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmFontSizeBodySmall}"
+                    TextColor="{StaticResource DmTextToolPanel}"
+                    BackgroundColor="{StaticResource DmSurfaceToolChip}"
                     HorizontalOptions="Fill"
                     SelectedIndexChanged="OnPackPickerChanged" />
 
             <!-- Category rows populated in code-behind -->
             <ScrollView x:Name="CategoryScrollView" HeightRequest="280" VerticalScrollBarVisibility="Always">
-                <VerticalStackLayout x:Name="CategoriesContainer" Spacing="7" />
+                <VerticalStackLayout x:Name="CategoriesContainer" Spacing="{StaticResource DmSpaceMedium}" />
             </ScrollView>
-
 
         </VerticalStackLayout>
     </Border>

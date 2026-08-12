@@ -5,21 +5,27 @@
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     x:Class="DungeonMaster.App.Controls.NotebookView"
-    x:Name="Root"
     WidthRequest="344"
     HorizontalOptions="Start"
     VerticalOptions="Start"
     IsVisible="False">
 
     <Border
-        StrokeShape="RoundRectangle 4"
-        Stroke="{StaticResource DMScrollBorderBrush}"
-        StrokeThickness="2">
+        Stroke="{StaticResource DmBorderParchmentBrush}"
+        StrokeThickness="{StaticResource DmStrokeEmphasis}">
+
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
 
         <!--
             The notebook floats over the floor plan, so the shadow is what separates the two.
-            Every property is set explicitly because the implicit Shadow style in Styles.xaml
-            casts a white shadow, which would glow rather than lift.
+            Every property is set explicitly. That began as a defence against the stock template's
+            implicit Shadow style in Resources/Styles/Styles.xaml, which cast a white shadow and
+            would have made this glow rather than lift. That file was deleted in Task 10 and there
+            is no implicit Shadow style any more, so nothing is being overridden today — but the
+            values below are the ones that were chosen and measured, and they must stay explicit:
+            with them removed the notebook gets MAUI's default (no shadow at all).
         -->
         <Border.Shadow>
             <Shadow
@@ -31,8 +37,8 @@
 
         <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0.6,1">
-                <GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />
-                <GradientStop Color="{StaticResource DMParchmentDark}" Offset="1.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchment}" Offset="0.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchmentDeep}" Offset="1.0" />
             </LinearGradientBrush>
         </Border.Background>
 
@@ -41,19 +47,24 @@
             <!--
                 Row 0 — header. The pan recogniser lives here and nowhere else: attaching it
                 to the whole control would start a drag from inside the text editors.
-                Chrome matches DmPopup's header bar (gold gradient, DMInk content) rather than
+                Chrome matches DmPopup's header bar (gold gradient, DmTextParchment content) rather than
                 the translucent brown wash this used to have.
+
+                DOCUMENTED ASYMMETRIC PADDING (12,8,10,8): it shapes the header bar around a
+                right-hand close button, which needs less inset than the left-hand glyph. The
+                hairline BoxView below negates these exact edges (Margin -12 / -10) so it can
+                bleed to the bar's full width; the two must move together.
             -->
             <Grid
                 Grid.Row="0"
                 ColumnDefinitions="Auto,*,Auto,Auto"
-                ColumnSpacing="9"
+                ColumnSpacing="{StaticResource DmSpaceMedium}"
                 Padding="12,8,10,8">
 
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Grid.Background>
 
@@ -67,55 +78,63 @@
                 <Label
                     Grid.Column="0"
                     Text="&#xEA8F;"
-                    FontFamily="RpgAwesome"
-                    FontSize="18"
-                    TextColor="{StaticResource DMInk}"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeLarge}"
+                    TextColor="{StaticResource DmTextParchment}"
+                    SemanticProperties.Description="Notebook"
                     VerticalOptions="Center" />
 
                 <!-- Entity name — edited in place, committed on unfocus -->
                 <controls:DmInlineEditor
                     x:Name="NameEditor"
                     Grid.Column="1"
+                    AutomationId="NotebookNameEditor"
                     AcceptsReturn="False"
-                    FontFamily="CinzelSemiBold"
-                    FontSize="18"
-                    TextColor="{StaticResource DMInk}"
-                    PlaceholderColor="{StaticResource DMInkMuted}"
+                    FontFamily="{StaticResource DmFontTitleStrong}"
+                    FontSize="{StaticResource DmFontSizeHeading}"
+                    TextColor="{StaticResource DmTextParchment}"
+                    PlaceholderColor="{StaticResource DmTextParchmentMuted}"
                     Placeholder="Untitled"
                     VerticalOptions="Center"
                     TextCommitted="OnNameCommitted" />
 
-                <!-- Kind badge — DMInk at 0.6 opacity on both stroke and text so the two agree; a
+                <!-- Kind badge — DmTextParchment at 0.6 opacity on both stroke and text so the two agree; a
                      single Opacity on the border governs both children, keeping them locked together
                      without hand-tuning two separate alpha values. Legible against both
-                     DMScrollGoldLight and DMScrollGoldDark, and clearly subordinate to the name. -->
+                     DmAccentGoldLight and DmAccentGoldDark, and clearly subordinate to the name. -->
                 <Border
                     Grid.Column="2"
-                    StrokeShape="RoundRectangle 2"
-                    Stroke="{StaticResource DMInk}"
-                    StrokeThickness="1"
+                    Stroke="{StaticResource DmTextParchment}"
+                    StrokeThickness="{StaticResource DmStrokeHairline}"
                     BackgroundColor="Transparent"
-                    Padding="5,2"
+                    Padding="{StaticResource DmPaddingTight}"
                     Opacity="0.6"
                     VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="{StaticResource DmRadiusTight}" />
+                    </Border.StrokeShape>
                     <Label
                         x:Name="KindLabel"
-                        FontFamily="CinzelRegular"
-                        FontSize="9"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeMicro}"
                         CharacterSpacing="1.6"
-                        TextColor="{StaticResource DMInk}" />
+                        TextColor="{StaticResource DmTextParchment}" />
                 </Border>
 
                 <!-- Close -->
                 <Button
                     x:Name="CloseButton"
                     Grid.Column="3"
+                    AutomationId="NotebookCloseButton"
+                    SemanticProperties.Description="Close notebook"
+                    SemanticProperties.Hint="Saves any pending edit and hides the notebook."
                     Text="&#x2715;"
-                    FontSize="13"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmIconSizeSmall}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource DMInkMuted}"
-                    Padding="5,3"
-                    CornerRadius="2"
+                    TextColor="{StaticResource DmTextParchmentMuted}"
+                    Padding="{StaticResource DmPaddingTight}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     HeightRequest="24"
                     MinimumHeightRequest="24"
                     VerticalOptions="Center"
@@ -135,7 +154,7 @@
                 <BoxView
                     Grid.Column="0"
                     Grid.ColumnSpan="4"
-                    Color="#6B8B5E1A"
+                    Color="{StaticResource DmHairlineStrong}"
                     HeightRequest="1"
                     Margin="-12,0,-10,-9"
                     VerticalOptions="End" />
@@ -144,18 +163,33 @@
             <!--
                 Row 1 — the ribbon rail. Ribbons hang from the top edge, so each border is
                 anchored Start and grows downward when selected (60) or shrinks when not (40).
+
+                DOCUMENTED ASYMMETRIC PADDING (14,0): it shapes a horizontal-only inset. The
+                ribbons must touch the top edge of the row to read as hanging from the header,
+                so a vertical inset from a padding role would break the metaphor, and the 14
+                aligns their left edge with the pane below.
             -->
             <HorizontalStackLayout
-                x:Name="RibbonRail"
                 Grid.Row="1"
-                Spacing="9"
+                Spacing="{StaticResource DmSpaceMedium}"
                 Padding="14,0">
 
+                <!-- Padding 6,0,6,10: a documented asymmetric inset that shapes the label
+                     inside the bookmark tab, clearing the 10-deep notch cut from its
+                     bottom edge by BookmarkTabShape below.
+
+                     NO HeightRequest HERE, ON EITHER RIBBON. Both heights are owned by
+                     SelectedRibbonHeight / UnselectedRibbonHeight in the code-behind, and the
+                     constructor's ApplyRibbonVisuals(..., animate: false) assigns both before
+                     the view is ever measured. The XAML used to declare 60 and 40 as well —
+                     values that never survived to the screen and could drift from the consts
+                     without any symptom until someone edited the wrong one. -->
                 <Border
                     x:Name="ReadRibbon"
+                    AutomationId="NotebookReadRibbon"
+                    SemanticProperties.Hint="Shows the player-facing read-aloud text."
                     StrokeThickness="0"
                     Padding="6,0,6,10"
-                    HeightRequest="60"
                     VerticalOptions="Start">
                     <Border.StrokeShape>
                         <controls:BookmarkTabShape NotchDepth="10" />
@@ -168,18 +202,21 @@
                     </Border.Behaviors>
                     <Label
                         Text="Read aloud"
-                        FontFamily="CinzelRegular"
-                        FontSize="10"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeMicro}"
                         CharacterSpacing="1.5"
-                        TextColor="{StaticResource DMRibbonText}"
+                        TextColor="{StaticResource DmRibbonText}"
                         VerticalOptions="Center" />
                 </Border>
 
+                <!-- Padding 6,0,6,10: same documented asymmetric inset as ReadRibbon above —
+                     it clears the same 10-deep BookmarkTabShape notch. -->
                 <Border
                     x:Name="DmRibbon"
+                    AutomationId="NotebookDmRibbon"
+                    SemanticProperties.Hint="Shows the DM-only notes, which the party must not hear."
                     StrokeThickness="0"
                     Padding="6,0,6,10"
-                    HeightRequest="40"
                     VerticalOptions="Start">
                     <Border.StrokeShape>
                         <controls:BookmarkTabShape NotchDepth="10" />
@@ -194,13 +231,17 @@
                     <Label VerticalOptions="Center">
                         <Label.FormattedText>
                             <FormattedString>
-                                <Span Text="&#x25CF; " FontSize="10" TextColor="#E8B4B4" />
+                                <Span
+                                    Text="&#x25CF; "
+                                    FontFamily="{StaticResource DmFontBody}"
+                                    FontSize="{StaticResource DmFontSizeMicro}"
+                                    TextColor="{StaticResource DmRibbonSeal}" />
                                 <Span
                                     Text="DM only"
-                                    FontFamily="CinzelRegular"
-                                    FontSize="10"
+                                    FontFamily="{StaticResource DmFontTitle}"
+                                    FontSize="{StaticResource DmFontSizeMicro}"
                                     CharacterSpacing="1.5"
-                                    TextColor="{StaticResource DMRibbonText}" />
+                                    TextColor="{StaticResource DmRibbonText}" />
                             </FormattedString>
                         </Label.FormattedText>
                     </Label>
@@ -208,7 +249,10 @@
 
             </HorizontalStackLayout>
 
-            <!-- Row 2 — the two panes; exactly one is visible at a time. -->
+            <!-- Row 2 — the two panes; exactly one is visible at a time.
+                 DOCUMENTED ASYMMETRIC PADDING (14,4,14,12): it shapes the writing surface —
+                 a shallow 4 at the top so the editor sits close under the ribbon it belongs
+                 to, and a deeper 12 at the bottom to hold it clear of the save-state rule. -->
             <Grid Grid.Row="2" Padding="14,4,14,12">
 
                 <!-- Read aloud: player-facing prose, italic to mark it as spoken text. -->
@@ -217,10 +261,10 @@
                     AutoSize="TextChanges"
                     MinimumHeightRequest="150"
                     BackgroundColor="Transparent"
-                    FontFamily="EBGaramondItalic"
-                    FontSize="17"
-                    TextColor="#3A2410"
-                    PlaceholderColor="#8C7A5030"
+                    FontFamily="{StaticResource DmFontBodyItalic}"
+                    FontSize="{StaticResource DmFontSizeBody}"
+                    TextColor="{StaticResource DmTextNotebook}"
+                    PlaceholderColor="{StaticResource DmTextPlaceholder}"
                     Placeholder="What the party sees when they walk in&#8230;"
                     TextChanged="OnEditorTextChanged"
                     Unfocused="OnEditorUnfocused">
@@ -235,10 +279,10 @@
                     AutoSize="TextChanges"
                     MinimumHeightRequest="150"
                     BackgroundColor="Transparent"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="17"
-                    TextColor="{StaticResource DMInk}"
-                    PlaceholderColor="#8C7A5030"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmFontSizeBody}"
+                    TextColor="{StaticResource DmTextParchment}"
+                    PlaceholderColor="{StaticResource DmTextPlaceholder}"
                     Placeholder="Secrets, stat blocks, and things the party must not hear&#8230;"
                     IsVisible="False"
                     TextChanged="OnEditorTextChanged"
@@ -253,17 +297,22 @@
             <!--
                 Row 3 — the save-state stamp. This is the user's only proof that autosave
                 fired, so it is functional chrome rather than decoration.
+
+                DOCUMENTED ASYMMETRIC PADDING (14,7,14,9): it shapes the stamp row around the
+                hairline that opens it. The BoxView below negates the top 14/7 (Margin
+                -14,-7,-14,0) so the rule spans the full width; the 9 at the bottom is the
+                optical match for that 7 once the rule is drawn.
             -->
             <Grid
                 Grid.Row="3"
                 ColumnDefinitions="*,Auto"
-                ColumnSpacing="8"
+                ColumnSpacing="{StaticResource DmSpaceMedium}"
                 Padding="14,7,14,9">
 
                 <BoxView
                     Grid.Column="0"
                     Grid.ColumnSpan="2"
-                    Color="#478B5E1A"
+                    Color="{StaticResource DmHairline}"
                     HeightRequest="1"
                     Margin="-14,-7,-14,0"
                     VerticalOptions="Start" />
@@ -271,17 +320,18 @@
                 <Label
                     Grid.Column="0"
                     Text="Saves as you write."
-                    FontFamily="EBGaramondItalic"
-                    FontSize="14"
-                    TextColor="{StaticResource DMInkMuted}"
+                    FontFamily="{StaticResource DmFontBodyItalic}"
+                    FontSize="{StaticResource DmFontSizeCaption}"
+                    TextColor="{StaticResource DmTextParchmentMuted}"
                     VerticalOptions="Center" />
 
                 <Label
                     x:Name="SaveStateLabel"
                     Grid.Column="1"
+                    AutomationId="NotebookSaveState"
                     Text="SAVED"
-                    FontFamily="CinzelRegular"
-                    FontSize="10"
+                    FontFamily="{StaticResource DmFontTitle}"
+                    FontSize="{StaticResource DmFontSizeMicro}"
                     CharacterSpacing="1.4"
                     HorizontalTextAlignment="End"
                     VerticalOptions="Center" />
@@ -292,8 +342,8 @@
             <BoxView Grid.Row="4" HeightRequest="5">
                 <BoxView.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="1.0" />
                     </LinearGradientBrush>
                 </BoxView.Background>
             </BoxView>

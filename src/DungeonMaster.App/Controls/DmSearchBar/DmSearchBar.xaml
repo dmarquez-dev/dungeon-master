@@ -5,21 +5,33 @@
     x:Class="DungeonMaster.App.Controls.DmSearchBar"
     x:Name="Root">
 
+    <!-- BackgroundColor is restated on purpose: DmBorderTavernStyle inherits
+         BackgroundColor="Transparent" from DmBorderBase, so a Border with a surface of its own
+         has to say so again. The StrokeShape element is kept for the same class of reason — the
+         style's inherited shape is DmRadiusDefault (3) and the search field is deliberately on
+         DmRadiusLoose (4), matching the cards below it rather than the toolbars. -->
     <Border
         x:Name="SearchBorder"
-        StrokeShape="RoundRectangle 4"
-        StrokeThickness="1"
-        Stroke="{StaticResource DMCardBorderBrush}"
-        BackgroundColor="{StaticResource DMCardSurface}"
-        Padding="10,4">
+        Style="{StaticResource DmBorderTavernStyle}"
+        BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
+        Padding="{StaticResource DmPaddingControl}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
+        <!-- MinimumHeightRequest is stated here and nowhere else. A control carrying Style= is
+             ignored by the implicit Entry style in Implicit.xaml, which is what supplies the
+             44px touch target; adopting DmEntryTavern therefore opts out of it. That floor is
+             load-bearing for THIS field specifically — it was measured dropping from 51px to
+             42px when the stock styles were deleted (see Implicit.xaml). The 44 lives at the
+             call site rather than on DmEntryBase because putting it on the base would grow
+             CreateDungeonPopup's Entry and Editor, which have never had a minimum. -->
         <Entry
+            AutomationId="DungeonSearchEntry"
+            SemanticProperties.Description="Search dungeons"
+            Style="{StaticResource DmEntryTavern}"
+            MinimumHeightRequest="44"
             Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay}"
             Placeholder="Search dungeons..."
-            PlaceholderColor="{StaticResource DMTextMuted}"
-            TextColor="{StaticResource DMTextPrimary}"
-            BackgroundColor="Transparent"
-            FontFamily="EBGaramondRegular"
-            FontSize="18"
             Focused="OnSearchFocused"
             Unfocused="OnSearchUnfocused" />
     </Border>

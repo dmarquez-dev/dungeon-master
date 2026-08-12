@@ -1,4 +1,5 @@
 using DungeonMaster.App.Assets.ObjectAssets;
+using DungeonMaster.App.Theme;
 using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Floor;
@@ -15,10 +16,8 @@ namespace DungeonMaster.App.Graphics;
 /// </summary>
 public sealed class FloorMapDrawable : IDrawable
 {
-    private static readonly Color GridColor = Color.FromArgb("#1AC4862A");
-    private static readonly Color AreaColor = Color.FromArgb("#C8A040");
-    private static readonly Color VertexColor = Color.FromArgb("#F5E4B0");
-
+    // Colours are read from DmTheme at draw time, never cached in a static field: see DmTheme's
+    // remarks and the guard test NoEagerDmThemeRead.
     private readonly Dictionary<ObjectKind, Microsoft.Maui.Graphics.IImage?> _imageCache = new();
 
     public FloorMapDrawable() { }
@@ -148,7 +147,7 @@ public sealed class FloorMapDrawable : IDrawable
 
     private void DrawGrid(ICanvas canvas, RectF dirtyRect)
     {
-        canvas.StrokeColor = GridColor;
+        canvas.StrokeColor = DmTheme.MapGrid;
         canvas.StrokeSize = 0.5f;
 
         // Convert screen edges to canvas space so the grid fills the entire view
@@ -234,7 +233,7 @@ public sealed class FloorMapDrawable : IDrawable
         if (outline.Count == 0)
             return;
 
-        canvas.StrokeColor = AreaColor.WithAlpha(alpha);
+        canvas.StrokeColor = DmTheme.MapAreaStroke.WithAlpha(alpha);
         canvas.StrokeSize = 1.5f;
 
         // The polygon is closed, so the final segment's end point is also its start point.
@@ -383,9 +382,9 @@ public sealed class FloorMapDrawable : IDrawable
 
         if (!isDragging && HoveredObjectId == obj.Id)
         {
-            canvas.FillColor = Color.FromArgb("#40C8A040");
+            canvas.FillColor = DmTheme.MapAreaFillActive;
             canvas.FillRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
-            canvas.StrokeColor = Color.FromArgb("#90C8A040");
+            canvas.StrokeColor = DmTheme.MapAreaStrokeActive;
             canvas.StrokeSize = 1.5f;
             canvas.DrawRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
         }
@@ -422,10 +421,10 @@ public sealed class FloorMapDrawable : IDrawable
 
     private static void DrawMissingObjectFallback(ICanvas canvas, float x, float y, float size)
     {
-        canvas.StrokeColor = Color.FromArgb("#C8A040");
+        canvas.StrokeColor = DmTheme.MapObjectPlaceholder;
         canvas.StrokeSize = 1.5f;
         canvas.DrawRectangle(x, y, size, size);
-        canvas.FontColor = Color.FromArgb("#C8A040");
+        canvas.FontColor = DmTheme.MapObjectPlaceholder;
         canvas.FontSize = size * 0.4f;
         canvas.DrawString("?", x, y, size, size, HorizontalAlignment.Center, VerticalAlignment.Center);
     }
@@ -462,7 +461,7 @@ public sealed class FloorMapDrawable : IDrawable
         }
         else
         {
-            canvas.StrokeColor = Color.FromArgb("#C8A040");
+            canvas.StrokeColor = DmTheme.MapObjectPlaceholder;
             canvas.StrokeDashPattern = [4f, 3f];
             canvas.StrokeSize = 1.5f;
             canvas.DrawRectangle(drawX, drawY, boxW, boxH);
@@ -478,7 +477,7 @@ public sealed class FloorMapDrawable : IDrawable
 
         if (InProgressVertices.Count >= 2)
         {
-            canvas.StrokeColor = VertexColor.WithAlpha(0.85f);
+            canvas.StrokeColor = DmTheme.MapVertex.WithAlpha(0.85f);
             canvas.StrokeSize = 1.5f;
             canvas.StrokeDashPattern = null;
 
@@ -494,7 +493,7 @@ public sealed class FloorMapDrawable : IDrawable
             canvas.DrawPath(inProgressPath);
         }
 
-        canvas.FillColor = VertexColor;
+        canvas.FillColor = DmTheme.MapVertex;
 
         foreach (var vertex in InProgressVertices)
         {
@@ -510,7 +509,7 @@ public sealed class FloorMapDrawable : IDrawable
             // Snap phantom end to nearest grid corner — same logic as actual vertex placement.
             var snapped = TileCoordinateHelper.SnapToGrid(PhantomEnd.Value.X, PhantomEnd.Value.Y, TileSize);
 
-            canvas.StrokeColor = VertexColor.WithAlpha(0.5f);
+            canvas.StrokeColor = DmTheme.MapVertex.WithAlpha(0.5f);
             canvas.StrokeSize = 1f;
             canvas.StrokeDashPattern = [4f, 4f];
             canvas.DrawLine(lastX, lastY, PhantomEnd.Value.X, PhantomEnd.Value.Y);
@@ -525,8 +524,8 @@ public sealed class FloorMapDrawable : IDrawable
                 var distFeet = (int)MathF.Round(distTiles * TileSizeInFeet);
                 var midX = (lastX + PhantomEnd.Value.X) / 2f;
                 var midY = (lastY + PhantomEnd.Value.Y) / 2f;
-                canvas.FontColor = VertexColor.WithAlpha(0.9f);
-                canvas.FontSize = 9f;
+                canvas.FontColor = DmTheme.MapVertex.WithAlpha(0.9f);
+                canvas.FontSize = (float)DmTheme.FontSizeMicro;
                 canvas.DrawString($"{distFeet}'", midX + 4f, midY - 14f, 48f, 14f,
                     HorizontalAlignment.Left, VerticalAlignment.Center);
             }

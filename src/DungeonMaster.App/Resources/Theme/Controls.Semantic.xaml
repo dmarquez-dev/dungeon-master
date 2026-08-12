@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        Action semantics. Surface-independent: a destructive button is red on tavern and on
+        parchment alike, so these derive from the base rather than from a surface variant.
+
+        DmConfirmButton restates the whole common-states group rather than inheriting the
+        base one. The style it replaces (Resources/Styles/Styles.xaml) carried its colours
+        inside the visual states, and its Disabled state swapped the green fill for the
+        neutral surface and the text for the muted parchment ink at 0.6 opacity. A derived
+        style replaces the base group wholesale, so inheriting here would have silently
+        turned the disabled CREATE button in CreateDungeonPopup from grey-brown back to
+        green at 0.45 opacity. The states below reproduce the old appearance exactly.
+
+        THAT SAME GROUP IS WHY DmConfirmPopup SWAPS STYLES RATHER THAN COLOURS. Its confirm
+        button is green or red depending on whether the action is destructive. A VisualState
+        setter outranks an imperative assignment, so the Normal state below beats
+        ConfirmButton.BackgroundColor = DmTheme.Destructive — silently, at the moment the button
+        enters Normal, with a clean build. The popup therefore assigns
+        DmTheme.DestructiveButton or DmTheme.ConfirmButton to Style instead.
+
+        DmDestructiveButton MUST NOT GAIN A CommonStates GROUP OF ITS OWN. It works precisely
+        because it inherits DmButtonBase's, whose Normal state sets Opacity and nothing else, so
+        its own BackgroundColor setter is what reaches the pixel. Give it a Normal state that
+        names a colour and the destructive dialog goes green again by the same mechanism.
+    -->
+
+    <Style x:Key="DmConfirmButton" TargetType="Button" BasedOn="{StaticResource DmButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DmConfirm}" />
+        <Setter Property="TextColor" Value="{StaticResource DmConfirmText}" />
+        <Setter Property="BorderColor" Value="{StaticResource DmConfirm}" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmConfirm}" />
+                            <Setter Property="TextColor" Value="{StaticResource DmConfirmText}" />
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.82" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmConfirm}" />
+                            <Setter Property="TextColor" Value="{StaticResource DmConfirmText}" />
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmNeutralSurface}" />
+                            <Setter Property="TextColor" Value="{StaticResource DmTextParchmentMuted}" />
+                            <Setter Property="Opacity" Value="0.6" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DmDestructiveButton" TargetType="Button" BasedOn="{StaticResource DmButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DmDestructive}" />
+        <Setter Property="TextColor" Value="{StaticResource DmDestructiveText}" />
+        <Setter Property="BorderColor" Value="{StaticResource DmDestructive}" />
+    </Style>
+
+    <Style x:Key="DmNeutralButton" TargetType="Button" BasedOn="{StaticResource DmButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DmNeutralSurface}" />
+        <Setter Property="TextColor" Value="{StaticResource DmTextParchment}" />
+        <Setter Property="BorderColor" Value="{StaticResource DmNeutralBorder}" />
+    </Style>
+
+</ResourceDictionary>

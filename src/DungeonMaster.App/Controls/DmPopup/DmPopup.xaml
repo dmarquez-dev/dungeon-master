@@ -6,46 +6,54 @@
     x:Name="Root">
 
     <Border
-        StrokeShape="RoundRectangle 4"
-        Stroke="{StaticResource DMScrollBorderBrush}"
-        StrokeThickness="2"
+        Stroke="{StaticResource DmBorderParchmentBrush}"
+        StrokeThickness="{StaticResource DmStrokeEmphasis}"
         MinimumWidthRequest="300"
         MaximumWidthRequest="420">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
+        </Border.StrokeShape>
         <Border.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="{StaticResource DMParchmentLight}" Offset="0.0" />
-                <GradientStop Color="{StaticResource DMParchmentDark}" Offset="1.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchment}" Offset="0.0" />
+                <GradientStop Color="{StaticResource DmSurfaceParchmentDeep}" Offset="1.0" />
             </LinearGradientBrush>
         </Border.Background>
 
         <Grid RowDefinitions="Auto,*,Auto">
 
             <!-- Header bar -->
-            <Grid Grid.Row="0" Padding="14,10">
+            <Grid Grid.Row="0" Padding="{StaticResource DmPaddingPanel}">
                 <Grid.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="1.0" />
                     </LinearGradientBrush>
                 </Grid.Background>
                 <Label
+                    AutomationId="PopupTitle"
                     Text="{Binding Title, Source={x:Reference Root}}"
-                    FontFamily="CinzelDecorative"
-                    FontSize="20"
-                    TextColor="{StaticResource DMInk}"
+                    FontFamily="{StaticResource DmFontTitleDecorative}"
+                    FontSize="{StaticResource DmFontSizeTitle}"
+                    TextColor="{StaticResource DmTextParchment}"
                     HorizontalOptions="Center"
                     VerticalOptions="Center" />
             </Grid>
 
-            <!-- Body content slot -->
-            <ContentView x:Name="BodyPresenter" Grid.Row="1" Padding="18,14" />
+            <!-- Body content slot. The inset comes from this control's own BodyPadding rather
+                 than from the role token directly, so a host can override it in one place and
+                 every other host keeps the shared default. -->
+            <ContentView
+                x:Name="BodyPresenter"
+                Grid.Row="1"
+                Padding="{Binding BodyPadding, Source={x:Reference Root}}" />
 
             <!-- Bottom scroll bar -->
             <BoxView Grid.Row="2" HeightRequest="5">
                 <BoxView.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="{StaticResource DMScrollGoldDark}" Offset="0.0" />
-                        <GradientStop Color="{StaticResource DMScrollGoldLight}" Offset="1.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldDark}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource DmAccentGoldLight}" Offset="1.0" />
                     </LinearGradientBrush>
                 </BoxView.Background>
             </BoxView>

@@ -9,12 +9,22 @@ namespace DungeonMaster.App.Controls;
 /// </summary>
 public partial class FloorSidebarItem : ContentView
 {
-	private static readonly Color _surfaceNormal = DmColors.FloorSurfaceNormal;
-	private static readonly Color _surfaceHover  = DmColors.FloorSurfaceHover;
-	private static readonly Color _surfaceActive  = DmColors.FloorSurfaceActive;
+	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
+	// NoEagerDmThemeRead.
+	private static Color SurfaceNormal =>
+		DmTheme.FloorSurfaceNormal;
 
-	private static readonly SolidColorBrush _borderNormal = DmColors.FloorBorderNormal;
-	private static readonly SolidColorBrush _borderActive = DmColors.FloorBorderActive;
+	private static Color SurfaceHover =>
+		DmTheme.FloorSurfaceHover;
+
+	private static Color SurfaceActive =>
+		DmTheme.FloorSurfaceActive;
+
+	private static Brush BorderNormal =>
+		DmTheme.FloorBorderNormal;
+
+	private static Brush BorderActive =>
+		DmTheme.FloorBorderActive;
 
 	/// <summary>
 	///		Identifies the <see cref="Floor"/> bindable property.
@@ -128,21 +138,20 @@ public partial class FloorSidebarItem : ContentView
 		if (string.IsNullOrWhiteSpace(floor.Name))
 		{
 			FloorNameLabel.Text = $"Floor {floor.Number}";
-			FloorNameLabel.TextColor = DmColors.GoldMuted;
+			FloorNameLabel.TextColor = DmTheme.GoldMuted;
 		}
 		else
 		{
 			FloorNameLabel.Text = floor.Name;
-			FloorNameLabel.TextColor = DmColors.ScrollGoldLight;
+			FloorNameLabel.TextColor = DmTheme.ScrollGoldLight;
 		}
 
-		var hasContent =
+		// Colour AND description together — see NotebookAffordance for why the pair is one call
+		// and not two copies.
+		NotebookAffordance.Apply(
+			NotebookButton,
 			!string.IsNullOrWhiteSpace(floor.Description) ||
-			!string.IsNullOrWhiteSpace(floor.Notes);
-
-		NotebookButton.TextColor = hasContent
-			? DmColors.ScrollGoldLight
-			: DmColors.InkMuted;
+			!string.IsNullOrWhiteSpace(floor.Notes));
 
 		RebuildAreas(floor);
 	}
@@ -215,12 +224,21 @@ public partial class FloorSidebarItem : ContentView
 	{
 		_isExpanded = expanded;
 		ExpandToggle.Text = expanded ? "▾" : "▸";
+
+		// The glyph IS the state, so the description moves with it. Set here rather than in XAML
+		// for the same reason the glyph is.
+		SemanticProperties.SetDescription(
+			ExpandToggle,
+			expanded
+				? "Expanded"
+				: "Collapsed");
+
 		AreaSeparator.IsVisible = expanded;
 		AreaContainer.IsVisible = expanded;
 		AddAreaButton.IsVisible = expanded;
 
-		FloorBorder.BackgroundColor = expanded ? _surfaceActive : _surfaceNormal;
-		FloorBorder.Stroke = expanded ? _borderActive : _borderNormal;
+		FloorBorder.BackgroundColor = expanded ? SurfaceActive : SurfaceNormal;
+		FloorBorder.Stroke = expanded ? BorderActive : BorderNormal;
 	}
 
 	// Card tap expands when collapsed, or fires SelectRequested when already expanded.
@@ -248,7 +266,7 @@ public partial class FloorSidebarItem : ContentView
 	{
 		if (!_isExpanded)
 		{
-			FloorBorder.BackgroundColor = _surfaceHover;
+			FloorBorder.BackgroundColor = SurfaceHover;
 		}
 	}
 
@@ -256,7 +274,7 @@ public partial class FloorSidebarItem : ContentView
 	{
 		if (!_isExpanded)
 		{
-			FloorBorder.BackgroundColor = _surfaceNormal;
+			FloorBorder.BackgroundColor = SurfaceNormal;
 		}
 	}
 
@@ -299,7 +317,7 @@ public partial class FloorSidebarItem : ContentView
 	{
 		e.AcceptedOperation = DataPackageOperation.Copy;
 		PlaceholderRequested?.Invoke(this, EventArgs.Empty);
-		FloorBorder.Stroke = _borderActive;
+		FloorBorder.Stroke = BorderActive;
 	}
 
 	private void OnDragLeave(object? sender, DragEventArgs e)
@@ -307,13 +325,13 @@ public partial class FloorSidebarItem : ContentView
 		// Do NOT clear the placeholder here. Removing it while the cursor moves
 		// into the adjacent placeholder triggers DragOver → DragLeave oscillation = stutter.
 		// The placeholder is cleared when the drag ends (DropCompleted).
-		FloorBorder.Stroke = _isExpanded ? _borderActive : _borderNormal;
+		FloorBorder.Stroke = _isExpanded ? BorderActive : BorderNormal;
 	}
 
 	private void OnDrop(object? sender, DropEventArgs e)
 	{
 		PlaceholderCleared?.Invoke(this, EventArgs.Empty);
-		FloorBorder.Stroke = _isExpanded ? _borderActive : _borderNormal;
+		FloorBorder.Stroke = _isExpanded ? BorderActive : BorderNormal;
 
 		if (Floor is null)
 		{

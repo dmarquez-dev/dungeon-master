@@ -28,8 +28,17 @@
 		<!-- Display name -->
 		<ApplicationTitle>DungeonMaster.App</ApplicationTitle>
 
-		<!-- App Identifier -->
-		<ApplicationId>com.companyname.dungeonmaster.app</ApplicationId>
+		<!-- App Identifier. Was the .NET template's com.companyname.dungeonmaster.app.
+		     "companyname" is not a defensible identity for a shipped app, so it is replaced
+		     with the reverse-DNS form of the GitHub owner (dmarquez-dev; hyphens are not legal
+		     in every platform's package identifier, hence dmarquezdev).
+
+		     THIS IS AN IDENTITY DECISION AND MAY WANT TO BE SOMETHING ELSE. Changing it after
+		     a build has been installed makes the next one a DIFFERENT application to Windows,
+		     which gets its own local app-data folder — and the SQLite database lives there, so
+		     an existing install stops seeing its dungeons. Nothing has shipped yet, so the cost
+		     is zero today and rises the moment it does. -->
+		<ApplicationId>com.dmarquezdev.dungeonmaster</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -44,23 +53,33 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<!-- App Icon.
+		     #1A1208 is the app's own background — the same value the theme holds under
+		     DmSurfaceTavern — replacing the .NET template's #512BD4 purple, which was a
+		     framework default on a parchment-and-tavern app. It has to be a literal for the
+		     same reason the splash colour below is: MSBuild evaluates this before and outside
+		     MAUI, with no access to Resources/Theme/Tokens.xaml, so it cannot reference the
+		     token. Changing it regenerates the icon assets. If DmSurfaceTavern moves, move
+		     this and the splash by hand. -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#1A1208" />
 
-		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<!-- Splash Screen.
+		     #1A1208 is the app's own background — the same value the theme holds under
+		     DmSurfaceTavern — replacing the .NET template's #512BD4 purple. It has to be a
+		     literal: MSBuild evaluates this before and outside MAUI, with no access to
+		     Resources/Theme/Tokens.xaml, so it cannot reference the token. Nothing scans
+		     this file for raw colours either; the theme hygiene tests read *.xaml and *.cs
+		     only. If DmSurfaceTavern moves, move this by hand. -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#1A1208" BaseSize="128,128" />
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
-		
-		<!-- Custom Fonts -->
+
+		<!-- Custom Fonts. The wildcard is the registration; do not re-list individual
+		     files beside it. An explicit list used to sit here and had already drifted —
+		     it omitted rpgawesome-webfont.ttf, reading as an authoritative registry that
+		     was missing a font while the wildcard silently kept the app working. -->
 		<MauiFont Include="Resources\Fonts\*" />
-		<MauiFont Include="Resources\Fonts\Cinzel-Regular.ttf" />
-		<MauiFont Include="Resources\Fonts\Cinzel-SemiBold.ttf" />
-		<MauiFont Include="Resources\Fonts\CinzelDecorative-Regular.ttf" />
-		<MauiFont Include="Resources\Fonts\EBGaramond-Regular.ttf" />
-		<MauiFont Include="Resources\Fonts\EBGaramond-Italic.ttf" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
@@ -72,7 +91,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 		<PackageReference Include="Plugin.Maui.KeyListener" Version="1.0.0-preview4" />
 	</ItemGroup>

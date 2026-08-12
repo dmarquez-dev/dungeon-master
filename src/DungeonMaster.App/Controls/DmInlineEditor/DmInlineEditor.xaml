@@ -12,9 +12,11 @@
     <Border
         x:Name="FocusBorder"
         Stroke="Transparent"
-        StrokeShape="RoundRectangle 3"
-        StrokeThickness="1"
-        Padding="2,1">
+        StrokeThickness="{StaticResource DmStrokeHairline}"
+        Padding="{StaticResource DmPaddingTight}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+        </Border.StrokeShape>
         <Border.GestureRecognizers>
             <PointerGestureRecognizer
                 PointerEntered="OnPointerEntered"

@@ -4,6 +4,101 @@ Deferred work items with enough context to pick up cold. Newest first.
 
 ---
 
+## NEXT UP — adopt Phosphor for designer/editor icons
+
+**Raised:** 2026-08-12, closing out the design-system work
+**Area:** `DungeonMaster.App` — `Resources/Fonts`, `Resources/Theme/Typography.xaml`, the glyph call sites
+**Type:** feature, fully specified — this is the next piece of work
+
+The theme migration and the design-system completion are both done and merged into
+`feat/theme-systemisation` (35+ commits). This is what follows them, and it was deliberately gated
+behind them so it lands on settled ground.
+
+### The decision, already made
+
+**Phosphor Icons.** Chosen over Lucide after generating and comparing both references. The measured
+data did not separate them meaningfully; the deciding factors were Phosphor's **weight axis**
+(`regular` / `fill` of the same icon, which is how a tool palette should show selected state — the
+palette currently fakes it with colour alone) and a **single MIT notice** versus Lucide's ISC plus a
+Feather-derived MIT subset, which needs two.
+
+**Licences were verified from source**, not from memory: `@phosphor-icons/web@2.1.2` is MIT,
+© 2020-2021 Phosphor Icons. Full texts are already committed in `docs/icon-references.md`.
+
+### Artifacts that exist
+
+- **`docs/phosphor-ref.html`** — committed. Named, filterable, font embedded, with the 17 icons the
+  designer palette needs pinned at the top. **All 17 exist in the set.**
+- **`docs/lucide-ref.html`** — committed, the rejected candidate, kept for comparison.
+- **`docs/icon-references.md`** — committed, carries both licence texts.
+- **`docs/rpg-awesome-ref.html`** — the *existing* icon font's reference. It is a **codepoint dump
+  with no semantic names**, which is why identifying an icon in it means visually scanning 498
+  glyphs. The two new references fix that. **Do not regress to a nameless reference.**
+- `docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md` — the full evaluation.
+  **`docs/superpowers/` is gitignored**, so this exists on the original machine only. Everything
+  load-bearing from it is reproduced here.
+
+### Scope
+
+**Add `DmFontDesignIcon` alongside `DmFontIcon` — this is additive, not a replacement.** RPG Awesome
+stays for the 13 thematic private-use glyphs (crossed swords, scroll, and so on) that are genuinely
+in its `cmap`. Phosphor takes the designer/editor tools.
+
+Five Unicode symbols remain to convert, plus the two rotation arrows:
+
+| Glyph | Codepoint | Sites |
+|---|---|---|
+| `◆` | U+25C6 | `AreaSidebarItem.xaml` |
+| `▸` `▾` | U+25B8 / U+25BE | `FloorSidebarItem.xaml` (+ code-behind) |
+| `⋮` | U+22EE | `FloorSidebarItem.xaml` |
+| `✕` | U+2715 | `NotebookView.xaml`, `ObjectPaletteView.xaml`, `SecondaryPaletteView.xaml` |
+| `↺` `↻` | U+21BA / U+21BB | `ControlsPaletteView.xaml`, `DungeonDetailPage.xaml` |
+
+**Four measured `TranslationX` values exist solely to correct the rotation arrows' metrics** —
+`ControlsPaletteView.xaml:85,109` and `DungeonDetailPage.xaml:429,450`. Those glyphs are in **no
+bundled font**, so they render from an unknown Windows fallback whose metrics the translations
+encode. **Converting them to Phosphor should delete all four.** Verify by measuring, not by
+assuming — this project has been wrong about glyph metrics three separate times.
+
+### Traps, each one learned the hard way
+
+1. **`IconFontCoverageTests` already exists** and parses the icon font's `cmap` (formats 0/4/6/12),
+   asserting every control declaring `DmFontIcon` has `Text` within it. **Extend it for the second
+   font; do not bypass it.** It exists because seven controls shipped pointing at a font that could
+   not render their glyph — twice, because the first fix was scoped to one file.
+2. **Check the property's declared type before binding any token.** `Button.CornerRadius` is
+   `Int32`, `Frame.CornerRadius` is `Single`, `BoxView`/`RoundRectangle` take the `CornerRadius`
+   struct. A `double` token on a `Button` fails *silently*, warns on every evaluation, and leaves the
+   property at its default. That shipped through four human visual checkpoints and was only caught
+   from console output. `TokenTypeMatchesTargetPropertyTests` now guards this — keep it green.
+3. **These controls already carry accessibility descriptions.** 86 `SemanticProperties` and
+   `AutomationId` attributes exist, and five update with control state. **Do not lose them in the
+   swap**, and where a description names the glyph's meaning, keep it accurate to the new icon.
+4. **Prove any new or changed guard by construction** — write the violating case, watch it fail,
+   revert. Six guards in this codebase have shipped passing while being structurally incapable of
+   firing. Also: **read the file back after writing it.** One proof run passed only because a
+   line-ending mismatch meant the violation was never written to disk.
+5. **35 of 68 source files are CRLF and 15 carry a BOM.** An LF-anchored patch silently no-ops on
+   those. Verify with a byte check, not by eye.
+6. **A clean build and a clean launch are both false signals for WinUI resource work.** WinUI
+   resolves dictionary entries lazily; markup here has twice built clean, launched clean, and thrown
+   or silently done nothing at first real use.
+
+### Sequencing
+
+1. Confirm the TTF distribution is still maintained, then add the font and register it in
+   `MauiProgram.cs`.
+2. Add the `DmFontDesignIcon` family token **alongside** `DmFontIcon`.
+3. Generate a **named** codepoint reference for whichever weights ship, matching
+   `docs/phosphor-ref.html`'s format.
+4. Convert the call sites, deleting each `TranslationX` as its glyph is converted.
+5. Decide per icon whether `regular` or `fill` expresses the tool's active state, and replace the
+   colour-only treatment the palette uses today.
+6. Re-measure nothing. If a glyph still needs a translation after the swap, the font choice is
+   wrong — that is the signal to reconsider, not to nudge.
+
+---
+
 ## macCatalyst has no text-input guard for keyboard shortcuts
 
 **Raised:** 2026-08-05, during the notebook metadata work

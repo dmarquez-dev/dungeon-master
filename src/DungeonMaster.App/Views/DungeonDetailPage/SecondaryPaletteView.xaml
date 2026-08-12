@@ -3,44 +3,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DungeonMaster.App.Views.DungeonDetail.SecondaryPaletteView">
 
-    <Border BackgroundColor="#EDD8A0"
-            Stroke="#8B5E1A"
-            StrokeThickness="1"
-            Padding="8"
+    <Border BackgroundColor="{StaticResource DmSurfaceToolPanel}"
+            Stroke="{StaticResource DmBorderParchment}"
+            StrokeThickness="{StaticResource DmStrokeHairline}"
+            Padding="{StaticResource DmPaddingCompact}"
             WidthRequest="272"
             HorizontalOptions="Start">
         <Border.StrokeShape>
-            <RoundRectangle CornerRadius="4" />
+            <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
         </Border.StrokeShape>
-        <VerticalStackLayout Spacing="4">
+        <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
 
             <Grid ColumnDefinitions="*,Auto">
                 <Label x:Name="TitleLabel"
                        Grid.Column="0"
-                       FontFamily="EBGaramondRegular"
-                       FontSize="13"
-                       TextColor="#5C3E10"
+                       FontFamily="{StaticResource DmFontBody}"
+                       FontSize="{StaticResource DmFontSizeCaption}"
+                       TextColor="{StaticResource DmTextToolPanel}"
                        TextTransform="Uppercase"
                        CharacterSpacing="0.8"
                        VerticalOptions="Center" />
-                <Button x:Name="CloseButton"
-                        Grid.Column="1"
+                <Button Grid.Column="1"
                         Text="✕"
-                        FontSize="12"
-                        TextColor="#7A5030"
+                        AutomationId="SecondaryPaletteCloseButton"
+                        SemanticProperties.Description="Close this object category"
+                        ToolTipProperties.Text="Close"
+                        FontFamily="{StaticResource DmFontBody}"
+                        FontSize="{StaticResource DmIconSizeTiny}"
+                        TextColor="{StaticResource DmTextParchmentMuted}"
                         BackgroundColor="Transparent"
                         Padding="0"
                         WidthRequest="22" HeightRequest="22"
                         Clicked="OnCloseClicked" />
             </Grid>
 
-            <ScrollView x:Name="ScrollArea"
-                        Orientation="Vertical"
+            <ScrollView Orientation="Vertical"
                         VerticalScrollBarVisibility="Always"
                         MaximumHeightRequest="200">
                 <Grid x:Name="ObjectGrid"
-                      ColumnSpacing="4"
-                      RowSpacing="4">
+                      ColumnSpacing="{StaticResource DmSpaceXS}"
+                      RowSpacing="{StaticResource DmSpaceXS}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="48" />
                         <ColumnDefinition Width="48" />

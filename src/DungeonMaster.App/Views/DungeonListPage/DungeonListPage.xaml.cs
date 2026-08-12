@@ -37,8 +37,34 @@ public partial class DungeonListPage : ContentPage
 	}
 
 	/// <inheritdoc/>
-	protected override async void OnAppearing() =>
-		await _viewModel.LoadDungeonsCommand.ExecuteAsync(null);
+	/// <remarks>
+	///		<c>async void</c> is unavoidable on a lifecycle override — the base signature returns
+	///		<see langword="void"/> — which makes an escaping exception an UNOBSERVED one, and an
+	///		unobserved exception from an <c>async void</c> is rethrown on the synchronisation
+	///		context and takes the process down. The <c>try</c> is therefore not defensive style;
+	///		it is the only thing standing between a failed load and a crash on navigation. The
+	///		failure is routed to the same <c>ErrorMessage</c> the view model uses for every other
+	///		load failure, so the user sees the banner rather than losing the app.
+	///		<para>
+	///		<c>base.OnAppearing()</c> is called first, unconditionally. The previous expression
+	///		body skipped it entirely; <see cref="Page"/> raises its <c>Appearing</c> event from
+	///		that method, so anything subscribed to it — a behavior, a platform handler — was
+	///		silently never notified on this page.
+	///		</para>
+	/// </remarks>
+	protected override async void OnAppearing()
+	{
+		base.OnAppearing();
+
+		try
+		{
+			await _viewModel.LoadDungeonsCommand.ExecuteAsync(null);
+		}
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not load your dungeons: {exception.Message}";
+		}
+	}
 
 	private async void OnCreateClicked(object? sender, EventArgs e)
 	{

@@ -7,6 +7,10 @@ public partial class DmDivider : ContentView
 {
 	/// <summary>
 	///		Identifies the <see cref="IconFontSize"/> bindable property.
+	///		The default mirrors <c>DmIconSizeMedium</c> and stays a literal deliberately: a bindable
+	///		default is evaluated in this static field initialiser, which can run before
+	///		<c>Application.Current.Resources</c> exists, so it cannot read <c>DmTheme</c>.
+	///		<c>BindablePropertyDefaultsMatchTokensTests</c> fails if the two drift apart.
 	/// </summary>
 	public static readonly BindableProperty IconFontSizeProperty =
 		BindableProperty.Create(

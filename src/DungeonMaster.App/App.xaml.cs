@@ -11,6 +11,16 @@ public partial class App : Microsoft.Maui.Controls.Application
 	public App()
 	{
 		InitializeComponent();
+
+#if WINDOWS
+		// The WinUI system brushes (scrollbar, text selection, ComboBox popup) have to be
+		// overridden from C# because App.xaml on Windows is parsed by WinUI and cannot see
+		// MAUI's tokens. Those overrides read DmTheme, which needs Application.Current.Resources
+		// — and that only exists once InitializeComponent above has run. This is therefore the
+		// earliest point at which they can be applied, and it is still before the first window
+		// is created. See the remarks on WinUI.App.ApplyThemeResources.
+		global::DungeonMaster.App.WinUI.App.ApplyThemeResources();
+#endif
 	}
 
 	/// <summary>

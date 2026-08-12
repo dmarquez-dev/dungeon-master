@@ -5,7 +5,6 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
-    xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
     x:Class="DungeonMaster.App.Views.CreateDungeonPopup"
     x:TypeArguments="x:Boolean"
     BackgroundColor="Transparent"
@@ -13,84 +12,82 @@
     Padding="0"
     CanBeDismissedByTappingOutsideOfPopup="False">
 
+    <!-- NO x:DataType, AND THEREFORE NO xmlns:vm. This was tried, not assumed: adding
+         x:DataType="vm:CreateDungeonViewModel" to compile the six ViewModel bindings FAILS the
+         build under TreatWarningsAsErrors, with MAUIG2045 on two distinct causes:
+
+           - "Property 'CreateCommand' not found on CreateDungeonViewModel". The commands are
+             emitted by CommunityToolkit.Mvvm's [RelayCommand] generator, and MAUI's binding
+             generator cannot see another generator's output. The diagnostic itself says so.
+           - "Property 'ButtonRowSpacing' not found on CreateDungeonViewModel" for the button
+             row below, whose Binding sets Source={x:Reference Chrome} and so does not target
+             the DataType at all. The generator applies x:DataType to it regardless.
+
+         Both are limitations of the tooling rather than defects in this markup. Compiled
+         bindings would be the better outcome and are not available here; the namespace that
+         only existed to enable them is gone rather than left declared and unused. Revisit when
+         MAUI's generator handles cross-generator members and explicit Sources. -->
     <controls:DmPopup x:Name="Chrome" Title="New Dungeon">
         <controls:DmPopup.Body>
-            <VerticalStackLayout Spacing="14">
+            <!-- No Spacing here: DmPopup.ContentSpacing supplies it, so every popup
+                 body shares one value. Setting it locally would opt out. -->
+            <VerticalStackLayout>
 
                 <!-- Error -->
                 <Label
                     Text="{Binding ErrorMessage}"
-                    FontFamily="EBGaramondRegular"
-                    FontSize="16"
-                    TextColor="{StaticResource DMDestructive}"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmFontSizeBodySmall}"
+                    TextColor="{StaticResource DmDestructive}"
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
 
                 <!-- Name field -->
-                <VerticalStackLayout Spacing="4">
+                <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <Label
                         Text="NAME *"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeAction}"
                         CharacterSpacing="1.5"
-                        TextColor="{StaticResource DMInkMuted}" />
+                        TextColor="{StaticResource DmTextParchmentMuted}" />
                     <Border
-                        StrokeShape="RoundRectangle 3"
-                        StrokeThickness="1"
-                        Stroke="{StaticResource DMScrollBorderBrush}"
-                        BackgroundColor="Transparent"
-                        Padding="10,4">
+                        Style="{StaticResource DmBorderParchmentStyle}"
+                        Padding="{StaticResource DmPaddingControl}">
                         <Entry
+                            Style="{StaticResource DmEntryParchment}"
                             Text="{Binding Name, Mode=TwoWay}"
-                            FontFamily="EBGaramondRegular"
-                            FontSize="18"
-                            TextColor="{StaticResource DMInk}"
-                            BackgroundColor="Transparent"
-                            PlaceholderColor="{StaticResource DMInkMuted}"
                             Placeholder="Enter dungeon name" />
                     </Border>
                 </VerticalStackLayout>
 
                 <!-- Description field -->
-                <VerticalStackLayout Spacing="4">
+                <VerticalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <Label
                         Text="DESCRIPTION"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        FontFamily="{StaticResource DmFontTitle}"
+                        FontSize="{StaticResource DmFontSizeAction}"
                         CharacterSpacing="1.5"
-                        TextColor="{StaticResource DMInkMuted}" />
+                        TextColor="{StaticResource DmTextParchmentMuted}" />
                     <Border
-                        StrokeShape="RoundRectangle 3"
-                        StrokeThickness="1"
-                        Stroke="{StaticResource DMScrollBorderBrush}"
-                        BackgroundColor="Transparent"
-                        Padding="10,4">
+                        Style="{StaticResource DmBorderParchmentStyle}"
+                        Padding="{StaticResource DmPaddingControl}">
                         <Editor
+                            Style="{StaticResource DmEditorParchment}"
                             Text="{Binding Description, Mode=TwoWay}"
-                            FontFamily="EBGaramondItalic"
-                            FontSize="18"
-                            TextColor="{StaticResource DMInk}"
-                            BackgroundColor="Transparent"
-                            PlaceholderColor="{StaticResource DMInkMuted}"
+                            FontFamily="{StaticResource DmFontBodyItalic}"
                             Placeholder="Optional — a sentence about this place"
-                            HeightRequest="72"
-                            AutoSize="Disabled" />
+                            HeightRequest="72" />
                     </Border>
                 </VerticalStackLayout>
 
                 <!-- Buttons -->
-                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="{Binding ButtonRowSpacing, Source={x:Reference Chrome}}">
                     <Button
                         Grid.Column="0"
                         Text="CANCEL"
                         Command="{Binding CancelCommand}"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
+                        Style="{StaticResource DmNeutralButton}"
                         CharacterSpacing="1"
-                        BackgroundColor="{StaticResource DMNeutralSurface}"
-                        TextColor="{StaticResource DMInk}"
-                        BorderColor="{StaticResource DMNeutralBorder}"
-                        BorderWidth="1.5"
-                        CornerRadius="3">
+                        BorderWidth="{StaticResource DmStrokeMedium}">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>
@@ -100,10 +97,7 @@
                         Text="CREATE"
                         Style="{StaticResource DmConfirmButton}"
                         Command="{Binding CreateCommand}"
-                        FontFamily="CinzelRegular"
-                        FontSize="15"
-                        CharacterSpacing="1"
-                        CornerRadius="3">
+                        CharacterSpacing="1">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />
                         </Button.Behaviors>

@@ -4,57 +4,82 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
-    x:Class="DungeonMaster.App.Controls.FloorSidebarItem"
-    x:Name="Root">
+    x:Class="DungeonMaster.App.Controls.FloorSidebarItem">
 
+    <!-- DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and the
+         DmRadiusDefault corner. BackgroundColor is restated because the style inherits
+         BackgroundColor="Transparent" from DmBorderBase. Both Stroke and BackgroundColor are
+         then rewritten imperatively by the hover, active and drag-over handlers below; an
+         assignment is a local value and outranks a Style setter, so the style is the first
+         frame's appearance and the resting state the handlers return to. -->
     <Border
         x:Name="FloorBorder"
-        StrokeShape="RoundRectangle 3"
-        StrokeThickness="1"
-        Stroke="{StaticResource DMCardBorderBrush}"
-        BackgroundColor="{StaticResource DMCardSurface}"
-        Padding="8,6"
+        Style="{StaticResource DmBorderTavernStyle}"
+        BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
+        Padding="{StaticResource DmPaddingCompact}"
         Margin="0,0,0,4">
 
-        <VerticalStackLayout Spacing="4">
+        <!-- This layout, not the toggle glyph, is the tap target that expands and collapses the
+             floor — and expanding is the only route to a floor's areas. ExpandToggle below tells
+             the user to "tap the floor card", so the card has to be in the accessibility tree
+             and has to say what it is; without a description it was an unlabelled target that
+             another control pointed at. The description is static because the toggle beside it
+             already carries the expanded/collapsed state, rewritten in SetExpanded. -->
+        <VerticalStackLayout
+            Spacing="{StaticResource DmSpaceXS}"
+            AutomationId="FloorCard"
+            SemanticProperties.Description="Floor card"
+            SemanticProperties.Hint="Tap to expand or collapse this floor's areas.">
             <VerticalStackLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCardTapped" />
             </VerticalStackLayout.GestureRecognizers>
 
             <!-- Header row -->
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="2">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
-                <!-- Expand toggle (visual indicator only — card tap handles expand) -->
+                <!-- Expand toggle (visual indicator only — card tap handles expand). The glyph
+                     flips between ▸ and ▾ in SetExpanded, so the description is rewritten there
+                     alongside it; the value here is the collapsed state the glyph starts in. -->
                 <Label
                     x:Name="ExpandToggle"
                     Grid.Column="0"
+                    AutomationId="FloorExpandToggle"
                     Text="&#x25B8;"
-                    FontSize="14"
-                    TextColor="{StaticResource DMTextMuted}"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmIconSizeSmall}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
+                    SemanticProperties.Description="Collapsed"
+                    SemanticProperties.Hint="Tap the floor card to expand or collapse its areas."
                     VerticalOptions="Center" />
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
-                     name clear of the action buttons now that ColumnSpacing is tightened to 2. -->
+                     name clear of the action buttons now that the row is on the tightest spacing step. -->
                 <Label
                     x:Name="FloorNameLabel"
                     Grid.Column="1"
-                    FontFamily="CinzelSemiBold"
-                    FontSize="16"
-                    TextColor="{StaticResource DMScrollGoldLight}"
+                    FontFamily="{StaticResource DmFontTitleStrong}"
+                    FontSize="{StaticResource DmFontSizeSubheading}"
+                    TextColor="{StaticResource DmAccentGoldLight}"
                     Margin="0,0,6,0"
                     VerticalOptions="Center" />
 
-                <!-- Always-visible notebook button — colour reflects whether this floor has authored content -->
+                <!-- Always-visible notebook button — colour reflects whether this floor has
+                     authored content. That colour is the only sighted cue for it, so Populate
+                     rewrites the description whenever it rewrites TextColor; the value here is
+                     the empty state an unpopulated row shows. -->
                 <Button
                     x:Name="NotebookButton"
                     Grid.Column="2"
+                    AutomationId="FloorNotebookButton"
+                    SemanticProperties.Description="Notebook, empty"
+                    SemanticProperties.Hint="Opens the notebook for this floor."
                     Text="&#xEA8F;"
-                    FontFamily="RpgAwesome"
-                    FontSize="16"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeMedium}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource DMInkMuted}"
-                    Padding="4,2"
-                    CornerRadius="2"
+                    TextColor="{StaticResource DmTextParchmentMuted}"
+                    Padding="{StaticResource DmPaddingTight}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     Clicked="OnNotebookClicked"
                     ToolTipProperties.Text="Open notebook">
                     <Button.Behaviors>
@@ -64,15 +89,17 @@
 
                 <!-- Delete button -->
                 <Button
-                    x:Name="DeleteButton"
                     Grid.Column="3"
+                    AutomationId="FloorDeleteButton"
+                    SemanticProperties.Description="Delete floor"
+                    SemanticProperties.Hint="Asks for confirmation, then removes this floor and its areas."
                     Text="&#xE9FC;"
-                    FontFamily="RpgAwesome"
-                    FontSize="16"
+                    FontFamily="{StaticResource DmFontIcon}"
+                    FontSize="{StaticResource DmIconSizeMedium}"
                     BackgroundColor="Transparent"
-                    TextColor="{StaticResource DMDestructive}"
-                    Padding="4,2"
-                    CornerRadius="2"
+                    TextColor="{StaticResource DmDestructive}"
+                    Padding="{StaticResource DmPaddingTight}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     Clicked="OnDeleteClicked"
                     ToolTipProperties.Text="Delete floor">
                     <Button.Behaviors>
@@ -82,11 +109,14 @@
 
                 <!-- Drag handle -->
                 <Label
-                    x:Name="DragHandle"
                     Grid.Column="4"
+                    AutomationId="FloorDragHandle"
                     Text="&#x22EE;"
-                    FontSize="18"
-                    TextColor="{StaticResource DMTextMuted}"
+                    FontFamily="{StaticResource DmFontBody}"
+                    FontSize="{StaticResource DmIconSizeLarge}"
+                    TextColor="{StaticResource DmTextTavernMuted}"
+                    SemanticProperties.Description="Reorder floor"
+                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order."
                     VerticalOptions="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDragHandleTapped" />
@@ -99,10 +129,12 @@
             <BoxView
                 x:Name="AreaSeparator"
                 IsVisible="False"
-                Color="#478B5E1A"
+                Color="{StaticResource DmHairline}"
                 HeightRequest="1" />
 
-            <!-- Expanded area list -->
+            <!-- Expanded area list. The padding indents the area rows under their own floor
+                 row and is asymmetric by design: no bottom or right inset, so the Add-area
+                 button sits tight beneath the last area and the rows run to the card edge. -->
             <VerticalStackLayout
                 x:Name="AreaContainer"
                 IsVisible="False"
@@ -112,12 +144,13 @@
             <!-- Add area row (visible when expanded) -->
             <Button
                 x:Name="AddAreaButton"
+                AutomationId="AddAreaButton"
                 Text="+ Add area"
-                FontFamily="EBGaramondRegular"
-                FontSize="16"
-                TextColor="{StaticResource DMScrollGoldLight}"
+                FontFamily="{StaticResource DmFontBody}"
+                FontSize="{StaticResource DmFontSizeBodySmall}"
+                TextColor="{StaticResource DmAccentGoldLight}"
                 BackgroundColor="Transparent"
-                Padding="8,2"
+                Padding="{StaticResource DmPaddingCompact}"
                 HorizontalOptions="Start"
                 IsVisible="False"
                 Clicked="OnAddAreaClicked">

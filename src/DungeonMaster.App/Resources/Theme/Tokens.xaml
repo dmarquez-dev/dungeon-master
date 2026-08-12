@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!--
+        THE NAMING RULE — read this before adding or renaming any token.
+
+        Settled 2026-08-07. Two orderings had drifted into this file
+        (DmSurfaceTavern category-first, DmNeutralSurface role-first) and the obvious
+        fix — "category-first everywhere" — was tried on paper and REJECTED, because it
+        produces DmTextConfirm and DmSurfaceScrollbarThumb, which are worse than the
+        names they replace. The orderings are not drift. They are TWO FAMILIES, and
+        each is internally coherent:
+
+        ─────────────────────────────────────────────────────────────────────────
+        FAMILY 1 — STRUCTURAL.  Dm<Category><SurfaceFamily><Variant>
+
+          The shared surfaces every screen is built out of. The qualifier is the
+          SURFACE FAMILY, so the category leads and the family groups.
+
+            Category      Surface | Border | Text
+            SurfaceFamily Tavern, Parchment, Popup, ToolPanel, ToolChip, ComboItem,
+                          Stepper, Notebook, TextSelection
+            Variant       Raised, Deep, Muted, Hover, Pressed, Active, Disabled
+
+            DmSurfaceTavernRaisedHover   DmBorderParchment   DmTextComboItemDisabled
+
+          Sorting a structural token by its own name puts it next to its family. That
+          is the whole benefit and it is why the category leads.
+
+          DmTextPlaceholder is the one structural token whose qualifier is a text ROLE
+          rather than a surface family, and it is registered as such in the test.
+
+        FAMILY 2 — SEMANTIC.  Dm<Role>[<SurfaceFamily>][<Category>][<Variant>]
+
+          A named action role, or a named feature part that is drawn rather than
+          inhabited. The ROLE is the identity, so the role leads. A category suffix
+          appears only where the role owns more than one colour.
+
+            Role          Confirm, Destructive, Save, Discard, Neutral, AccentGold,
+                          Gold, Ribbon, Banner, Map, DragPlaceholder, AreaSelected,
+                          EditorGlow, Scrollbar, PopupButton, Hairline, SavedStamp
+            Category      Surface | Border | Stroke | Fill | Tint | Text
+
+            DmConfirm  DmConfirmText  DmDestructive  DmDestructiveOnPopup
+            DmMapAreaStroke  DmMapAreaFillActive  DmDragPlaceholderFill
+
+        ─────────────────────────────────────────────────────────────────────────
+        THE TWO CLAUSES THAT MAKE IT DECIDABLE
+
+        (a) A STRUCTURAL token's name begins with Surface, Border or Text. A SEMANTIC
+            token's name does NOT. That is the mechanical half, and
+            TokenNamingTests.EveryColourTokenObeysTheNamingRule reads it.
+
+        (b) A token STATES THE CATEGORY IT PAINTS unless it names a drawn element that
+            has exactly one paintable part. DmMapGrid, DmRibbonRead, DmScrollbarThumb
+            and DmBannerEdge each paint one thing and need no category word; DmMapArea
+            did not, which is why it is now DmMapAreaStroke — its own siblings already
+            spelled Fill and Stroke.
+
+        A role hue with NO category — DmDestructive, DmDestructiveOnPopup, DmConfirm —
+        is deliberate, not an omission: a role hue may paint a fill, a label or a
+        stroke as the site requires, and DmDestructive does all three today. Its
+        CATEGORISED DERIVATIVES are the ones that carry a category word
+        (DmDestructiveText, DmDestructiveHoverSurface).
+
+        On<SurfaceFamily> is the sanctioned way to say "this role hue as rendered on a
+        named surface". It has exactly one instance today, DmDestructiveOnPopup, and
+        is preferred over an adjective: the rejected DmDestructiveBright named the
+        symptom (it is lighter) rather than the reason (the popup is near-black).
+
+        STYLE KEYS TAKE A "Style" SUFFIX IF AND ONLY IF A COLOUR OF THE SAME NAME
+        EXISTS. §5 of the design spec called DmBorderTavernStyle "the only style key
+        with a Style suffix"; that was wrong — DmBorderParchmentStyle has one too, and
+        those two are exactly the two style keys that collide with a colour token
+        (DmBorderTavern, DmBorderParchment). No other style key collides and none
+        carries the suffix. The suffix is disambiguation, not decoration, and
+        TokenNamingTests.StyleKeysCarryTheStyleSuffixExactlyWhenTheyCollideWithAColour
+        holds the rule in both directions.
+
+        THE STANDING EXCEPTIONS, each with its reason, are listed in that same test
+        rather than here, so that a token cannot be exempted without the exemption
+        being read by something.
+        ─────────────────────────────────────────────────────────────────────────
+
+        SINGLE-LAYER DECISION — read this before adding tokens (Tasks 4-11).
+
+        This file was planned as two dictionaries: Palette.xaml holding raw named
+        colours, and Tokens.xaml aliasing them under semantic names by putting a
+        StaticResource reference in the element content of a Color entry.
+
+        That form does not compile. A markup extension in element-content position
+        is handed to ColorTypeConverter as a literal string, and the MAUI XAML
+        source generator rejects it with one error per aliased entry:
+
+            Resources/Theme/Tokens.xaml(1,2): error MAUIG1010:
+            Cannot convert "... DmPaletteInk900" into "Microsoft.Maui.Graphics.Color".
+
+        Verified by spike on 2026-08-05 against net10.0-windows10.0.19041.0.
+        A StaticResource reference still works in ATTRIBUTE position, which is why
+        the SolidColorBrush entries below alias their colours successfully.
+
+        So the palette layer is merged into this file. This is now the ONLY file
+        in the application permitted to contain colour literals; ThemeDictionaryTests
+        enforces that. Add new colours here as semantic names, never as a raw hex
+        at a usage site.
+
+        ─────────────────────────────────────────────────────────────────────────
+        COLOURS SHARED ACROSS TOKENS — CHANGE A WHOLE HUE AT ONCE
+
+        The abandoned two-layer design encoded this structurally: each of these
+        tokens was a reference to one palette entry, so a restyle edited one line.
+        In a single layer they are separate lines that must still move together,
+        and only this table says so.
+
+        GROUPED BY BASE RGB, IGNORING ALPHA — and that is the point. An earlier
+        revision of this ledger was built by exact string equality, so it saw only
+        character-identical literals and listed 5 of the 12 tokens carrying the
+        gold. Restyling the gold by editing those 5 lines would have left seven
+        tinted derivatives sitting on the old hue. THE ALPHA DERIVATIVES ARE PART
+        OF THE RAMP AND MUST MOVE WITH THEIR BASE.
+
+          #C8A040 — gold accent (12 tokens)
+            (opaque) DmAccentGoldLight, DmDragPlaceholderStroke,
+                     DmAreaSelectedBorder, DmMapAreaStroke, DmMapObjectPlaceholder
+            10       DmGoldHoverTint
+            18       DmAreaSelectedTint
+            20       DmDragPlaceholderFill
+            33       DmPopupButtonHover
+            40       DmMapAreaFillActive
+            66       DmPopupButtonPressed
+            90       DmMapAreaStrokeActive
+
+          #8B5E1A — parchment border / tavern raised wash (6 tokens)
+            (opaque) DmBorderParchment
+            2E       DmSurfaceTavernRaised
+            47       DmHairline
+            52       DmSurfaceTavernRaisedHover
+            6A       DmSurfaceTavernRaisedActive
+            6B       DmHairlineStrong
+
+          #C4862A — accent gold, darker (5 tokens)
+            (opaque) DmAccentGold
+            08       DmEditorGlowTint
+            1A       DmMapGrid
+            4D       DmBorderTavern
+            A6       DmBorderTavernHover
+
+          #CC3030 — destructive on the near-black popup (3 tokens)
+            (opaque) DmDestructiveOnPopup
+            33       DmPopupButtonDestructiveHover
+            66       DmPopupButtonDestructivePressed
+
+          #8B2020 — destructive on parchment (2 tokens)
+            (opaque) DmDestructive
+            24       DmDestructiveHoverSurface
+
+          #7A5030 — muted parchment ink (2 tokens)
+            (opaque) DmTextParchmentMuted
+            8C       DmTextPlaceholder
+
+          #F5E4B0 — tavern text (2 tokens)
+            (opaque) DmTextTavern, DmMapVertex
+
+          #4A3820 — WinUI scrollbar and selection wash (2 tokens)
+            66       DmScrollbarThumb, DmSurfaceTextSelection
+
+        DmSurfaceTavernRaisedActive #6A8B5E1A and DmHairlineStrong #6B8B5E1A share
+        a base but differ by one in the alpha channel — see the NEAR-DUPLICATE note
+        further down; they are still one hue for restyle purposes.
+
+        Keep this table correct when adding tokens, and check it by BASE RGB rather
+        than by whole literal: a base that appears at two keys and is not grouped
+        here is a latent restyle bug. All literals in this file are uppercase so
+        that check stays a plain case-sensitive search.
+        ─────────────────────────────────────────────────────────────────────────
+    -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Structural: Dark Tavern surface family
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfaceTavern">#1A1208</Color>
+    <Color x:Key="DmSurfaceTavernRaised">#2E8B5E1A</Color>
+    <Color x:Key="DmSurfaceTavernRaisedHover">#528B5E1A</Color>
+    <Color x:Key="DmSurfaceTavernRaisedActive">#6A8B5E1A</Color>
+    <Color x:Key="DmBorderTavern">#4DC4862A</Color>
+    <Color x:Key="DmBorderTavernHover">#A6C4862A</Color>
+    <Color x:Key="DmTextTavern">#F5E4B0</Color>
+    <Color x:Key="DmTextTavernMuted">#A08050</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Structural: Light Parchment surface family
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfaceParchment">#F5E8C8</Color>
+    <Color x:Key="DmSurfaceParchmentDeep">#ECD8A0</Color>
+    <Color x:Key="DmBorderParchment">#8B5E1A</Color>
+    <Color x:Key="DmTextParchment">#2C1A08</Color>
+    <Color x:Key="DmTextParchmentMuted">#7A5030</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Accents
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmAccentGold">#C4862A</Color>
+    <Color x:Key="DmAccentGoldLight">#C8A040</Color>
+    <Color x:Key="DmAccentGoldDark">#B08828</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Action semantics
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmConfirm">#2D5C1A</Color>
+    <Color x:Key="DmConfirmText">#D4EDB0</Color>
+    <Color x:Key="DmDestructive">#8B2020</Color>
+    <Color x:Key="DmDestructiveText">#F5D0D0</Color>
+    <Color x:Key="DmNeutralSurface">#1F785014</Color>
+    <Color x:Key="DmNeutralBorder">#5A3010</Color>
+
+    <!-- DmSave / DmSaveText / DmDiscard / DmDiscardText USED TO SIT HERE and had zero
+         consumers in markup or code — the notebook's save state paints DmSavedStampText and
+         DmDestructive instead, and nothing ever discarded. They were kept alive solely by
+         ThemeDictionaryTests.RequiredKeys and by naming exemptions in TokenNamingTests: a
+         test pinning an unused token is the test propping up dead code, not a guard. Deleted
+         together with both entries. Controls.Base.xaml's rule — "DO NOT ADD A STYLE HERE
+         'for later'" — is this rule; colour tokens do not get a free pass from it. -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: notebook ribbons
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmRibbonRead">#A32B24</Color>
+    <Color x:Key="DmRibbonReadDim">#6B2019</Color>
+    <Color x:Key="DmRibbonText">#F0DCA8</Color>
+    <Color x:Key="DmRibbonSeal">#E8B4B4</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: flag banner gradient
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmBannerEdge">#7A4F12</Color>
+    <Color x:Key="DmBannerCenter">#B8781E</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: sidebar drag and drop
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmDragPlaceholderStroke">#C8A040</Color>
+    <Color x:Key="DmDragPlaceholderFill">#20C8A040</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: map area selection and hover tints
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmAreaSelectedBorder">#C8A040</Color>
+    <Color x:Key="DmAreaSelectedTint">#18C8A040</Color>
+    <Color x:Key="DmGoldHoverTint">#10C8A040</Color>
+    <Color x:Key="DmEditorGlowTint">#08C4862A</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: FloorMapDrawable
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmMapGrid">#1AC4862A</Color>
+    <!-- The outline of a COMMITTED area. It was DmMapArea until the naming pass: it is only ever
+         assigned to canvas.StrokeColor in FloorMapDrawable.cs and its two immediate siblings
+         already spelled Fill and Stroke, so the bare name was the odd one out AND read as though
+         it were the area's fill. There is deliberately no DmMapAreaFill — a committed area is
+         drawn as an outline only; the active pair below exists because the area being drawn is
+         the one case that IS filled. -->
+    <Color x:Key="DmMapAreaStroke">#C8A040</Color>
+    <Color x:Key="DmMapVertex">#F5E4B0</Color>
+    <Color x:Key="DmMapAreaFillActive">#40C8A040</Color>
+    <Color x:Key="DmMapAreaStrokeActive">#90C8A040</Color>
+    <!-- The stand-in for an object with no drawable image: the "?" fallback glyph and outline
+         and the dashed ghost-placement outline. Deliberately not DmMapAreaStroke, which it
+         currently matches — these are object-placeholder renderings, not area outlines.
+         It carries no category word although it paints BOTH a stroke and a glyph; splitting it
+         would create two tokens equal by construction. Registered as an exception in
+         TokenNamingTests. -->
+    <Color x:Key="DmMapObjectPlaceholder">#C8A040</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: tool palette chrome (the parchment strip)
+
+         ControlsPaletteView, ObjectPaletteView and SecondaryPaletteView, plus the
+         WinUI ComboBox overrides that have to match them. Those overrides live in
+         Platforms/Windows/App.xaml.cs (grep ComboBoxItemBackgroundSelected), NOT in
+         Platforms/Windows/App.xaml — that dictionary is deliberately empty and says so.
+
+         The three chip colours are consumed by the 48x48 object thumbnails built in
+         PaletteThumb.cs, not by a scrollbar. An earlier revision of this comment claimed
+         "the palette's own custom scrollbar reuses the chip colours"; there is no such
+         scrollbar. The scrollbar thumb reads DmScrollbarThumb, one section down.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfaceToolPanel">#EDD8A0</Color>
+    <Color x:Key="DmSurfaceToolChip">#C8AC78</Color>
+    <Color x:Key="DmSurfaceToolChipHover">#E8CC9A</Color>
+    <Color x:Key="DmBorderToolChip">#9A7820</Color>
+    <Color x:Key="DmTextToolPanel">#5C3E10</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: designer canvas chrome
+
+         The object action popup (DungeonDetailPage.xaml), the zoom stepper
+         triangles, and the notebook body text sitting on parchment.
+
+         The rules between button groups used to live here as DmDivider; they are now
+         DmHairlineSolid, declared with the other two hairlines further down.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmSurfacePopup">#1A1610</Color>
+    <Color x:Key="DmBorderPopup">#4A3A1A</Color>
+    <Color x:Key="DmSurfaceStepper">#3D2E12</Color>
+    <Color x:Key="DmTextNotebook">#3A2410</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: WinUI scrollbar, text selection and combo items
+
+         The scrollbar and text-selection keys are read only by Platforms/Windows/App.xaml.cs.
+         The combo-item keys are NOT: DmSurfaceComboItemHover and DmSurfaceComboItemPressed
+         are also read from ObjectPaletteView.xaml.cs, which paints its own pack-picker rows
+         to match the native ones. DmScrollbarThumb and DmSurfaceTextSelection are the same
+         literal for now — see the shared-colour list at the top.
+
+         DmSurfaceTextSelection was DmTextSelection until the naming pass. Read
+         category-first — and the token beside it, DmTextComboItemDisabled, must be —
+         "DmText…" claims a TEXT colour. It is not one: it is the wash painted BEHIND
+         selected text (WinUI TextControlSelectionHighlightColor), so it is a Surface in
+         the TextSelection family.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmScrollbarThumb">#664A3820</Color>
+    <Color x:Key="DmScrollbarThumbDisabled">#332A2010</Color>
+    <Color x:Key="DmSurfaceTextSelection">#664A3820</Color>
+    <Color x:Key="DmSurfaceComboItemHover">#D6BE82</Color>
+    <Color x:Key="DmSurfaceComboItemPressed">#B89A60</Color>
+    <Color x:Key="DmTextComboItemDisabled">#9A8060</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: object action popup buttons
+
+         DungeonDetailPage.xaml.cs PopupBtn* states.
+
+         DmDestructiveOnPopup was DmDestructiveBright until the naming pass. It is the
+         destructive role hue as rendered on the near-black popup — a lighter red than
+         DmDestructive (#8B2020) because that surface is near-black rather than
+         parchment. "Bright" named the symptom and read as a surface shade of
+         DmDestructive; worse, DmDestructiveText already exists and means something
+         else entirely (the LABEL colour on a destructive fill). Today it paints the
+         delete glyph at DungeonDetailPage.xaml, and the two Destructive washes below
+         are its alpha derivatives — which is why it carries no category word: like
+         DmDestructive itself it is a role hue, not one categorised use of one.
+
+         The four DmPopupButton* washes below carry no category word either, and that
+         is rule-conformant: a popup button's state colour paints exactly one thing,
+         its background. Registered in TokenNamingTests with that reason.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmDestructiveOnPopup">#CC3030</Color>
+    <Color x:Key="DmPopupButtonHover">#33C8A040</Color>
+    <Color x:Key="DmPopupButtonPressed">#66C8A040</Color>
+    <Color x:Key="DmPopupButtonDestructiveHover">#33CC3030</Color>
+    <Color x:Key="DmPopupButtonDestructivePressed">#66CC3030</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Feature-specific: hairlines, placeholders and notebook state
+
+         THE THREE RULES — ONE ROLE, THREE VALUES, AND THE VALUES ARE LOAD-BEARING.
+         DmDivider used to sit six sections up, in a second vocabulary, for the same
+         job these two do. The naming pass asked whether the three are one concept and
+         the answer is NO — they are one ROLE (a 1px separating rule) carried by three
+         colours that cannot substitute for one another:
+
+         Consumers are cited by grep anchor, not by line number. Every line number this
+         comment block once carried had gone stale by the next commit; the anchors below
+         are x:Names and Text values that resolve uniquely and survive an edit above them.
+
+           DmHairline       #478B5E1A  28% of DmBorderParchment. Horizontal rules: the
+                                       notebook footer rule in NotebookView.xaml, and
+                                       the BoxView x:Name="AreaSeparator" in
+                                       FloorSidebarItem.xaml.
+           DmHairlineStrong #6B8B5E1A  42% of the same base. One consumer, the heavier
+                                       rule under the notebook header — the sole
+                                       DmHairlineStrong reference in NotebookView.xaml.
+           DmHairlineSolid  #3A2E1A    OPAQUE, and off that ramp entirely. Vertical
+                                       rules between icon-button groups:
+                                       ControlsPaletteView.xaml (on the #EDD8A0
+                                       parchment tool panel) and DungeonDetailPage.xaml
+                                       twice (on the #1A1610 popup).
+
+         So they were NOT collapsed. The first two are alpha washes of the parchment
+         border and sink into whatever they lie on — they are listed under #8B5E1A in
+         the shared-colour table at the top and must move with it. The third is opaque
+         precisely BECAUSE it has to read on two surfaces at opposite ends of the value
+         range: a 28% wash of #8B5E1A over #EDD8A0 parchment is nearly invisible, and
+         over #1A1610 it is a dark ghost. Merging any pair would change rendered pixels,
+         which is a restyle decision and not this pass's to make.
+
+         What WAS wrong was the vocabulary. "Divider" named a colour after a component
+         — and after a component that exists: Controls/DmDivider is a ContentView, so
+         the token and the type shared a name. "Hairline" is already this theme's word
+         for a 1px rule (see DmStrokeHairline, the thickness), two of the three tokens
+         already used it, and "Solid" states the axis that actually varies rather than
+         implying a third weight step between Hairline and HairlineStrong.
+
+         DmSavedStampText is deliberately not DmConfirm: the source note in
+         NotebookView.xaml.cs above "private static Color SavedColor" says "committed"
+         must read as reassuring rather than as an action to take. It gained its Text
+         suffix in the naming pass — it sets SaveStateLabel.TextColor and nothing else,
+         and its action-role neighbours (DmConfirmText, DmDestructiveText, DmRibbonText)
+         all spell it. Bare "SavedStamp" invited it to be read as a badge fill.
+    ═══════════════════════════════════════════════════════════════ -->
+    <Color x:Key="DmHairline">#478B5E1A</Color>
+    <Color x:Key="DmHairlineStrong">#6B8B5E1A</Color>
+    <Color x:Key="DmHairlineSolid">#3A2E1A</Color>
+    <Color x:Key="DmTextPlaceholder">#8C7A5030</Color>
+    <Color x:Key="DmDestructiveHoverSurface">#248B2020</Color>
+    <Color x:Key="DmSavedStampText">#4A6A2A</Color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         NEAR-DUPLICATE COLOURS — DO NOT COLLAPSE
+
+         Each pair differs by one in a single channel. Merging either is a restyle
+         decision, not a refactor one; this theme is behaviour-preserving for
+         colour. Proposed for merge in the Task 3 audit table.
+
+           DmSurfaceParchmentDeep      #ECD8A0    vs  DmSurfaceToolPanel  #EDD8A0
+           DmSurfaceTavernRaisedActive #6A8B5E1A  vs  DmHairlineStrong    #6B8B5E1A
+    ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Brushes. {StaticResource} works here because it sits in attribute
+         position rather than element content — see the note at the top.
+
+         A brush alias exists only where a Brush-typed property needs one that a Color
+         cannot serve directly. There is no DmAccentGoldBrush: it was declared with the
+         three below, never referenced by anything, and deleted in the adoption pass.
+         Every gold stroke in the app names DmAccentGoldLight, which MAUI converts to a
+         brush at the point of use. Do not re-add an alias speculatively — add it when a
+         property needs it.
+    ═══════════════════════════════════════════════════════════════ -->
+    <SolidColorBrush x:Key="DmBorderTavernBrush" Color="{StaticResource DmBorderTavern}" />
+    <SolidColorBrush x:Key="DmBorderTavernHoverBrush" Color="{StaticResource DmBorderTavernHover}" />
+    <SolidColorBrush x:Key="DmBorderParchmentBrush" Color="{StaticResource DmBorderParchment}" />
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry
+
+         THE RADIUS TOKENS ARE NOW CONSUMED, AND THE RATCHET KEEPS THEM THAT WAY.
+         An earlier revision of this note said they were deliberately unconsumed and
+         that migrating them was held for a later sweep "because no hygiene pattern
+         covers radii". Both halves are now out of date: GeometryScaleTests.
+         NoBareRadiusValues is that pattern, and Controls/, Views/ and the implicit
+         styles have been converted. A single file remains allow-listed in that fact —
+         RadiusPendingMigration holds only DungeonDetailPage.xaml.cs. An earlier
+         revision of this note said "Views/ is allow-listed", which read as the whole
+         directory; it never was, and every other file under it is already migrated.
+
+         Every literal that was converted was already exactly 2, 3 or 4, so those
+         conversions are pixel-neutral by construction. ONE IS NOT, and it is
+         deliberate: the implicit Button style's radius moved from 8 to DmRadiusLoose
+         (4), so every unstyled Button in the app changed shape to match the surfaces
+         around it. That reasoning is recorded at the style itself in Implicit.xaml.
+
+         Two literals survive on purpose, and each is named in the ratchet rather
+         than merely left alone: DungeonListPage's CornerRadius 26, which is half the
+         FAB's own 52px height and so is geometry rather than style, and
+         DmBorderBase's string-form 3 — see the setter note below.
+
+         BEFORE ANYONE RELIES ON IT: Controls.Base.xaml says StrokeShape
+         "unavoidably" needs a literal. That is TRUE OF THE STRING FORM ONLY. The
+         element form puts the radius in attribute position, where a StaticResource
+         does resolve:
+
+             <Border.StrokeShape>
+                 <RoundRectangle CornerRadius="{StaticResource DmRadiusDefault}" />
+             </Border.StrokeShape>
+
+         and the element form is now used at TWENTY sites across the tree — including
+         the outer panel Borders of ControlsPaletteView, ObjectPaletteView and
+         SecondaryPaletteView, each written
+         <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />.
+
+         This paragraph used to argue FOR that migration, citing those three sites as
+         "all with a literal 4" and the form as used "three times". The migration is
+         done: none of the three carries a literal any more, and the count is twenty.
+         The argument is kept because the spike below is the evidence the form works,
+         but its premise no longer describes the tree.
+
+         SPIKED AND CONFIRMED WORKING, 2026-08-07. The token resolves, converts
+         through CornerRadius's implicit double conversion, and REACHES THE SCREEN —
+         (the spike ran while these were x:Double; they are x:Int32 now and the
+         element form was re-measured on screen after the retype — see below) —
+         it does not silently land on 0 or a default. Evidence: DmSearchBar's Border
+         was moved to the element form bound to a temporary 20-valued radius token,
+         built, LAUNCHED, and screenshotted; its corner arc was unmistakably 20
+         against the DmCard directly below it still carrying the literal 4, then
+         rebound to DmRadiusLoose and confirmed pixel-identical to the pre-change
+         frame. Build success alone was NOT taken as the answer: Task 10 of the theme
+         migration had a resource reference build clean AND launch clean and still
+         throw on first lookup, because WinUI creates dictionary entries lazily.
+
+         BUT THE STYLE SETTER IS A DIFFERENT CASE, AND IT IS THE EXCEPTION. The spike
+         above covers a Border ELEMENT. Putting an element-form shape inside a
+         <Setter> was spiked separately and FAILED on behaviour, not on binding: the
+         shape is built once when the dictionary is parsed and the SAME INSTANCE is
+         handed to every Border adopting the style. Two Borders returned
+         ReferenceEquals true, both reported the LAST Border as the shape's Parent,
+         and mutating the radius through one visibly changed what the other rendered.
+         DmBorderBase therefore KEEPS its string-form literal, the reasoning is
+         recorded in full at Controls.Base.xaml, and
+         BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault stays — it is the only
+         thing keeping that literal in step with DmRadiusDefault. Do not delete it.
+    ═══════════════════════════════════════════════════════════════ -->
+    <!-- ───────────────────────────────────────────────────────────────
+         THE RADIUS TOKENS ARE x:Int32, AND THAT IS NOT A STYLE CHOICE.
+
+         They were x:Double until 2026-08-07 and it was a live defect, not a latent one.
+         MAUI's corner-radius properties DO NOT SHARE A TYPE, and the divergence is the
+         whole trap:
+
+             Button.CornerRadius                       System.Int32
+             ImageButton.CornerRadius                  System.Int32
+             Frame.CornerRadius                        System.Single
+             BoxView.CornerRadius                      Microsoft.Maui.CornerRadius
+             Shapes.RoundRectangle.CornerRadius        Microsoft.Maui.CornerRadius
+             Border.StrokeShape                        Microsoft.Maui.Graphics.IShape
+
+         Read off Microsoft.Maui.Controls.dll 10.0.41 by reflection, not from memory.
+
+         BindableProperty.TryConvert will NOT narrow a double to an int. So every
+         Button.CornerRadius="{StaticResource DmRadius…}" — the implicit Button style, the
+         DmButtonBase setter, and eleven inline sites — was REJECTED at every evaluation.
+         Each rejection logged
+
+             BindableObject: Warning: Cannot convert 4 to type 'System.Int32'
+
+         and left the property on its default of -1, i.e. NO BUTTON IN THE APP HAD A THEMED
+         CORNER RADIUS AT ALL. It looked plausible because -1 renders as the platform's own
+         button rounding, which is near enough to 3-4px on WinUI to pass a glance. Clicking
+         a placed object re-evaluated the popup's buttons and produced visible console spam.
+
+         WHY x:Int32 IS THE FIX AND NOT A SECOND SET OF TOKENS. int is the only one of the
+         two candidate types that every current consumer accepts. Measured against MAUI
+         10.0.41 by calling SetValue and reading the property back — build success proves
+         nothing here, because the failure mode IS a clean build:
+
+             Button.CornerRadius         <- int 7      ACCEPTED, reads back 7
+             Button.CornerRadius         <- double 7   REJECTED, stays -1
+             RoundRectangle.CornerRadius <- int 7      ACCEPTED, reads back (7,7,7,7)
+             RoundRectangle.CornerRadius <- double 7   ACCEPTED, reads back (7,7,7,7)
+             BoxView.CornerRadius        <- int 7      ACCEPTED, reads back (7,7,7,7)
+
+         int reaches CornerRadius because TryConvert widens int to double and then applies
+         CornerRadius's implicit double conversion. Do not take that on trust if you change
+         these — it is exactly the kind of chained conversion that is easy to assume and
+         wrong; re-measure it.
+
+         So a single int-typed token serves the Button sites AND the twenty
+         <RoundRectangle CornerRadius="…"/> sites. Adding int siblings alongside the doubles
+         would have duplicated all three values for no gain and invited them to drift.
+
+         THE COST, STATED PLAINLY: a radius on this ladder must be a whole number. All three
+         already were. If a design ever needs a fractional radius it cannot join this ladder
+         while any Button consumes it — split the ladder then, deliberately, and record why.
+
+         Note this does NOT apply to the stroke ladder below. StrokeThickness and BorderWidth
+         are both System.Double, DmStrokeMedium is 1.5, and those tokens stay x:Double.
+         TokenTypeMatchesTargetPropertyTests is the fact that keeps every token in step with
+         the type of the property it is bound to.
+    ─────────────────────────────────────────────────────────────── -->
+    <x:Int32 x:Key="DmRadiusTight">2</x:Int32>
+    <x:Int32 x:Key="DmRadiusDefault">3</x:Int32>
+    <x:Int32 x:Key="DmRadiusLoose">4</x:Int32>
+    <x:Double x:Key="DmStrokeHairline">1</x:Double>
+    <x:Double x:Key="DmStrokeEmphasis">2</x:Double>
+    <!-- The outline-CANCEL border weight, and the only value on this ladder that is not an
+         integer. It is not drift: it was authored twice, on the same role, before any theme
+         work (the CANCEL buttons of DmConfirmPopup.xaml and CreateDungeonPopup.xaml — both
+         of a two-button popup row, whose sibling is a FILLED button). On an outline button the
+         border carries the whole visual weight, so a heavier stroke than the hairline used for
+         incidental separators is a real design decision, and this token records it rather than
+         letting a magic 1.5 sit at two call sites. It has exactly those two consumers; if a
+         reviewer decides the role does not warrant its own weight, collapse both to
+         DmStrokeHairline and DELETE this token rather than leaving it orphaned. -->
+    <x:Double x:Key="DmStrokeMedium">1.5</x:Double>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry: the spacing scale
+
+         Six steps — 2, 4, 6, 8, 12, 16 — for Spacing, RowSpacing and ColumnSpacing.
+         Bind them in ATTRIBUTE position, which is proven to resolve; see the spike note
+         below the padding roles. A seventh, DmSpaceXXL (20), was declared and never used;
+         see the note beside DmSpaceXL below.
+
+         WHY 6 IS A STEP AT ALL: the spec (§3.1) found 6 in genuine use at six sites and
+         forcing it to 4 or 8 is a 33% jump on a tight icon/label row. Post-migration
+         DmSpaceSmall has two consumers, not six — the six were the pre-migration census
+         that justified keeping the step, not a claim about the tree today.
+
+         WHY WORDS AND NOT NUMBERS: DmSpace4 would bake a value into its own name, so a
+         rescale would have to touch every call site to stay honest. Nothing else in this
+         theme names itself after its value — DmRadiusTight, DmStrokeHairline,
+         DmFontSizeBody, DmIconSizeSmall — and the ramp below deliberately reuses
+         DmIconSize's own vocabulary (Small / Medium / Large / XL) extended symmetrically at
+         both ends, so the two double-valued ramps read the same way.
+
+         ─────────────────────────────────────────────────────────────────────────
+         SNAPPING TABLE — the applying wave's ONLY source for these decisions.
+         Fixed by docs/superpowers/specs/2026-08-07-design-system-completion-design.md §3.1.
+         Do not re-derive them per call site; a second opinion here is how a scale drifts.
+
+             0  →  0   KEEP AS A LITERAL. "No spacing" is the absence of a scale value,
+                       not the smallest one, and giving it a token invites DmSpaceNone to
+                       be used where a real step was meant.
+             2  →  2   already on scale
+             3  →  4   DmSpaceXS
+             4  →  4   already on scale
+             5  →  4   DmSpaceXS — six sites, all icon/label rows
+             6  →  6   already on scale
+             7  →  8   DmSpaceMedium
+             8  →  8   already on scale
+             9  →  8   DmSpaceMedium
+            10  →  12  DmSpaceLarge — button rows; 12 reads better against its neighbours
+            14  →  12  DmSpaceLarge
+            16  →  16  already on scale
+            20  →  20  already on scale
+
+         Note the two directions at 10 and 14: 10 rounds UP and 14 rounds DOWN, both onto 12.
+         That is intended — it collapses the button-row cluster onto one step — and it is why
+         this table exists rather than a "snap to nearest" rule.
+         ─────────────────────────────────────────────────────────────────────────
+    ═══════════════════════════════════════════════════════════════ -->
+    <!-- Hairline gaps inside a single control: a glyph and its caption. -->
+    <x:Double x:Key="DmSpaceXXS">2</x:Double>
+    <!-- Related items in one visual group: label above its field, icon beside its text. -->
+    <x:Double x:Key="DmSpaceXS">4</x:Double>
+    <!-- A tight row that still needs to read as separate items: stacked tool captions. -->
+    <x:Double x:Key="DmSpaceSmall">6</x:Double>
+    <!-- The default gap between sibling controls in a row or column. -->
+    <x:Double x:Key="DmSpaceMedium">8</x:Double>
+    <!-- Between button-row buttons, and between fields in a form. -->
+    <x:Double x:Key="DmSpaceLarge">12</x:Double>
+    <!-- Between distinct groups within one panel or page section. This is the widest gap
+         on the scale.
+
+         DmSpaceXXL (20) USED TO SIT HERE and had no consumer in markup or in code — the
+         snapping table's "20 → 20 already on scale" row described a value that no call site
+         actually held once the migration finished. It survived only because
+         ThemeDictionaryTests.RequiredKeys named it, which is a test keeping a token alive
+         rather than a token earning its place, and the 20 in the table above records what
+         the wave WOULD have done had it met one. Six steps now: 2, 4, 6, 8, 12, 16. Restore
+         the token when a real 20 appears. -->
+    <x:Double x:Key="DmSpaceXL">16</x:Double>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry: the padding roles
+
+         ROLES, NOT A SCALE. The spec's pre-migration census (§3.2) found 30 distinct Padding
+         values, many legitimately asymmetric (an inset that shapes one icon, a notebook pane's
+         four-value tuck). That 30 is the number these roles were designed AGAINST; roughly ten
+         distinct literals survive the migration, each one a documented exception. A flat
+         numeric scale would either flatten that real intent or fail to cover it, so these are
+         named after the SURFACE they pad. Pick the role, not the number.
+
+         Everything not covered snaps to the nearest role. Asymmetric four-value paddings
+         survive as documented exceptions and each must carry a one-line comment saying what
+         it is shaping; an undocumented asymmetric padding is a defect.
+
+         SPIKE RESULT (2026-08-07, verified at RUNTIME, not merely at build):
+         a Thickness token DOES resolve from {StaticResource} in attribute position. Proved by
+         binding DmSearchBar's Border to a temporary 40,30 Thickness and to a temporary
+         RoundRectangle CornerRadius of 20 in the ELEMENT form, launching the app, and
+         observing both the fat inset and the large corner arc against the DmCard below it,
+         which still carried the literal 4. A silent default would have rendered 0 padding and
+         a square corner; neither happened. A clean build alone would NOT have shown this —
+         Platforms/Windows/App.xaml once built clean, launched clean, and then threw
+         COMException on the first actual lookup, so build success is not evidence here.
+    ═══════════════════════════════════════════════════════════════ -->
+    <!-- Compact icon buttons: the glyph is the content and the box only needs to be hittable. -->
+    <Thickness x:Key="DmPaddingTight">4,2</Thickness>
+    <!-- Standard action buttons and tool chips. -->
+    <Thickness x:Key="DmPaddingCompact">8,4</Thickness>
+    <!-- Text inputs — Entry, Editor and SearchBar surfaces. -->
+    <Thickness x:Key="DmPaddingControl">10,4</Thickness>
+    <!-- Card and list-row surfaces. -->
+    <Thickness x:Key="DmPaddingCard">12,10</Thickness>
+    <!-- Popup bodies and palette panels. -->
+    <Thickness x:Key="DmPaddingPanel">14,10</Thickness>
+    <!-- Page roots — the outermost inset of a ContentPage. -->
+    <Thickness x:Key="DmPaddingPage">16,12</Thickness>
+
+    <!-- There is deliberately no toolbar-height token here any more.
+         DmToolbarHeight (54.4) existed only because the designer's map toolbar and its sidebar
+         dungeon card were row 0 of two SEPARATE sub-grids, so nothing but a shared number could
+         make them agree — and that number had to be read off a screenshot, which meant it went
+         stale silently whenever the toolbar's contents grew. Both now sit in ONE Auto row of the
+         parent grid in DungeonDetailPage.xaml, which sizes itself to the taller of the two at the
+         first frame with no measurement at all. -->
+
+</ResourceDictionary>
