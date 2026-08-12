@@ -390,30 +390,21 @@ public static class DmTheme
 	//
 	// Every one is an expression-bodied member for the reason in the remarks above: geometry is
 	// as unreadable before Application.Current.Resources exists as colour is.
-
-	/// <summary>
-	///		Gets the smallest gap on the spacing scale.
-	/// </summary>
-	public static double SpaceXXS =>
-		Resolve<double>("DmSpaceXXS");
+	//
+	// THIS IS NOT A COMPLETE RAMP, AND IT SHOULD NOT BE. Sixteen accessors were declared and
+	// eleven of them never had a caller; they were mirrors of the token set rather than answers
+	// to a question C# had asked. They are deleted. The five below are the five that code-behind
+	// actually reads. The tokens they omit are not gone — every DmSpace*, DmPadding* and
+	// DmRadius* still exists in Tokens.xaml and is still reachable from markup, which is where
+	// geometry belongs. Add the accessor back at the moment a C# call site needs it, and not
+	// before: Controls.Base.xaml's own rule ("DO NOT ADD A STYLE HERE 'for later'") is the same
+	// rule, and it applies here too.
 
 	/// <summary>
 	///		Gets the tight gap used by icon and label rows.
 	/// </summary>
 	public static double SpaceXS =>
 		Resolve<double>("DmSpaceXS");
-
-	/// <summary>
-	///		Gets the small gap that sits between the two tightest steps and the default.
-	/// </summary>
-	public static double SpaceSmall =>
-		Resolve<double>("DmSpaceSmall");
-
-	/// <summary>
-	///		Gets the default gap on the spacing scale.
-	/// </summary>
-	public static double SpaceMedium =>
-		Resolve<double>("DmSpaceMedium");
 
 	/// <summary>
 	///		Gets the gap used between grouped controls such as a popup's button row.
@@ -428,74 +419,26 @@ public static class DmTheme
 		Resolve<double>("DmSpaceXL");
 
 	/// <summary>
-	///		Gets the largest gap on the spacing scale.
-	/// </summary>
-	public static double SpaceXXL =>
-		Resolve<double>("DmSpaceXXL");
-
-	/// <summary>
-	///		Gets the inset role for compact icon buttons.
-	/// </summary>
-	public static Thickness PaddingTight =>
-		Resolve<Thickness>("DmPaddingTight");
-
-	/// <summary>
-	///		Gets the inset role for standard action buttons and tool chips.
-	/// </summary>
-	public static Thickness PaddingCompact =>
-		Resolve<Thickness>("DmPaddingCompact");
-
-	/// <summary>
-	///		Gets the inset role for text inputs.
-	/// </summary>
-	public static Thickness PaddingControl =>
-		Resolve<Thickness>("DmPaddingControl");
-
-	/// <summary>
-	///		Gets the inset role for card and list-row surfaces.
-	/// </summary>
-	public static Thickness PaddingCard =>
-		Resolve<Thickness>("DmPaddingCard");
-
-	/// <summary>
 	///		Gets the inset role for popup bodies and palette panels.
 	/// </summary>
 	public static Thickness PaddingPanel =>
 		Resolve<Thickness>("DmPaddingPanel");
 
 	/// <summary>
-	///		Gets the inset role for page roots.
-	/// </summary>
-	public static Thickness PaddingPage =>
-		Resolve<Thickness>("DmPaddingPage");
-
-	/// <summary>
 	///		Gets the tightest corner radius, used by icon buttons and palette thumbnails.
 	///		<para>
-	///		The three radius accessors return <c>int</c>, not <c>double</c>, because the tokens
-	///		are declared <c>x:Int32</c> — <c>Button.CornerRadius</c> is <c>System.Int32</c> and
+	///		This accessor returns <c>int</c>, not <c>double</c>, because the radius tokens are
+	///		declared <c>x:Int32</c> — <c>Button.CornerRadius</c> is <c>System.Int32</c> and
 	///		silently rejects a double. <see cref="Resolve{T}"/> matches on <c>value is T</c>, so
-	///		widening these back to <c>double</c> makes every read throw. The full reasoning,
+	///		widening it back to <c>double</c> makes every read throw. The full reasoning,
 	///		and the measurements behind it, are recorded beside the tokens in Tokens.xaml.
-	///		Assigning one to a <c>CornerRadius</c>-typed property still compiles and still
+	///		Assigning it to a <c>CornerRadius</c>-typed property still compiles and still
 	///		renders: C# widens the int to double and then applies CornerRadius's implicit
 	///		conversion.
 	///		</para>
 	/// </summary>
 	public static int RadiusTight =>
 		Resolve<int>("DmRadiusTight");
-
-	/// <summary>
-	///		Gets the default corner radius.
-	/// </summary>
-	public static int RadiusDefault =>
-		Resolve<int>("DmRadiusDefault");
-
-	/// <summary>
-	///		Gets the loosest corner radius, used by cards, popups and panels.
-	/// </summary>
-	public static int RadiusLoose =>
-		Resolve<int>("DmRadiusLoose");
 
 #if WINDOWS
 	/// <summary>

@@ -5,7 +5,6 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
-    xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
     x:Class="DungeonMaster.App.Views.CreateDungeonPopup"
     x:TypeArguments="x:Boolean"
     BackgroundColor="Transparent"
@@ -13,6 +12,21 @@
     Padding="0"
     CanBeDismissedByTappingOutsideOfPopup="False">
 
+    <!-- NO x:DataType, AND THEREFORE NO xmlns:vm. This was tried, not assumed: adding
+         x:DataType="vm:CreateDungeonViewModel" to compile the six ViewModel bindings FAILS the
+         build under TreatWarningsAsErrors, with MAUIG2045 on two distinct causes:
+
+           - "Property 'CreateCommand' not found on CreateDungeonViewModel". The commands are
+             emitted by CommunityToolkit.Mvvm's [RelayCommand] generator, and MAUI's binding
+             generator cannot see another generator's output. The diagnostic itself says so.
+           - "Property 'ButtonRowSpacing' not found on CreateDungeonViewModel" for the button
+             row below, whose Binding sets Source={x:Reference Chrome} and so does not target
+             the DataType at all. The generator applies x:DataType to it regardless.
+
+         Both are limitations of the tooling rather than defects in this markup. Compiled
+         bindings would be the better outcome and are not available here; the namespace that
+         only existed to enable them is gone rather than left declared and unused. Revisit when
+         MAUI's generator handles cross-generator members and explicit Sources. -->
     <controls:DmPopup x:Name="Chrome" Title="New Dungeon">
         <controls:DmPopup.Body>
             <!-- No Spacing here: DmPopup.ContentSpacing supplies it, so every popup

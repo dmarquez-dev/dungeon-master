@@ -4,8 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
-    x:Class="DungeonMaster.App.Controls.FloorSidebarItem"
-    x:Name="Root">
+    x:Class="DungeonMaster.App.Controls.FloorSidebarItem">
 
     <!-- DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and the
          DmRadiusDefault corner. BackgroundColor is restated because the style inherits
@@ -90,7 +89,6 @@
 
                 <!-- Delete button -->
                 <Button
-                    x:Name="DeleteButton"
                     Grid.Column="3"
                     AutomationId="FloorDeleteButton"
                     SemanticProperties.Description="Delete floor"
@@ -111,7 +109,6 @@
 
                 <!-- Drag handle -->
                 <Label
-                    x:Name="DragHandle"
                     Grid.Column="4"
                     AutomationId="FloorDragHandle"
                     Text="&#x22EE;"

@@ -25,8 +25,7 @@
                        TextTransform="Uppercase"
                        CharacterSpacing="1"
                        VerticalOptions="Center" />
-                <Button x:Name="CloseButton"
-                        Grid.Column="1"
+                <Button Grid.Column="1"
                         Text="✕"
                         AutomationId="ObjectPaletteCloseButton"
                         SemanticProperties.Description="Close the object palette"

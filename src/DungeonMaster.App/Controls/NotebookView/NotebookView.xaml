@@ -5,7 +5,6 @@
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     x:Class="DungeonMaster.App.Controls.NotebookView"
-    x:Name="Root"
     WidthRequest="344"
     HorizontalOptions="Start"
     VerticalOptions="Start"
@@ -171,21 +170,26 @@
                 aligns their left edge with the pane below.
             -->
             <HorizontalStackLayout
-                x:Name="RibbonRail"
                 Grid.Row="1"
                 Spacing="{StaticResource DmSpaceMedium}"
                 Padding="14,0">
 
                 <!-- Padding 6,0,6,10: a documented asymmetric inset that shapes the label
                      inside the bookmark tab, clearing the 10-deep notch cut from its
-                     bottom edge by BookmarkTabShape below. -->
+                     bottom edge by BookmarkTabShape below.
+
+                     NO HeightRequest HERE, ON EITHER RIBBON. Both heights are owned by
+                     SelectedRibbonHeight / UnselectedRibbonHeight in the code-behind, and the
+                     constructor's ApplyRibbonVisuals(..., animate: false) assigns both before
+                     the view is ever measured. The XAML used to declare 60 and 40 as well —
+                     values that never survived to the screen and could drift from the consts
+                     without any symptom until someone edited the wrong one. -->
                 <Border
                     x:Name="ReadRibbon"
                     AutomationId="NotebookReadRibbon"
                     SemanticProperties.Hint="Shows the player-facing read-aloud text."
                     StrokeThickness="0"
                     Padding="6,0,6,10"
-                    HeightRequest="60"
                     VerticalOptions="Start">
                     <Border.StrokeShape>
                         <controls:BookmarkTabShape NotchDepth="10" />
@@ -213,7 +217,6 @@
                     SemanticProperties.Hint="Shows the DM-only notes, which the party must not hear."
                     StrokeThickness="0"
                     Padding="6,0,6,10"
-                    HeightRequest="40"
                     VerticalOptions="Start">
                     <Border.StrokeShape>
                         <controls:BookmarkTabShape NotchDepth="10" />

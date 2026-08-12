@@ -146,21 +146,12 @@ public partial class FloorSidebarItem : ContentView
 			FloorNameLabel.TextColor = DmTheme.ScrollGoldLight;
 		}
 
-		var hasContent =
-			!string.IsNullOrWhiteSpace(floor.Description) ||
-			!string.IsNullOrWhiteSpace(floor.Notes);
-
-		NotebookButton.TextColor = hasContent
-			? DmTheme.ScrollGoldLight
-			: DmTheme.InkMuted;
-
-		// The gold/muted swap above is the only sighted cue that this floor has authored content,
-		// so the description has to carry the same state — a colour is not a text alternative.
-		SemanticProperties.SetDescription(
+		// Colour AND description together — see NotebookAffordance for why the pair is one call
+		// and not two copies.
+		NotebookAffordance.Apply(
 			NotebookButton,
-			hasContent
-				? "Notebook, has content"
-				: "Notebook, empty");
+			!string.IsNullOrWhiteSpace(floor.Description) ||
+			!string.IsNullOrWhiteSpace(floor.Notes));
 
 		RebuildAreas(floor);
 	}

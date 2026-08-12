@@ -23,8 +23,7 @@
                        TextTransform="Uppercase"
                        CharacterSpacing="0.8"
                        VerticalOptions="Center" />
-                <Button x:Name="CloseButton"
-                        Grid.Column="1"
+                <Button Grid.Column="1"
                         Text="✕"
                         AutomationId="SecondaryPaletteCloseButton"
                         SemanticProperties.Description="Close this object category"
@@ -38,8 +37,7 @@
                         Clicked="OnCloseClicked" />
             </Grid>
 
-            <ScrollView x:Name="ScrollArea"
-                        Orientation="Vertical"
+            <ScrollView Orientation="Vertical"
                         VerticalScrollBarVisibility="Always"
                         MaximumHeightRequest="200">
                 <Grid x:Name="ObjectGrid"

@@ -4,8 +4,9 @@ using FluentAssertions;
 namespace DungeonMaster.Tests.App.Theme;
 
 /// <summary>
-///		Ratchets guarding the spacing scale, the padding roles and the radius tokens introduced
-///		by <c>docs/superpowers/specs/2026-08-07-design-system-completion-design.md</c> §3.
+///		Ratchets guarding the spacing scale, the padding roles, the radius tokens and the stroke
+///		scale introduced by <c>docs/superpowers/specs/2026-08-07-design-system-completion-design.md</c>
+///		§3, plus margin, which §3 did not name and which moves the same pixels.
 ///		<para>
 ///		Each fact carries its own allow-list, seeded with every file that offended when the
 ///		ratchet was written. A migrating wave removes its own entries and converts the sites;
@@ -84,8 +85,8 @@ public class GeometryScaleTests
     // hands the margin case to NoBareMarginValues rather than reporting it twice, and lets a
     // Thickness assigned to a BORDER go: BorderThickness and StrokeThickness are a stroke width
     // on the DmStroke* scale, not an inset on the DmPadding* roles, and reporting them here
-    // would tell the reader to fix them with a padding token. The stroke scale has no C# ratchet
-    // of its own — it is a real gap, and a smaller one than mislabelling the class.
+    // would tell the reader to fix them with a padding token. The stroke scale now has a ratchet
+    // of its own, NoBareStrokeValues, and that is where those two properties are reported.
     private static readonly IReadOnlyList<Regex> PaddingCSharpPatterns =
     [
         new(
@@ -113,6 +114,29 @@ public class GeometryScaleTests
             RegexOptions.Compiled),
         new(
             @"(?<![A-Za-z])Margin\s*=\s*new\s+(?:[\w]+\.)*Thickness\(\s*(?<value>[0-9][^)]*)\)",
+            RegexOptions.Compiled),
+    ];
+
+    // The stroke scale — DmStrokeHairline, DmStrokeEmphasis, DmStrokeMedium — was the one scale
+    // the spec defined and nothing ever guarded, in either language. The two properties that
+    // carry it are Border.StrokeThickness and Button.BorderWidth, and both are double, so the
+    // shapes are the attribute, the Setter and a plain C# assignment. The bare `new Thickness(…)`
+    // form is deliberately NOT here: on MAUI a stroke width is a scalar, and the Thickness
+    // constructor form belongs to padding and margin, which report it already.
+    private static readonly IReadOnlyList<Regex> StrokeXamlPatterns =
+    [
+        new(
+            @"(?<![A-Za-z])(?:StrokeThickness|BorderWidth)=""(?<value>[0-9][^""]*)""",
+            RegexOptions.Compiled),
+        new(
+            @"<Setter\s+Property=""(?:StrokeThickness|BorderWidth)""\s+Value=""(?<value>[0-9][^""]*)""",
+            RegexOptions.Compiled),
+    ];
+
+    private static readonly IReadOnlyList<Regex> StrokeCSharpPatterns =
+    [
+        new(
+            @"(?<![A-Za-z])(?:StrokeThickness|BorderWidth)\s*=(?!>)\s*(?<value>[0-9][0-9.f]*)",
             RegexOptions.Compiled),
     ];
 
@@ -245,6 +269,29 @@ public class GeometryScaleTests
             Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
             Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml.cs"),
             Relative("Views", "DungeonListPage", "DungeonListPage.xaml"),
+        };
+
+    /// <summary>
+    ///		Files still carrying a literal <c>StrokeThickness</c> or <c>BorderWidth</c>. This is
+    ///		the census taken when the ratchet was added, not a set of approvals: the stroke scale
+    ///		was defined by spec §3 and then guarded by nothing at all in either language, so every
+    ///		literal below came through the whole migration unexamined.
+    ///		<para>
+    ///		The XAML entry is <c>DungeonDetailPage.xaml</c>, whose map-object glyphs are stroked at
+    ///		<c>1.25</c> and <c>1.45</c> — values off the 1 / 1.5 / 2 ladder entirely, and the two
+    ///		that most need a human decision rather than a mechanical snap. The four C# entries are
+    ///		all hairlines built imperatively, which the ladder already expresses; they are
+    ///		conversions still to do rather than exemptions.
+    ///		</para>
+    /// </summary>
+    private static readonly HashSet<string> StrokePendingMigration =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            Relative("Controls", "AreaSidebarItem", "AreaSidebarItem.xaml.cs"),
+            Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
+            Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
+            Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
+            Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml.cs"),
         };
 
     /// <summary>
@@ -406,6 +453,45 @@ public class GeometryScaleTests
     }
 
     /// <summary>
+    ///		Asserts that no literal stroke width survives outside the token declarations.
+    /// </summary>
+    /// <remarks>
+    ///		Spec §3 named four scales — spacing, padding, radius and stroke — and only the first
+    ///		three were ever ratcheted. The stroke tokens were consumed in markup by hand and the
+    ///		gap was recorded in a comment beside the padding patterns rather than closed, which is
+    ///		the same shape as every other defect this branch found: a note asserting a guard is not
+    ///		a guard. Like <see cref="NoBareMarginValues"/> this fact converts nothing; it takes the
+    ///		census, pins it, and makes the next one a failure.
+    /// </remarks>
+    [Fact]
+    public void NoBareStrokeValues()
+    {
+        var offenders = Scan(
+                "*.xaml",
+                StrokeXamlPatterns,
+                StrokePendingMigration)
+            .Concat(
+                Scan(
+                    "*.cs",
+                    StrokeCSharpPatterns,
+                    StrokePendingMigration))
+            .Where(found =>
+                found.Value != ZeroMeansNone)
+            .Select(Describe)
+            .OrderBy(
+                entry =>
+                    entry,
+                StringComparer.Ordinal)
+            .ToList();
+
+        offenders
+            .Should()
+            .BeEmpty("every stroke width must come from the DmStroke* scale in "
+                + "Resources/Theme/Tokens.xaml, or be recorded in StrokePendingMigration "
+                + "with the rest of the census");
+    }
+
+    /// <summary>
     ///		Asserts that every allow-listed path names a file that exists and still carries the
     ///		literal its list exempts. Without this the three ratchets are not self-checking as
     ///		they shrink: a stale or mistyped entry exempts nothing, and the wave that "removed its
@@ -437,6 +523,12 @@ public class GeometryScaleTests
                     MarginPendingMigration,
                     MarginXamlPatterns,
                     MarginCSharpPatterns))
+            .Concat(
+                Stale(
+                    "Stroke",
+                    StrokePendingMigration,
+                    StrokeXamlPatterns,
+                    StrokeCSharpPatterns))
             .Concat(StaleValueExceptions())
             .OrderBy(
                 entry =>

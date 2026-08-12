@@ -139,8 +139,6 @@ public class TokenNamingTests
                 "Role hue, qualified by the surface it is rendered on rather than by a category, "
                 + "exactly as DmDestructive is. Its two alpha derivatives are the "
                 + "DmPopupButtonDestructive* washes.",
-            ["DmSave"] = "Role hue. DmSaveText is its categorised derivative.",
-            ["DmDiscard"] = "Role hue. DmDiscardText is its categorised derivative.",
             ["DmRibbonRead"] = "Single-part element: the READ ribbon has one colour, its body.",
             ["DmRibbonReadDim"] = "The same body colour in its unselected state.",
             ["DmRibbonSeal"] = "Single-part element: the ribbon's wax seal.",

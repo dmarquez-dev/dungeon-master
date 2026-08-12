@@ -73,23 +73,12 @@ public partial class AreaSidebarItem : ContentView
 
 		AreaNameLabel.Text = area.Name;
 
-		var hasContent =
-			!string.IsNullOrWhiteSpace(area.Description) ||
-			!string.IsNullOrWhiteSpace(area.Notes);
-
-		NotebookButton.TextColor = hasContent
-			? DmTheme.ScrollGoldLight
-			: DmTheme.InkMuted;
-
-		// The gold/muted swap above is the only sighted cue that this area has authored content,
-		// so the description has to carry the same state — a colour is not a text alternative.
-		// It is set here rather than in XAML for the same reason the colour is: it depends on the
-		// data, and the XAML value is only the unpopulated default.
-		SemanticProperties.SetDescription(
+		// Colour AND description together — see NotebookAffordance for why the pair is one call
+		// and not two copies.
+		NotebookAffordance.Apply(
 			NotebookButton,
-			hasContent
-				? "Notebook, has content"
-				: "Notebook, empty");
+			!string.IsNullOrWhiteSpace(area.Description) ||
+			!string.IsNullOrWhiteSpace(area.Notes));
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)

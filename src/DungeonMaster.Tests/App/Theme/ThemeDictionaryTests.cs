@@ -35,7 +35,10 @@ public class ThemeDictionaryTests
         "DmAccentGold", "DmAccentGoldLight", "DmAccentGoldDark",
         "DmConfirm", "DmConfirmText", "DmDestructive", "DmDestructiveText",
         "DmNeutralSurface", "DmNeutralBorder",
-        "DmSave", "DmSaveText", "DmDiscard", "DmDiscardText",
+        // DmSave, DmSaveText, DmDiscard and DmDiscardText were here and are gone. They had no
+        // consumer in markup or in code, and this list was the only thing keeping them in
+        // Tokens.xaml — a required-key entry for an unconsumed token is not a guard, it is a
+        // test propping up dead code. Deleted with the tokens.
         "DmRibbonRead", "DmRibbonReadDim", "DmRibbonText", "DmRibbonSeal",
         "DmBannerEdge", "DmBannerCenter",
         "DmDragPlaceholderStroke", "DmDragPlaceholderFill",
@@ -51,13 +54,15 @@ public class ThemeDictionaryTests
         "DmBorderParchmentBrush",
         "DmRadiusTight", "DmRadiusDefault", "DmRadiusLoose",
         "DmStrokeHairline", "DmStrokeEmphasis", "DmStrokeMedium",
-        // The spacing scale and the padding roles. Like the radius tokens above them these
-        // have no consumers yet — the wave that defines a scale is not the wave that applies
-        // it — so nothing else in this suite would notice one being dropped, renamed or never
-        // added at all. This is the only fact standing between the applying wave and a
-        // resource key that silently does not exist.
+        // The spacing scale and the padding roles. This is the only fact standing between a
+        // call site and a resource key that silently does not exist.
+        //
+        // DmSpaceXXL (20) was here and is gone: the applying wave never met a 20, so the token
+        // had no consumer and this entry was the only reason it survived. Six steps now. Note
+        // the difference from the entries around it — a key that IS consumed is guarded here
+        // against a typo; a key that is not is merely pinned, and pinning is not guarding.
         "DmSpaceXXS", "DmSpaceXS", "DmSpaceSmall", "DmSpaceMedium",
-        "DmSpaceLarge", "DmSpaceXL", "DmSpaceXXL",
+        "DmSpaceLarge", "DmSpaceXL",
         "DmPaddingTight", "DmPaddingCompact", "DmPaddingControl",
         "DmPaddingCard", "DmPaddingPanel", "DmPaddingPage",
         // Font families. Bound as FontFamily="..." by Tasks 4-11; a typo in one of

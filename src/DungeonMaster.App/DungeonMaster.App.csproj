@@ -28,8 +28,17 @@
 		<!-- Display name -->
 		<ApplicationTitle>DungeonMaster.App</ApplicationTitle>
 
-		<!-- App Identifier -->
-		<ApplicationId>com.companyname.dungeonmaster.app</ApplicationId>
+		<!-- App Identifier. Was the .NET template's com.companyname.dungeonmaster.app.
+		     "companyname" is not a defensible identity for a shipped app, so it is replaced
+		     with the reverse-DNS form of the GitHub owner (dmarquez-dev; hyphens are not legal
+		     in every platform's package identifier, hence dmarquezdev).
+
+		     THIS IS AN IDENTITY DECISION AND MAY WANT TO BE SOMETHING ELSE. Changing it after
+		     a build has been installed makes the next one a DIFFERENT application to Windows,
+		     which gets its own local app-data folder — and the SQLite database lives there, so
+		     an existing install stops seeing its dungeons. Nothing has shipped yet, so the cost
+		     is zero today and rises the moment it does. -->
+		<ApplicationId>com.dmarquezdev.dungeonmaster</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
