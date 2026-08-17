@@ -1,0 +1,146 @@
+{
+  "session": "2026-08-17-code-quality-audit",
+  "createdAt": "2026-08-17T00:00:00Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/audit-record-format.md",
+    "contracts/master-index-format.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Audit the Domain and Application layers",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "docs/audit/01-domain-application.md"
+      ],
+      "acceptance": [
+        "`docs/audit/01-domain-application.md` exists and conforms to `contracts/audit-record-format.md`: the six sections `## Scope`, `## Method`, `## Summary`, `## Records`, `## Layer verdict`, `## Attestation` appear in that order, and every record is a level-3 heading of the form `### <ID> -- <title>` followed immediately by a fenced `yaml` block and then the three bolded paragraphs **What.**, **Why it matters.**, **Suggested direction.** in that order.",
+        "Every record's YAML block carries the eleven required keys in the contract's order (`id`, `layer`, `severity`, `category`, `authority`, `citation`, `locations`, `effort`, `risk`, `independent`, plus `blocked-by` only when `independent: false`), with `layer: CORE` on every record and values drawn only from the contract's enumerated token sets.",
+        "Record IDs run `CORE-001` upward, gapless and in ascending order in `## Records`, and the `## Summary` table's S1-S5 counts and total exactly equal the number of record blocks at each severity.",
+        "Every record's `locations` list has at least one entry of the form `<repo-relative path>:<line>` or `<repo-relative path>:<start>-<end>` that resolves to a real file in the repository at the base commit; no record cites a file without a line number.",
+        "Every record names an `authority` from `microsoft` | `conventions` | `practice` | `judgment`; every `microsoft` record cites a full `https://learn.microsoft.com/...` URL, every `conventions` record cites `<path>#<verbatim section heading>`, every `practice` record cites a named source, every `judgment` record cites `n/a` and is worded as belief rather than fact, and every `S5` record carries `authority: judgment`.",
+        "`## Method` lists the `dm-conventions` documents read with line counts and states explicitly that `backend/dotnet-format.md` was read in full; no record contradicts a rule stated in that document.",
+        "`## Scope` reports, as a table, the directories audited with file and line counts covering all 20 `.cs` files of `src/DungeonMaster.Domain` and all 57 `.cs` files of `src/DungeonMaster.Application`, and names anything excluded with a reason.",
+        "The hand-rolled CQRS dispatcher (`src/DungeonMaster.Application/Common/Dispatch/`), the `Result`/`ErrorCategory` error model (`Common/Results/`), the `ValidationBehavior` pipeline behavior, and the partial-entity `X.cs`/`XMethods.cs` split in `Domain/Entities/` are each either the subject of at least one record or named explicitly in `## Layer verdict` as sound, with a stated reason.",
+        "`## Layer verdict` is 150-400 words and answers both audit axes for these layers: whether the layer holds its shape, and whether its internal seams sit in the right places.",
+        "No file under `src/` was created, modified, or deleted: `git status --porcelain` shows no entry under `src/`, and the only path this task added is `docs/audit/01-domain-application.md`. The `## Attestation` section carries the contract's three lines verbatim.",
+        "Every file in this task's scope is accounted for: each file is either cited in the `locations` of at least one record, or listed in `## Scope` as read and found sound. `## Scope` states two counts -- files read and files cited -- and the files-read count equals the total file count in its own scope table."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Audit the Infrastructure layer: EF Core persistence, migrations, and the composition root",
+      "agent": "dir-database-engineer",
+      "domain": "database",
+      "owns": [
+        "docs/audit/02-infrastructure.md"
+      ],
+      "acceptance": [
+        "`docs/audit/02-infrastructure.md` exists and conforms to `contracts/audit-record-format.md`: the six sections in the contract's order, and every record a level-3 heading followed immediately by a fenced `yaml` block and then **What.**, **Why it matters.**, **Suggested direction.** in that order.",
+        "Every record's YAML block carries the eleven required keys in the contract's order, with `layer: INFRA` on every record and values drawn only from the contract's enumerated token sets.",
+        "Record IDs run `INFRA-001` upward, gapless and ascending in `## Records`, and the `## Summary` table's S1-S5 counts and total exactly equal the number of record blocks at each severity.",
+        "Every record's `locations` list has at least one `path:line` or `path:start-end` entry resolving to a real file at the base commit; no record cites a file without a line number.",
+        "Every record names an `authority` from the four-token set with the citation form that token requires; `judgment` records cite `n/a` and are worded as belief, and every `S5` record carries `authority: judgment`.",
+        "`## Method` lists the `dm-conventions` documents read with line counts, states explicitly that `backend/dotnet-format.md` was read in full, and names which sections of `backend/dotnet-guidelines.md` were treated as applicable (the async/EF Core/performance sections) and which were not (the ASP.NET Core HttpContext sections); no record contradicts a rule stated in `backend/dotnet-format.md`.",
+        "`## Scope` states explicitly how generated code was treated -- `Migrations/20260805014736_InitialCreate*.cs`, `Migrations/20260805184106_AddFloorDescription*.cs`, and `Migrations/AppDbContextModelSnapshot.cs` -- either audited against a stated different standard for generated code or excluded, with the reason given; and the hand-written files are audited as hand-written code.",
+        "`AppDbContext`, the four files under `Persistence/Configurations/`, the read/write repository split (`DungeonReadRepository`, `DungeonWriteRepository`), `AppDbContextFactory`, and `DependencyInjection.cs` are each either the subject of at least one record or named explicitly in `## Layer verdict` as sound with a stated reason; `DependencyInjection.cs` is judged as hand-written composition-root code, not as generated code.",
+        "`## Layer verdict` is 150-400 words and answers both audit axes: whether the Infrastructure layer holds its shape, and whether its internal seams (persistence, configuration, repositories, DI) sit in the right places.",
+        "No file under `src/` was created, modified, or deleted: `git status --porcelain` shows no entry under `src/`, and the only path this task added is `docs/audit/02-infrastructure.md`. The `## Attestation` section carries the contract's three lines verbatim.",
+        "Every file in this task's scope is accounted for: each file is either cited in the `locations` of at least one record, or listed in `## Scope` as read and found sound. `## Scope` states two counts -- files read and files cited -- and the files-read count equals the total file count in its own scope table. Files excluded as generated code are named in the excluded list and are not counted as read."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Audit the App shell, views, and view models",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "docs/audit/03-app-shell-and-views.md"
+      ],
+      "acceptance": [
+        "`docs/audit/03-app-shell-and-views.md` exists and conforms to `contracts/audit-record-format.md`: the six sections in the contract's order, and every record a level-3 heading followed immediately by a fenced `yaml` block and then **What.**, **Why it matters.**, **Suggested direction.** in that order.",
+        "Every record's YAML block carries the eleven required keys in the contract's order, with `layer: UI` on every record and values drawn only from the contract's enumerated token sets.",
+        "Record IDs run `UI-001` upward, gapless and ascending in `## Records`, and the `## Summary` table's S1-S5 counts and total exactly equal the number of record blocks at each severity.",
+        "Every record's `locations` list has at least one `path:line` or `path:start-end` entry resolving to a real file at the base commit; `.xaml` files are cited by line the same way `.cs` files are.",
+        "Every record names an `authority` from the four-token set with the citation form that token requires; because `dm-conventions` has no MAUI/XAML document, no record cites its React/TypeScript frontend documents, and MAUI/XAML records use `microsoft`, `practice`, or `judgment`. Every `judgment` record cites `n/a` and is worded as belief; every `S5` record carries `authority: judgment`.",
+        "`## Method` lists the `dm-conventions` documents read with line counts and states explicitly that `backend/dotnet-format.md` was read in full before any style, naming, formatting, or XML-documentation record was written; no C# style record contradicts a rule stated in that document.",
+        "`## Scope` reports as a table the file and line counts for the audited set -- the `src/DungeonMaster.App` root files (`App.xaml`, `App.xaml.cs`, `AppShell.xaml`, `AppShell.xaml.cs`, `MauiProgram.cs`), `Views/**` (15 files), `ViewModels/**` (4 files), `Extensions/**`, `Platforms/**`, `Properties/**` -- and names anything excluded with a reason. It states explicitly that `Controls/`, `Converters/`, `Behaviors/`, `Graphics/`, `Theme/`, and `Resources/Theme/` are out of scope because T4 owns them.",
+        "MVVM discipline in the view models (including CommunityToolkit.Mvvm source-generator usage), the amount and kind of logic in view code-behind, Shell-based navigation, service registration and lifetimes in `MauiProgram.cs`, and the platform-specific code under `Platforms/` are each either the subject of at least one record or named explicitly in `## Layer verdict` as sound, with a stated reason.",
+        "`## Layer verdict` is 150-400 words and answers both audit axes for this half of the App layer: whether it holds its shape, and whether the view / view-model / navigation seams sit in the right places. Where the problem is the boundary with Application or Infrastructure, it says so and notes that T6 owns the boundary record.",
+        "No file under `src/` was created, modified, or deleted: `git status --porcelain` shows no entry under `src/`, and the only path this task added is `docs/audit/03-app-shell-and-views.md`. The `## Attestation` section carries the contract's three lines verbatim.",
+        "Every file in this task's scope is accounted for: each file is either cited in the `locations` of at least one record, or listed in `## Scope` as read and found sound. `## Scope` states two counts -- files read and files cited -- and the files-read count equals the total file count in its own scope table. `.xaml` files count the same as `.cs` files."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Audit the App control kit, converters, behaviors, drawable, and theme system",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "docs/audit/04-app-controls-and-theme.md"
+      ],
+      "acceptance": [
+        "`docs/audit/04-app-controls-and-theme.md` exists and conforms to `contracts/audit-record-format.md`: the six sections in the contract's order, and every record a level-3 heading followed immediately by a fenced `yaml` block and then **What.**, **Why it matters.**, **Suggested direction.** in that order.",
+        "Every record's YAML block carries the eleven required keys in the contract's order, with `layer: UIKIT` on every record and values drawn only from the contract's enumerated token sets.",
+        "Record IDs run `UIKIT-001` upward, gapless and ascending in `## Records`, and the `## Summary` table's S1-S5 counts and total exactly equal the number of record blocks at each severity.",
+        "Every record's `locations` list has at least one `path:line` or `path:start-end` entry resolving to a real file at the base commit; `.xaml` resource dictionaries are cited by line the same way `.cs` files are.",
+        "Every record names an `authority` from the four-token set with the citation form that token requires; because `dm-conventions` has no MAUI/XAML document, no record cites its React/TypeScript frontend documents, and MAUI/XAML records use `microsoft`, `practice`, or `judgment`. Every `judgment` record cites `n/a` and is worded as belief; every `S5` record carries `authority: judgment`.",
+        "`## Method` lists the `dm-conventions` documents read with line counts and states explicitly that `backend/dotnet-format.md` was read in full before any style, naming, formatting, or XML-documentation record was written; no C# style record contradicts a rule stated in that document.",
+        "`## Scope` reports as a table the file and line counts for the audited set -- `Controls/**` (22 files), `Converters/**`, `Behaviors/**`, `Graphics/**`, `Theme/**`, `Resources/Theme/**` -- and names anything excluded with a reason. It states explicitly that the App root files, `Views/`, `ViewModels/`, `Extensions/`, and `Platforms/` are out of scope because T3 owns them.",
+        "Bindable-property declaration and change-handling across the nine custom controls, `IValueConverter` contract compliance including null and `BindableProperty.UnsetValue` handling in `Converters/`, the behaviors' attach/detach and leak safety, the drawable under `Graphics/`, and the theme resource-dictionary system under `Theme/` and `Resources/Theme/` including its token naming rule are each either the subject of at least one record or named explicitly in `## Layer verdict` as sound, with a stated reason.",
+        "`## Layer verdict` is 150-400 words and answers both audit axes for the control and theme kit: whether it holds its shape as a reusable presentation layer, and whether the seams between controls, converters, behaviors, and theme tokens sit in the right places.",
+        "No file under `src/` was created, modified, or deleted: `git status --porcelain` shows no entry under `src/`, and the only path this task added is `docs/audit/04-app-controls-and-theme.md`. The `## Attestation` section carries the contract's three lines verbatim.",
+        "Every file in this task's scope is accounted for: each file is either cited in the `locations` of at least one record, or listed in `## Scope` as read and found sound. `## Scope` states two counts -- files read and files cited -- and the files-read count equals the total file count in its own scope table. `.xaml` files count the same as `.cs` files."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Audit the test suite, including the on-disk XAML theme-hygiene sub-suite",
+      "agent": "dir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "docs/audit/05-tests.md"
+      ],
+      "acceptance": [
+        "`docs/audit/05-tests.md` exists and conforms to `contracts/audit-record-format.md`: the six sections in the contract's order, and every record a level-3 heading followed immediately by a fenced `yaml` block and then **What.**, **Why it matters.**, **Suggested direction.** in that order.",
+        "Every record's YAML block carries the eleven required keys in the contract's order, with `layer: TEST` on every record and values drawn only from the contract's enumerated token sets.",
+        "Record IDs run `TEST-001` upward, gapless and ascending in `## Records`, and the `## Summary` table's S1-S5 counts and total exactly equal the number of record blocks at each severity.",
+        "Every record's `locations` list has at least one `path:line` or `path:start-end` entry resolving to a real file at the base commit; no record cites a file without a line number.",
+        "Every record names an `authority` from the four-token set with the citation form that token requires; because `dm-conventions` has no xUnit document, no record cites its Vitest/Playwright testing documents, and test-framework records use `microsoft`, `practice`, or `judgment`. Every `judgment` record cites `n/a` and is worded as belief; every `S5` record carries `authority: judgment`.",
+        "`## Method` lists the `dm-conventions` documents read with line counts and states explicitly that `backend/dotnet-format.md` was read in full before any style, naming, formatting, or XML-documentation record was written; no C# style record contradicts a rule stated in that document.",
+        "`## Scope` reports as a table the file and line counts across all 45 `.cs` files of `src/DungeonMaster.Tests`, broken down by the `Domain/`, `Application/`, `Infrastructure/`, and `App/` sub-trees, and names anything excluded with a reason.",
+        "Test naming and arrangement, xUnit fixture and data-driven patterns (`[Theory]`, `IClassFixture`, collection behaviour), FluentAssertions usage, NSubstitute usage including over-mocking and verification style, and whether the suite tests behaviour rather than implementation detail are each either the subject of at least one record or named explicitly in `## Layer verdict` as sound, with a stated reason.",
+        "The `src/DungeonMaster.Tests/App/` sub-suite, which reads XAML and C# off disk as text via `App/Theme/RepoPaths.cs` and `App/Theme/ThemeSource.cs` because the test project does not reference the App project, is assessed explicitly: `## Layer verdict` states a verdict on whether reading source files off disk from a test project is a sound way to enforce theme and accessibility hygiene, with reasoning, and any defect in that approach or its path resolution is a record.",
+        "No file under `src/` was created, modified, or deleted: `git status --porcelain` shows no entry under `src/`, and the only path this task added is `docs/audit/05-tests.md`. The `## Attestation` section carries the contract's three lines verbatim.",
+        "Every file in this task's scope is accounted for: each of the 45 `.cs` files is either cited in the `locations` of at least one record, or listed in `## Scope` as read and found sound. `## Scope` states two counts -- files read and files cited -- and the files-read count equals the total file count in its own scope table."
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "Audit the solution and build configuration and the layer boundaries, then synthesise the master index",
+      "agent": "dir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/06-cross-cutting.md",
+        "docs/audit/00-master-index.md"
+      ],
+      "dependsOn": ["T1", "T2", "T3", "T4", "T5"],
+      "acceptance": [
+        "`docs/audit/06-cross-cutting.md` exists and conforms to `contracts/audit-record-format.md`: the six sections in the contract's order, every record a level-3 heading followed immediately by a fenced `yaml` block and then **What.**, **Why it matters.**, **Suggested direction.**, every YAML block carrying the eleven required keys in the contract's order with `layer: XCUT`, IDs running `XCUT-001` upward gapless and ascending, and `## Summary` counts equal to the actual record counts.",
+        "Every `XCUT` record's `locations` list has at least one `path:line` or `path:start-end` entry; records about an absent file (`.editorconfig`, analyzer configuration) cite the file where the configuration would belong -- `Directory.Build.props:1` or the relevant `.csproj` -- rather than a path that does not exist.",
+        "Every `XCUT` record names an `authority` from the four-token set with the citation form that token requires; `judgment` records cite `n/a` and are worded as belief; every `S5` record carries `authority: judgment`. `## Method` states explicitly that `backend/dotnet-format.md` was read in full before any style or formatting record, and no record contradicts a rule stated in that document.",
+        "`docs/audit/06-cross-cutting.md` covers, each with at least one record or an explicit statement of soundness with a reason in `## Layer verdict`: `Directory.Build.props`; each of the five `.csproj` files including package versions and the transitive `SQLitePCLRaw.lib.e_sqlite3` pin; `src/DungeonMaster.sln`; the absence of any `.editorconfig` in the repository; and the absence of analyzer package references and of any `AnalysisLevel` or `EnableNETAnalyzers` property.",
+        "`docs/audit/06-cross-cutting.md` records the layer *boundaries* as distinct from the layers: Domain-to-Application, Application-to-Infrastructure, Application/Infrastructure-to-App, and the Tests project's reach into each. Every boundary defect reported by T1-T5 as belonging to a boundary rather than a layer appears here as an `XCUT` record.",
+        "`docs/audit/00-master-index.md` exists and conforms to `contracts/master-index-format.md`: the eight sections `## Verdict`, `## Per-layer verdicts`, `## Boundaries`, `## Source documents`, `## Master index`, `## Merged groups`, `## Suggested fix sessions`, `## Coverage attestation` appear in that order with the specified tables and columns, and master entry IDs run `MASTER-001` upward, gapless, in final rank order.",
+        "The `## Master index` table is ranked ascending by severity, then ascending by effort, then ascending by risk, then by first source ID, exactly as the contract specifies; every row's `Sources` cell lists at least one source record ID, and every entry with more than one source has a matching bullet in `## Merged groups` naming the single shared fix that justifies the merge.",
+        "`## Source documents` reports per-document S1-S5 counts that equal each source document's own `## Summary` table, and `## Coverage attestation` shows the reconciliation arithmetic with real numbers such that source record count minus merges equals master entry count, with every source record ID appearing in exactly one master entry.",
+        "`## Suggested fix sessions` contains between three and eight sessions in recommended execution order, each with its entry list, combined effort, highest risk, and rationale; every `S1` and `S2` master entry is assigned to exactly one session; no entry precedes a session containing a record it is `blocked-by`; and any unassigned `S3`-`S5` entries are listed with a reason.",
+        "`## Verdict` is 300-600 words stating a solution-level position on both audit axes in its first sentence, `## Per-layer verdicts` has one 60-120 word paragraph per layer in code order, and `## Boundaries` assesses each named layer pair for dependency direction, surface area, and the types crossing it.",
+        "No file under `src/` was created, modified, or deleted: `git status --porcelain` shows no entry under `src/`, and the only paths this task added are `docs/audit/06-cross-cutting.md` and `docs/audit/00-master-index.md`. The `## Attestation` section of `docs/audit/06-cross-cutting.md` and the `## Coverage attestation` section of `docs/audit/00-master-index.md` both carry their contract's lines verbatim."
+      ]
+    }
+  ]
+}

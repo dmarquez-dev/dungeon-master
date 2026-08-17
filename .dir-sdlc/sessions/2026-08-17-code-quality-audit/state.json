@@ -1,0 +1,21 @@
+{
+  "session": "2026-08-17-code-quality-audit",
+  "updatedAt": "2026-08-17T23:59:00Z",
+  "phase": "merged",
+  "worktree": "C:\\Users\\dmarq\\Development\\Repos\\dungeon-master-worktrees\\2026-08-17-code-quality-audit",
+  "branch": "dir/2026-08-17-code-quality-audit",
+  "tasks": [
+    { "id": "T1", "status": "done", "revisionRounds": 1, "startRef": "45495c1bd39a52dbc942eceab897b3c1ac553ee9", "commit": "16d594b" },
+    { "id": "T2", "status": "done", "revisionRounds": 1, "startRef": "45495c1bd39a52dbc942eceab897b3c1ac553ee9", "commit": "00313eb" },
+    { "id": "T3", "status": "done", "revisionRounds": 1, "startRef": "45495c1bd39a52dbc942eceab897b3c1ac553ee9", "commit": "b2a7383" },
+    { "id": "T4", "status": "done", "revisionRounds": 0, "startRef": "45495c1bd39a52dbc942eceab897b3c1ac553ee9", "commit": "02e560b" },
+    { "id": "T5", "status": "done", "revisionRounds": 1, "startRef": "45495c1bd39a52dbc942eceab897b3c1ac553ee9", "commit": "2603170" },
+    { "id": "T6", "status": "done", "revisionRounds": 0, "startRef": "00313eb", "commit": "676a8f3" }
+  ],
+  "escalations": [],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 5
+  }
+}
