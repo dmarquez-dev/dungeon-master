@@ -10,8 +10,12 @@ public sealed partial class Floor
 	/// <param name="number">
 	///		The new floor number to assign.
 	/// </param>
-	internal void UpdateNumber(int number) =>
+	internal void UpdateNumber(int number)
+	{
 		Number = number;
+
+		Touch();
+	}
 
 	/// <summary>
 	///		Updates the display name, description, and notes of this floor.
@@ -69,18 +73,23 @@ public sealed partial class Floor
 	/// <param name="areaId">
 	///		The unique identifier of the area to remove.
 	/// </param>
-	internal void RemoveArea(Guid areaId)
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the area was removed, or <see cref="MutationOutcome.NotFound"/> when no area with the given identifier exists.
+	/// </returns>
+	internal MutationOutcome RemoveArea(Guid areaId)
 	{
 		var area = _areas.FirstOrDefault(area =>
 			area.Id == areaId);
 
 		if (area is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
 		_areas.Remove(area);
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -98,7 +107,10 @@ public sealed partial class Floor
 	/// <param name="notes">
 	///		The new optional notes for the area.
 	/// </param>
-	internal void UpdateArea(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the area was updated, or <see cref="MutationOutcome.NotFound"/> when no area with the given identifier exists.
+	/// </returns>
+	internal MutationOutcome UpdateArea(
 		Guid areaId,
 		string name,
 		string? description,
@@ -109,7 +121,7 @@ public sealed partial class Floor
 
 		if (area is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
 		area.Update(
@@ -117,6 +129,8 @@ public sealed partial class Floor
 			description,
 			notes);
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -129,7 +143,10 @@ public sealed partial class Floor
 	/// <param name="outline">
 	///		The new ordered list of path segments that form the closed outline polygon.
 	/// </param>
-	internal void UpdateAreaOutline(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the outline was replaced, or <see cref="MutationOutcome.NotFound"/> when no area with the given identifier exists.
+	/// </returns>
+	internal MutationOutcome UpdateAreaOutline(
 		Guid areaId,
 		IReadOnlyList<PathSegment> outline)
 	{
@@ -138,11 +155,13 @@ public sealed partial class Floor
 
 		if (area is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
 		area.SetOutline(outline);
 
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 }

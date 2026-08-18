@@ -58,14 +58,17 @@ public sealed partial class Dungeon
 	/// <param name="floorId">
 	///		The unique identifier of the floor to remove.
 	/// </param>
-	public void RemoveFloor(Guid floorId)
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the floor was removed, or <see cref="MutationOutcome.NotFound"/> when no floor with the given identifier exists.
+	/// </returns>
+	public MutationOutcome RemoveFloor(Guid floorId)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
 			floor.Id == floorId);
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
 		_floors.Remove(floor);
@@ -81,6 +84,8 @@ public sealed partial class Dungeon
 		}
 
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -92,7 +97,10 @@ public sealed partial class Dungeon
 	/// <param name="newNumber">
 	///		The target floor number. Must be between 1 and the total floor count, inclusive.
 	/// </param>
-	public void ReorderFloor(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the floor was moved or already carried the requested number, <see cref="MutationOutcome.NotFound"/> when no floor with the given identifier exists, or <see cref="MutationOutcome.OutOfRange"/> when the target number lies outside the permitted range.
+	/// </returns>
+	public MutationOutcome ReorderFloor(
 		Guid floorId,
 		int newNumber)
 	{
@@ -101,19 +109,19 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
 		var oldNumber = floor.Number;
 
 		if (oldNumber == newNumber)
 		{
-			return;
+			return MutationOutcome.Success;
 		}
 
 		if (newNumber < 1 || newNumber > _floors.Count)
 		{
-			return;
+			return MutationOutcome.OutOfRange;
 		}
 
 		if (newNumber < oldNumber)
@@ -135,6 +143,8 @@ public sealed partial class Dungeon
 
 		floor.UpdateNumber(newNumber);
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -152,7 +162,10 @@ public sealed partial class Dungeon
 	/// <param name="notes">
 	///		The new optional notes for the floor.
 	/// </param>
-	public void UpdateFloor(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the floor was updated, or <see cref="MutationOutcome.NotFound"/> when no floor with the given identifier exists.
+	/// </returns>
+	public MutationOutcome UpdateFloor(
 		Guid floorId,
 		string? name,
 		string? description,
@@ -163,11 +176,13 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
 		floor.UpdateDetails(name, description, notes);
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -183,19 +198,20 @@ public sealed partial class Dungeon
 	///		The optional description of the new area.
 	/// </param>
 	/// <returns>
-	///		The newly created <see cref="Area.Area"/> instance.
+	///		The newly created <see cref="Area.Area"/> instance, or <see langword="null"/> when no floor with the given identifier exists.
 	/// </returns>
-	/// <exception cref="InvalidOperationException">
-	///		Thrown when no floor with the given identifier exists in this dungeon.
-	/// </exception>
-	public Area.Area AddArea(
+	public Area.Area? AddArea(
 		Guid floorId,
 		string name,
 		string? description)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId)
-			?? throw new InvalidOperationException($"Floor {floorId} not found.");
+			floor.Id == floorId);
+
+		if (floor is null)
+		{
+			return null;
+		}
 
 		var area = floor.AddArea(name, description);
 		Touch();
@@ -212,7 +228,10 @@ public sealed partial class Dungeon
 	/// <param name="areaId">
 	///		The unique identifier of the area to remove.
 	/// </param>
-	public void RemoveArea(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the area was removed, or <see cref="MutationOutcome.NotFound"/> when the floor or the area was not found.
+	/// </returns>
+	public MutationOutcome RemoveArea(
 		Guid floorId,
 		Guid areaId)
 	{
@@ -221,11 +240,19 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
-		floor.RemoveArea(areaId);
+		var outcome = floor.RemoveArea(areaId);
+
+		if (outcome is not MutationOutcome.Success)
+		{
+			return outcome;
+		}
+
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -246,7 +273,10 @@ public sealed partial class Dungeon
 	/// <param name="notes">
 	///		The new optional notes for the area.
 	/// </param>
-	public void UpdateArea(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the area was updated, or <see cref="MutationOutcome.NotFound"/> when the floor or the area was not found.
+	/// </returns>
+	public MutationOutcome UpdateArea(
 		Guid floorId,
 		Guid areaId,
 		string name,
@@ -258,16 +288,23 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
-		floor.UpdateArea(
+		var outcome = floor.UpdateArea(
 			areaId,
 			name,
 			description,
 			notes);
 
+		if (outcome is not MutationOutcome.Success)
+		{
+			return outcome;
+		}
+
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -283,7 +320,10 @@ public sealed partial class Dungeon
 	/// <param name="outline">
 	///		The new ordered list of path segments that form the closed outline polygon.
 	/// </param>
-	public void UpdateAreaOutline(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the outline was replaced, or <see cref="MutationOutcome.NotFound"/> when the floor or the area was not found.
+	/// </returns>
+	public MutationOutcome UpdateAreaOutline(
 		Guid floorId,
 		Guid areaId,
 		IReadOnlyList<PathSegment> outline)
@@ -293,13 +333,21 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
-		floor.UpdateAreaOutline(
+		var outcome = floor.UpdateAreaOutline(
 			areaId,
 			outline);
+
+		if (outcome is not MutationOutcome.Success)
+		{
+			return outcome;
+		}
+
 		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -389,7 +437,10 @@ public sealed partial class Dungeon
 	/// <param name="objectId">
 	///		The unique identifier of the placed object to remove.
 	/// </param>
-	public void RemovePlacedObject(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the object was removed, or <see cref="MutationOutcome.NotFound"/> when the floor or the object was not found.
+	/// </returns>
+	public MutationOutcome RemovePlacedObject(
 		Guid floorId,
 		Guid objectId)
 	{
@@ -398,13 +449,19 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
-		if (floor.RemoveObject(objectId))
+		var outcome = floor.RemoveObject(objectId);
+
+		if (outcome is not MutationOutcome.Success)
 		{
-			Touch();
+			return outcome;
 		}
+
+		Touch();
+
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -426,7 +483,10 @@ public sealed partial class Dungeon
 	/// <param name="newScale">
 	///		The new scale multiplier.
 	/// </param>
-	public void UpdatePlacedObject(
+	/// <returns>
+	///		<see cref="MutationOutcome.Success"/> when the object was updated, or <see cref="MutationOutcome.NotFound"/> when the floor or the object was not found.
+	/// </returns>
+	public MutationOutcome UpdatePlacedObject(
 		Guid floorId,
 		Guid objectId,
 		CanvasPoint newPosition,
@@ -438,16 +498,22 @@ public sealed partial class Dungeon
 
 		if (floor is null)
 		{
-			return;
+			return MutationOutcome.NotFound;
 		}
 
-		if (floor.UpdateObject(
+		var outcome = floor.UpdateObject(
 			objectId,
 			newPosition,
 			newRotation,
-			newScale))
+			newScale);
+
+		if (outcome is not MutationOutcome.Success)
 		{
-			Touch();
+			return outcome;
 		}
+
+		Touch();
+
+		return MutationOutcome.Success;
 	}
 }

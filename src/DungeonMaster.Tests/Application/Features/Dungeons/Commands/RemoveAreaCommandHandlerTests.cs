@@ -24,7 +24,7 @@ public class RemoveAreaCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Ground");
-		var area = dungeon.AddArea(floor.Id, "Throne Room", null);
+		var area = dungeon.AddArea(floor.Id, "Throne Room", null)!;
 		_writeRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
