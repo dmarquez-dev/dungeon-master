@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DungeonMaster.Application.Common.Map;
+using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
@@ -61,6 +62,13 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	/// </summary>
 	[ObservableProperty]
 	public partial MapTool ActiveTool { get; set; } = MapTool.Pan;
+
+	/// <summary>
+	///		Gets or sets the message describing the most recent failed operation, or
+	///		<see langword="null"/> when the most recent operation succeeded.
+	/// </summary>
+	[ObservableProperty]
+	public partial string? ErrorMessage { get; set; }
 
 	/// <summary>
 	///		Gets the draw session that tracks in-progress vertices for the current area edit.
@@ -125,13 +133,22 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task SaveDungeonAsync()
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new UpdateDungeonCommand(
 				_dungeonId,
 				DungeonName,
 				DungeonDescription,
 				DungeonNotes),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 	}
 
 	/// <summary>
@@ -140,9 +157,20 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task AddFloorAsync()
 	{
-		await dispatcher.SendAsync<Guid>(
-			new AddFloorCommand(_dungeonId, null),
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync<Guid>(
+			new AddFloorCommand(
+				_dungeonId,
+				null),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -156,9 +184,20 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task RemoveFloorAsync(Guid floorId)
 	{
-		await dispatcher.SendAsync(
-			new RemoveFloorCommand(_dungeonId, floorId),
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
+			new RemoveFloorCommand(
+				_dungeonId,
+				floorId),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -173,7 +212,9 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task UpdateFloorAsync((Guid FloorId, string? Name, string? Description, string? Notes) args)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new UpdateFloorCommand(
 				_dungeonId,
 				args.FloorId,
@@ -181,6 +222,13 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.Description,
 				args.Notes),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -194,12 +242,21 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task ReorderFloorAsync((Guid FloorId, int NewNumber) args)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new ReorderFloorCommand(
 				_dungeonId,
 				args.FloorId,
 				args.NewNumber),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -213,13 +270,22 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task AddAreaAsync(Guid floorId)
 	{
-		await dispatcher.SendAsync<Guid>(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync<Guid>(
 			new AddAreaCommand(
 				_dungeonId,
 				floorId,
 				"New Area",
 				null),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -233,12 +299,21 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task RemoveAreaAsync((Guid FloorId, Guid AreaId) args)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new RemoveAreaCommand(
 				_dungeonId,
 				args.FloorId,
 				args.AreaId),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -255,7 +330,9 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task UpdateAreaAsync((Guid FloorId, Guid AreaId, string Name, string? Description, string? Notes) args)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new UpdateAreaCommand(
 				_dungeonId,
 				args.FloorId,
@@ -264,6 +341,13 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.Description,
 				args.Notes),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -277,13 +361,22 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		Guid areaId,
 		IReadOnlyList<PathSegment> newOutline)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new UpdateAreaOutlineCommand(
 				_dungeonId,
 				floorId,
 				areaId,
 				newOutline),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -295,20 +388,70 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task AddAreaWithOutlineAsync((Guid FloorId, IReadOnlyList<PathSegment> Outline) args)
 	{
+		ErrorMessage = null;
+
 		var result = await dispatcher.SendAsync<Guid>(
-			new AddAreaCommand(_dungeonId, args.FloorId, "New Area", null),
-			CancellationToken.None);
-
-		if (!result.IsSuccess || result.Value == Guid.Empty)
-			return;
-
-		await dispatcher.SendAsync(
-			new UpdateAreaOutlineCommand(
+			new AddAreaCommand(
 				_dungeonId,
 				args.FloorId,
-				result.Value,
-				args.Outline),
+				"New Area",
+				null),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
+
+		if (result.Value == Guid.Empty)
+		{
+			return;
+		}
+
+		await SaveNewAreaOutlineAsync(
+			args.FloorId,
+			result.Value,
+			args.Outline);
+	}
+
+	/// <summary>
+	///		Writes the outline of the area <see cref="AddAreaWithOutlineAsync"/> has just
+	///		created. This is a separate member purely so that its own dispatch result can be
+	///		captured and branched on under the same name as every other call site in this file;
+	///		C# does not permit a second <c>result</c> in the calling method's scope.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor that owns the newly created area.
+	/// </param>
+	/// <param name="areaId">
+	///		The unique identifier of the newly created area.
+	/// </param>
+	/// <param name="outline">
+	///		The outline drawn by the user, in canvas coordinates.
+	/// </param>
+	private async Task SaveNewAreaOutlineAsync(
+		Guid floorId,
+		Guid areaId,
+		IReadOnlyList<PathSegment> outline)
+	{
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
+			new UpdateAreaOutlineCommand(
+				_dungeonId,
+				floorId,
+				areaId,
+				outline),
+			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 	}
 
 	/// <summary>
@@ -322,7 +465,9 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task AddPlacedObjectAsync(PlaceObjectArgs args)
 	{
-		await dispatcher.SendAsync<Guid>(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync<Guid>(
 			new AddPlacedObjectCommand(
 				_dungeonId,
 				args.FloorId,
@@ -331,6 +476,13 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				args.Rotation,
 				args.Scale),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(_dungeonId);
 	}
@@ -343,12 +495,21 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		Guid floorId,
 		Guid objectId)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new RemovePlacedObjectCommand(
 				dungeonId,
 				floorId,
 				objectId),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(dungeonId);
 	}
@@ -381,7 +542,9 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		ObjectRotation rotation,
 		float scale)
 	{
-		await dispatcher.SendAsync(
+		ErrorMessage = null;
+
+		var result = await dispatcher.SendAsync(
 			new UpdatePlacedObjectCommand(
 				dungeonId,
 				floorId,
@@ -390,6 +553,13 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 				rotation,
 				scale),
 			CancellationToken.None);
+
+		if (result.IsFailure)
+		{
+			ErrorMessage = ResultMessage.ForFailure(result);
+
+			return;
+		}
 
 		await LoadDungeonAsync(dungeonId);
 	}

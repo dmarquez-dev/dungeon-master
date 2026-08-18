@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DungeonMaster.Application.Common.Results;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 
@@ -59,7 +60,7 @@ public partial class CreateDungeonViewModel(AppDispatcher dispatcher) : Observab
 		}
 		else
 		{
-			ErrorMessage = result.Error;
+			ErrorMessage = ResultMessage.ForFailure(result);
 		}
 	}
 

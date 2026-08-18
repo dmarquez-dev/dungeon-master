@@ -31,7 +31,7 @@
     <!-- Page inset with the bottom edge deliberately suppressed: the map canvas and the floor
          sidebar are the last row and run to the window edge, so a bottom inset would leave a
          strip of tavern background under them. Left/right/top are DmPaddingPage's 16,12. -->
-    <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
         <!-- Row 0: Top nav bar.
              Column 0 is deliberately empty. It used to hold an in-page "← Back" button, which
@@ -114,18 +114,27 @@
             </Grid>
         </Grid>
 
-        <!-- Row 1: Full-width DmFlagBanner (display-only — renamed via the sidebar card's notebook) -->
+        <!-- Row 1: failure channel. Collapsed while ErrorMessage is null. -->
+        <Label
+            Grid.Row="1"
+            Text="{Binding ErrorMessage}"
+            FontFamily="{StaticResource DmFontBody}"
+            FontSize="{StaticResource DmFontSizeBody}"
+            TextColor="{StaticResource DmDestructive}"
+            IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
+
+        <!-- Row 2: Full-width DmFlagBanner (display-only — renamed via the sidebar card's notebook) -->
         <controls:DmFlagBanner
             x:Name="TitleBanner"
-            Grid.Row="1"
+            Grid.Row="2"
             Title="{Binding Dungeon.Name}" />
 
-        <!-- Row 2: Decorative divider between the banner and the map -->
+        <!-- Row 3: Decorative divider between the banner and the map -->
         <controls:DmDivider
-            Grid.Row="2"
+            Grid.Row="3"
             Margin="0,6,0,4" />
 
-        <!-- Row 3: map toolbar + canvas (left) | dungeon card + floor list (right).
+        <!-- Row 4: map toolbar + canvas (left) | dungeon card + floor list (right).
 
              Row 0 of THIS grid is shared by the map toolbar and the sidebar dungeon card, and
              that shared Auto row is the entire reason their bottom edges line up: it takes the
@@ -133,7 +142,7 @@
              used to be row 0 of two SEPARATE sub-grids, which is why they needed a hand-measured
              DmToolbarHeight constant to agree — a number read off a screenshot, which went stale
              silently whenever the toolbar's contents grew and clipped the tool tiles. -->
-        <Grid Grid.Row="3"
+        <Grid Grid.Row="4"
               ColumnDefinitions="*,300"
               RowDefinitions="Auto,*"
               ColumnSpacing="{StaticResource DmSpaceXL}">
@@ -631,7 +640,7 @@
         <controls:NotebookView
             x:Name="Notebook"
             Grid.Row="0"
-            Grid.RowSpan="4"
+            Grid.RowSpan="5"
             IsVisible="False"
             HorizontalOptions="Start"
             VerticalOptions="Start"
