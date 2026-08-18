@@ -5,8 +5,7 @@ using FluentValidation;
 namespace DungeonMaster.Application.Common.Behaviors;
 
 /// <summary>
-///		Pipeline behavior that runs all registered validators for a command before passing it to the handler.
-///		Returns a validation failure result if any validator reports errors.
+///		Rejects a value-producing command that fails validation, before the handler runs.
 /// </summary>
 /// <typeparam name="TCommand">
 ///		The command type being validated.
@@ -14,6 +13,9 @@ namespace DungeonMaster.Application.Common.Behaviors;
 /// <typeparam name="TResult">
 ///		The type of the value returned by the command on success.
 /// </typeparam>
+/// <param name="validators">
+///		The validators registered for the command type.
+/// </param>
 public sealed class ValidationBehavior<TCommand, TResult>(
 	IEnumerable<IValidator<TCommand>> validators)
 		: IPipelineBehavior<TCommand, TResult>
@@ -25,22 +27,14 @@ public sealed class ValidationBehavior<TCommand, TResult>(
 		Func<Task<Result<TResult>>> next,
 		CancellationToken ct)
 	{
-		var context = new ValidationContext<TCommand>(command);
+		var errors = await ValidationFailureCollector.CollectAsync(
+			validators,
+			command,
+			ct);
 
-		var failures = validators
-			.Select(validator =>
-				validator.Validate(context))
-			.SelectMany(result =>
-				result.Errors)
-			.Where(failure =>
-				failure is not null)
-			.ToList();
-
-		if (failures.Count > 0)
+		if (errors.Count > 0)
 		{
-			return Result<TResult>.Failure(
-				failures[0].ErrorMessage,
-				ErrorCategory.Validation);
+			return Result<TResult>.ValidationFailure(errors);
 		}
 
 		return await next();
