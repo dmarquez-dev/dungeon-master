@@ -1,0 +1,248 @@
+{
+  "session": "2026-08-18-make-failure-observable",
+  "createdAt": "2026-08-18",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/coding-standards.md",
+    "contracts/result-and-error-surface.md",
+    "contracts/domain-mutation-outcome.md",
+    "contracts/persistence-write-contract.md",
+    "contracts/handler-skeleton.md",
+    "contracts/dispatch-and-pipeline.md",
+    "contracts/app-failure-surfacing.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Domain mutators report what they did, AddArea stops throwing, UpdateNumber touches",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/Entities/MutationOutcome.cs",
+        "src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/FloorMethods.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/FloorObjectMethods.cs",
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/AddArea/AddAreaCommandHandler.cs",
+        "src/DungeonMaster.Tests/Domain/**/*.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddAreaCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveAreaCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs"
+      ],
+      "acceptance": [
+        "MASTER-021 (Domain half): every mutator in contracts/domain-mutation-outcome.md section 4 has the return type the table gives it. The eleven new Domain tests named in section 6 exist and pass; each one fails on the parent commit. Evidence: run `git stash` on the Domain change alone is NOT acceptable -- instead quote, for at least `RemoveFloor_WithUnknownFloorId_ReturnsNotFound` and `ReorderFloor_WithNumberAboveFloorCount_ReturnsOutOfRange`, the compiler error or assertion failure they produce against the pre-task code, proving they are new behaviour and not restatements.",
+        "MASTER-021 (signal completeness): `grep -c 'MutationOutcome' src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs` is at least 8 and `grep -n 'is null' src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs` shows no early `return;` that discards a miss -- every `if (x is null)` block now returns `MutationOutcome.NotFound` or `null`, never bare.",
+        "MASTER-010: `grep -rn 'InvalidOperationException' src/DungeonMaster.Domain` returns nothing. `Dungeon.AddArea` returns `Area?`. The test `AddArea_WithUnknownFloorId_ReturnsNull` asserts both `.Should().BeNull()` and that the call does not throw, and it fails on the parent commit with `InvalidOperationException`. `AddAreaCommandHandler` maps `null` to `ErrorCategory.NotFound` with the floor id in the message, and `AddAreaCommandHandlerTests` has a case asserting `result.ErrorCategory.Should().Be(ErrorCategory.NotFound)` and `result.Error.Should().Contain(floorId.ToString())`.",
+        "MASTER-003: the test `UpdateNumber_WhenCalled_UpdatesLastModified` exists in the exact shape frozen in contracts/domain-mutation-outcome.md section 6, driving `Floor.UpdateNumber` through `Dungeon.ReorderFloor` and asserting a renumbered sibling floor's `LastModified` advanced. It fails on the parent commit and passes after. A criterion satisfied by grepping for a `Touch()` call is explicitly rejected.",
+        "Scope held: `git diff --name-only` for this task lists only paths inside this task's `owns` globs. No file under `src/DungeonMaster.Application` other than `AddAreaCommandHandler.cs` appears, and no file under `src/DungeonMaster.App` or `src/DungeonMaster.Infrastructure` appears at all.",
+        "Formatting: every file this task created reports `with CRLF line terminators` under `file <path>`, and `grep -rEn '^ +[^ *]' <the changed .cs files>` produces no output (tabs only).",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors under `TreatWarningsAsErrors` for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above 292. The report quotes both totals."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Non-generic Result alongside Result<T>, invalid states unrepresentable, and a consumer for ErrorCategory",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Application/Common/Results/**/*.cs",
+        "src/DungeonMaster.Tests/Application/Common/Results/**/*.cs"
+      ],
+      "acceptance": [
+        "MASTER-088 (Result half): BOTH `Result` and `Result<T>` are `sealed`, have a `private` parameterless constructor, and declare every member as `{ get; private init; }` -- `IsSuccess`, `Error`, `ErrorCategory`, `ValidationErrors` on both, plus `Value` on the generic one. Proof that invalid states are now unrepresentable, and it must be a compile check, not a test: add a file under the scratch directory (NOT the worktree) containing BOTH `new Result { IsSuccess = true, Error = \"boom\" }` AND `new Result<Guid> { IsSuccess = true, Error = \"boom\" }` against the built assembly, compile it, and quote the compiler error for each (CS0272 or CS0122). State the exact error codes in the report. A criterion asserting only that the source contains `private init` is insufficient, and checking only the generic record leaves half the new surface unproven.",
+        "MASTER-088 (the reversed decision): the no-payload shape is a genuinely non-generic `Result`, NOT a `Unit` payload. `Result.Success()` takes no argument. There is no `Unit` type: `grep -rn 'Unit' --include=*.cs src/DungeonMaster.Application src/DungeonMaster.App` returns nothing -- it returns nothing on the parent commit too, and must still return nothing after. `Result<T>` does NOT derive from `Result` and there is no shared base record or shared public interface between them; contracts/result-and-error-surface.md section 2.1 freezes them as siblings and states why. The report confirms no inheritance edge was added.",
+        "MASTER-088 (shape): `Result`, `Result<T>`, `ValidationError`, `ResultMessage` and `ErrorCategory` are five separate files under `src/DungeonMaster.Application/Common/Results/`, named `Result.cs`, `ResultOfT.cs`, `ValidationError.cs`, `ResultMessage.cs`, `ErrorCategory.cs`. The `ResultOfT.cs` name is a deliberate, recorded deviation from dotnet-format.md section 2 -- two types both named `Result` cannot share `Result.cs` -- and the report names it as such rather than leaving it to be discovered in review. `Result<T>.Value` remains `T?` with no nullability annotations added; MASTER-044 is parked and must not be pre-empted, and the report states explicitly that it was left alone.",
+        "MASTER-045 (enum half): `ErrorCategory` declares exactly the five members `Validation`, `NotFound`, `Conflict`, `Unauthorized`, `Forbidden`, in that order, matching backend-conventions.md section 2's set verbatim. `Forbidden` is new. This is unchanged by the amendment -- the user confirmed the five-member set.",
+        "MASTER-045 (consumer half, this task's share): `ResultMessage` exposes TWO public overloads, `ForFailure(Result)` and `ForFailure<T>(Result<T>)`, both returning `null` for a success. The five-way `ErrorCategory` switch is written EXACTLY ONCE, in a private method both overloads delegate to; `grep -c 'ErrorCategory.Forbidden' src/DungeonMaster.Application/Common/Results/ResultMessage.cs` returns 1. A copy of the switch in each overload is a blocking finding -- it creates two places for a sixth member to be forgotten. `ResultMessageTests` has one test per member plus `ForFailure_WithSuccess_ReturnsNull`, `ForFailure_WithValidationErrors_JoinsEveryMessageOnItsOwnLine`, `ForFailure_WithNonGenericResult_ReturnsTheSameMessageAsTheGeneric` and `ForFailure_WithSucceedingNonGenericResult_ReturnsNull` -- nine tests minimum, all passing. The production wiring is T8's; this criterion covers only the mapping's existence and behaviour.",
+        "MASTER-046 (type-level half): BOTH `Result.ValidationFailure(IReadOnlyList<ValidationError>)` and `Result<T>.ValidationFailure(IReadOnlyList<ValidationError>)` exist; `ValidationErrors` is never null on either type and defaults to an empty list on both the success and the non-validation-failure paths; and `ValidationFailure_WithThreeErrors_ErrorContainsAllThreeMessages` passes on BOTH types, asserting the summary `Error` string contains all three messages, not just the first.",
+        "Test files: `src/DungeonMaster.Tests/Application/Common/Results/` contains `ResultTests.cs`, `ResultOfTTests.cs` and `ResultMessageTests.cs` -- one per new source file, per backend-conventions.md section 9. There is no `UnitTests.cs`. `ResultTests.cs` covers the non-generic record's own four cases plus `Success_HasEmptyValidationErrors`; contracts/result-and-error-surface.md section 7 lists them.",
+        "Formatting: every new file reports `with CRLF line terminators` under `file <path>`; every new public member carries an XML documentation comment in the two-tab form dotnet-format.md section 9 requires; no space indentation.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above 292. The report quotes both totals."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Fix the detached-aggregate save and make DeleteAsync report what it did",
+      "agent": "dir-database-engineer",
+      "domain": "database",
+      "owns": [
+        "src/DungeonMaster.Application/Features/Dungeons/IDungeonWriteRepository.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonWriteRepository.cs",
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/DeleteDungeonCommandHandlerTests.cs"
+      ],
+      "acceptance": [
+        "MASTER-016: `UpdateAsync_WithDetachedAggregate_PersistsTheChange` exists in `DungeonWriteRepositoryTests.cs`, uses the file's existing SQLite in-memory fixture, and passes. It must fail on the parent commit -- quote the failure. The report quotes the value of `dbContext.Entry(dungeon).State` observed immediately before the `UpdateAsync` call under test; it must read `Detached`. A test that passes both before and after has not exercised the branch and does not satisfy this criterion.",
+        "MASTER-016 (implementation): `grep -n 'Attach' src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonWriteRepository.cs` returns nothing; the detached branch calls `dbContext.Update(dungeon)`. The tracked path is unchanged, proved by the pre-existing `UpdateAsync_PersistsDomainMutations` and the three `*PersistenceTests` files still passing untouched.",
+        "MASTER-088 (delete-reporting half): `IDungeonWriteRepository.DeleteAsync` returns `Task<bool>`. `DeleteAsync_WithExistingDungeon_ReturnsTrue` and `DeleteAsync_WithUnknownId_ReturnsFalseAndSavesNothing` both exist and pass; the second fails to compile on the parent commit, which is itself the proof the signal did not exist before.",
+        "Session boundary held: `git diff --name-only` for this task lists exactly the four paths in this task's `owns`. In particular `src/DungeonMaster.Infrastructure/DependencyInjection.cs`, `src/DungeonMaster.App/MauiProgram.cs`, `Persistence/AppDbContext.cs`, and everything under `Persistence/Configurations/` and `Migrations/` are untouched. Any of them appearing is a blocking finding -- they belong to Session 3.",
+        "Ripple minimised: the only change to `DeleteDungeonCommandHandlerTests.cs` is replacing the three `.Returns(Task.CompletedTask)` stubs so the file compiles against `Task<bool>`. No assertion in that file is added, removed or reworded by this task -- T4 owns the substantive rewrite.",
+        "Formatting: any new file reports `with CRLF line terminators`; tabs only; XML documentation on the changed `DeleteAsync` interface member including a `<returns>` tag stating what `true` and `false` mean.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above 292. The report quotes both totals."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "One handler skeleton, non-generic Result instead of always-true bool, and failures that reach the caller",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "dependsOn": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "owns": [
+        "src/DungeonMaster.Application/Common/Handlers/**/*.cs",
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/*/*Command.cs",
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/*/*CommandHandler.cs",
+        "src/DungeonMaster.Application/DependencyInjection.cs",
+        "src/DungeonMaster.App/ViewModels/*.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/*.cs",
+        "src/DungeonMaster.Tests/Application/Common/Handlers/**/*.cs",
+        "src/DungeonMaster.Application/Common/Dispatch/ICommand.cs",
+        "src/DungeonMaster.Application/Common/Dispatch/ICommandHandler.cs",
+        "src/DungeonMaster.Application/Common/Dispatch/IDispatcher.cs",
+        "src/DungeonMaster.Application/Common/Dispatch/Dispatcher.cs"
+      ],
+      "acceptance": [
+        "MASTER-091: `grep -rho 'Dungeon {command\\.[A-Za-z]*} not found\\.' src/DungeonMaster.Application/Features/Dungeons/Commands/*/*Handler.cs | wc -l` returns 0, down from 12. The string now appears only in `DungeonMutationExtensions` -- once in each of its two `MutateAsync` overloads, which is two occurrences in one file and is correct, not a defect. Twelve handlers consist of a single `writeRepository.MutateAsync(...)` expression in the shape frozen in contracts/handler-skeleton.md section 5; `CreateDungeon` and `DeleteDungeon` are the only two that do not, matching CORE-013's own count.",
+        "MASTER-021 (Application half -- the entry's whole point): for each of `RemoveFloor`, `RemoveArea`, `UpdateArea`, `UpdateAreaOutline`, `UpdateFloor`, `RemovePlacedObject` and `UpdatePlacedObject`, a test `HandleAsync_WithUnknown{Child}Id_ReturnsNotFoundAndDoesNotSave` asserts BOTH `result.ErrorCategory.Should().Be(ErrorCategory.NotFound)` AND `await _writeRepository.DidNotReceive().UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())`. Seven tests, all failing on the parent commit (they return success there), all passing after. The second assertion is not optional: it is what proves the pointless round-trip CORE-001 names is gone.",
+        "MASTER-021 (range half): `ReorderFloorCommandHandlerTests.HandleAsync_WithOutOfRangeNumber_ReturnsValidationFailure` asserts `ErrorCategory.Validation` -- distinct from the `NotFound` a missing floor produces -- proving the `MutationOutcome.OutOfRange` distinction survives the mapping.",
+        "MASTER-031: `AddPlacedObjectCommandHandler` returns `ErrorCategory.NotFound` with a message containing the floor id. `grep -n 'Failed to add placed object' src/DungeonMaster.Application` returns nothing. The class's XML summary no longer says the missing floor is a validation failure. Test `HandleAsync_WithUnknownFloorId_ReturnsNotFoundNamingTheFloor` asserts the category and `result.Error.Should().Contain(floorId.ToString())`, and fails on the parent commit.",
+        "MASTER-088 (bool half, amended to the non-generic `Result`): `grep -rn 'ICommand<bool>' src/DungeonMaster.Application` returns nothing. `grep -rlE ':[[:space:]]*ICommand;' src/DungeonMaster.Application/Features | wc -l` returns 10 -- it returns 0 on the parent commit, where the same pattern with `ICommand<bool>;` returns 10 -- and the ten files are exactly the ten in contracts/handler-skeleton.md section 4's table. The four `ICommand<Guid>` commands are unchanged. `grep -rn 'Result<bool>' src/DungeonMaster.Application` returns nothing, and `grep -rn 'Unit' --include=*.cs src/DungeonMaster.Application` returns nothing -- there is no `Unit` type and no `ICommand<Unit>`; the ten commands take the non-generic `ICommand` and their handlers return `Task<Result>`.",
+        "MASTER-088 (delete half): `DeleteDungeonCommandHandlerTests.HandleAsync_WithUnknownId_ReturnsNotFound` passes, consuming T3's `Task<bool>`. `HandleAsync_WithValidId_ReturnsSuccess` is retained with its `result.Value.Should().BeTrue()` replaced by `result.IsSuccess.Should().BeTrue()` -- the old assertion no longer compiles, because the handler now returns the non-generic `Result` which has no `Value`. The test is rewritten, not deleted, and the report says so.",
+        "Helper tests, both overloads: `src/DungeonMaster.Tests/Application/Common/Handlers/` contains `DungeonMutationExtensionsTests.cs` and `MutationOutcomeExtensionsTests.cs`. `MutateAsync` has two overloads -- one returning `Result`, one returning `Result<TResult>` -- with deliberately duplicated bodies (contracts/handler-skeleton.md section 2), so `MutateAsync_WithUnknownDungeon_ReturnsNotFoundAndDoesNotSave`, `MutateAsync_WithFailingMutation_DoesNotSave` and `MutateAsync_WithSucceedingMutation_SavesOnce` each exist TWICE, once bound to each overload -- six tests, not three. Testing one overload leaves the other's copy of the short-circuit unproven. `MutationOutcomeExtensionsTests` has a `[Theory]` covering all three `MutationOutcome` members, asserting against the non-generic `Result`.",
+        "App ripple is mechanical only, and it is a deletion not a substitution: the diff for `src/DungeonMaster.App/ViewModels/*.cs` changes nothing but `SendAsync<bool>(x)` to `SendAsync(x)` -- the type argument is DROPPED, and no `using` is added, because `Unit` does not exist. Measured on the parent commit: 16 dispatch call sites in total, 11 `SendAsync<bool>` (10 in `DungeonDetailViewModel.cs`, 1 in `DungeonListViewModel.cs`) and 5 `SendAsync<Guid>` (4 in `DungeonDetailViewModel.cs`, 1 in `CreateDungeonViewModel.cs`); `MapTool.cs` has none. After this task `grep -rc 'SendAsync<bool>' src/DungeonMaster.App/ViewModels/*.cs` returns 0 for every file and `grep -rc 'SendAsync<Guid>'` is unchanged at 4 and 1. `git diff -- src/DungeonMaster.App/ViewModels/` contains no `ErrorMessage`, no `IsSuccess`, no `IsFailure` and no new `if`. Any behavioural change to the App in this task is a blocking finding -- it belongs to T8.",
+        "Formatting: every new file reports `with CRLF line terminators`; tabs only; XML documentation on BOTH `MutateAsync` overloads, both `ToResult` overloads and every new public member; all 2-or-more-argument call sites wrapped one argument per line, in test files as well as production files, per contracts/coding-standards.md section 4.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above the count T3 left. The report quotes the starting and ending totals and names every pre-existing test it rewrote.",
+        "Minimal non-generic dispatch path, added and then handed over: T4 runs before T6, so the ten converted commands cannot compile until a non-generic path exists. T4 adds exactly what contracts/dispatch-and-pipeline.md section 1.5 tabulates and nothing more -- `public interface ICommand { }` with NO base interface (`IRequest<TResponse>` is T6's and does not exist yet), `ICommandHandler<in TCommand>` returning `Task<Result>`, the `Task<Result> SendAsync(ICommand, CancellationToken)` overload on `IDispatcher`, and an implementation of that overload in `Dispatcher` COPIED from the existing `dynamic` one. The new dispatcher overload is deliberately as `dynamic` and as uncached as the two beside it; MASTER-090 is T6's entry and a half-done cache here collides with T6's rewrite. T4 must not create `IRequest.cs` and must not touch `IQuery.cs`, `IQueryHandler.cs` or `IPipelineBehavior.cs`. The report quotes every declaration T4 added under `Common/Dispatch/`. A T4 diff that improves the dispatcher is a blocking finding, not a bonus.",
+        "Registrations kept in step: `DependencyInjection.cs` replaces the ten `AddScoped<ICommandHandler<XCommand, bool>, XCommandHandler>()` lines with ten `AddScoped<ICommandHandler<XCommand>, XCommandHandler>()` lines. `grep -c 'AddScoped<' src/DungeonMaster.Application/DependencyInjection.cs` still returns 21 after this task -- ten lines changed form, none added or removed -- which is the number T6's own criterion starts from. The report quotes it."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "ValidationBehavior validates asynchronously, passes the token, and keeps every failure",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "dependsOn": [
+        "T2"
+      ],
+      "owns": [
+        "src/DungeonMaster.Application/Common/Behaviors/**/*.cs",
+        "src/DungeonMaster.Tests/Application/Common/Behaviors/**/*.cs"
+      ],
+      "acceptance": [
+        "MASTER-002 (async half): `grep -rn 'validator.Validate(' src/DungeonMaster.Application/Common/Behaviors/` returns nothing; the validation loop awaits `ValidateAsync(context, ct)` in a `foreach`. The test `HandleAsync_WithAsyncRule_DoesNotThrow` builds a real `AbstractValidator<T>` carrying a `MustAsync` rule and dispatches through the behaviour. It throws `AsyncValidatorInvokedSynchronouslyException` on the parent commit and passes after -- quote both outcomes. This is the criterion that closes MASTER-002; a source grep alone does not.",
+        "MASTER-002 (token half): `HandleAsync_WhenCalled_PassesTheTokenToEveryValidator` substitutes an `IValidator<T>`, captures the `CancellationToken` argument `ValidateAsync` received, and asserts it equals the token the behaviour was called with. It fails on the parent commit because `Validate` takes no token at all.",
+        "MASTER-046: `HandleAsync_WithThreeFailures_CarriesAllThreeValidationErrors` asserts `result.ValidationErrors.Should().HaveCount(3)` and that `result.Error` contains each of the three messages. `HandleAsync_WithFailures_PreservesPropertyName` asserts the `PropertyName` of each failure survives. `HandleAsync_WithTwoValidators_CarriesFailuresFromBoth` asserts aggregation across validators. All three fail on the parent commit, where only `failures[0].ErrorMessage` survives.",
+        "MASTER-046 (no regression in the simple case): `HandleAsync_WithNoValidators_CallsNext`, `HandleAsync_WithPassingValidator_CallsNext` and `HandleAsync_WithOneFailure_ReturnsValidationFailureAndDoesNotCallNext` all pass. The single-message path stays usable, per CORE-008's suggested direction.",
+        "The validator loop is written exactly once, and T5 authors only the arity it can: `internal static class ValidationFailureCollector` in `Common/Behaviors/ValidationFailureCollector.cs` holds the whole loop, and `ValidationBehavior<TCommand, TResult>` in `Common/Behaviors/ValidationBehavior.cs` is a call to `CollectAsync`, a count check and a `Result<TResult>.ValidationFailure` call. `grep -c 'ValidateAsync' src/DungeonMaster.Application/Common/Behaviors/ValidationBehavior.cs` returns 0. The no-payload arity `ValidationBehavior<TCommand>` is NOT written by this task -- it needs `IPipelineBehavior` generalised over `(TRequest, TResponse)`, which is T6's contracts/dispatch-and-pipeline.md section 1.1, and T5 runs concurrently with T4 and must not touch `Common/Dispatch/`. The collector nevertheless returns `IReadOnlyList<ValidationError>` rather than a result of either shape, precisely so T6 can add that arity without touching the loop; the report confirms the return type.",
+        "Eight tests, all on the value arity: contracts/dispatch-and-pipeline.md section 3.2 names them, and they carry the whole of MASTER-002 and MASTER-046 because the logic they exercise lives in the shared collector. The three no-payload-arity tests named in the same section belong to T6, not to this task; a T5 report claiming eleven tests has written code outside its ownership.",
+        "Test file exists where none did: `src/DungeonMaster.Tests/Application/Common/Behaviors/ValidationBehaviorTests.cs` is a new file -- `find src/DungeonMaster.Tests -name 'ValidationBehavior*'` returns nothing on the parent commit. It contains at least the seven tests named in contracts/dispatch-and-pipeline.md section 3.1.",
+        "Isolation: the tests define their own test-local command and validator types rather than depending on any of the fourteen real commands, so that T4's concurrent `ICommand<bool>` to non-generic `ICommand` migration cannot break them. `grep -c 'DungeonMaster.Application.Features' src/DungeonMaster.Tests/Application/Common/Behaviors/ValidationBehaviorTests.cs` returns 0.",
+        "Scope held: `git diff --name-only` for this task lists only paths under `Common/Behaviors/` and `Tests/Application/Common/Behaviors/`. `DependencyInjection.cs`, `AssemblyInfo.cs` and everything under `Common/Dispatch/` are untouched -- they belong to T6.",
+        "Formatting: the new test file reports `with CRLF line terminators`; tabs only; 2-or-more-argument NSubstitute setups wrapped one argument per line.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above the count this task started from. The report quotes both totals."
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "Register handlers by scan, cache the dispatch, and give queries a pipeline",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "dependsOn": [
+        "T4",
+        "T5"
+      ],
+      "owns": [
+        "src/DungeonMaster.Application/Common/Dispatch/**/*.cs",
+        "src/DungeonMaster.Application/Common/Behaviors/**/*.cs",
+        "src/DungeonMaster.Application/DependencyInjection.cs",
+        "src/DungeonMaster.Application/AssemblyInfo.cs",
+        "src/DungeonMaster.Tests/Application/Common/Dispatch/**/*.cs",
+        "src/DungeonMaster.Tests/Application/Common/Behaviors/**/*.cs"
+      ],
+      "acceptance": [
+        "MASTER-089: `grep -c 'AddScoped<' src/DungeonMaster.Application/DependencyInjection.cs` drops from 21 (one dispatcher, four validators, two query handlers, fourteen command handlers -- measured, not assumed) to at most 1; the hand-maintained list is replaced by the assembly scan in contracts/dispatch-and-pipeline.md section 4. The scan matches THREE handler shapes -- `ICommandHandler<>`, `ICommandHandler<,>` and `IQueryHandler<,>` -- and matching only the two-parameter forms silently drops all ten no-payload handlers. The test `ValidateHandlerRegistrations_OnTheRealContainer_DoesNotThrow` builds a real container and calls the new public self-check, and it passes. `ValidateHandlerRegistrations_WithAMissingHandler_ThrowsNamingTheCommand` removes one handler registration and asserts the self-check throws naming that command type -- proving the check detects the class of bug CORE-010 describes, not merely that it runs.",
+        "MASTER-089 (coverage computed, not hard-coded): `AddApplicationServices_RegistersAHandlerForEveryCommand` enumerates implementations of BOTH `ICommand` and `ICommand<>` by reflection over the Application assembly and resolves each handler, asserting 14 across the two arities -- 10 no-payload and 4 value-producing. `AddApplicationServices_RegistersAHandlerForEveryQuery` asserts 2 the same way. Every expected count is derived from the assembly rather than written as a literal, so a fifteenth command added later cannot pass silently. A test that enumerates only `ICommand<>` would miss ten of the fourteen and is not acceptable.",
+        "MASTER-090 (the cache, and there is exactly one of it): `grep -rn 'dynamic' src/DungeonMaster.Application` returns nothing. `MakeGenericType` appears only inside the cached invoker factories. `grep -c 'ConcurrentDictionary' src/DungeonMaster.Application/Common/Dispatch/Dispatcher.cs` returns 1 -- ONE dictionary keyed on the concrete request type and storing `object`, serving all three paths, per contracts/dispatch-and-pipeline.md section 2.1. Three dictionaries, or a composite `(requestType, responseType)` key, is a blocking finding. `SendAsync_DispatchedTwice_ReflectsTypeOnlyOnce` proves the memoisation directly -- by asserting the same cached invoker instance is returned, or by a counter incremented in the factory; the implementer states which mechanism was used, and a benchmark or timing comparison is explicitly not acceptable evidence. `SendAsync_WithBothCommandArities_SharesOneInvokerCache` dispatches one no-payload and one value command and asserts both entries live in that single dictionary, each retrieving as its own invoker family.",
+        "MASTER-090 (ordering preserved, and identical across arities): the behaviour chain is folded in exactly ONE place -- a single `private static BuildPipeline<TRequest, TResponse>` that all three invoker families call. `grep -c '.Reverse()' src/DungeonMaster.Application/Common/Dispatch/Dispatcher.cs` returns 1. Inlining the fold into the invokers is a blocking finding even if the tests pass, because what is frozen is the absence of a second copy. `SendAsync_WithTwoBehaviours_RunsThemFirstRegisteredOutermost` (no-payload command) and `SendAsyncOfT_WithTwoBehaviours_RunsThemInTheSameOrder` (value command) register the same two recording behaviours and assert the SAME recorded entry and exit sequence. CORE-012 confirmed today's ordering is correct; these two together prove the rewrite neither reversed it nor let the two arities diverge.",
+        "MASTER-080: `IRequest<TResponse>` exists; `ICommand : IRequest<Result>`, `ICommand<TResult> : IRequest<Result<TResult>>` and `IQuery<TResult> : IRequest<TResult>`; and `IPipelineBehavior<in TRequest, TResponse>` is constrained on `IRequest<TResponse>`. There is exactly ONE behaviour interface -- `grep -c 'interface IPipelineBehavior' src/DungeonMaster.Application/Common/Dispatch/IPipelineBehavior.cs` returns 1. The non-generic command path needs no new behaviour arity: it is the closure `IPipelineBehavior<TCommand, Result>`. A single-arity `IPipelineBehavior<TRequest>` is a blocking finding. `QueryAsync_WithABehaviour_RunsItAroundTheHandler` registers a recording behaviour for `GetDungeonsQuery` and asserts it ran before and after the handler; this test cannot be written at all on the parent commit -- the interface it needs does not exist -- which is the strongest available proof the gap is closed.",
+        "MASTER-080 (the reconciliation): the validation behaviour is registered closed per command on BOTH arities -- `IPipelineBehavior<TCommand, Result>` from `ValidationBehavior<TCommand>` for each of the ten no-payload handlers, and `IPipelineBehavior<TCommand, Result<TResult>>` from `ValidationBehavior<TCommand, TResult>` for each of the four value handlers; fourteen registrations, one per command. `AddApplicationServices_RegistersNoValidationBehaviourForAQuery` resolves `IEnumerable<IPipelineBehavior<GetDungeonsQuery, IReadOnlyList<DungeonSummaryDto>>>` from a real container, asserts it is empty, and asserts the resolution does not throw. This holds backend-conventions.md section 2 (a query has no validator) while satisfying ADR-001 (behaviours span both sides), and it is true by construction because nothing is registered as an open generic.",
+        "The single-cache invariant is enforced, not assumed: `ValidateHandlerRegistrations` performs TWO checks, and the report shows both firing. The second is that every request type implements exactly one of `ICommand`, `ICommand<T>` and `IQuery<T>`; the test `EveryRequestType_ImplementsExactlyOneMarker` enumerates every non-abstract class in the Application assembly and asserts the marker count is 0 or 1. This is what licences the `object`-valued single cache in contracts/dispatch-and-pipeline.md section 2.1 -- without it, the cast in each `SendAsync` entry point is an unproven assumption. A self-check that only counts handlers does not satisfy this criterion.",
+        "MASTER-080 (queries still return DTOs): `QueryAsync` returns `Task<TResult>`, not `Task<Result<TResult>>`. `grep -n 'Result<' src/DungeonMaster.Application/Common/Dispatch/IQueryHandler.cs` returns nothing. The two existing query handler test files pass unmodified.",
+        "ValidationBehavior: the value arity is re-typed, not rewritten, and the no-payload arity is added. `git diff -- src/DungeonMaster.Application/Common/Behaviors/ValidationBehavior.cs` shows exactly two things -- the base list of `ValidationBehavior<TCommand, TResult>` changing to `IPipelineBehavior<TCommand, Result<TResult>>` with its `HandleAsync` body byte-identical (verifiable with `git diff -w` showing no change inside the method), and a new `ValidationBehavior<TCommand> : IPipelineBehavior<TCommand, Result>` of about twenty lines that calls the same `ValidationFailureCollector.CollectAsync` and returns `Result.ValidationFailure`. `ValidationFailureCollector.cs` is untouched -- `git diff --stat` shows 0 changed lines for it. T6 adds the three no-payload-arity tests named in contracts/dispatch-and-pipeline.md section 3.2, bringing that file to eleven tests; all eight of T5's still pass.",
+        "Formatting: every new file reports `with CRLF line terminators`; tabs only; XML documentation on `IRequest<TResponse>`, both `ICommand` arities, both `ICommandHandler` arities, the new `IDispatcher.SendAsync(ICommand, CancellationToken)` overload, `ValidateHandlerRegistrations` (including an `<exception>` tag naming both failure modes) and every other new public member.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above the count this task started from. The report quotes both totals."
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "Give the ten unvalidated commands validators",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "dependsOn": [
+        "T6"
+      ],
+      "owns": [
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/*/*CommandValidator.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/*.cs"
+      ],
+      "acceptance": [
+        "MASTER-079: this loop, which returns ten lines on the parent commit, returns nothing after: `for d in src/DungeonMaster.Application/Features/Dungeons/Commands/*/; do ls \"$d\"*Validator.cs >/dev/null 2>&1 || basename \"$d\"; done`. The ten new files are `AddFloor`, `AddPlacedObject`, `DeleteDungeon`, `RemoveArea`, `RemoveFloor`, `RemovePlacedObject`, `ReorderFloor`, `UpdateAreaOutline`, `UpdateFloor`, `UpdatePlacedObject`.",
+        "MASTER-079 (the criterion that cannot rot): `EveryCommand_HasARegisteredValidator` enumerates every implementation of `ICommand` OR `ICommand<>` in the Application assembly by reflection, resolves `IEnumerable<IValidator<TCommand>>` from a real container built by `AddApplicationServices`, and asserts each is non-empty -- 14 of 14, ten no-payload plus four value-producing, with the count derived from the assembly. Enumerating only `ICommand<>` would skip exactly the ten commands this task adds validators for, so the test would pass while proving nothing; the report states which markers the enumeration covers. It fails on the parent commit for ten types, each named in the failure message.",
+        "MASTER-079 (the gaps CORE-009 names by hand are actually closed): `ReorderFloorCommand.NewNumber` is rejected below 1; `AddPlacedObjectCommand.Scale` and `UpdatePlacedObjectCommand.NewScale` are bounded; `UpdateAreaOutlineCommand.Outline` is rejected when null or empty. Each has a passing test asserting the rejection, and each rejection is reachable through the dispatcher, proved by at least one test that dispatches the invalid command through a real container and asserts `ErrorCategory.Validation`. At least one such dispatch test must go through the NON-GENERIC path (`ReorderFloorCommand` or `UpdateAreaOutlineCommand`), since that path's behaviour registration is new in this session and is the one most likely to be missing.",
+        "Bounds are referenced, not copied: the scale validators use `ObjectScale.Min` and `ObjectScale.Max` (`src/DungeonMaster.Domain/Entities/Floor/ObjectScale.cs:5-6`, currently 0.25f and 4.0f) as symbols, not as literals. `grep -n '0.25\\|4.0' src/DungeonMaster.Application/Features/Dungeons/Commands/*PlacedObject/*Validator.cs` returns nothing. A validator that hard-codes the numbers can drift from the constructor guard and is a blocking finding.",
+        "Name-length bounds match the two existing validators: the report quotes the relevant rule from `AddAreaCommandValidator.cs` or `UpdateAreaCommandValidator.cs` beside the new `AddFloorCommandValidator` and `UpdateFloorCommandValidator` rules, showing the limits agree. No new limit is invented.",
+        "No DI edit needed: `git diff --name-only` for this task contains no path named `DependencyInjection.cs`. T6's assembly scan picks the ten up automatically, and the `EveryCommand_HasARegisteredValidator` test is what proves it.",
+        "Test files: `src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/` grows from 4 files to 14 plus the cross-cutting file, one per validator, named and shaped like the four that already exist. Naming per backend-conventions.md section 9: `Validate_WithEmptyDungeonId_ReturnsViolation`.",
+        "Formatting: every new file reports `with CRLF line terminators`; tabs only; each validator is a documented `public sealed class ... : AbstractValidator<...>` with a documented parameterless constructor; FluentValidation chains laid out exactly as dotnet-format.md section 8 shows, with descriptive lambda names.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above the count this task started from. The report quotes both totals, and confirms that adding validation to ten previously unvalidated commands broke no existing handler test."
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "Surface failure to the user in the dungeon editor",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "dependsOn": [
+        "T4"
+      ],
+      "owns": [
+        "src/DungeonMaster.App/ViewModels/*.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml",
+        "src/DungeonMaster.Tests/App/ViewModels/**/*.cs"
+      ],
+      "acceptance": [
+        "MASTER-001 (the observable outcome -- this is the criterion that closes the entry): the app is run on Windows, a dungeon is opened, an area's notebook name is cleared and saved. `UpdateAreaCommandValidator` rejects it. The report states what was typed, and confirms that (a) the red error label appears, (b) it carries the validator's message, and (c) the pre-edit values were NOT repainted, i.e. the edit was not silently lost. On the parent commit the same steps produce no message and a silent loss; the report says so from having tried it, not from inference.",
+        "MASTER-001 (automated evidence, necessary but not sufficient): `src/DungeonMaster.Tests/App/ViewModels/FailureIsSurfacedTests.cs` exists, following the `RepoPaths` source-scanning idiom the `Tests/App/` suite already uses, and contains `EveryDispatchInDungeonDetailViewModel_BranchesOnTheResult`, `EveryViewModelWithADispatch_DeclaresAnErrorMessageProperty` and `EveryViewModelErrorAssignment_RoutesThroughResultMessage`. All three fail on the parent commit -- the first reporting 13 discarded dispatches out of 14 -- and all three pass after. The dispatch count is read from the file, not hard-coded.",
+        "MASTER-001 (shape): `DungeonDetailViewModel` declares `public partial string? ErrorMessage { get; set; }` with the same `[ObservableProperty]` form as `DungeonListViewModel.cs:32`. All 14 `SendAsync` call sites clear `ErrorMessage` before dispatching, capture the result, set `ErrorMessage` from `ResultMessage.ForFailure(result)` on failure, and return without reloading. Ten of the fourteen hold a non-generic `Result` and four hold a `Result<Guid>`; `ResultMessage.ForFailure(result)` is written identically at all fourteen with no type argument and no cast, because the mapping has an overload for each shape. `grep -c 'await dispatcher.SendAsync' src/DungeonMaster.App/ViewModels/DungeonDetailViewModel.cs` and `grep -c 'result.IsFailure' src/DungeonMaster.App/ViewModels/DungeonDetailViewModel.cs` both return 14, and `grep -c 'SendAsync<' src/DungeonMaster.App/ViewModels/DungeonDetailViewModel.cs` returns 4 -- T4 dropped the type argument on the other ten and T8 must not reintroduce it. Both dispatches inside `AddAreaWithOutlineAsync` are covered.",
+        "MASTER-045 (consumer half): all three view models assign `ErrorMessage` from `ResultMessage.ForFailure(result)`. `grep -rn 'ErrorMessage = result.Error' src/DungeonMaster.App` returns nothing. This is what makes `ErrorCategory` a field production code reads, which is the half of CORE-007 that a reduced enum would not have fixed.",
+        "XAML edit is exactly as frozen: `DungeonDetailPage.xaml`'s outer grid reads `RowDefinitions=\"Auto,Auto,Auto,Auto,*\"`; the new `Label` sits at `Grid.Row=\"1\"`; the `DmFlagBanner`, `DmDivider` and map grid move to rows 2, 3 and 4. `grep -c 'Grid.Row=' src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml` returns 13, up from 12, and exactly three pre-existing values changed. The eight nested `Grid.Row` attributes belonging to inner grids are untouched -- verified by `git diff` line by line and stated in the report.",
+        "XAML formatting matched to the file, not the .editorconfig: the new element is space-indented at 4 like the rest of `DungeonDetailPage.xaml`. `git diff --stat` for that file shows a small edit; no reformatting of unrelated lines. The compiled binding resolves because the page declares `x:DataType=\"vm:DungeonDetailViewModel\"`, proved by the Windows build succeeding.",
+        "Out of scope held: `NotNullConverter.cs` is untouched (its defect is MASTER-007, Session 5) and the report notes the interaction. `DungeonDetailPage.xaml.cs` is untouched. No project reference is added from the test project to the App project. No `try`/`catch` is added around any dispatch.",
+        "Formatting: any new `.cs` file reports `with CRLF line terminators`; tabs only in `.cs`; XML documentation on the new `ErrorMessage` property.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks, and `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above the count this task started from. The report quotes both totals."
+      ]
+    },
+    {
+      "id": "T9",
+      "title": "Stop the object palette swallowing every exception from its theming block",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs"
+      ],
+      "acceptance": [
+        "MASTER-005 (scope of the try): the `try` block covers exactly one statement, `cb.Resources.ThemeDictionaries[\"Light\"] = d;`. The seven brush constructions, the `ResourceDictionary` population, and the `SetTextTrimmingOnChildren(cb, depth: 0)` recursion all sit outside it. The report quotes the before and after statement counts inside the `try` -- roughly 35 before, 1 after.",
+        "MASTER-005 (the catch is typed and filtered): `grep -n 'catch' src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs` shows no bare `catch` and no `catch (Exception)` without a `when` filter, anywhere in the file. The catch names `ArgumentException`, `InvalidOperationException` and `COMException` and nothing wider. An `OutOfMemoryException` or a bug in the recursion is no longer caught -- which is UI-022's actual complaint.",
+        "MASTER-005 (it logs rather than discards): the catch body writes the exception to `System.Diagnostics.Debug.WriteLine` with a message naming the view and what failed. The comment `/* non-critical visual styling -- fail silently */` is deleted; `grep -n 'fail silently' src/DungeonMaster.App` returns nothing.",
+        "MASTER-005 (observable outcome): the app is run on Windows, a dungeon is opened, the object palette's `ComboBox` dropdown is opened. The report confirms the parchment styling -- border, background, item hover and pressed states, and the header text ellipsis -- renders exactly as before the change. This is a manual observation because the code is `#if WINDOWS`, runs in a `Loaded` handler, and constructs WinUI types that a `net10.0` test project cannot reference. That limitation is stated here rather than papered over.",
+        "The Windows branch still compiles: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for BOTH target frameworks. The `net10.0-maccatalyst` build does not include this code, so only the `net10.0-windows10.0.19041.0` result proves the change compiles -- the report quotes that framework's build line specifically.",
+        "Scope held: `git diff --name-only` for this task lists exactly one path. This task is independent of every other task in the session and must touch nothing else.",
+        "Formatting: the file stays tab-indented and CRLF; the diff changes only the lines the restructure requires, with no reformatting of surrounding code.",
+        "No regression: `dotnet test src/DungeonMaster.sln` passes with 0 failures and a total at or above 292."
+      ]
+    }
+  ]
+}

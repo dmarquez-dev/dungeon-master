@@ -51,7 +51,7 @@ its per-entry form.
 | Session | Entries | State | Landed |
 |---|---|---|---|
 | 1 -- Pin the build | 10 | **Complete** 2026-08-18 | `66e41ef`, `cf49081`, `413be78`, merged `079195f` on `chore/repo-audit` |
-| 2 -- Make failure observable in the Application core | 16 | Not started | |
+| 2 -- Make failure observable in the Application core | 16 | **Complete** 2026-08-18 | `afbed1e`, `781f73b`, `91658eb`, `3b44d91`, `f9a665b`, `bcb49dc`, `09f4360`, `476259c`, `5e09334` on `chore/repo-audit` |
 | 3 -- Settle the data-access lifetime and the persistence contract | 16 | Not started | |
 | 4 -- Async, disposal and threading discipline | 11 | Not started | |
 | 5 -- Give the editor a seam and the control kit its own contract | 32 | Not started | |
@@ -182,27 +182,27 @@ target frameworks rather than from any decision a test author made.
 
 | Rank | ID | Sev | Layers | Category | Effort | Risk | Title | Sources | Status |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | MASTER-001 | S1 | UI | correctness | M | low | DungeonDetailViewModel discards the Result of every dispatched command | UI-004 | |
-| 2 | MASTER-002 | S2 | CORE | async | XS | low | ValidationBehavior validates synchronously and never passes the cancellation token | CORE-003 | |
-| 3 | MASTER-003 | S2 | CORE | structure | XS | low | Floor.UpdateNumber is the only entity mutator that does not call Touch | CORE-021 | |
+| 1 | MASTER-001 | S1 | UI | correctness | M | low | DungeonDetailViewModel discards the Result of every dispatched command | UI-004 | **done** |
+| 2 | MASTER-002 | S2 | CORE | async | XS | low | ValidationBehavior validates synchronously and never passes the cancellation token | CORE-003 | **done** |
+| 3 | MASTER-003 | S2 | CORE | structure | XS | low | Floor.UpdateNumber is the only entity mutator that does not call Touch | CORE-021 | **done** |
 | 4 | MASTER-004 | S2 | INFRA | performance | XS | low | LoadAsync includes two sibling collections, producing a cartesian product per floor | INFRA-011 | |
-| 5 | MASTER-005 | S2 | UI | correctness | XS | low | The object palette swallows every exception from its WinUI theming block | UI-022 | |
+| 5 | MASTER-005 | S2 | UI | correctness | XS | low | The object palette swallows every exception from its WinUI theming block | UI-022 | **done** |
 | 6 | MASTER-006 | S2 | UIKIT | disposal | XS | low | HoverOrLongPressBehavior never detaches the pan recogniser it adds | UIKIT-003 | |
 | 7 | MASTER-007 | S2 | UIKIT | correctness | XS | low | NotNullConverter reports an unresolved binding as a non-null value | UIKIT-004 | |
 | 8 | MASTER-008 | S2 | TEST | correctness | XS | low | RepoPaths accepts any ancestor with a .git entry without checking the App project is beneath it | TEST-003 | |
 | 9 | MASTER-009 | S2 | XCUT | dependency | XS | low | No global.json and no AnalysisLevel pin, so the analyzer set floats under TreatWarningsAsErrors | XCUT-003 | **done** |
-| 10 | MASTER-010 | S2 | CORE | correctness | S | low | AddArea throws InvalidOperationException for a missing floor while siblings return a Result | CORE-002 | |
+| 10 | MASTER-010 | S2 | CORE | correctness | S | low | AddArea throws InvalidOperationException for a missing floor while siblings return a Result | CORE-002 | **done** |
 | 11 | MASTER-011 | S2 | INFRA | async | S | low | MigrateDatabase applies migrations synchronously on the startup path and takes no cancellation token | INFRA-019 | |
 | 12 | MASTER-012 | S2 | UI | correctness | S | low | Database directory creation and migration run synchronously and unguarded inside CreateMauiApp | UI-002 | |
 | 13 | MASTER-013 | S2 | UIKIT | disposal | S | low | FloorMapDrawable caches IDisposable images and never disposes them | UIKIT-001 | |
 | 14 | MASTER-014 | S2 | TEST | correctness | S | low | Every persistence test builds its schema with EnsureCreated, so no test exercises a migration | TEST-002 | |
 | 15 | MASTER-015 | S2 | INFRA | correctness | S | medium | Outline JSON conversion has no ValueComparer, so every tracked Area is reported as modified | INFRA-004 | |
-| 16 | MASTER-016 | S2 | INFRA | correctness | S | medium | UpdateAsync attaches a detached aggregate, which marks it Unchanged and saves nothing | INFRA-012 | |
+| 16 | MASTER-016 | S2 | INFRA | correctness | S | medium | UpdateAsync attaches a detached aggregate, which marks it Unchanged and saves nothing | INFRA-012 | **done** |
 | 17 | MASTER-017 | S2 | UI | async | S | medium | ApplyQueryAttributes starts the load as a discarded task and silently ignores a bad id | UI-005 | |
 | 18 | MASTER-018 | S2 | UI | async | S | medium | async void on three methods that are not event handlers | UI-013 | |
 | 19 | MASTER-019 | S2 | UI | async | M | low | async void event handlers across the layer carry no exception guard | UI-014 | |
 | 20 | MASTER-020 | S2 | TEST | testability | M | low | The dispatcher, the validation pipeline and the Result type have no tests at all | TEST-001 | |
-| 21 | MASTER-021 | S2 | CORE | correctness | M | medium | Aggregate mutators silently no-op on an unknown child id and the command still reports success | CORE-001 | |
+| 21 | MASTER-021 | S2 | CORE | correctness | M | medium | Aggregate mutators silently no-op on an unknown child id and the command still reports success | CORE-001 | **done** |
 | 22 | MASTER-022 | S2 | CORE | naming | M | medium | Entity namespaces share the name of the type they contain, forcing Floor.Floor qualification | CORE-004 | |
 | 23 | MASTER-023 | S2 | INFRA, UI, XCUT | dependency | M | medium | Agree one DbContext and repository lifetime across the Infrastructure and App composition roots | INFRA-018, UI-001, XCUT-001 | |
 | 24 | MASTER-024 | S2 | UI | async | M | medium | Discarded tasks in the keyboard, gesture, and popup dispatch paths | UI-015 | |
@@ -212,7 +212,7 @@ target frameworks rather than from any decision a test author made.
 | 28 | MASTER-028 | S2 | TEST | correctness | L | medium | Eleven of the thirteen App files assert over XAML as text; a twelfth parses it as XML | TEST-004 | |
 | 29 | MASTER-029 | S2 | INFRA | performance | L | high | Every timestamp column is DateTimeOffset, a type the SQLite provider does not natively support | INFRA-003 | |
 | 30 | MASTER-030 | S2 | UI, XCUT | correctness | L | high | Resolve the macCatalyst target framework: implement it fully or drop it from the solution | UI-021, UI-036, XCUT-004 | |
-| 31 | MASTER-031 | S3 | CORE | api-design | XS | low | AddPlacedObject reports a missing floor as a Validation failure with an opaque message | CORE-014 | |
+| 31 | MASTER-031 | S3 | CORE | api-design | XS | low | AddPlacedObject reports a missing floor as a Validation failure with an opaque message | CORE-014 | **done** |
 | 32 | MASTER-032 | S3 | INFRA | dead-code | XS | low | AppDbContext exposes Floors and Areas DbSets that nothing in the solution reads | INFRA-001 | |
 | 33 | MASTER-033 | S3 | INFRA | async | XS | low | AddAsync is used where the API documentation prescribes the synchronous Add | INFRA-013 | |
 | 34 | MASTER-034 | S3 | UIKIT | api-design | XS | low | One-way converters throw from ConvertBack where the guidance is to return null | UIKIT-006 | |
@@ -226,8 +226,8 @@ target frameworks rather than from any decision a test author made.
 | 42 | MASTER-042 | S3 | TEST | dead-code | XS | low | AreaPersistenceDiagnosticTests is a committed debugging session with two subsumed tests | TEST-012 | |
 | 43 | MASTER-043 | S3 | XCUT | dependency | XS | low | EF Core is pinned three patch releases behind a version the pin comment shows was evaluated | XCUT-016 | **done** |
 | 44 | MASTER-044 | S3 | CORE | api-design | S | low | Result<T>.Value is T? on an unconstrained T, so null on failure is unreachable for value types | CORE-005 | |
-| 45 | MASTER-045 | S3 | CORE | api-design | S | low | Two ErrorCategory members are never produced and no production caller reads the category | CORE-007 | |
-| 46 | MASTER-046 | S3 | CORE | api-design | S | low | ValidationBehavior discards every validation failure except the first | CORE-008 | |
+| 45 | MASTER-045 | S3 | CORE | api-design | S | low | Two ErrorCategory members are never produced and no production caller reads the category | CORE-007 | **done** |
+| 46 | MASTER-046 | S3 | CORE | api-design | S | low | ValidationBehavior discards every validation failure except the first | CORE-008 | **done** |
 | 47 | MASTER-047 | S3 | CORE | dead-code | S | low | Five Domain overloads have no production caller and are reachable only from the test assembly | CORE-019 | |
 | 48 | MASTER-048 | S3 | CORE, XCUT | boundary | S | low | Move the two persistence port interfaces to Application/Common/Interfaces | CORE-029, XCUT-006 | |
 | 49 | MASTER-049 | S3 | INFRA | performance | S | low | The detail projection materialises two sibling collections per floor in one query | INFRA-010 | |
@@ -260,8 +260,8 @@ target frameworks rather than from any decision a test author made.
 | 76 | MASTER-076 | S3 | UI | api-design | S | medium | The create view model reports its outcome through two events that the popup converts to a result | UI-012 | |
 | 77 | MASTER-077 | S3 | UIKIT | structure | S | medium | propertyChanged handlers imperatively write properties the XAML already binds | UIKIT-007 | |
 | 78 | MASTER-078 | S3 | XCUT | dependency | S | medium | Analysis mode is left at Default and code-style rules are not enforced on build | XCUT-010 | **done** |
-| 79 | MASTER-079 | S3 | CORE | structure | M | low | Ten of the fourteen commands have no validator, making ValidationBehavior a no-op for them | CORE-009 | |
-| 80 | MASTER-080 | S3 | CORE | structure | M | low | Queries bypass the pipeline entirely; IPipelineBehavior applies only to commands | CORE-012 | |
+| 79 | MASTER-079 | S3 | CORE | structure | M | low | Ten of the fourteen commands have no validator, making ValidationBehavior a no-op for them | CORE-009 | **done** |
+| 80 | MASTER-080 | S3 | CORE | structure | M | low | Queries bypass the pipeline entirely; IPipelineBehavior applies only to commands | CORE-012 | **done** |
 | 81 | MASTER-081 | S3 | CORE | structure | M | low | The Domain has no policy layer and scale validation is inline and duplicated | CORE-016 | |
 | 82 | MASTER-082 | S3 | CORE | structure | M | low | Common/Map holds three geometry types that no command, query or handler in the layer uses | CORE-020 | |
 | 83 | MASTER-083 | S3 | UI | performance | M | low | The create-dungeon popup's six bindings are reflection-based because it declares no x:DataType | UI-030 | |
@@ -269,10 +269,10 @@ target frameworks rather than from any decision a test author made.
 | 85 | MASTER-085 | S3 | TEST | duplication | M | low | Sixteen handler test classes repeat an identical fixture constructor and an identical not-found test | TEST-008 | |
 | 86 | MASTER-086 | S3 | TEST | testability | M | low | Domain coverage is happy paths and unknown-id no-ops, with no constructor or boundary cases | TEST-020 | |
 | 87 | MASTER-087 | S3 | XCUT | boundary | M | low | The Application assembly's public surface is a dispatcher contract, a DTO set and a utility library | XCUT-005 | |
-| 88 | MASTER-088 | S3 | CORE | api-design | M | medium | Result<T> permits invalid states and every state-changing command returns an always-true bool | CORE-006 | |
-| 89 | MASTER-089 | S3 | CORE | structure | M | medium | Dispatcher is a service locator over a hand-maintained handler registration list | CORE-010 | |
-| 90 | MASTER-090 | S3 | CORE | performance | M | medium | Every dispatch performs reflection and dynamic binding with no caching of the closed handler type | CORE-011 | |
-| 91 | MASTER-091 | S3 | CORE | duplication | M | medium | Fourteen command handlers repeat one load / null-check / mutate / save skeleton | CORE-013 | |
+| 88 | MASTER-088 | S3 | CORE | api-design | M | medium | Result<T> permits invalid states and every state-changing command returns an always-true bool | CORE-006 | **done** |
+| 89 | MASTER-089 | S3 | CORE | structure | M | medium | Dispatcher is a service locator over a hand-maintained handler registration list | CORE-010 | **done** |
+| 90 | MASTER-090 | S3 | CORE | performance | M | medium | Every dispatch performs reflection and dynamic binding with no caching of the closed handler type | CORE-011 | **done** |
+| 91 | MASTER-091 | S3 | CORE | duplication | M | medium | Fourteen command handlers repeat one load / null-check / mutate / save skeleton | CORE-013 | **done** |
 | 92 | MASTER-092 | S3 | INFRA | structure | M | medium | Each write method commits its own transaction, so the repository is also the unit of work | INFRA-014 | |
 | 93 | MASTER-093 | S3 | INFRA | correctness | M | medium | The migration history was squashed onto a new baseline identifier no database has applied | INFRA-020 | |
 | 94 | MASTER-094 | S3 | UI | performance | M | medium | Every mutation reloads the whole dungeon aggregate, and exactly one does not | UI-007 | |
@@ -388,11 +388,12 @@ the one that gives the persistence port an address.
 - **Rationale:** Every entry here changes build configuration and no line of `src/` behaviour, so it is the one session that can land with zero regression risk and it goes first for that reason. It is also enabling work: `MASTER-132` decides the indent character that Session 7 depends on, and `MASTER-078` turns on the enforcement that keeps Session 7 from having to happen again.
 - **Outcome:** All ten entries landed. 26 of 26 acceptance criteria met across three tasks, one revision round, no unresolved blocking findings. Build clean at 0 warnings for both App target frameworks under `TreatWarningsAsErrors`; 292 of 292 tests passing. The `no src/ behaviour change` property held -- the only `src/` edits were whitespace, verified by comparing 1,181 string literals byte-for-byte. Session artifacts: `.dir-sdlc/sessions/2026-08-17-pin-the-build/`.
 
-### Session 2 -- Make failure observable in the Application core
+### Session 2 -- Make failure observable in the Application core -- COMPLETE (2026-08-18)
 - **Entries:** MASTER-001, MASTER-002, MASTER-003, MASTER-005, MASTER-010, MASTER-016, MASTER-021, MASTER-031, MASTER-045, MASTER-046, MASTER-079, MASTER-080, MASTER-088, MASTER-089, MASTER-090, MASTER-091
 - **Combined effort:** ~4.6 days
 - **Highest risk:** medium
 - **Rationale:** The solution's one S1 sits here alongside the Domain and Application changes that make it meaningful. `MASTER-021` gives the aggregate mutators something to report and `MASTER-001` makes the view model read it; neither is worth doing without the other, which is why they share a session while remaining separate entries. The dispatcher and validation entries ride along because they touch the same files and the same failure path.
+- **Outcome:** All sixteen entries landed across nine tasks. **83 of 83 acceptance criteria met**, one revision round, no unresolved blocking findings. Tests **292 -> 434**; build clean at 0 warnings for both App target frameworks under `TreatWarningsAsErrors`, verified on a `--no-incremental` full build. The three silent-success mechanisms are closed by three separate fixes exactly as this index predicted they would have to be: `MASTER-021` gave the Domain mutators a `MutationOutcome` to report, `MASTER-016` replaced `Attach` with `Update` so a detached aggregate persists, and `MASTER-001` made the detail view model surface every `Result` through the `ErrorMessage` channel the other two view models already used. `MASTER-088` was resolved as a genuinely **non-generic `Result` alongside `Result<T>`**, sibling records rather than a hierarchy because a base class cannot be `sealed` and `sealed` is the invariant that entry exists to establish -- which is the answer the five parked design questions (`MASTER-044`, `073`, `074`, `081`, `107`) were waiting on. `MASTER-045` kept the five-member `ErrorCategory` named by `backend-conventions.md` §2 and gave it a production consumer in `ResultMessage`. Two criteria needed a human at the keyboard rather than a test, because `DungeonMaster.Tests` cannot reference the multi-targeted App project (`MASTER-026`, Session 5): both were performed on Windows and observed. Session artifacts: `.dir-sdlc/sessions/2026-08-18-make-failure-observable/`.
 
 ### Session 3 -- Settle the data-access lifetime and the persistence contract
 - **Entries:** MASTER-004, MASTER-011, MASTER-012, MASTER-015, MASTER-017, MASTER-023, MASTER-029, MASTER-032, MASTER-033, MASTER-048, MASTER-049, MASTER-050, MASTER-075, MASTER-092, MASTER-093, MASTER-103

@@ -1,0 +1,122 @@
+{
+  "session": "2026-08-18-make-failure-observable",
+  "track": "standard",
+  "phase": "merged",
+  "baseBranch": "chore/repo-audit",
+  "branch": "dir/2026-08-18-make-failure-observable",
+  "worktree": "C:/Users/dmarq/Development/Repos/dungeon-master/.claude-worktrees/dir/2026-08-18-make-failure-observable",
+  "createdAt": "2026-08-18",
+  "updatedAt": "2026-08-18",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "8bb2d7992a30c6c4034d6b073c5d9eadcd77419e",
+      "commit": "781f73bf085a28239c6166e561d1c530ce7814fe"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "afbed1ec8f13d8139aeafab58de13c7428d302b7",
+      "commit": "3b44d91bb9d2a793454edcb5a05b01308944b8be"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "8bb2d7992a30c6c4034d6b073c5d9eadcd77419e",
+      "commit": "91658eb37597be68adcf8dde4b11f1dd5fc45060"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "3b44d91bb9d2a793454edcb5a05b01308944b8be",
+      "commit": "bcb49dc",
+      "note": "Reviewer raised one BLOCKING finding (B1): T4 wrote to two T5-owned files during a CRLF normalisation driven off `git status --porcelain`. No acceptance criterion was violated -- all twelve met. Damage independently verified nil three times (T4, orchestrator, T5 reviewer). Resolved without a revision round by adopting all three of the reviewer own ranked options: no code action, T5 reviewer confirmation already performed, and a standing instruction added to every remaining dispatch forbidding whole-tree operations driven off porcelain. Carried to Gate 3 as a process finding."
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "3b44d91bb9d2a793454edcb5a05b01308944b8be",
+      "commit": "f9a665b3e2ce7d8c2855b0ee96c54d13fcf4e394"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "bcb49dc",
+      "commit": "09f436008bef85ebf6a76741dffbb618be08095d"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "09f436008bef85ebf6a76741dffbb618be08095d",
+      "commit": "5e093340ae306b715c1916827daee4fd16ea2cb8"
+    },
+    {
+      "id": "T8",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "bcb49dc",
+      "commit": "476259c3842e26097e650f4edad8d871e49b7aae"
+    },
+    {
+      "id": "T9",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "8bb2d7992a30c6c4034d6b073c5d9eadcd77419e",
+      "commit": "afbed1ec8f13d8139aeafab58de13c7428d302b7",
+      "note": "Acceptance criterion 4 (manual Windows observation of the object-palette dropdown) could not be closed by any agent -- the code is #if WINDOWS, in a Loaded handler, constructing WinUI types a net10.0 test project cannot reference. Presented at Gate 3 as the session's one unmet criterion. RESOLVED AT GATE 3: the user ran the check personally and confirmed the dropdown renders correctly. All 83 acceptance criteria across the session are met."
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "ErrorCategory member set: keep five matching backend-conventions.md section 2 (adding Forbidden), or reduce to the two members actually produced (Validation, NotFound)?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Five members matching the conventions, plus a real consumer via ResultMessage",
+          "rationale": "backend-conventions.md section 2 names the set explicitly; CORE-007 closes with 'align the member set with the conventions either way'. The half that bites -- no production caller reads the category -- is closed by ResultMessage regardless.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "Reduce to Validation and NotFound, grow it again when a caller needs the distinction",
+          "rationale": "CORE-007's own first-listed alternative. Closes the 'never produced' observation literally, at the cost of deviating from a rung-1 authority's named set.",
+          "evidence": "repo"
+        }
+      ],
+      "answer": "Keep five members matching backend-conventions.md section 2, adding Forbidden, with ResultMessage as the production consumer. This is what the architect drafted; no amendment needed."
+    },
+    {
+      "id": "E2",
+      "question": "Does the Gate 1 'full redesign' of MASTER-088 require a genuinely non-generic Result type, or is Result<Unit> sufficient?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Result<Unit> -- one dispatch path, one behavior arity, one handler interface",
+          "rationale": "CORE-006 offers both readings explicitly: 'a non-generic Result (or a Unit payload)'. Both halves of the Gate 1 decision are satisfied either way, and this is materially the smaller T2 and T6.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "A genuinely non-generic Result alongside Result<T>",
+          "rationale": "dotnet-format.md section 3's static-factory fragments show a bare Result. Requires a parallel ICommand, ICommandHandler<TCommand> and IPipelineBehavior<TCommand> plus a third dispatcher branch -- a materially larger T2 and T6.",
+          "evidence": "repo"
+        }
+      ],
+      "answer": "Adopt a genuinely non-generic Result alongside Result<T>, reversing the architect's draft. The user declined to decide on preference and asked for the more commonly accepted practice. The two-lookup budget was spent and did NOT return a citable answer to this specific question, so the decision rests on judgment and is recorded as belief, not standard: FluentResults and CSharpFunctionalExtensions both ship a non-generic Result alongside Result<T>; ErrorOr uses a placeholder (ErrorOr<Success>), which is the Unit shape; and MediatR -- the closest analogue to this repo's hand-rolled dispatcher -- removed Unit in v12 in favour of a non-generic request path. Three of four favour non-generic and the CQRS-specific precedent migrated off Unit. The user accepted the resulting increase in T2 and T6 effort in advance."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 2,
+    "reviewRounds": 1
+  }
+}
