@@ -1,0 +1,110 @@
+{
+  "session": "2026-08-17-pin-the-build",
+  "createdAt": "2026-08-17",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/repository-root-config.md",
+    "contracts/msbuild-properties-and-packages.md",
+    "contracts/editorconfig.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Pin the restore environment and drop the inert solution platforms",
+      "agent": "dir-architect",
+      "domain": "architecture",
+      "owns": [
+        "global.json",
+        "nuget.config",
+        ".gitattributes",
+        ".gitignore",
+        "src/DungeonMaster.sln"
+      ],
+      "acceptance": [
+        "MASTER-009 (SDK half): `global.json` exists at the repository root with the exact content in contracts/repository-root-config.md section 1. `dotnet --version` run from the repository root prints `10.0.303`, proving the pin is honoured rather than merely present.",
+        "MASTER-072 (source half): `dotnet nuget list source` run from the repository root lists exactly one enabled source, `nuget.org` at `https://api.nuget.org/v3/index.json`, and no machine- or profile-level source. `dotnet restore src/DungeonMaster.sln` then completes successfully.",
+        "MASTER-140: `grep -c 'x64\\|x86' src/DungeonMaster.sln` returns 0, and `grep -c 'ActiveCfg\\|Build.0' src/DungeonMaster.sln` returns exactly 20 (five projects x two configurations x two lines), down from 60.",
+        "MASTER-150 (solution half): `head -c3 src/DungeonMaster.sln | od -An -tx1` prints `4d 69 63`, not `ef bb bf`. `.gitattributes` exists with the content in contracts/repository-root-config.md section 3.",
+        "Gitignore: `.gitignore` contains a `.claude-worktrees/` entry, and `git status --porcelain` run in the main checkout at C:/Users/dmarq/Development/Repos/dungeon-master no longer reports `.claude-worktrees/` as untracked.",
+        "No collateral churn: `git status --porcelain` in the worktree lists exactly five paths -- `global.json`, `nuget.config`, `.gitattributes`, `.gitignore`, `src/DungeonMaster.sln`. Any sixth path means `.gitattributes` triggered a renormalisation, which contracts/repository-root-config.md section 3 forbids.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors, building both `net10.0-windows10.0.19041.0` and `net10.0-maccatalyst`, and `dotnet test src/DungeonMaster.sln` reports 292 passed, 0 failed.",
+        "No behaviour change: `git diff --name-only` for this task contains no path ending in `.cs`, `.xaml`, `.csproj`, or `.props`."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Centralise package versions, pin the analyzer set, and author .editorconfig",
+      "agent": "dir-architect",
+      "domain": "architecture",
+      "dependsOn": [
+        "T1"
+      ],
+      "owns": [
+        ".editorconfig",
+        "Directory.Build.props",
+        "Directory.Packages.props",
+        "src/**/*.csproj",
+        "src/**/packages.lock.json"
+      ],
+      "acceptance": [
+        "MASTER-009 + MASTER-078 + MASTER-072 (property halves): `dotnet msbuild src/DungeonMaster.Domain/DungeonMaster.Domain.csproj -getProperty:AnalysisLevel -getProperty:AnalysisMode -getProperty:EnforceCodeStyleInBuild -getProperty:LangVersion -getProperty:RestorePackagesWithLockFile` reports `10.0`, `Recommended`, `true`, `14.0`, `true` respectively.",
+        "MASTER-071 (a): `grep -rn 'PackageReference' src --include=*.csproj | grep -c 'Version'` returns 0 -- no `Version` and no `VersionOverride` attribute survives on any `PackageReference` in any of the five project files.",
+        "MASTER-071 (b): `Directory.Packages.props` sets `ManagePackageVersionsCentrally` and `CentralPackageTransitivePinningEnabled` to `true` and carries one `PackageVersion` per row of the frozen table in contracts/msbuild-properties-and-packages.md section 3.1, alphabetically ordered, with no package present that is not in that table and none missing from it (except `SQLitePCLRaw.lib.e_sqlite3`, whose presence is decided by the next criterion). `dotnet restore src/DungeonMaster.sln` succeeds.",
+        "MASTER-043: `grep -rn '10\\.0\\.7' Directory.Packages.props src --include=*.csproj` returns nothing -- both EF Core packages are at `10.0.11`. The `SQLitePCLRaw` re-check in contracts/msbuild-properties-and-packages.md section 3.4 has been run, and the task report quotes the `dotnet list package --include-transitive` output for the Infrastructure project together with an explicit statement of which of the two outcomes was taken (pin deleted, or pin retained with the comment updated to `10.0.11 still does not`). A silent carry-forward fails this criterion.",
+        "MASTER-104: `Directory.Packages.props` holds `Plugin.Maui.KeyListener` at `1.0.0-preview4`, carrying the comment in contracts/msbuild-properties-and-packages.md section 3.3 -- stating that no stable release exists, and naming the removal condition. The package is neither replaced nor removed.",
+        "MASTER-129: `grep -rn '<Nullable>\\|<ImplicitUsings>' src --include=*.csproj` returns nothing. `Directory.Build.props` still sets both, so the effective values are unchanged -- confirmed by `dotnet msbuild src/DungeonMaster.Tests/DungeonMaster.Tests.csproj -getProperty:Nullable -getProperty:ImplicitUsings` reporting `enable` and `enable`.",
+        "MASTER-150 (project-file half): `for f in src/*/*.csproj; do head -c3 \"$f\" | od -An -tx1; done` shows no `ef bb bf` for any of the five files. `src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` ends with a newline and its `Microsoft.NET.Test.Sdk` reference is indented in line with its five siblings.",
+        "MASTER-132 (.editorconfig half): `.editorconfig` exists at the repository root with `root = true` and the eight sections, in the order, specified in contracts/editorconfig.md section 1; `[*]` and `[*.cs]` both declare `indent_style = tab`; the Migrations section declares `generated_code = true`. Every `dotnet_diagnostic.*` line in the file sits between the `ANALYZER BACKLOG` and `END ANALYZER BACKLOG` banner comments -- verifiable by `grep -n 'dotnet_diagnostic\\|ANALYZER BACKLOG' .editorconfig` showing no diagnostic line outside that range.",
+        "MASTER-078 backlog legibility: every line inside the analyzer-backlog block carries a trailing comment with an occurrence count, and the task report reproduces the full list of suppressed rules with their counts. `dotnet_diagnostic.IDE0055.severity` is present and set to `suggestion`. No rule that did not actually fire appears in the block.",
+        "Lock files: a `packages.lock.json` exists in each of the five project directories under `src/`, the App project's carries a section per target framework, and `git check-ignore -v src/DungeonMaster.Domain/packages.lock.json` returns nothing (exit 1), proving they are committable.",
+        "No regression: `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors under `TreatWarningsAsErrors=true`, building both App target frameworks, and `dotnet test src/DungeonMaster.sln` reports 292 passed, 0 failed.",
+        "No behaviour change: `git diff --name-only` for this task contains no path ending in `.cs` or `.xaml`."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Reformat the 62 IDE0055-flagged source files to tabs and enforce IDE0055",
+      "agent": "dir-architect",
+      "domain": "architecture",
+      "dependsOn": [
+        "T2"
+      ],
+      "owns": [
+        ".editorconfig",
+        "src/DungeonMaster.App/Assets/ObjectAssets/*.cs",
+        "src/DungeonMaster.App/Behaviors/HandCursorBehavior.cs",
+        "src/DungeonMaster.App/Graphics/FloorMapDrawable.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ControlsPaletteView.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/SecondaryPaletteView.xaml.cs",
+        "src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/PlacedObjectDto.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/ObjectKind.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/ObjectRotation.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/ObjectScale.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs",
+        "src/DungeonMaster.Domain/Entities/Floor/SnapAnchor.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs",
+        "src/DungeonMaster.Tests/**/*.cs"
+      ],
+      "acceptance": [
+        "MASTER-132 (reformat half, leading-whitespace check): `grep -rEn '^ +[^ *]' --include=*.cs --exclude-dir=bin --exclude-dir=obj src | grep -v '/Migrations/'` produces no output (exit status 1). Necessary but not sufficient -- see the criterion on enforcement below, which is the authoritative one.",
+        "Whitespace-only: `git diff -w <T2-commit>..HEAD -- <the 62 paths>` is empty. Every one of the 62 files differs from its pre-task content in whitespace and nothing else -- no reflow, no brace insertion, no reordering, no BOM change, no line-ending change, no edit to any non-whitespace character.",
+        "Scope held: the diff for this task contains exactly 63 paths -- the 62 files listed in contracts/editorconfig.md section 6 (as amended 2026-08-17) plus `.editorconfig`. No file under `src/DungeonMaster.Infrastructure/Migrations/` appears, and no `.xaml` file appears.",
+        "Enforcement turned on: the `.editorconfig` diff is exactly one changed line, moving `dotnet_diagnostic.IDE0055.severity` from `suggestion` to `warning` as specified in contracts/editorconfig.md section 5. No other line of `.editorconfig` changes -- including the occurrence-count comment, which T2 has already corrected to 62.",
+        "The enforcement holds: with `IDE0055` at `warning` and `TreatWarningsAsErrors=true`, `dotnet build src/DungeonMaster.sln` completes with 0 warnings and 0 errors for both App target frameworks. This is the criterion that proves the reformat is complete rather than merely attempted, and it is the one that covers the intra-line alignment violations the leading-space grep cannot see.",
+        "No regression: `dotnet test src/DungeonMaster.sln` reports 292 passed, 0 failed -- the same count as the baseline on `chore/repo-audit` at `48a91f1`."
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "date": "2026-08-17",
+      "authority": "User decision at the escalation raised after T2's review (state.json escalation E3).",
+      "change": "T3's file list widened from 57 enumerated paths (labelled 58) to the measured 62 files that report an IDE0055 diagnostic; its owns globs extended to match; its acceptance criteria restated in terms of 62 files and 63 diff paths; contracts/editorconfig.md sections 5, 6, 7 and 8 amended correspondingly.",
+      "reason": "As frozen at Gate 2, T3's criteria were jointly unsatisfiable: IDE0055 also fires on intra-line column alignment in five files that are already fully tab-indented and were therefore outside T3's list and its ownership, so the mandated flip to `warning` would have left roughly 79 diagnostics live under TreatWarningsAsErrors."
+    }
+  ]
+}

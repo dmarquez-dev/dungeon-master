@@ -1,0 +1,156 @@
+{
+  "session": "2026-08-17-pin-the-build",
+  "updatedAt": "2026-08-17T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:\\Users\\dmarq\\Development\\Repos\\dungeon-master\\.claude-worktrees\\dir-2026-08-17-pin-the-build",
+  "branch": "dir/2026-08-17-pin-the-build",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "48a91f1f6457ea2a4c6584b3e2caf94daf806262",
+      "commit": "66e41efb56d23ec3c5f562b1b6d8c350ade93b10"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "66e41efb56d23ec3c5f562b1b6d8c350ade93b10",
+      "commit": "cf4908172045233fbdbaae7dc82a7fadd5345ee4"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "cf4908172045233fbdbaae7dc82a7fadd5345ee4",
+      "commit": "413be78eab3ab0d45fe95a14760cd274f644bece"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "Plugin.Maui.KeyListener is referenced at 1.0.0-preview4 and no stable release exists (nuget.org has published only preview1 through preview4). How should MASTER-104 be resolved?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Keep the package at 1.0.0-preview4, move it into Directory.Packages.props with a comment in the same style as the SQLitePCLRaw security pin recording that no stable release exists and naming the removal condition, and carry a backlog item to evaluate replacing it with platform-native keyboard handling in Session 5 alongside the macCatalyst decision. Session 1 stays at zero src/ behaviour change.",
+      "options": [
+        {
+          "summary": "Pin centrally with a documented comment, and defer the replacement question to Session 5 as a backlog item.",
+          "rationale": "No stable release exists, so the audit's suggested direction has no path; the risk is real but the remedy belongs where the keyboard work already lives. Keeps Session 1's zero-regression property intact.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/DungeonMaster.App.csproj:96",
+              "docs/audit/06-cross-cutting.md#XCUT-011",
+              "dotnet package search Plugin.Maui.KeyListener --exact-match --prerelease: only 1.0.0-preview1..preview4 published"
+            ]
+          }
+        },
+        {
+          "summary": "Pin centrally with a documented comment and treat the preview as a settled decision, carrying no follow-up.",
+          "rationale": "Cheapest, and honest if hand-rolling key handling is not intended. Loses the reminder that the dependency has no compatibility commitment.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/DungeonMaster.App.csproj:96"
+            ]
+          }
+        },
+        {
+          "summary": "Remove the dependency now and take Windows keyboard handling directly against the platform.",
+          "rationale": "The audit's M-effort fallback. Changes MauiProgram.cs and the key-handling call sites, so Session 1 stops being a zero-behaviour-change session and gains real regression risk.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/06-cross-cutting.md#XCUT-011",
+              "src/DungeonMaster.App/MauiProgram.cs:2,29"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-078 raises analysis enforcement, but TreatWarningsAsErrors=true leaves no warning margin: every newly enabled rule becomes a build error. How aggressive should this session be?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Set AnalysisMode=Recommended and EnforceCodeStyleInBuild=true, then drop whatever the first run flags to `suggestion` in .editorconfig, rule by rule, so the build stays green at zero warnings and the diagnostic backlog is visible and worked off in Session 7 rather than here.",
+      "options": [
+        {
+          "summary": "AnalysisMode=Recommended plus EnforceCodeStyleInBuild, with the resulting diagnostics dropped to `suggestion` in .editorconfig rule by rule.",
+          "rationale": "This is the audit's own prescription in XCUT-010: raise the mode first and work the backlog off afterwards, rather than raising the mode last. Keeps Session 7 as the place the diagnostics actually get fixed.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/06-cross-cutting.md#XCUT-010"
+            ]
+          }
+        },
+        {
+          "summary": "Same settings, but fix every diagnostic in this session instead of suppressing.",
+          "rationale": "Higher fidelity, but the volume is unknown and the fixes would touch src/ behaviour, which is exactly what ordering Session 1 first was meant to avoid.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md#Session 1 -- Pin the build"
+            ]
+          }
+        },
+        {
+          "summary": "Pin AnalysisLevel and turn on EnforceCodeStyleInBuild only, leaving AnalysisMode at Default.",
+          "rationale": "Gets the .editorconfig enforced and the build pinned without opening the CA rule backlog, but defers the CA half of MASTER-078 with nothing scheduled to pick it up.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/06-cross-cutting.md#XCUT-010"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "taskId": "T3",
+      "question": "T3's frozen acceptance criteria are jointly unsatisfiable: flipping IDE0055 to warning leaves roughly 79 intra-line alignment diagnostics live in five already-tab-indented files that T3's file list excludes and its contract forbids it to edit. Resolving it requires changing a contract frozen at Gate 2. How should it go?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Widen T3 to the measured 62-file IDE0055 set and let dotnet format whitespace handle all of them; relax contract section 7 from 'leading whitespace only' to 'whitespace only'; correct the count comment to 62. Contract sections 5 through 8 and the manifest's T3 entry were amended under this authority, and the manifest records the amendment.",
+      "options": [
+        {
+          "summary": "Widen T3 to the empirical IDE0055 set and let dotnet format whitespace do all 62 files.",
+          "rationale": "Section 7 already sanctions that tool, and it fixes alignment as well as indentation, so the commit stays whitespace-only and semantically inert. Keeps this session proof that .editorconfig is enforced rather than advisory.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-08-17-pin-the-build/reviews/T2.md B1",
+              "contracts/editorconfig.md sections 5-8"
+            ]
+          }
+        },
+        {
+          "summary": "Correct the count now and defer the IDE0055 flip to Session 7.",
+          "rationale": "Smallest change and no unfreezing beyond deleting section 5, but forfeits the self-proving acceptance criterion and lands MASTER-132 enforced only on paper.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "contracts/editorconfig.md section 5"
+            ]
+          }
+        },
+        {
+          "summary": "Keep T3 list frozen and add a path-scoped suggestion override for the five files.",
+          "rationale": "Works, but contradicts section 3 of the editorconfig contract and leaves five permanently-exempt files with no backlog entry, which is the opposite of the legible-backlog property MASTER-078 asked for.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 6,
+    "escalationsRaised": 3,
+    "reviewRounds": 1
+  }
+}
