@@ -35,7 +35,7 @@ public class DeleteDungeonCommandHandlerTests
 			.DeleteAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+			.Returns(true);
 
 		var command = new DeleteDungeonCommand(id);
 
@@ -70,7 +70,7 @@ public class DeleteDungeonCommandHandlerTests
 				Arg.Do<Guid>(id =>
 					capturedId = id),
 				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+			.Returns(true);
 
 		var command = new DeleteDungeonCommand(expectedId);
 

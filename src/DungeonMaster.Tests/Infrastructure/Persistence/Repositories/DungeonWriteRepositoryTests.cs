@@ -117,6 +117,106 @@ public class DungeonWriteRepositoryTests : IDisposable
 	}
 
 	[Fact]
+	public async Task DeleteAsync_WithExistingDungeon_ReturnsTrue()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Doomed Keep");
+
+		using (var seedCtx = CreateContext())
+		{
+			await seedCtx.Dungeons.AddAsync(dungeon);
+			await seedCtx.SaveChangesAsync();
+		}
+
+		// Act
+		bool deleted;
+
+		using (var ctx = CreateContext())
+		{
+			var repo = new DungeonWriteRepository(ctx);
+			deleted = await repo.DeleteAsync(dungeon.Id, CancellationToken.None);
+		}
+
+		// Assert
+		deleted.Should().BeTrue();
+
+		using var verify = CreateContext();
+		var found = await verify.Dungeons.FindAsync(dungeon.Id);
+		found.Should().BeNull();
+	}
+
+	[Fact]
+	public async Task DeleteAsync_WithUnknownId_ReturnsFalseAndSavesNothing()
+	{
+		// Arrange
+		var survivor = new Dungeon("Untouched Vault");
+
+		using (var seedCtx = CreateContext())
+		{
+			await seedCtx.Dungeons.AddAsync(survivor);
+			await seedCtx.SaveChangesAsync();
+		}
+
+		// Act
+		bool deleted;
+
+		using (var ctx = CreateContext())
+		{
+			var repo = new DungeonWriteRepository(ctx);
+			deleted = await repo.DeleteAsync(Guid.NewGuid(), CancellationToken.None);
+		}
+
+		// Assert
+		deleted.Should().BeFalse();
+
+		using var verify = CreateContext();
+		var found = await verify.Dungeons.FindAsync(survivor.Id);
+		found.Should().NotBeNull();
+		found!.Name.Should().Be("Untouched Vault");
+	}
+
+	[Fact]
+	public async Task UpdateAsync_WithDetachedAggregate_PersistsTheChange()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Detached Original");
+
+		using (var seedCtx = CreateContext())
+		{
+			await seedCtx.Dungeons.AddAsync(dungeon);
+			await seedCtx.SaveChangesAsync();
+		}
+
+		Dungeon detached;
+
+		using (var loadCtx = CreateContext())
+		{
+			var loadRepo = new DungeonWriteRepository(loadCtx);
+			detached = (await loadRepo.LoadAsync(dungeon.Id, CancellationToken.None))!;
+			detached.Update("Detached Updated", null, "Detached notes");
+		}
+
+		// Act
+		EntityState observedState;
+
+		using (var updateCtx = CreateContext())
+		{
+			observedState = updateCtx.Entry(detached).State;
+
+			var updateRepo = new DungeonWriteRepository(updateCtx);
+			await updateRepo.UpdateAsync(detached, CancellationToken.None);
+		}
+
+		// Assert
+		observedState.Should().Be(EntityState.Detached);
+
+		using var verify = CreateContext();
+		var persisted = await verify.Dungeons.FindAsync(dungeon.Id);
+		persisted!.Name.Should().Be("Detached Updated");
+		persisted.Notes.Should().Be("Detached notes");
+	}
+
+	[Fact]
 	public async Task LoadAsync_RoundTripsFloorObjectPositionsUnchanged()
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
