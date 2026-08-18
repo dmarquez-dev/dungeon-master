@@ -23,4 +23,4 @@ public record UpdateAreaOutlineCommand(
 	Guid FloorId,
 	Guid AreaId,
 	IReadOnlyList<PathSegment> Outline)
-		: ICommand<bool>;
+		: ICommand;

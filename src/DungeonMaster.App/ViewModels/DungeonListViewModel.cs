@@ -78,7 +78,7 @@ public partial class DungeonListViewModel(AppDispatcher dispatcher) : Observable
 	[RelayCommand]
 	private async Task DeleteDungeonAsync(Guid id)
 	{
-		var result = await dispatcher.SendAsync<bool>(
+		var result = await dispatcher.SendAsync(
 			new DeleteDungeonCommand(id),
 			CancellationToken.None);
 

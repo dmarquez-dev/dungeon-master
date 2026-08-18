@@ -1,4 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Handlers;
 using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons;
 
@@ -10,33 +11,22 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 /// </summary>
 public sealed class UpdateDungeonCommandHandler(
 	IDungeonWriteRepository writeRepository)
-		: ICommandHandler<UpdateDungeonCommand, bool>
+		: ICommandHandler<UpdateDungeonCommand>
 {
 	/// <inheritdoc/>
-	public async Task<Result<bool>> HandleAsync(
+	public Task<Result> HandleAsync(
 		UpdateDungeonCommand command,
-		CancellationToken ct)
-	{
-		var dungeon = await writeRepository.LoadAsync(
-			command.Id,
-			ct);
+		CancellationToken ct) =>
+			writeRepository.MutateAsync(
+				command.Id,
+				dungeon =>
+				{
+					dungeon.Update(
+						command.Name,
+						command.Description,
+						command.Notes);
 
-		if (dungeon is null)
-		{
-			return Result<bool>.Failure(
-				$"Dungeon {command.Id} not found.",
-				ErrorCategory.NotFound);
-		}
-
-		dungeon.Update(
-			command.Name,
-			command.Description,
-			command.Notes);
-
-		await writeRepository.UpdateAsync(
-			dungeon,
-			ct);
-
-		return Result<bool>.Success(true);
-	}
+					return Result.Success();
+				},
+				ct);
 }

@@ -61,43 +61,43 @@ public static class ApplicationServiceCollectionExtensions
 			ICommandHandler<CreateDungeonCommand, Guid>,
 			CreateDungeonCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<DeleteDungeonCommand, bool>,
+			ICommandHandler<DeleteDungeonCommand>,
 			DeleteDungeonCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<UpdateDungeonCommand, bool>,
+			ICommandHandler<UpdateDungeonCommand>,
 			UpdateDungeonCommandHandler>();
 		services.AddScoped<
 			ICommandHandler<AddFloorCommand, Guid>,
 			AddFloorCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<RemoveFloorCommand, bool>,
+			ICommandHandler<RemoveFloorCommand>,
 			RemoveFloorCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<ReorderFloorCommand, bool>,
+			ICommandHandler<ReorderFloorCommand>,
 			ReorderFloorCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<UpdateFloorCommand, bool>,
+			ICommandHandler<UpdateFloorCommand>,
 			UpdateFloorCommandHandler>();
 		services.AddScoped<
 			ICommandHandler<AddAreaCommand, Guid>,
 			AddAreaCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<RemoveAreaCommand, bool>,
+			ICommandHandler<RemoveAreaCommand>,
 			RemoveAreaCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<UpdateAreaCommand, bool>,
+			ICommandHandler<UpdateAreaCommand>,
 			UpdateAreaCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<UpdateAreaOutlineCommand, bool>,
+			ICommandHandler<UpdateAreaOutlineCommand>,
 			UpdateAreaOutlineCommandHandler>();
 		services.AddScoped<
 			ICommandHandler<AddPlacedObjectCommand, Guid>,
 			AddPlacedObjectCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<RemovePlacedObjectCommand, bool>,
+			ICommandHandler<RemovePlacedObjectCommand>,
 			RemovePlacedObjectCommandHandler>();
 		services.AddScoped<
-			ICommandHandler<UpdatePlacedObjectCommand, bool>,
+			ICommandHandler<UpdatePlacedObjectCommand>,
 			UpdatePlacedObjectCommandHandler>();
 
 		return services;

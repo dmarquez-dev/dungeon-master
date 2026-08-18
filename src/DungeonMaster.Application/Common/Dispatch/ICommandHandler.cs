@@ -3,7 +3,33 @@ using DungeonMaster.Application.Common.Results;
 namespace DungeonMaster.Application.Common.Dispatch;
 
 /// <summary>
-///		Defines the contract for handling a command of type <typeparamref name="TCommand"/>.
+///		Defines the contract for handling a command of type <typeparamref name="TCommand"/> that produces no value.
+/// </summary>
+/// <typeparam name="TCommand">
+///		The command type this handler processes.
+/// </typeparam>
+public interface ICommandHandler<in TCommand>
+	where TCommand : ICommand
+{
+	/// <summary>
+	///		Handles the given command and returns a result.
+	/// </summary>
+	/// <param name="command">
+	///		The command to handle.
+	/// </param>
+	/// <param name="ct">
+	///		Token used to cancel the operation.
+	/// </param>
+	/// <returns>
+	///		A <see cref="Result"/> representing the outcome of the operation.
+	/// </returns>
+	Task<Result> HandleAsync(
+		TCommand command,
+		CancellationToken ct);
+}
+
+/// <summary>
+///		Defines the contract for handling a command of type <typeparamref name="TCommand"/> that returns a value.
 /// </summary>
 /// <typeparam name="TCommand">
 ///		The command type this handler processes.

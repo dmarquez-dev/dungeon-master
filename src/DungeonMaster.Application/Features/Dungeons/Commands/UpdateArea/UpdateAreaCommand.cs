@@ -30,4 +30,4 @@ public record UpdateAreaCommand(
 	string Name,
 	string? Description,
 	string? Notes)
-		: ICommand<bool>;
+		: ICommand;

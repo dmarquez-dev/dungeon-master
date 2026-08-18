@@ -1,45 +1,32 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Handlers;
 using DungeonMaster.Application.Common.Results;
+using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 
 /// <summary>
-///		Handles the <see cref="UpdatePlacedObjectCommand"/> by loading the dungeon aggregate,
-///		applying the position, rotation, and scale update, and persisting the change.
-///		Returns a not-found result if the dungeon does not exist.
-///		Has no effect if the floor or object is not found within the aggregate.
+///		Handles the <see cref="UpdatePlacedObjectCommand"/> by loading the dungeon aggregate, applying the position, rotation, and scale update, and persisting the change.
+///		Returns a not-found result if no dungeon exists with the given identifier, or if the aggregate has no matching floor or placed object.
 /// </summary>
 public sealed class UpdatePlacedObjectCommandHandler(
 	IDungeonWriteRepository writeRepository)
-		: ICommandHandler<UpdatePlacedObjectCommand, bool>
+		: ICommandHandler<UpdatePlacedObjectCommand>
 {
 	/// <inheritdoc/>
-	public async Task<Result<bool>> HandleAsync(
+	public Task<Result> HandleAsync(
 		UpdatePlacedObjectCommand command,
-		CancellationToken ct)
-	{
-		var dungeon = await writeRepository.LoadAsync(
-			command.DungeonId,
-			ct);
-
-		if (dungeon is null)
-		{
-			return Result<bool>.Failure(
-				$"Dungeon {command.DungeonId} not found.",
-				ErrorCategory.NotFound);
-		}
-
-		dungeon.UpdatePlacedObject(
-			command.FloorId,
-			command.ObjectId,
-			command.NewPosition,
-			command.NewRotation,
-			command.NewScale);
-
-		await writeRepository.UpdateAsync(
-			dungeon,
-			ct);
-
-		return Result<bool>.Success(true);
-	}
+		CancellationToken ct) =>
+			writeRepository.MutateAsync(
+				command.DungeonId,
+				dungeon =>
+					dungeon
+						.UpdatePlacedObject(
+							command.FloorId,
+							command.ObjectId,
+							command.NewPosition,
+							command.NewRotation,
+							command.NewScale)
+						.ToResult($"Placed object {command.ObjectId} not found."),
+				ct);
 }

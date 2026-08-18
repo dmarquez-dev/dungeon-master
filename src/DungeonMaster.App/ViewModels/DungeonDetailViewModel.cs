@@ -125,7 +125,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task SaveDungeonAsync()
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new UpdateDungeonCommand(
 				_dungeonId,
 				DungeonName,
@@ -156,7 +156,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task RemoveFloorAsync(Guid floorId)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new RemoveFloorCommand(_dungeonId, floorId),
 			CancellationToken.None);
 
@@ -173,7 +173,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task UpdateFloorAsync((Guid FloorId, string? Name, string? Description, string? Notes) args)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new UpdateFloorCommand(
 				_dungeonId,
 				args.FloorId,
@@ -194,7 +194,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task ReorderFloorAsync((Guid FloorId, int NewNumber) args)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new ReorderFloorCommand(
 				_dungeonId,
 				args.FloorId,
@@ -233,7 +233,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task RemoveAreaAsync((Guid FloorId, Guid AreaId) args)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new RemoveAreaCommand(
 				_dungeonId,
 				args.FloorId,
@@ -255,7 +255,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	[RelayCommand]
 	private async Task UpdateAreaAsync((Guid FloorId, Guid AreaId, string Name, string? Description, string? Notes) args)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new UpdateAreaCommand(
 				_dungeonId,
 				args.FloorId,
@@ -277,7 +277,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		Guid areaId,
 		IReadOnlyList<PathSegment> newOutline)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new UpdateAreaOutlineCommand(
 				_dungeonId,
 				floorId,
@@ -302,7 +302,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		if (!result.IsSuccess || result.Value == Guid.Empty)
 			return;
 
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new UpdateAreaOutlineCommand(
 				_dungeonId,
 				args.FloorId,
@@ -343,7 +343,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		Guid floorId,
 		Guid objectId)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new RemovePlacedObjectCommand(
 				dungeonId,
 				floorId,
@@ -381,7 +381,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 		ObjectRotation rotation,
 		float scale)
 	{
-		await dispatcher.SendAsync<bool>(
+		await dispatcher.SendAsync(
 			new UpdatePlacedObjectCommand(
 				dungeonId,
 				floorId,

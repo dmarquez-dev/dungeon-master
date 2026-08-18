@@ -14,4 +14,4 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
 public record RemoveFloorCommand(
 	Guid DungeonId,
 	Guid FloorId)
-		: ICommand<bool>;
+		: ICommand;

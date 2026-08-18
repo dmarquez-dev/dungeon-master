@@ -11,6 +11,21 @@ public sealed class Dispatcher(
 		: IDispatcher
 {
 	/// <inheritdoc/>
+	public async Task<Result> SendAsync(
+		ICommand command,
+		CancellationToken ct = default)
+	{
+		var handlerType = typeof(ICommandHandler<>)
+			.MakeGenericType(command.GetType());
+
+		dynamic handler = serviceProvider.GetRequiredService(handlerType);
+
+		return await (Task<Result>)handler.HandleAsync(
+			(dynamic)command,
+			ct);
+	}
+
+	/// <inheritdoc/>
 	public async Task<Result<TResult>> SendAsync<TResult>(
 		ICommand<TResult> command,
 		CancellationToken ct = default)

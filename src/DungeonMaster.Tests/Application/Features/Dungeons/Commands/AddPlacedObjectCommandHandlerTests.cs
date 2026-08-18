@@ -125,30 +125,43 @@ public class AddPlacedObjectCommandHandlerTests
 	}
 
 	/// <summary>
-	///		Verifies that a missing floor returns a validation failure (domain returns null when floor is absent).
+	///		Verifies that a missing floor reports not-found, names the floor in the message, and does not write the unchanged aggregate back.
 	/// </summary>
 	[Fact]
-	public async Task HandleAsync_FloorNotFound_ReturnsValidationFailure()
+	public async Task HandleAsync_WithUnknownFloorId_ReturnsNotFoundNamingTheFloor()
 	{
 		// Arrange
 		var dungeon = MakeDungeon(out _);
+		var floorId = Guid.NewGuid();
+
 		_writeRepository
-			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new AddPlacedObjectCommand(
 			dungeon.Id,
-			Guid.NewGuid(),
+			floorId,
 			ObjectKind.Chair,
 			new CanvasPoint(40f, 40f),
 			ObjectRotation.None);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.Validation);
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		result.Error.Should().Contain(floorId.ToString());
+
+		await _writeRepository
+			.DidNotReceive()
+			.UpdateAsync(
+				Arg.Any<Dungeon>(),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
