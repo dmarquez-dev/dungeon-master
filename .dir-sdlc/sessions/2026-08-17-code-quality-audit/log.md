@@ -36,3 +36,6 @@
 - 2026-08-17 — T6 committed 676a8f3. All six tasks **done**. Phase -> awaiting-final.
 - 2026-08-17 — **Gate 3** presented and approved. User chose to approve and defer all three advisory items. Appended them to `.dir-sdlc/backlog.md` (created — first entries). Merging to `chore/repo-audit`.
 - 2026-08-17 — `merge-session`: clean merge of six commits into `chore/repo-audit` as **9169b87**. 7 files, 7,222 insertions, 0 deletions, nothing under `src/`. Phase -> merged.
+- 2026-08-17 — Session artifacts committed to `chore/repo-audit` as **bd63eb9** (14 files). Working tree clean.
+- 2026-08-17 — Push approved by the user (asked separately from Gate 3, per the framework). Dispatched `dir-git` to push `chore/repo-audit` and then remove the session worktree. Branch `dir/2026-08-17-code-quality-audit` retained.
+- 2026-08-17 — `push`: `chore/repo-audit` -> `origin/chore/repo-audit` (new branch, upstream set). `cleanup`: session worktree removed; branch `dir/2026-08-17-code-quality-audit` retained at 676a8f3. **Session closed.**
