@@ -33,25 +33,35 @@ public sealed class DungeonWriteRepository(
 	}
 
 	/// <inheritdoc/>
-	public async Task UpdateAsync(Dungeon dungeon, CancellationToken ct)
+	public async Task UpdateAsync(
+		Dungeon dungeon,
+		CancellationToken ct)
 	{
 		if (dbContext.Entry(dungeon).State is EntityState.Detached)
 		{
-			dbContext.Attach(dungeon);
+			dbContext.Update(dungeon);
 		}
 
 		await dbContext.SaveChangesAsync(ct);
 	}
 
 	/// <inheritdoc/>
-	public async Task DeleteAsync(Guid id, CancellationToken ct)
+	public async Task<bool> DeleteAsync(
+		Guid id,
+		CancellationToken ct)
 	{
-		var dungeon = await dbContext.Dungeons.FindAsync([id], ct);
+		var dungeon = await dbContext.Dungeons.FindAsync(
+			[id],
+			ct);
 
-		if (dungeon is not null)
+		if (dungeon is null)
 		{
-			dbContext.Dungeons.Remove(dungeon);
-			await dbContext.SaveChangesAsync(ct);
+			return false;
 		}
+
+		dbContext.Dungeons.Remove(dungeon);
+		await dbContext.SaveChangesAsync(ct);
+
+		return true;
 	}
 }

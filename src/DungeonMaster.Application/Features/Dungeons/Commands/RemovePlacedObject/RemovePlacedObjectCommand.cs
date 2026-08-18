@@ -18,4 +18,4 @@ public record RemovePlacedObjectCommand(
 	Guid DungeonId,
 	Guid FloorId,
 	Guid ObjectId)
-		: ICommand<bool>;
+		: ICommand;

@@ -12,7 +12,7 @@ public class AreaOutlineTests
 	{
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
-		var area = dungeon.AddArea(floor.Id, "Room", null);
+		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
 		var outline = new List<PathSegment>
 		{
@@ -63,7 +63,7 @@ public class AreaOutlineTests
 	{
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
-		var area = dungeon.AddArea(floor.Id, "Chapel", null);
+		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(100f, 100f),

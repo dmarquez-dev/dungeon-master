@@ -1,3 +1,4 @@
+using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 using FluentAssertions;
@@ -23,7 +24,7 @@ public class DeleteDungeonCommandHandlerTests
 	}
 
 	/// <summary>
-	///		Verifies that a valid identifier produces a successful result with a value of <see langword="true"/> and that <see cref="IDungeonWriteRepository.DeleteAsync"/> is called exactly once.
+	///		Verifies that a valid identifier produces a successful result and that <see cref="IDungeonWriteRepository.DeleteAsync"/> is called exactly once.
 	/// </summary>
 	[Fact]
 	public async Task HandleAsync_WithValidId_ReturnsSuccess()
@@ -35,7 +36,7 @@ public class DeleteDungeonCommandHandlerTests
 			.DeleteAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+			.Returns(true);
 
 		var command = new DeleteDungeonCommand(id);
 
@@ -46,13 +47,40 @@ public class DeleteDungeonCommandHandlerTests
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
-		result.Value.Should().BeTrue();
 
 		await _writeRepository
 			.Received(1)
 			.DeleteAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	///		Verifies that an identifier the repository could not delete produces a not-found failure naming the dungeon.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownId_ReturnsNotFound()
+	{
+		// Arrange
+		var id = Guid.NewGuid();
+
+		_writeRepository
+			.DeleteAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
+			.Returns(false);
+
+		var command = new DeleteDungeonCommand(id);
+
+		// Act
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
+
+		// Assert
+		result.IsFailure.Should().BeTrue();
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		result.Error.Should().Contain(id.ToString());
 	}
 
 	/// <summary>
@@ -70,7 +98,7 @@ public class DeleteDungeonCommandHandlerTests
 				Arg.Do<Guid>(id =>
 					capturedId = id),
 				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+			.Returns(true);
 
 		var command = new DeleteDungeonCommand(expectedId);
 

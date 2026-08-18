@@ -48,7 +48,6 @@ public class UpdateAreaOutlineCommandHandlerTests
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
-		result.Value.Should().BeTrue();
 		area.Outline.Should().HaveCount(3);
 	}
 
@@ -72,5 +71,42 @@ public class UpdateAreaOutlineCommandHandlerTests
 		// Assert
 		result.IsSuccess.Should().BeFalse();
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+	}
+
+	/// <summary>
+	///		Verifies that an unknown area identifier reports not-found and does not write the unchanged aggregate back.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownAreaId_ReturnsNotFoundAndDoesNotSave()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Ground");
+
+		_writeRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
+
+		var command = new UpdateAreaOutlineCommand(
+			dungeon.Id,
+			floor.Id,
+			Guid.NewGuid(),
+			[]);
+
+		// Act
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
+
+		// Assert
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+
+		await _writeRepository
+			.DidNotReceive()
+			.UpdateAsync(
+				Arg.Any<Dungeon>(),
+				Arg.Any<CancellationToken>());
 	}
 }

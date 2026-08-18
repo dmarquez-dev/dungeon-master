@@ -60,4 +60,34 @@ public class AddAreaCommandHandlerTests
 		result.IsSuccess.Should().BeFalse();
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 	}
+
+	[Fact]
+	public async Task HandleAsync_WithUnknownFloor_ReturnsNotFoundFailureNamingTheFloor()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Test Dungeon");
+		dungeon.AddFloor("Ground");
+		var floorId = Guid.NewGuid();
+		_writeRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
+
+		var command = new AddAreaCommand(
+			dungeon.Id,
+			floorId,
+			"Orphan Area",
+			null);
+
+		// Act
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
+
+		// Assert
+		result.IsSuccess.Should().BeFalse();
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		result.Error.Should().Contain(floorId.ToString());
+	}
 }

@@ -26,4 +26,4 @@ public record UpdateFloorCommand(
 	string? Name,
 	string? Description,
 	string? Notes)
-		: ICommand<bool>;
+		: ICommand;

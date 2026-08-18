@@ -1,42 +1,29 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Handlers;
 using DungeonMaster.Application.Common.Results;
+using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
 
 /// <summary>
-///		Handles the <see cref="RemovePlacedObjectCommand"/> by loading the dungeon aggregate,
-///		removing the placed object, and persisting the change.
-///		Returns a not-found result if the dungeon does not exist.
-///		Has no effect if the floor or object is not found within the aggregate.
+///		Handles the <see cref="RemovePlacedObjectCommand"/> by loading the dungeon aggregate, removing the placed object, and persisting the change.
+///		Returns a not-found result if no dungeon exists with the given identifier, or if the aggregate has no matching floor or placed object.
 /// </summary>
 public sealed class RemovePlacedObjectCommandHandler(
 	IDungeonWriteRepository writeRepository)
-		: ICommandHandler<RemovePlacedObjectCommand, bool>
+		: ICommandHandler<RemovePlacedObjectCommand>
 {
 	/// <inheritdoc/>
-	public async Task<Result<bool>> HandleAsync(
+	public Task<Result> HandleAsync(
 		RemovePlacedObjectCommand command,
-		CancellationToken ct)
-	{
-		var dungeon = await writeRepository.LoadAsync(
-			command.DungeonId,
-			ct);
-
-		if (dungeon is null)
-		{
-			return Result<bool>.Failure(
-				$"Dungeon {command.DungeonId} not found.",
-				ErrorCategory.NotFound);
-		}
-
-		dungeon.RemovePlacedObject(
-			command.FloorId,
-			command.ObjectId);
-
-		await writeRepository.UpdateAsync(
-			dungeon,
-			ct);
-
-		return Result<bool>.Success(true);
-	}
+		CancellationToken ct) =>
+			writeRepository.MutateAsync(
+				command.DungeonId,
+				dungeon =>
+					dungeon
+						.RemovePlacedObject(
+							command.FloorId,
+							command.ObjectId)
+						.ToResult($"Placed object {command.ObjectId} not found."),
+				ct);
 }

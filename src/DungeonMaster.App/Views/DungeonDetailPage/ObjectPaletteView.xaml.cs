@@ -71,40 +71,46 @@ public partial class ObjectPaletteView : ContentView
 			// so the dropdown popup (isolated visual tree) picks it up via ThemeResource lookup.
 			cb.Loaded += (_, _) =>
 			{
+				var border = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.BorderToolChip));
+				var bg = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceToolChip));
+				var popup = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceToolPanel));
+				var text = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.TextToolPanel));
+				var hover = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceComboItemHover));
+				var pressed = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceComboItemPressed));
+				var transp = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+
+				var d = new Microsoft.UI.Xaml.ResourceDictionary();
+				d["ComboBoxDropDownBackground"] = popup;
+				d["ComboBoxDropDownBorderBrush"] = border;
+				d["ComboBoxDropDownGlyphForeground"] = text;
+				d["ComboBoxDropDownGlyphForegroundFocused"] = text;
+				d["ComboBoxItemPillFillBrush"] = border; // accent pill → gold
+				d["ComboBoxItemForeground"] = text;
+				d["ComboBoxItemForegroundPointerOver"] = text;
+				d["ComboBoxItemForegroundSelected"] = text;
+				d["ComboBoxItemForegroundSelectedUnfocused"] = text;
+				d["ComboBoxItemForegroundPressed"] = text;
+				d["ComboBoxItemBackground"] = transp;
+				d["ComboBoxItemBackgroundPointerOver"] = hover;
+				d["ComboBoxItemBackgroundPressed"] = pressed;
+				d["ComboBoxItemBackgroundSelected"] = bg;
+				d["ComboBoxItemBackgroundSelectedPointerOver"] = hover;
+				d["ComboBoxItemBackgroundSelectedUnfocused"] = bg;
+
+				// Only the theme-dictionary attachment can fail in a way we choose to absorb: the
+				// WinUI resource system rejects a duplicate or ill-typed key rather than degrading.
+				// Anything wider — an OOM, or a bug in the tree walk below — must surface.
 				try
 				{
-					var border = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.BorderToolChip));
-					var bg = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceToolChip));
-					var popup = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceToolPanel));
-					var text = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.TextToolPanel));
-					var hover = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceComboItemHover));
-					var pressed = new Microsoft.UI.Xaml.Media.SolidColorBrush(DmTheme.ToPlatform(DmTheme.SurfaceComboItemPressed));
-					var transp = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-
-					var d = new Microsoft.UI.Xaml.ResourceDictionary();
-					d["ComboBoxDropDownBackground"] = popup;
-					d["ComboBoxDropDownBorderBrush"] = border;
-					d["ComboBoxDropDownGlyphForeground"] = text;
-					d["ComboBoxDropDownGlyphForegroundFocused"] = text;
-					d["ComboBoxItemPillFillBrush"] = border; // accent pill → gold
-					d["ComboBoxItemForeground"] = text;
-					d["ComboBoxItemForegroundPointerOver"] = text;
-					d["ComboBoxItemForegroundSelected"] = text;
-					d["ComboBoxItemForegroundSelectedUnfocused"] = text;
-					d["ComboBoxItemForegroundPressed"] = text;
-					d["ComboBoxItemBackground"] = transp;
-					d["ComboBoxItemBackgroundPointerOver"] = hover;
-					d["ComboBoxItemBackgroundPressed"] = pressed;
-					d["ComboBoxItemBackgroundSelected"] = bg;
-					d["ComboBoxItemBackgroundSelectedPointerOver"] = hover;
-					d["ComboBoxItemBackgroundSelectedUnfocused"] = bg;
-
 					cb.Resources.ThemeDictionaries["Light"] = d;
-
-					// Walk the closed-state visual tree to set ellipsis trimming on the header TextBlock.
-					SetTextTrimmingOnChildren(cb, depth: 0);
 				}
-				catch { /* non-critical visual styling — fail silently */ }
+				catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.Runtime.InteropServices.COMException)
+				{
+					System.Diagnostics.Debug.WriteLine($"ObjectPaletteView: failed to attach the parchment Light theme dictionary to the pack ComboBox. {ex}");
+				}
+
+				// Walk the closed-state visual tree to set ellipsis trimming on the header TextBlock.
+				SetTextTrimmingOnChildren(cb, depth: 0);
 			};
 		};
 #endif

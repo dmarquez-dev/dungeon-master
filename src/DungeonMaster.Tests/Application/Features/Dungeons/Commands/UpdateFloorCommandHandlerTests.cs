@@ -38,7 +38,6 @@ public class UpdateFloorCommandHandlerTests
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
-		result.Value.Should().BeTrue();
 		floor.Name.Should().Be("New Name");
 		floor.Notes.Should().Be("Some notes");
 	}
@@ -89,5 +88,43 @@ public class UpdateFloorCommandHandlerTests
 		floor.Name.Should().Be("Crypt");
 		floor.Description.Should().Be("The air grows cold as you descend.");
 		floor.Notes.Should().Be("Ghasts on the stairs.");
+	}
+
+	/// <summary>
+	///		Verifies that an unknown floor identifier reports not-found and does not write the unchanged aggregate back.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownFloorId_ReturnsNotFoundAndDoesNotSave()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Test Dungeon");
+		dungeon.AddFloor("Ground");
+
+		_writeRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
+
+		var command = new UpdateFloorCommand(
+			dungeon.Id,
+			Guid.NewGuid(),
+			"New Name",
+			null,
+			null);
+
+		// Act
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
+
+		// Assert
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+
+		await _writeRepository
+			.DidNotReceive()
+			.UpdateAsync(
+				Arg.Any<Dungeon>(),
+				Arg.Any<CancellationToken>());
 	}
 }

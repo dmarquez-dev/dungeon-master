@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DungeonMaster.Application.Common.Results;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
@@ -78,7 +79,7 @@ public partial class DungeonListViewModel(AppDispatcher dispatcher) : Observable
 	[RelayCommand]
 	private async Task DeleteDungeonAsync(Guid id)
 	{
-		var result = await dispatcher.SendAsync<bool>(
+		var result = await dispatcher.SendAsync(
 			new DeleteDungeonCommand(id),
 			CancellationToken.None);
 
@@ -88,7 +89,7 @@ public partial class DungeonListViewModel(AppDispatcher dispatcher) : Observable
 		}
 		else
 		{
-			ErrorMessage = result.Error;
+			ErrorMessage = ResultMessage.ForFailure(result);
 		}
 	}
 

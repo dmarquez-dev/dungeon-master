@@ -44,7 +44,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 
 		var obj = floor.Objects[0];
 		_writeRepository
-			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new UpdatePlacedObjectCommand(
@@ -55,7 +57,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.CW90);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
@@ -65,7 +69,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 
 		await _writeRepository
 			.Received(1)
-			.UpdateAsync(dungeon, Arg.Any<CancellationToken>());
+			.UpdateAsync(
+				dungeon,
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -76,7 +82,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 	{
 		// Arrange
 		_writeRepository
-			.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+			.LoadAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
 			.Returns((Dungeon?)null);
 
 		var command = new UpdatePlacedObjectCommand(
@@ -87,7 +95,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeFalse();
@@ -95,16 +105,18 @@ public class UpdatePlacedObjectCommandHandlerTests
 	}
 
 	/// <summary>
-	///		Verifies that an unknown floor ID is a silent no-op at the domain level;
-	///		the handler still persists the aggregate and returns success.
+	///		Verifies that an unknown floor identifier reports not-found and does not write the unchanged aggregate back.
 	/// </summary>
 	[Fact]
-	public async Task HandleAsync_FloorNotFound_ReturnsSuccessWithNoChange()
+	public async Task HandleAsync_WithUnknownFloorId_ReturnsNotFoundAndDoesNotSave()
 	{
 		// Arrange
 		var dungeon = new Dungeon("D", null);
+
 		_writeRepository
-			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new UpdatePlacedObjectCommand(
@@ -115,22 +127,25 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
 		await _writeRepository
-			.Received(1)
-			.UpdateAsync(dungeon, Arg.Any<CancellationToken>());
+			.DidNotReceive()
+			.UpdateAsync(
+				Arg.Any<Dungeon>(),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	///		Verifies that an unknown object ID on a valid floor is a silent no-op at the domain level;
-	///		the handler still persists the aggregate and returns success, leaving existing objects untouched.
+	///		Verifies that an unknown object identifier on a valid floor reports not-found, leaves existing objects untouched, and does not write the unchanged aggregate back.
 	/// </summary>
 	[Fact]
-	public async Task HandleAsync_ObjectNotFound_ReturnsSuccessWithNoChange()
+	public async Task HandleAsync_WithUnknownObjectId_ReturnsNotFoundAndDoesNotSave()
 	{
 		// Arrange
 		var dungeon = new Dungeon("D");
@@ -145,7 +160,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 		var theObj = floor.Objects.Should().ContainSingle().Which;
 		var originalPos = theObj.Position;
 		_writeRepository
-			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new UpdatePlacedObjectCommand(
@@ -156,15 +173,19 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.CW180);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
 		// Assert
-		result.IsSuccess.Should().BeTrue();
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		theObj.Position.Should().Be(originalPos);
 
 		await _writeRepository
-			.Received(1)
-			.UpdateAsync(dungeon, Arg.Any<CancellationToken>());
+			.DidNotReceive()
+			.UpdateAsync(
+				Arg.Any<Dungeon>(),
+				Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -185,7 +206,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 
 		var obj = floor.Objects.Should().ContainSingle().Which;
 		_writeRepository
-			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new UpdatePlacedObjectCommand(
@@ -197,7 +220,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 			NewScale: 1.5f);
 
 		// Act
-		await _handler.HandleAsync(command, CancellationToken.None);
+		await _handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
 		// Assert
 		obj.Scale.Should().BeApproximately(1.5f, 0.001f);

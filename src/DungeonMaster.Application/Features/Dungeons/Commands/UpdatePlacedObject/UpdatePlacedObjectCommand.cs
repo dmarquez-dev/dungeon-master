@@ -32,4 +32,4 @@ public record UpdatePlacedObjectCommand(
 	CanvasPoint NewPosition,
 	ObjectRotation NewRotation,
 	float NewScale = ObjectScale.Default)
-		: ICommand<bool>;
+		: ICommand;

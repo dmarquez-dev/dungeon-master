@@ -1,3 +1,4 @@
+using DungeonMaster.Domain.Entities;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
@@ -57,18 +58,18 @@ public class FloorObjectMethodsTests
 
 		var removed = floor.RemoveObject(obj.Id);
 
-		removed.Should().BeTrue();
+		removed.Should().Be(MutationOutcome.Success);
 		floor.Objects.Should().BeEmpty();
 	}
 
 	[Fact]
-	public void RemoveObject_UnknownId_ReturnsFalse()
+	public void RemoveObject_UnknownId_ReturnsNotFound()
 	{
 		var floor = CreateFloor();
 
 		var removed = floor.RemoveObject(Guid.NewGuid());
 
-		removed.Should().BeFalse();
+		removed.Should().Be(MutationOutcome.NotFound);
 	}
 
 	[Fact]
@@ -87,14 +88,14 @@ public class FloorObjectMethodsTests
 			ObjectRotation.CW90,
 			2.0f);
 
-		updated.Should().BeTrue();
+		updated.Should().Be(MutationOutcome.Success);
 		obj.Position.Should().Be(newPos);
 		obj.Rotation.Should().Be(ObjectRotation.CW90);
 		obj.Scale.Should().Be(2.0f);
 	}
 
 	[Fact]
-	public void UpdateObject_UnknownId_ReturnsFalse()
+	public void UpdateObject_UnknownId_ReturnsNotFound()
 	{
 		var floor = CreateFloor();
 
@@ -104,7 +105,7 @@ public class FloorObjectMethodsTests
 			ObjectRotation.None,
 			1.0f);
 
-		updated.Should().BeFalse();
+		updated.Should().Be(MutationOutcome.NotFound);
 	}
 
 	[Fact]
@@ -112,7 +113,7 @@ public class FloorObjectMethodsTests
 	{
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
-		var area = dungeon.AddArea(floor.Id, "Chapel", null);
+		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(50f, 50f),

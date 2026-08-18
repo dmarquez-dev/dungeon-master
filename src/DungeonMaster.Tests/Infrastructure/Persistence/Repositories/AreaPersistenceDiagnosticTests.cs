@@ -38,7 +38,7 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 		var floor = dungeon.AddFloor(null);
-		var area = dungeon.AddArea(floor.Id, "New Area", null);
+		var area = dungeon.AddArea(floor.Id, "New Area", null)!;
 
 		using var ctx = CreateContext();
 		var repo = new DungeonWriteRepository(ctx);

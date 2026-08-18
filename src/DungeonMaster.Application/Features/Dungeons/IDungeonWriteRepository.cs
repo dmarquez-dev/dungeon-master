@@ -58,7 +58,10 @@ public interface IDungeonWriteRepository
 	/// <param name="ct">
 	///		Token used to cancel the operation.
 	/// </param>
-	Task DeleteAsync(
+	/// <returns>
+	///		<see langword="true"/> when a dungeon with the given identifier was found and deleted; otherwise <see langword="false"/>.
+	/// </returns>
+	Task<bool> DeleteAsync(
 		Guid id,
 		CancellationToken ct);
 }

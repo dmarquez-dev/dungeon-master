@@ -58,22 +58,22 @@ public sealed partial class Floor
 	///		The unique identifier of the object to remove.
 	/// </param>
 	/// <returns>
-	///		<see langword="true"/> if the object was found and removed; otherwise <see langword="false"/>.
+	///		<see cref="MutationOutcome.Success"/> when the object was removed, or <see cref="MutationOutcome.NotFound"/> when no object with the given identifier exists.
 	/// </returns>
-	internal bool RemoveObject(Guid objectId)
+	internal MutationOutcome RemoveObject(Guid objectId)
 	{
 		var obj = _objects.FirstOrDefault(placedObject =>
 			placedObject.Id == objectId);
 
 		if (obj is null)
 		{
-			return false;
+			return MutationOutcome.NotFound;
 		}
 
 		_objects.Remove(obj);
 		Touch();
 
-		return true;
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -91,9 +91,9 @@ public sealed partial class Floor
 	///		The new rotation.
 	/// </param>
 	/// <returns>
-	///		<see langword="true"/> if the object was found and updated; otherwise <see langword="false"/>.
+	///		<see cref="MutationOutcome.Success"/> when the object was updated, or <see cref="MutationOutcome.NotFound"/> when no object with the given identifier exists.
 	/// </returns>
-	internal bool UpdateObject(
+	internal MutationOutcome UpdateObject(
 		Guid objectId,
 		CanvasPoint newPosition,
 		ObjectRotation newRotation)
@@ -103,13 +103,13 @@ public sealed partial class Floor
 
 		if (obj is null)
 		{
-			return false;
+			return MutationOutcome.NotFound;
 		}
 
 		obj.Update(newPosition, newRotation);
 		Touch();
 
-		return true;
+		return MutationOutcome.Success;
 	}
 
 	/// <summary>
@@ -129,9 +129,9 @@ public sealed partial class Floor
 	///		The new scale multiplier.
 	/// </param>
 	/// <returns>
-	///		<see langword="true"/> if the object was found and updated; otherwise <see langword="false"/>.
+	///		<see cref="MutationOutcome.Success"/> when the object was updated, or <see cref="MutationOutcome.NotFound"/> when no object with the given identifier exists.
 	/// </returns>
-	internal bool UpdateObject(
+	internal MutationOutcome UpdateObject(
 		Guid objectId,
 		CanvasPoint newPosition,
 		ObjectRotation newRotation,
@@ -142,7 +142,7 @@ public sealed partial class Floor
 
 		if (obj is null)
 		{
-			return false;
+			return MutationOutcome.NotFound;
 		}
 
 		obj.Update(
@@ -152,6 +152,6 @@ public sealed partial class Floor
 
 		Touch();
 
-		return true;
+		return MutationOutcome.Success;
 	}
 }

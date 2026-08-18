@@ -1,4 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Handlers;
 using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons;
 
@@ -13,27 +14,15 @@ public sealed class AddFloorCommandHandler(
 		: ICommandHandler<AddFloorCommand, Guid>
 {
 	/// <inheritdoc/>
-	public async Task<Result<Guid>> HandleAsync(
+	public Task<Result<Guid>> HandleAsync(
 		AddFloorCommand command,
-		CancellationToken ct)
-	{
-		var dungeon = await writeRepository.LoadAsync(
-			command.DungeonId,
-			ct);
-
-		if (dungeon is null)
-		{
-			return Result<Guid>.Failure(
-				$"Dungeon {command.DungeonId} not found.",
-				ErrorCategory.NotFound);
-		}
-
-		var floor = dungeon.AddFloor(command.Name);
-
-		await writeRepository.UpdateAsync(
-			dungeon,
-			ct);
-
-		return Result<Guid>.Success(floor.Id);
-	}
+		CancellationToken ct) =>
+			writeRepository.MutateAsync(
+				command.DungeonId,
+				dungeon =>
+					Result<Guid>.Success(
+						dungeon
+							.AddFloor(command.Name)
+							.Id),
+				ct);
 }

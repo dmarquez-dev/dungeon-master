@@ -6,20 +6,25 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 
 /// <summary>
 ///		Handles the <see cref="DeleteDungeonCommand"/> by permanently removing the specified dungeon.
+///		Returns a not-found result if no dungeon exists with the given identifier.
 /// </summary>
 public sealed class DeleteDungeonCommandHandler(
 	IDungeonWriteRepository writeRepository)
-		: ICommandHandler<DeleteDungeonCommand, bool>
+		: ICommandHandler<DeleteDungeonCommand>
 {
 	/// <inheritdoc/>
-	public async Task<Result<bool>> HandleAsync(
+	public async Task<Result> HandleAsync(
 		DeleteDungeonCommand command,
 		CancellationToken ct)
 	{
-		await writeRepository.DeleteAsync(
+		var deleted = await writeRepository.DeleteAsync(
 			command.Id,
 			ct);
 
-		return Result<bool>.Success(true);
+		return deleted
+			? Result.Success()
+			: Result.Failure(
+				$"Dungeon {command.Id} not found.",
+				ErrorCategory.NotFound);
 	}
 }

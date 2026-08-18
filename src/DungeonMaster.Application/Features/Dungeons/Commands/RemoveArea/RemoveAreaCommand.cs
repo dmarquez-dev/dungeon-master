@@ -18,4 +18,4 @@ public record RemoveAreaCommand(
 	Guid DungeonId,
 	Guid FloorId,
 	Guid AreaId)
-		: ICommand<bool>;
+		: ICommand;

@@ -8,6 +8,22 @@ namespace DungeonMaster.Application.Common.Dispatch;
 public interface IDispatcher
 {
 	/// <summary>
+	///		Sends a command that produces no value through the pipeline and returns the result.
+	/// </summary>
+	/// <param name="command">
+	///		The command to dispatch.
+	/// </param>
+	/// <param name="ct">
+	///		Token used to cancel the operation.
+	/// </param>
+	/// <returns>
+	///		A <see cref="Result"/> representing the outcome of the command.
+	/// </returns>
+	Task<Result> SendAsync(
+		ICommand command,
+		CancellationToken ct = default);
+
+	/// <summary>
 	///		Sends a command through the pipeline and returns the result.
 	/// </summary>
 	/// <typeparam name="TResult">

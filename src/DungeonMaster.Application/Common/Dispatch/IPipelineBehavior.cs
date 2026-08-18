@@ -1,24 +1,22 @@
-using DungeonMaster.Application.Common.Results;
-
 namespace DungeonMaster.Application.Common.Dispatch;
 
 /// <summary>
-///		Defines a pipeline stage that wraps command handling with cross-cutting behavior.
+///		Defines a pipeline stage that wraps request handling with cross-cutting behavior.
 /// </summary>
-/// <typeparam name="TCommand">
-///		The command type this behavior applies to.
+/// <typeparam name="TRequest">
+///		The request type this behavior applies to.
 /// </typeparam>
-/// <typeparam name="TResult">
-///		The type of the value returned by the command on success.
+/// <typeparam name="TResponse">
+///		The type the handler returns, including any result wrapper.
 /// </typeparam>
-public interface IPipelineBehavior<in TCommand, TResult>
-	where TCommand : ICommand<TResult>
+public interface IPipelineBehavior<in TRequest, TResponse>
+	where TRequest : IRequest<TResponse>
 {
 	/// <summary>
 	///		Executes the behavior and invokes the next stage in the pipeline.
 	/// </summary>
-	/// <param name="command">
-	///		The command being processed.
+	/// <param name="request">
+	///		The request being processed.
 	/// </param>
 	/// <param name="next">
 	///		A delegate that invokes the next stage in the pipeline.
@@ -27,10 +25,10 @@ public interface IPipelineBehavior<in TCommand, TResult>
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
-	///		A <see cref="Result{TResult}"/> representing the outcome of the pipeline execution.
+	///		The response produced by the pipeline.
 	/// </returns>
-	Task<Result<TResult>> HandleAsync(
-		TCommand command,
-		Func<Task<Result<TResult>>> next,
+	Task<TResponse> HandleAsync(
+		TRequest request,
+		Func<Task<TResponse>> next,
 		CancellationToken ct);
 }
