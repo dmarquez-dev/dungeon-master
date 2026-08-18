@@ -6,4 +6,7 @@ namespace DungeonMaster.Application.Common.Dispatch;
 /// <typeparam name="TResult">
 ///		The type of the data returned by the query.
 /// </typeparam>
-public interface IQuery<TResult> { }
+public interface IQuery<TResult>
+	: IRequest<TResult>
+{
+}

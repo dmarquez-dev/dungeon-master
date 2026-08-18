@@ -278,6 +278,143 @@ public class ValidationBehaviorTests
 		await act.Should().NotThrowAsync();
 	}
 
+	/// <summary>
+	///		Verifies that the no-payload arity reaches the non-generic validation failure factory, carrying the same failures the value arity produces from the same validators.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithFailures_ReturnsNonGenericValidationFailure()
+	{
+		// Arrange
+		var failures = new[]
+		{
+			new ValidationFailure(
+				"Name",
+				"Name is required."),
+			new ValidationFailure(
+				"DungeonId",
+				"DungeonId must not be empty."),
+		};
+
+		var noPayloadCommand = new NoPayloadTestCommand("Goblin Warren");
+		var nextCalled = false;
+
+		var behavior = new ValidationBehavior<NoPayloadTestCommand>(
+			[NoPayloadValidatorReturning(failures)]);
+
+		var valueArity = new ValidationBehavior<TestCommand, Guid>([ValidatorReturning(failures)]);
+
+		// Act
+		var result = await behavior.HandleAsync(
+			noPayloadCommand,
+			() =>
+			{
+				nextCalled = true;
+
+				return Task.FromResult(Result.Success());
+			},
+			CancellationToken.None);
+
+		var valueResult = await valueArity.HandleAsync(
+			_command,
+			() =>
+				Task.FromResult(Result<Guid>.Success(Guid.NewGuid())),
+			CancellationToken.None);
+
+		// Assert
+		nextCalled.Should().BeFalse();
+		result.IsFailure.Should().BeTrue();
+		result.ErrorCategory.Should().Be(ErrorCategory.Validation);
+		result.ValidationErrors.Should().HaveCount(valueResult.ValidationErrors.Count);
+		result.Error.Should().Contain("Name is required.");
+		result.Error.Should().Contain("DungeonId must not be empty.");
+	}
+
+	/// <summary>
+	///		Verifies that a no-payload command whose validators all pass reaches the next stage of the pipeline.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithPassingValidator_CallsNextOnTheNoPayloadArity()
+	{
+		// Arrange
+		var nextCalled = false;
+
+		var behavior = new ValidationBehavior<NoPayloadTestCommand>([NoPayloadValidatorReturning()]);
+
+		// Act
+		var result = await behavior.HandleAsync(
+			new NoPayloadTestCommand("Goblin Warren"),
+			() =>
+			{
+				nextCalled = true;
+
+				return Task.FromResult(Result.Success());
+			},
+			CancellationToken.None);
+
+		// Assert
+		nextCalled.Should().BeTrue();
+		result.IsSuccess.Should().BeTrue();
+	}
+
+	/// <summary>
+	///		Verifies that the no-payload arity hands the cancellation token it was called with to every validator.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WhenCalled_PassesTheTokenToEveryValidatorOnTheNoPayloadArity()
+	{
+		// Arrange
+		using var source = new CancellationTokenSource();
+
+		var token = source.Token;
+		var firstReceived = CancellationToken.None;
+		var secondReceived = CancellationToken.None;
+
+		var first = Substitute.For<IValidator<NoPayloadTestCommand>>();
+
+		first
+			.ValidateAsync(
+				Arg.Any<ValidationContext<NoPayloadTestCommand>>(),
+				Arg.Do<CancellationToken>(received =>
+					firstReceived = received))
+			.Returns(Task.FromResult(new ValidationResult()));
+
+		var second = Substitute.For<IValidator<NoPayloadTestCommand>>();
+
+		second
+			.ValidateAsync(
+				Arg.Any<ValidationContext<NoPayloadTestCommand>>(),
+				Arg.Do<CancellationToken>(received =>
+					secondReceived = received))
+			.Returns(Task.FromResult(new ValidationResult()));
+
+		var behavior = new ValidationBehavior<NoPayloadTestCommand>([first, second]);
+
+		// Act
+		await behavior.HandleAsync(
+			new NoPayloadTestCommand("Goblin Warren"),
+			() =>
+				Task.FromResult(Result.Success()),
+			token);
+
+		// Assert
+		firstReceived.Should().Be(token);
+		secondReceived.Should().Be(token);
+	}
+
+	private static IValidator<NoPayloadTestCommand> NoPayloadValidatorReturning(
+		params ValidationFailure[] failures)
+	{
+		var validator = Substitute.For<IValidator<NoPayloadTestCommand>>();
+
+		validator
+			.ValidateAsync(
+				Arg.Any<ValidationContext<NoPayloadTestCommand>>(),
+				Arg.Any<CancellationToken>())
+			.Returns(Task.FromResult(new ValidationResult(failures)));
+
+		return validator;
+	}
+
 	private static IValidator<TestCommand> ValidatorReturning(
 		params ValidationFailure[] failures)
 	{
@@ -300,6 +437,15 @@ public class ValidationBehaviorTests
 	/// </param>
 	public sealed record TestCommand(string Name)
 		: ICommand<Guid>;
+
+	/// <summary>
+	///		A no-payload command defined solely for these tests, so that the production command set can change without breaking them.
+	/// </summary>
+	/// <param name="Name">
+	///		The name carried by the command.
+	/// </param>
+	public sealed record NoPayloadTestCommand(string Name)
+		: ICommand;
 
 	/// <summary>
 	///		A real validator carrying an asynchronous rule, used to prove the behavior never invokes a validator synchronously.

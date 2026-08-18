@@ -5,6 +5,40 @@ using FluentValidation;
 namespace DungeonMaster.Application.Common.Behaviors;
 
 /// <summary>
+///		Rejects a no-payload command that fails validation, before the handler runs.
+/// </summary>
+/// <typeparam name="TCommand">
+///		The command type being validated.
+/// </typeparam>
+/// <param name="validators">
+///		The validators registered for the command type.
+/// </param>
+public sealed class ValidationBehavior<TCommand>(
+	IEnumerable<IValidator<TCommand>> validators)
+		: IPipelineBehavior<TCommand, Result>
+			where TCommand : ICommand
+{
+	/// <inheritdoc/>
+	public async Task<Result> HandleAsync(
+		TCommand command,
+		Func<Task<Result>> next,
+		CancellationToken ct)
+	{
+		var errors = await ValidationFailureCollector.CollectAsync(
+			validators,
+			command,
+			ct);
+
+		if (errors.Count > 0)
+		{
+			return Result.ValidationFailure(errors);
+		}
+
+		return await next();
+	}
+}
+
+/// <summary>
 ///		Rejects a value-producing command that fails validation, before the handler runs.
 /// </summary>
 /// <typeparam name="TCommand">
@@ -18,7 +52,7 @@ namespace DungeonMaster.Application.Common.Behaviors;
 /// </param>
 public sealed class ValidationBehavior<TCommand, TResult>(
 	IEnumerable<IValidator<TCommand>> validators)
-		: IPipelineBehavior<TCommand, TResult>
+		: IPipelineBehavior<TCommand, Result<TResult>>
 			where TCommand : ICommand<TResult>
 {
 	/// <inheritdoc/>
