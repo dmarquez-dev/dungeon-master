@@ -1,0 +1,171 @@
+using DungeonMaster.Application.Common.Interfaces;
+using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Infrastructure.Persistence;
+using DungeonMaster.Infrastructure.Persistence.Repositories;
+using DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
+using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+
+namespace DungeonMaster.Tests.Infrastructure.Persistence.Configurations;
+
+/// <summary>
+///		Covers the <c>ValueComparer</c> that <c>AreaConfiguration</c> supplies alongside the outline JSON conversion (INFRA-004 / MASTER-015).
+///		Without it EF compares the converted reference type by reference, and <c>Area.Outline</c> hands back a fresh <c>AsReadOnly</c> wrapper on every read, so the snapshot and the current value are never the same instance and every tracked area is reported as modified.
+/// </summary>
+public class AreaOutlineChangeTrackingTests : IDisposable
+{
+	private readonly SqliteConnection _connection;
+	private readonly DbContextOptions<AppDbContext> _options;
+
+	public AreaOutlineChangeTrackingTests()
+	{
+		_connection = new SqliteConnection("Data Source=:memory:");
+		_connection.Open();
+
+		_options = new DbContextOptionsBuilder<AppDbContext>()
+			.UseSqlite(_connection)
+			.Options;
+
+		using var context = new AppDbContext(_options);
+		context.Database.EnsureCreated();
+	}
+
+	public void Dispose() => _connection.Dispose();
+
+	private IUnitOfWorkFactory CreateFactory() =>
+		new UnitOfWorkFactory(new TestDbContextFactory(_options));
+
+	private static IReadOnlyList<PathSegment> Outline() =>
+	[
+		new PathSegment(
+			PathSegmentKind.Line,
+			new TilePoint(0, 0),
+			null,
+			null),
+		new PathSegment(
+			PathSegmentKind.Line,
+			new TilePoint(4, 0),
+			null,
+			null),
+		new PathSegment(
+			PathSegmentKind.CubicBezier,
+			new TilePoint(4, 4),
+			new TilePoint(6, 1),
+			new TilePoint(6, 3)),
+	];
+
+	private async Task<Guid> SeedAsync()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
+		var floor = dungeon.AddFloor(null);
+		var area = dungeon.AddArea(floor.Id, "Nave", null)!;
+
+		dungeon.UpdateAreaOutline(
+			floor.Id,
+			area.Id,
+			Outline());
+
+		await using var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None);
+		unitOfWork.Dungeons.Add(dungeon);
+		await unitOfWork.CommitAsync(CancellationToken.None);
+
+		return dungeon.Id;
+	}
+
+	[Fact]
+	public async Task CommitAsync_AfterLoadingAnUnmodifiedArea_WritesNothing()
+	{
+		// Arrange
+		var dungeonId = await SeedAsync();
+
+		// Act
+		await using var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None);
+
+		var loaded = await unitOfWork.Dungeons.LoadAsync(
+			dungeonId,
+			CancellationToken.None);
+
+		var written = await unitOfWork.CommitAsync(CancellationToken.None);
+
+		// Assert
+		loaded!.Floors.Single().Areas.Single().Outline.Should().HaveCount(3);
+		written.Should().Be(0);
+	}
+
+	[Fact]
+	public async Task CommitAsync_AfterAGenuineOutlineEdit_StillWritesTheArea()
+	{
+		// Arrange
+		var dungeonId = await SeedAsync();
+
+		// Act
+		await using var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None);
+
+		var loaded = await unitOfWork.Dungeons.LoadAsync(
+			dungeonId,
+			CancellationToken.None);
+
+		var floor = loaded!.Floors.Single();
+
+		loaded.UpdateAreaOutline(
+			floor.Id,
+			floor.Areas.Single().Id,
+			[
+				new PathSegment(
+					PathSegmentKind.Line,
+					new TilePoint(9, 9),
+					null,
+					null),
+			]);
+
+		unitOfWork.Dungeons.Update(loaded);
+
+		var written = await unitOfWork.CommitAsync(CancellationToken.None);
+
+		// Assert
+		written.Should().BeGreaterThan(0);
+	}
+
+	[Fact]
+	public async Task LoadAsync_AfterAnOutlineEdit_ReturnsTheEditedOutline()
+	{
+		// Arrange
+		var dungeonId = await SeedAsync();
+
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
+		{
+			var loaded = await unitOfWork.Dungeons.LoadAsync(
+				dungeonId,
+				CancellationToken.None);
+
+			var floor = loaded!.Floors.Single();
+
+			loaded.UpdateAreaOutline(
+				floor.Id,
+				floor.Areas.Single().Id,
+				[
+					new PathSegment(
+						PathSegmentKind.Line,
+						new TilePoint(9, 9),
+						null,
+						null),
+				]);
+
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
+		}
+
+		// Act
+		using var verify = new AppDbContext(_options);
+		var reloaded = await new DungeonWriteRepository(verify).LoadAsync(
+			dungeonId,
+			CancellationToken.None);
+
+		// Assert
+		reloaded!.Floors.Single().Areas.Single().Outline.Should().ContainSingle()
+			.Which.End.Should().Be(new TilePoint(9, 9));
+	}
+}

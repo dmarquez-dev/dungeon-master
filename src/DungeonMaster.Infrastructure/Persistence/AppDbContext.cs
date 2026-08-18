@@ -1,6 +1,4 @@
-using DungeonMaster.Domain.Entities.Area;
 using DungeonMaster.Domain.Entities.Dungeon;
-using DungeonMaster.Domain.Entities.Floor;
 using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Infrastructure.Persistence;
@@ -14,18 +12,9 @@ public sealed class AppDbContext(
 {
 	/// <summary>
 	///		Gets the set of all persisted dungeons.
+	///		<see cref="Dungeon"/> is the only aggregate root, so it is the only set exposed: <c>Floor</c>, <c>Area</c> and <c>PlacedObject</c> are reached by navigation from it.
 	/// </summary>
 	public DbSet<Dungeon> Dungeons => Set<Dungeon>();
-
-	/// <summary>
-	///		Gets the set of all persisted floors.
-	/// </summary>
-	public DbSet<Floor> Floors => Set<Floor>();
-
-	/// <summary>
-	///		Gets the set of all persisted areas.
-	/// </summary>
-	public DbSet<Area> Areas => Set<Area>();
 
 	/// <summary>
 	///		Applies all entity type configurations discovered in the executing assembly.
