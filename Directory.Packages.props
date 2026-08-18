@@ -1,0 +1,29 @@
+<Project>
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageVersion Include="CommunityToolkit.Maui" Version="14.1.0" />
+		<PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageVersion Include="coverlet.collector" Version="6.0.4" />
+		<PackageVersion Include="FluentAssertions" Version="8.9.0" />
+		<PackageVersion Include="FluentValidation" Version="12.1.1" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.41" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+		<PackageVersion Include="NSubstitute" Version="5.3.0" />
+		<!-- Held at a prerelease deliberately (MASTER-104 / XCUT-011). No stable release of
+		     Plugin.Maui.KeyListener exists: the feed offers only 1.0.0-preview1..preview4.
+		     MauiProgram.cs binds .UseKeyListener() to it. Move to the first stable 1.0.0 the
+		     moment one ships. Whether to keep the dependency at all is a Session 5 question
+		     (XCUT-011's replacement analysis), not this session's. -->
+		<PackageVersion Include="Plugin.Maui.KeyListener" Version="1.0.0-preview4" />
+		<PackageVersion Include="xunit" Version="2.9.3" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+	</ItemGroup>
+</Project>

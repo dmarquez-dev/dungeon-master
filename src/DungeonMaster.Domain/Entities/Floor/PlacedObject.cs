@@ -33,11 +33,11 @@ public sealed class PlacedObject : Entity
 				$"Scale must be between {ObjectScale.Min} and {ObjectScale.Max}.");
 		}
 
-		FloorId  = floorId;
-		Kind     = kind;
+		FloorId = floorId;
+		Kind = kind;
 		Position = position;
 		Rotation = rotation;
-		Scale    = scale;
+		Scale = scale;
 	}
 
 	/// <summary>Gets the unique identifier of the floor this object belongs to.</summary>
@@ -87,7 +87,7 @@ public sealed class PlacedObject : Entity
 
 		Position = newPosition;
 		Rotation = newRotation;
-		Scale    = newScale;
+		Scale = newScale;
 		Touch();
 	}
 }

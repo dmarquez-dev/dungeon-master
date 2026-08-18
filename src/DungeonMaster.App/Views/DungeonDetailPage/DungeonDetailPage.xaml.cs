@@ -1,4 +1,4 @@
-﻿using DungeonMaster.App.Assets.ObjectAssets;
+using DungeonMaster.App.Assets.ObjectAssets;
 using Plugin.Maui.KeyListener;
 using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Controls;
@@ -328,9 +328,9 @@ public partial class DungeonDetailPage : ContentPage
 				else
 					ToggleOrSetTool(MapTool.Draw);
 				break;
-			case 'm': ToggleOrSetTool(MapTool.Move);   break;
-			case 'h': ToggleOrSetTool(MapTool.Pan);    break;
-			case 'p': ToggleOrSetTool(MapTool.Place);  break;
+			case 'm': ToggleOrSetTool(MapTool.Move); break;
+			case 'h': ToggleOrSetTool(MapTool.Pan); break;
+			case 'p': ToggleOrSetTool(MapTool.Place); break;
 			case 's': ToggleOrSetTool(MapTool.Select); break;
 			case 'e': ToggleOrSetTool(MapTool.Erase); break;
 			case 'r':
@@ -556,84 +556,84 @@ public partial class DungeonDetailPage : ContentPage
 		switch (e.Kind)
 		{
 			case NotebookKind.Dungeon:
-			{
-				if (!string.IsNullOrWhiteSpace(e.Name))
 				{
-					_viewModel.DungeonName = e.Name;
+					if (!string.IsNullOrWhiteSpace(e.Name))
+					{
+						_viewModel.DungeonName = e.Name;
+					}
+
+					_viewModel.DungeonDescription = e.Description;
+					_viewModel.DungeonNotes = e.Notes;
+
+					await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
+
+					// SaveDungeonCommand does not reload, so the banner and the sidebar row would keep
+					// showing the pre-edit name until something else refreshed them.
+					await _viewModel.LoadDungeonCommand.ExecuteAsync(e.Id);
+
+					// A blank name never overwrote DungeonName above, so it still holds the last known
+					// good one. The notebook does not know that — it is still showing what the user
+					// typed — so tell it, unless it has since been retargeted to a different entity.
+					if (_viewModel.DungeonName != e.Name && Notebook.CurrentId == e.Id)
+					{
+						Notebook.SyncName(_viewModel.DungeonName);
+					}
+
+					break;
 				}
-
-				_viewModel.DungeonDescription = e.Description;
-				_viewModel.DungeonNotes = e.Notes;
-
-				await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
-
-				// SaveDungeonCommand does not reload, so the banner and the sidebar row would keep
-				// showing the pre-edit name until something else refreshed them.
-				await _viewModel.LoadDungeonCommand.ExecuteAsync(e.Id);
-
-				// A blank name never overwrote DungeonName above, so it still holds the last known
-				// good one. The notebook does not know that — it is still showing what the user
-				// typed — so tell it, unless it has since been retargeted to a different entity.
-				if (_viewModel.DungeonName != e.Name && Notebook.CurrentId == e.Id)
-				{
-					Notebook.SyncName(_viewModel.DungeonName);
-				}
-
-				break;
-			}
 
 			case NotebookKind.Floor:
-			{
-				// Resolved before the await, because the reload it triggers replaces this instance.
-				var lastGoodName = _viewModel.Floors
-					.FirstOrDefault(floorItem => floorItem.Id == e.Id)?.Name;
-
-				var floorName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
-
-				await _viewModel.UpdateFloorCommand.ExecuteAsync(
-					(e.Id, floorName, e.Description, e.Notes));
-
-				// Same fallback-visibility gap as the dungeon case above.
-				if (floorName != e.Name && Notebook.CurrentId == e.Id)
 				{
-					Notebook.SyncName(floorName ?? string.Empty);
-				}
+					// Resolved before the await, because the reload it triggers replaces this instance.
+					var lastGoodName = _viewModel.Floors
+						.FirstOrDefault(floorItem => floorItem.Id == e.Id)?.Name;
 
-				break;
-			}
+					var floorName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
+
+					await _viewModel.UpdateFloorCommand.ExecuteAsync(
+						(e.Id, floorName, e.Description, e.Notes));
+
+					// Same fallback-visibility gap as the dungeon case above.
+					if (floorName != e.Name && Notebook.CurrentId == e.Id)
+					{
+						Notebook.SyncName(floorName ?? string.Empty);
+					}
+
+					break;
+				}
 
 			case NotebookKind.Area:
-			{
-				// An area is addressed through its owning floor; without one there is nothing to save.
-				if (e.FloorId is null)
 				{
-					return;
+					// An area is addressed through its owning floor; without one there is nothing to save.
+					if (e.FloorId is null)
+					{
+						return;
+					}
+
+					var lastGoodName = _viewModel.Floors
+						.FirstOrDefault(floorItem => floorItem.Id == e.FloorId.Value)?.Areas
+						.FirstOrDefault(areaItem => areaItem.Id == e.Id)?.Name;
+
+					var areaName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
+
+					// No name typed and no row left to borrow one from: the validator would reject the
+					// write, so abandon it here rather than sending something that cannot succeed.
+					if (string.IsNullOrWhiteSpace(areaName))
+					{
+						return;
+					}
+
+					await _viewModel.UpdateAreaCommand.ExecuteAsync(
+						(e.FloorId.Value, e.Id, areaName, e.Description, e.Notes));
+
+					// Same fallback-visibility gap as the dungeon case above.
+					if (areaName != e.Name && Notebook.CurrentId == e.Id)
+					{
+						Notebook.SyncName(areaName);
+					}
+
+					break;
 				}
-
-				var lastGoodName = _viewModel.Floors
-					.FirstOrDefault(floorItem => floorItem.Id == e.FloorId.Value)?.Areas
-					.FirstOrDefault(areaItem => areaItem.Id == e.Id)?.Name;
-
-				var areaName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
-
-				// No name typed and no row left to borrow one from: the validator would reject the
-				// write, so abandon it here rather than sending something that cannot succeed.
-				if (string.IsNullOrWhiteSpace(areaName))
-				{
-					return;
-				}
-
-				await _viewModel.UpdateAreaCommand.ExecuteAsync(
-					(e.FloorId.Value, e.Id, areaName, e.Description, e.Notes));
-
-				// Same fallback-visibility gap as the dungeon case above.
-				if (areaName != e.Name && Notebook.CurrentId == e.Id)
-				{
-					Notebook.SyncName(areaName);
-				}
-
-				break;
-			}
 		}
 
 		// The reload replaced every floor projection, so the drawable is still pointing at the
@@ -915,13 +915,13 @@ public partial class DungeonDetailPage : ContentPage
 		{
 			var shape = tool switch
 			{
-				MapTool.Draw   => Microsoft.UI.Input.InputSystemCursorShape.Cross,
-				MapTool.Move   => Microsoft.UI.Input.InputSystemCursorShape.SizeAll,
-				MapTool.Pan    => isDragging
+				MapTool.Draw => Microsoft.UI.Input.InputSystemCursorShape.Cross,
+				MapTool.Move => Microsoft.UI.Input.InputSystemCursorShape.SizeAll,
+				MapTool.Pan => isDragging
 					? Microsoft.UI.Input.InputSystemCursorShape.SizeAll
 					: Microsoft.UI.Input.InputSystemCursorShape.Hand,
-				MapTool.Erase  => Microsoft.UI.Input.InputSystemCursorShape.Cross,
-				_              => Microsoft.UI.Input.InputSystemCursorShape.Arrow
+				MapTool.Erase => Microsoft.UI.Input.InputSystemCursorShape.Cross,
+				_ => Microsoft.UI.Input.InputSystemCursorShape.Arrow
 			};
 
 			typeof(Microsoft.UI.Xaml.UIElement)
@@ -1209,7 +1209,7 @@ public partial class DungeonDetailPage : ContentPage
 		if (ObjectActionPopup.IsVisible && _popupBounds.Contains(_lastTouchPoint.X, _lastTouchPoint.Y))
 		{
 			_longPressDetector.TouchStarted();
-			var relX  = _lastTouchPoint.X - _popupBounds.X;
+			var relX = _lastTouchPoint.X - _popupBounds.X;
 			var zoneW = _popupBounds.Width / 5f;
 			if (relX < zoneW)
 				_ = RotateObjectAsync(clockwise: false);
@@ -1775,7 +1775,7 @@ public partial class DungeonDetailPage : ContentPage
 			var halfH = hTiles * _drawable.TileSize / 2f;
 
 			if (canvasPoint.X >= obj.Position.X - halfW && canvasPoint.X <= obj.Position.X + halfW &&
-			    canvasPoint.Y >= obj.Position.Y - halfH && canvasPoint.Y <= obj.Position.Y + halfH)
+				canvasPoint.Y >= obj.Position.Y - halfH && canvasPoint.Y <= obj.Position.Y + halfH)
 			{
 				var area = wTiles * hTiles;
 				if (area < bestArea)
@@ -1824,7 +1824,7 @@ public partial class DungeonDetailPage : ContentPage
 		var screenX = obj.Position.X * _drawable.ZoomLevel + _drawable.PanOffset.X;
 		var screenY = obj.Position.Y * _drawable.ZoomLevel + _drawable.PanOffset.Y - 48;
 
-		const float PopupWidth  = 182f;
+		const float PopupWidth = 182f;
 		const float PopupHeight = 40f;
 		_popupBounds = new RectF(screenX, screenY, PopupWidth, PopupHeight);
 
@@ -1852,7 +1852,7 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		var hoverColor = goldHover ? PopupBtnHoverGold : PopupBtnHoverRed;
 		var pressColor = goldHover ? PopupBtnPressGold : PopupBtnPressRed;
-		var isHovered  = false;
+		var isHovered = false;
 
 		var ptr = new PointerGestureRecognizer();
 		ptr.PointerEntered += (_, _) =>

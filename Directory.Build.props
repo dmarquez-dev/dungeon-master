@@ -1,8 +1,23 @@
 <Project>
-  <PropertyGroup>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<LangVersion>14.0</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- MASTER-009 / XCUT-003. Pinned numerically so the analyzer rule set moves when this
+		     line moves, not when the installed SDK moves. global.json pins the SDK band; this
+		     pins what that band's analyzers are allowed to demand. -->
+		<AnalysisLevel>10.0</AnalysisLevel>
+		<!-- MASTER-078 / XCUT-010. -->
+		<AnalysisMode>Recommended</AnalysisMode>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- MASTER-072 / XCUT-009. -->
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
 </Project>

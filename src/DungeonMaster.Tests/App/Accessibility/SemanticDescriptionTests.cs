@@ -23,238 +23,238 @@ namespace DungeonMaster.Tests.App.Accessibility;
 /// </remarks>
 public class SemanticDescriptionTests
 {
-    /// <summary>
-    ///		Matches the opening tag of a <c>Label</c> or <c>Button</c>, including the multi-line
-    ///		attribute layout this project writes. <c>[^&gt;]</c> cannot cross into a nested element,
-    ///		so the match is the tag's own attributes and nothing else.
-    /// </summary>
-    private static readonly Regex ControlTag =
-        new(
-            @"<(?<element>Label|Button)\b(?<attributes>[^>]*?)/?>",
-            RegexOptions.Singleline | RegexOptions.Compiled);
+	/// <summary>
+	///		Matches the opening tag of a <c>Label</c> or <c>Button</c>, including the multi-line
+	///		attribute layout this project writes. <c>[^&gt;]</c> cannot cross into a nested element,
+	///		so the match is the tag's own attributes and nothing else.
+	/// </summary>
+	private static readonly Regex ControlTag =
+		new(
+			@"<(?<element>Label|Button)\b(?<attributes>[^>]*?)/?>",
+			RegexOptions.Singleline | RegexOptions.Compiled);
 
-    private static readonly Regex TextAttribute =
-        new(
-            @"\sText=""(?<value>[^""]*)""",
-            RegexOptions.Compiled);
+	private static readonly Regex TextAttribute =
+		new(
+			@"\sText=""(?<value>[^""]*)""",
+			RegexOptions.Compiled);
 
-    private static readonly Regex CharacterEntity =
-        new(
-            @"&#x(?<code>[0-9A-Fa-f]+);",
-            RegexOptions.Compiled);
+	private static readonly Regex CharacterEntity =
+		new(
+			@"&#x(?<code>[0-9A-Fa-f]+);",
+			RegexOptions.Compiled);
 
-    /// <summary>
-    ///		Matches the description attribute AND captures its value, which is the part that
-    ///		matters. Testing only for the attribute's presence passed
-    ///		<c>SemanticProperties.Description=""</c> — proved by construction — and an empty
-    ///		description announces exactly nothing, which is the state this fact exists to prevent.
-    /// </summary>
-    private static readonly Regex DescriptionAttribute =
-        new(
-            @"SemanticProperties\.Description\s*=\s*""(?<value>[^""]*)""",
-            RegexOptions.Compiled);
+	/// <summary>
+	///		Matches the description attribute AND captures its value, which is the part that
+	///		matters. Testing only for the attribute's presence passed
+	///		<c>SemanticProperties.Description=""</c> — proved by construction — and an empty
+	///		description announces exactly nothing, which is the state this fact exists to prevent.
+	/// </summary>
+	private static readonly Regex DescriptionAttribute =
+		new(
+			@"SemanticProperties\.Description\s*=\s*""(?<value>[^""]*)""",
+			RegexOptions.Compiled);
 
-    /// <summary>
-    ///		Files whose icon-only controls are knowingly still undescribed. Empty, and meant to
-    ///		stay that way: every offender this fact found when it was written was fixed rather than
-    ///		listed, so an entry here is a regression with a note attached, not a normal state.
-    /// </summary>
-    private static readonly IReadOnlySet<string> PendingDescription =
-        new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+	/// <summary>
+	///		Files whose icon-only controls are knowingly still undescribed. Empty, and meant to
+	///		stay that way: every offender this fact found when it was written was fixed rather than
+	///		listed, so an entry here is a regression with a note attached, not a normal state.
+	/// </summary>
+	private static readonly IReadOnlySet<string> PendingDescription =
+		new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>
-    ///		Every <c>Label</c> or <c>Button</c> whose entire <c>Text</c> is a single private-use or
-    ///		symbol codepoint must either carry a <c>SemanticProperties.Description</c> or be taken
-    ///		out of the accessibility tree outright.
-    /// </summary>
-    /// <remarks>
-    ///		The second option is not a loophole. A glyph sitting on top of an already-labelled
-    ///		button, or beside a wordmark that says the same thing, has no announcement of its own to
-    ///		make, and <c>AutomationProperties.IsInAccessibleTree="False"</c> is how MAUI says so —
-    ///		as opposed to leaving it in the tree with nothing to read out.
-    /// </remarks>
-    [Fact]
-    public void EveryIconOnlyControlHasASemanticDescription()
-    {
-        var offenders = new List<string>();
-        var reached = new List<string>();
+	/// <summary>
+	///		Every <c>Label</c> or <c>Button</c> whose entire <c>Text</c> is a single private-use or
+	///		symbol codepoint must either carry a <c>SemanticProperties.Description</c> or be taken
+	///		out of the accessibility tree outright.
+	/// </summary>
+	/// <remarks>
+	///		The second option is not a loophole. A glyph sitting on top of an already-labelled
+	///		button, or beside a wordmark that says the same thing, has no announcement of its own to
+	///		make, and <c>AutomationProperties.IsInAccessibleTree="False"</c> is how MAUI says so —
+	///		as opposed to leaving it in the tree with nothing to read out.
+	/// </remarks>
+	[Fact]
+	public void EveryIconOnlyControlHasASemanticDescription()
+	{
+		var offenders = new List<string>();
+		var reached = new List<string>();
 
-        foreach (var path in RepoPaths.AppSourceFiles("*.xaml"))
-        {
-            var relative = Path.GetRelativePath(
-                RepoPaths.AppRoot,
-                path);
+		foreach (var path in RepoPaths.AppSourceFiles("*.xaml"))
+		{
+			var relative = Path.GetRelativePath(
+				RepoPaths.AppRoot,
+				path);
 
-            if (PendingDescription.Contains(relative))
-            {
-                continue;
-            }
+			if (PendingDescription.Contains(relative))
+			{
+				continue;
+			}
 
-            var source = File.ReadAllText(path);
+			var source = File.ReadAllText(path);
 
-            foreach (Match tag in ControlTag.Matches(source))
-            {
-                var attributes = tag.Groups["attributes"].Value;
-                var text = TextAttribute.Match(attributes);
+			foreach (Match tag in ControlTag.Matches(source))
+			{
+				var attributes = tag.Groups["attributes"].Value;
+				var text = TextAttribute.Match(attributes);
 
-                if (!text.Success)
-                {
-                    continue;
-                }
+				if (!text.Success)
+				{
+					continue;
+				}
 
-                var glyph = Decode(text.Groups["value"].Value);
+				var glyph = Decode(text.Groups["value"].Value);
 
-                if (!IsIconOnly(glyph))
-                {
-                    continue;
-                }
+				if (!IsIconOnly(glyph))
+				{
+					continue;
+				}
 
-                var line = source
-                    .Take(tag.Index)
-                    .Count(character =>
-                        character == '\n') + 1;
+				var line = source
+					.Take(tag.Index)
+					.Count(character =>
+						character == '\n') + 1;
 
-                reached.Add($"{relative}:{line}");
+				reached.Add($"{relative}:{line}");
 
-                if (HasUsableDescription(attributes)
-                    || attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False"""))
-                {
-                    continue;
-                }
+				if (HasUsableDescription(attributes)
+					|| attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False"""))
+				{
+					continue;
+				}
 
-                var declared = DescriptionAttribute.Match(attributes);
+				var declared = DescriptionAttribute.Match(attributes);
 
-                offenders.Add(
-                    $"{relative}:{line} -> <{tag.Groups["element"].Value} "
-                    + $"Text=\"U+{(int)glyph[0]:X4}\"> has "
-                    + (declared.Success
-                        ? "a blank SemanticProperties.Description"
-                        : "no SemanticProperties.Description")
-                    + " and is not excluded from the accessibility tree");
-            }
-        }
+				offenders.Add(
+					$"{relative}:{line} -> <{tag.Groups["element"].Value} "
+					+ $"Text=\"U+{(int)glyph[0]:X4}\"> has "
+					+ (declared.Success
+						? "a blank SemanticProperties.Description"
+						: "no SemanticProperties.Description")
+					+ " and is not excluded from the accessibility tree");
+			}
+		}
 
-        offenders
-            .Should()
-            .BeEmpty(
-                "a control whose whole label is an icon codepoint announces nothing to a screen "
-                + "reader unless it carries a non-blank SemanticProperties.Description, or is "
-                + @"marked AutomationProperties.IsInAccessibleTree=""False"" because something "
-                + "beside it already says the same thing");
+		offenders
+			.Should()
+			.BeEmpty(
+				"a control whose whole label is an icon codepoint announces nothing to a screen "
+				+ "reader unless it carries a non-blank SemanticProperties.Description, or is "
+				+ @"marked AutomationProperties.IsInAccessibleTree=""False"" because something "
+				+ "beside it already says the same thing");
 
-        // Anti-vacuity, and the only scanner in the suite that was missing one. Four plausible
-        // edits make this scan reach nothing while staying green — a glyph moved into element
-        // content, a decimal character entity, single-quoted attributes, or a Text written from
-        // code-behind — and §4.2 of this branch converted glyph Labels to vector shapes, which is
-        // exactly the kind of change that shrinks it. A guard that has stopped looking must say so.
-        reached
-            .Should()
-            .NotBeEmpty(
-                "the scan must reach at least one icon-only control, or this fact passes because "
-                + "it found nothing rather than because everything it found was described");
-    }
+		// Anti-vacuity, and the only scanner in the suite that was missing one. Four plausible
+		// edits make this scan reach nothing while staying green — a glyph moved into element
+		// content, a decimal character entity, single-quoted attributes, or a Text written from
+		// code-behind — and §4.2 of this branch converted glyph Labels to vector shapes, which is
+		// exactly the kind of change that shrinks it. A guard that has stopped looking must say so.
+		reached
+			.Should()
+			.NotBeEmpty(
+				"the scan must reach at least one icon-only control, or this fact passes because "
+				+ "it found nothing rather than because everything it found was described");
+	}
 
-    /// <summary>
-    ///		Whether the control carries a description a screen reader can actually read out.
-    /// </summary>
-    private static bool HasUsableDescription(string attributes)
-    {
-        var declared = DescriptionAttribute.Match(attributes);
+	/// <summary>
+	///		Whether the control carries a description a screen reader can actually read out.
+	/// </summary>
+	private static bool HasUsableDescription(string attributes)
+	{
+		var declared = DescriptionAttribute.Match(attributes);
 
-        return declared.Success
-            && !string.IsNullOrWhiteSpace(
-                Decode(declared.Groups["value"].Value));
-    }
+		return declared.Success
+			&& !string.IsNullOrWhiteSpace(
+				Decode(declared.Groups["value"].Value));
+	}
 
-    /// <summary>
-    ///		Every file named by <see cref="PendingDescription"/> must exist and must still contain
-    ///		an undescribed icon-only control.
-    /// </summary>
-    /// <remarks>
-    ///		Without this, the allow-list decays into a list of files that were once a problem, and
-    ///		the ratchet quietly stops applying to whatever is added to them later. It is the same
-    ///		shape as the geometry suite's <c>EveryGeometryAllowListEntryStillOffends</c>, and it is
-    ///		why the list above can safely be empty: an empty list has nothing to go stale.
-    /// </remarks>
-    [Fact]
-    public void EverySemanticAllowListEntryStillOffends()
-    {
-        var stale = new List<string>();
+	/// <summary>
+	///		Every file named by <see cref="PendingDescription"/> must exist and must still contain
+	///		an undescribed icon-only control.
+	/// </summary>
+	/// <remarks>
+	///		Without this, the allow-list decays into a list of files that were once a problem, and
+	///		the ratchet quietly stops applying to whatever is added to them later. It is the same
+	///		shape as the geometry suite's <c>EveryGeometryAllowListEntryStillOffends</c>, and it is
+	///		why the list above can safely be empty: an empty list has nothing to go stale.
+	/// </remarks>
+	[Fact]
+	public void EverySemanticAllowListEntryStillOffends()
+	{
+		var stale = new List<string>();
 
-        foreach (var relative in PendingDescription)
-        {
-            var path = Path.Combine(
-                RepoPaths.AppRoot,
-                relative);
+		foreach (var relative in PendingDescription)
+		{
+			var path = Path.Combine(
+				RepoPaths.AppRoot,
+				relative);
 
-            if (!File.Exists(path))
-            {
-                stale.Add($"{relative} -> file does not exist; the entry exempts nothing");
-                continue;
-            }
+			if (!File.Exists(path))
+			{
+				stale.Add($"{relative} -> file does not exist; the entry exempts nothing");
+				continue;
+			}
 
-            if (!HasUndescribedIconControl(File.ReadAllText(path)))
-            {
-                stale.Add($"{relative} -> no longer offends; remove it from the allow-list");
-            }
-        }
+			if (!HasUndescribedIconControl(File.ReadAllText(path)))
+			{
+				stale.Add($"{relative} -> no longer offends; remove it from the allow-list");
+			}
+		}
 
-        stale
-            .Should()
-            .BeEmpty("an allow-list entry that no longer exempts anything hides the next offender");
-    }
+		stale
+			.Should()
+			.BeEmpty("an allow-list entry that no longer exempts anything hides the next offender");
+	}
 
-    private static bool HasUndescribedIconControl(string source) =>
-        ControlTag
-            .Matches(source)
-            .Select(tag =>
-                tag.Groups["attributes"].Value)
-            .Any(attributes =>
-            {
-                var text = TextAttribute.Match(attributes);
+	private static bool HasUndescribedIconControl(string source) =>
+		ControlTag
+			.Matches(source)
+			.Select(tag =>
+				tag.Groups["attributes"].Value)
+			.Any(attributes =>
+			{
+				var text = TextAttribute.Match(attributes);
 
-                return text.Success
-                    && IsIconOnly(Decode(text.Groups["value"].Value))
-                    && !HasUsableDescription(attributes)
-                    && !attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False""");
-            });
+				return text.Success
+					&& IsIconOnly(Decode(text.Groups["value"].Value))
+					&& !HasUsableDescription(attributes)
+					&& !attributes.Contains(@"AutomationProperties.IsInAccessibleTree=""False""");
+			});
 
-    private static string Decode(string attributeValue) =>
-        CharacterEntity
-            .Replace(
-                attributeValue,
-                match =>
-                    ((char)int.Parse(
-                        match.Groups["code"].Value,
-                        NumberStyles.HexNumber,
-                        CultureInfo.InvariantCulture))
-                    .ToString())
-            .Replace(
-                "&amp;",
-                "&",
-                StringComparison.Ordinal);
+	private static string Decode(string attributeValue) =>
+		CharacterEntity
+			.Replace(
+				attributeValue,
+				match =>
+					((char)int.Parse(
+						match.Groups["code"].Value,
+						NumberStyles.HexNumber,
+						CultureInfo.InvariantCulture))
+					.ToString())
+			.Replace(
+				"&amp;",
+				"&",
+				StringComparison.Ordinal);
 
-    /// <summary>
-    ///		A control is icon-only when its whole text is one private-use or symbol codepoint.
-    ///		Letters and digits are excluded, so the toolbar's shortcut letters and the zoom
-    ///		readout are not swept up; a run of two or more characters is excluded too, because
-    ///		something like "&#x2190; Back" carries a word a screen reader can read.
-    /// </summary>
-    private static bool IsIconOnly(string text)
-    {
-        if (text.Length != 1)
-        {
-            return false;
-        }
+	/// <summary>
+	///		A control is icon-only when its whole text is one private-use or symbol codepoint.
+	///		Letters and digits are excluded, so the toolbar's shortcut letters and the zoom
+	///		readout are not swept up; a run of two or more characters is excluded too, because
+	///		something like "&#x2190; Back" carries a word a screen reader can read.
+	/// </summary>
+	private static bool IsIconOnly(string text)
+	{
+		if (text.Length != 1)
+		{
+			return false;
+		}
 
-        return CharUnicodeInfo.GetUnicodeCategory(text[0]) switch
-        {
-            UnicodeCategory.PrivateUse => true,
-            UnicodeCategory.OtherSymbol => true,
-            UnicodeCategory.MathSymbol => true,
-            UnicodeCategory.ModifierSymbol => true,
-            UnicodeCategory.CurrencySymbol => true,
-            _ => false,
-        };
-    }
+		return CharUnicodeInfo.GetUnicodeCategory(text[0]) switch
+		{
+			UnicodeCategory.PrivateUse => true,
+			UnicodeCategory.OtherSymbol => true,
+			UnicodeCategory.MathSymbol => true,
+			UnicodeCategory.ModifierSymbol => true,
+			UnicodeCategory.CurrencySymbol => true,
+			_ => false,
+		};
+	}
 }

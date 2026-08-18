@@ -1,0 +1,79 @@
+root = true
+
+[*]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.cs]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+csharp_prefer_braces = true:silent
+dotnet_style_qualification_for_field = false:silent
+dotnet_style_qualification_for_property = false:silent
+dotnet_style_qualification_for_method = false:silent
+csharp_style_namespace_declarations = file_scoped:silent
+
+# Private fields are _camelCase (dm-conventions/backend/dotnet-format.md section 1).
+dotnet_naming_rule.private_fields_underscore_camel_case.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore_camel_case.style = underscore_camel_case
+dotnet_naming_rule.private_fields_underscore_camel_case.severity = suggestion
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+[{*.csproj,*.props,*.targets,*.sln,*.slnx,*.config,global.json}]
+indent_style = tab
+
+[*.xaml]
+indent_style = tab
+
+[*.{json,yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+indent_style = space
+indent_size = 2
+
+[src/DungeonMaster.Infrastructure/Migrations/*.cs]
+generated_code = true
+
+# ============================================================================
+# ANALYZER BACKLOG - MASTER-078 / XCUT-010 - NOT A PERMANENT DECISION
+#
+# Session 1 raised AnalysisMode to Recommended and turned EnforceCodeStyleInBuild
+# on. Every rule below fired on that first run and is parked at `suggestion` so
+# the build stays green under TreatWarningsAsErrors. Each one is Session 7 work:
+# fix the occurrences, then delete the line so the rule returns to its default
+# severity. A line deleted from this block is a rule that is now enforced.
+#
+# Nothing may be added to this block after Session 1 without a new record.
+# ============================================================================
+[*.cs]
+dotnet_diagnostic.IDE0055.severity = warning      # raised by T3 once the 62 files were reformatted
+dotnet_diagnostic.CA1000.severity  = suggestion   # 2 occurrences — static members declared on generic types
+dotnet_diagnostic.CA1001.severity  = suggestion   # 3 occurrences — type owns a disposable field but is not IDisposable
+dotnet_diagnostic.CA1304.severity  = suggestion   # 1 occurrence  — culture-dependent char.ToLower without a CultureInfo
+dotnet_diagnostic.CA1707.severity  = suggestion   # 125 occurrences — underscores in member names (xUnit Method_Case_Expectation test naming)
+dotnet_diagnostic.CA1711.severity  = suggestion   # 1 occurrence  — type name AppDelegate ends in the reserved suffix 'Delegate'
+dotnet_diagnostic.CA1716.severity  = suggestion   # 1 occurrence  — interface parameter named 'next' collides with a reserved keyword
+dotnet_diagnostic.CA1816.severity  = suggestion   # 4 occurrences — Dispose does not call GC.SuppressFinalize(this)
+dotnet_diagnostic.CA1822.severity  = suggestion   # 4 occurrences — member does not access instance data and can be static
+dotnet_diagnostic.CA1825.severity  = suggestion   # 1 occurrence  — zero-length array allocation instead of Array.Empty
+dotnet_diagnostic.CA1826.severity  = suggestion   # 2 occurrences — Enumerable methods used on an indexable collection
+dotnet_diagnostic.CA1859.severity  = suggestion   # 14 occurrences — concrete return type would avoid an interface dispatch
+dotnet_diagnostic.CA1875.severity  = suggestion   # 1 occurrence  — Regex.Matches(...).Count instead of Regex.Count
+# ============================================================================
+# END ANALYZER BACKLOG
+# ============================================================================
