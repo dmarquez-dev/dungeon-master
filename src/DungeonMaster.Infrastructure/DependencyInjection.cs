@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -27,11 +27,11 @@ public static class InfrastructureServiceCollectionExtensions
 		this IServiceCollection services,
 		string connectionString)
 	{
-		services.AddDbContext<AppDbContext>(options =>
+		services.AddDbContextFactory<AppDbContext>(options =>
 			options.UseSqlite(connectionString));
 
-		services.AddScoped<IDungeonWriteRepository, DungeonWriteRepository>();
-		services.AddScoped<IDungeonReadRepository, DungeonReadRepository>();
+		services.AddSingleton<IUnitOfWorkFactory, UnitOfWorkFactory>();
+		services.AddSingleton<IDungeonReadRepository, DungeonReadRepository>();
 
 		return services;
 	}
@@ -40,13 +40,21 @@ public static class InfrastructureServiceCollectionExtensions
 	///		Applies any pending EF Core migrations to the database.
 	/// </summary>
 	/// <param name="services">
-	///		The application service provider used to resolve the database context.
+	///		The application service provider used to resolve the database context factory.
 	/// </param>
-	public static void MigrateDatabase(this IServiceProvider services)
+	/// <param name="ct">
+	///		Token used to cancel the migration.
+	/// </param>
+	/// <returns>
+	///		A task that completes when every pending migration has been applied.
+	/// </returns>
+	public static async Task MigrateDatabaseAsync(
+		this IServiceProvider services,
+		CancellationToken ct)
 	{
-		using var scope = services.CreateScope();
-		var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+		var dbContextFactory = services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+		await using var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
 
-		db.Database.Migrate();
+		await dbContext.Database.MigrateAsync(ct);
 	}
 }

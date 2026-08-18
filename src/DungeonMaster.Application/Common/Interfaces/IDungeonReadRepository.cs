@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 
-namespace DungeonMaster.Application.Features.Dungeons;
+namespace DungeonMaster.Application.Common.Interfaces;
 
 /// <summary>
 ///		Provides read-optimized access to dungeon data for query handling.

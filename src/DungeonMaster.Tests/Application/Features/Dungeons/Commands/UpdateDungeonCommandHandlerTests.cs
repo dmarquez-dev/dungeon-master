@@ -1,7 +1,8 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,13 +10,15 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
 public class UpdateDungeonCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly UpdateDungeonCommandHandler _handler;
 
 	public UpdateDungeonCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new UpdateDungeonCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new UpdateDungeonCommandHandler(_unitOfWork.Factory);
 	}
 
 	[Fact]
@@ -24,8 +27,6 @@ public class UpdateDungeonCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("Old Name", "Old Desc");
 		_writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
-		_writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-
 		var command = new UpdateDungeonCommand(dungeon.Id, "New Name", "New Desc", "My Notes");
 
 		// Act
@@ -35,7 +36,7 @@ public class UpdateDungeonCommandHandlerTests
 		result.IsSuccess.Should().BeTrue();
 		dungeon.Name.Should().Be("New Name");
 		dungeon.Notes.Should().Be("My Notes");
-		await _writeRepository.Received(1).UpdateAsync(dungeon, Arg.Any<CancellationToken>());
+		_writeRepository.Received(1).Update(dungeon);
 	}
 
 	[Fact]

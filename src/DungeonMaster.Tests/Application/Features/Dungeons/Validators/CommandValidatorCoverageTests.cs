@@ -2,14 +2,15 @@ using System.Collections;
 using System.Reflection;
 using DungeonMaster.Application;
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,8 +77,8 @@ public class CommandValidatorCoverageTests
 	public async Task SendAsync_WithAnInvalidReorderFloorCommand_IsRejectedByThePipeline()
 	{
 		// Arrange
-		var writeRepository = Substitute.For<IDungeonWriteRepository>();
-		using var provider = BuildRealContainer(writeRepository);
+		var unitOfWork = new UnitOfWorkSubstitute();
+		using var provider = BuildRealContainer(unitOfWork);
 		using var scope = provider.CreateScope();
 
 		var command = new ReorderFloorCommand(
@@ -98,7 +99,7 @@ public class CommandValidatorCoverageTests
 			.Contain(error =>
 				error.PropertyName == nameof(ReorderFloorCommand.NewNumber));
 
-		await writeRepository
+		await unitOfWork.Dungeons
 			.DidNotReceiveWithAnyArgs()
 			.LoadAsync(
 				default,
@@ -231,15 +232,16 @@ public class CommandValidatorCoverageTests
 	}
 
 	private static ServiceProvider BuildRealContainer(
-		IDungeonWriteRepository? writeRepository = null)
+		UnitOfWorkSubstitute? unitOfWork = null)
 	{
 		var services = new ServiceCollection();
+		var unitOfWorkSubstitute = unitOfWork ?? new UnitOfWorkSubstitute();
 
 		services.AddApplicationServices();
 		services.AddScoped(_ =>
 			Substitute.For<IDungeonReadRepository>());
 		services.AddScoped(_ =>
-			writeRepository ?? Substitute.For<IDungeonWriteRepository>());
+			unitOfWorkSubstitute.Factory);
 
 		return services.BuildServiceProvider();
 	}

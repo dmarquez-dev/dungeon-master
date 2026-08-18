@@ -1,6 +1,7 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -11,32 +12,28 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// </summary>
 public class CreateDungeonCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly CreateDungeonCommandHandler _handler;
 
 	/// <summary>
-	///		Initializes the test class with a substituted repository and a real handler instance.
+	///		Initializes the test class with a substituted unit-of-work chain and a real handler instance.
 	/// </summary>
 	public CreateDungeonCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new CreateDungeonCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new CreateDungeonCommandHandler(_unitOfWork.Factory);
 	}
 
 	/// <summary>
 	///		Verifies that a valid command produces a successful result containing a non-empty Guid,
-	///		and that <see cref="IDungeonWriteRepository.AddAsync"/> is called exactly once.
+	///		and that <see cref="IDungeonWriteRepository.Add"/> is called exactly once and then committed.
 	/// </summary>
 	[Fact]
 	public async Task HandleAsync_WithValidCommand_CreatesAndReturnsId()
 	{
 		// Arrange
-		_writeRepository
-			.AddAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
-
 		var command = new CreateDungeonCommand(
 			"The Sunken Vaults",
 			"A flooded ruin beneath the city.");
@@ -50,11 +47,13 @@ public class CreateDungeonCommandHandlerTests
 		result.IsSuccess.Should().BeTrue();
 		result.Value.Should().NotBeEmpty();
 
-		await _writeRepository
+		_writeRepository
 			.Received(1)
-			.AddAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Add(Arg.Any<Dungeon>());
+
+		await _unitOfWork.UnitOfWork
+			.Received(1)
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -66,12 +65,8 @@ public class CreateDungeonCommandHandlerTests
 		// Arrange
 		Dungeon? captured = null;
 
-		_writeRepository
-			.AddAsync(
-				Arg.Do<Dungeon>(dungeon =>
-				captured = dungeon),
-				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+		_writeRepository.Add(Arg.Do<Dungeon>(dungeon =>
+			captured = dungeon));
 
 		var command = new CreateDungeonCommand(
 			"Ember Crypts",
@@ -98,12 +93,8 @@ public class CreateDungeonCommandHandlerTests
 		// Arrange
 		Dungeon? captured = null;
 
-		_writeRepository
-			.AddAsync(
-				Arg.Do<Dungeon>(dungeon =>
-				captured = dungeon),
-				Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
+		_writeRepository.Add(Arg.Do<Dungeon>(dungeon =>
+			captured = dungeon));
 
 		var command = new CreateDungeonCommand(
 			"Silent Tombs",

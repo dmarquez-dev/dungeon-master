@@ -1,5 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 
 namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 

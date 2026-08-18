@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Common.Handlers;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 
@@ -10,14 +10,14 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 ///		Returns a not-found result if no dungeon exists with the given identifier, or if the aggregate has no matching floor or area.
 /// </summary>
 public sealed class UpdateAreaCommandHandler(
-	IDungeonWriteRepository writeRepository)
+	IUnitOfWorkFactory unitOfWorkFactory)
 		: ICommandHandler<UpdateAreaCommand>
 {
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		UpdateAreaCommand command,
 		CancellationToken ct) =>
-			writeRepository.MutateAsync(
+			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
 					dungeon

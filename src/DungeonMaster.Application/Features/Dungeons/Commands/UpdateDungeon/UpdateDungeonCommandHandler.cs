@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Common.Handlers;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 
@@ -10,14 +10,14 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 ///		Returns a not-found result if no dungeon exists with the given identifier.
 /// </summary>
 public sealed class UpdateDungeonCommandHandler(
-	IDungeonWriteRepository writeRepository)
+	IUnitOfWorkFactory unitOfWorkFactory)
 		: ICommandHandler<UpdateDungeonCommand>
 {
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		UpdateDungeonCommand command,
 		CancellationToken ct) =>
-			writeRepository.MutateAsync(
+			unitOfWorkFactory.MutateAsync(
 				command.Id,
 				dungeon =>
 				{

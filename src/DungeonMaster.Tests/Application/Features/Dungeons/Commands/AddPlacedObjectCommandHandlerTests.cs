@@ -1,9 +1,10 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -14,6 +15,7 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// </summary>
 public class AddPlacedObjectCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly AddPlacedObjectCommandHandler _handler;
 
@@ -22,8 +24,9 @@ public class AddPlacedObjectCommandHandlerTests
 	/// </summary>
 	public AddPlacedObjectCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new AddPlacedObjectCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new AddPlacedObjectCommandHandler(_unitOfWork.Factory);
 	}
 
 	private static Dungeon MakeDungeon(out Guid floorId)
@@ -37,7 +40,7 @@ public class AddPlacedObjectCommandHandlerTests
 
 	/// <summary>
 	///		Verifies that a valid command produces a successful result containing a non-empty Guid,
-	///		and that <see cref="IDungeonWriteRepository.UpdateAsync"/> is called exactly once.
+	///		and that <see cref="IDungeonWriteRepository.Update"/> is called exactly once.
 	/// </summary>
 	[Fact]
 	public async Task HandleAsync_ValidCommand_ReturnsSuccessWithId()
@@ -62,9 +65,9 @@ public class AddPlacedObjectCommandHandlerTests
 		result.IsSuccess.Should().BeTrue();
 		result.Value.Should().NotBeEmpty();
 
-		await _writeRepository
+		_writeRepository
 			.Received(1)
-			.UpdateAsync(dungeon, Arg.Any<CancellationToken>());
+			.Update(dungeon);
 	}
 
 	/// <summary>
@@ -157,11 +160,9 @@ public class AddPlacedObjectCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		result.Error.Should().Contain(floorId.ToString());
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 
 	/// <summary>

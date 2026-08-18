@@ -26,5 +26,5 @@ public record DungeonSummaryDto(
 	string Name,
 	string? Description,
 	int FloorCount,
-	DateTimeOffset CreatedAt,
-	DateTimeOffset LastModified);
+	DateTime CreatedAt,
+	DateTime LastModified);

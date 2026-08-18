@@ -1,9 +1,10 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -14,6 +15,7 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// </summary>
 public class RemovePlacedObjectCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly RemovePlacedObjectCommandHandler _handler;
 
@@ -22,8 +24,9 @@ public class RemovePlacedObjectCommandHandlerTests
 	/// </summary>
 	public RemovePlacedObjectCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new RemovePlacedObjectCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new RemovePlacedObjectCommandHandler(_unitOfWork.Factory);
 	}
 
 	/// <summary>
@@ -63,11 +66,9 @@ public class RemovePlacedObjectCommandHandlerTests
 		result.IsSuccess.Should().BeTrue();
 		floor.Objects.Should().BeEmpty();
 
-		await _writeRepository
+		_writeRepository
 			.Received(1)
-			.UpdateAsync(
-				dungeon,
-				Arg.Any<CancellationToken>());
+			.Update(dungeon);
 	}
 
 	/// <summary>
@@ -126,11 +127,9 @@ public class RemovePlacedObjectCommandHandlerTests
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 
 	/// <summary>
@@ -163,10 +162,8 @@ public class RemovePlacedObjectCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		floor.Objects.Should().BeEmpty();
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 }

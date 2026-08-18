@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Common.Handlers;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
 
@@ -11,14 +11,14 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.ReorderFloor;
 ///		Returns a validation failure if the requested floor number lies outside the permitted range.
 /// </summary>
 public sealed class ReorderFloorCommandHandler(
-	IDungeonWriteRepository writeRepository)
+	IUnitOfWorkFactory unitOfWorkFactory)
 		: ICommandHandler<ReorderFloorCommand>
 {
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		ReorderFloorCommand command,
 		CancellationToken ct) =>
-			writeRepository.MutateAsync(
+			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
 					dungeon

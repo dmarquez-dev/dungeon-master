@@ -1,3 +1,4 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
@@ -34,15 +35,18 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 
 	private AppDbContext CreateContext() => new(_options);
 
+	private IUnitOfWorkFactory CreateFactory() =>
+		new UnitOfWorkFactory(new TestDbContextFactory(_options));
+
 	private async Task<(Guid DungeonId, Guid FloorId, Guid AreaId)> SeedAsync()
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "New Area", null)!;
 
-		using var ctx = CreateContext();
-		var repo = new DungeonWriteRepository(ctx);
-		await repo.AddAsync(dungeon, CancellationToken.None);
+		await using var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None);
+		unitOfWork.Dungeons.Add(dungeon);
+		await unitOfWork.CommitAsync(CancellationToken.None);
 
 		return (dungeon.Id, floor.Id, area.Id);
 	}
@@ -52,12 +56,12 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 	{
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.RemoveArea(floorId, areaId);
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -72,13 +76,13 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 	{
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.Floors.Single().Areas.Single().Outline.Should().BeEmpty();
 			loaded.RemoveArea(floorId, areaId);
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -93,12 +97,12 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 	{
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.UpdateArea(floorId, areaId, "Chapel", null, null);
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -113,20 +117,20 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 	{
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.UpdateArea(floorId, areaId, "Chapel", null, null);
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.UpdateArea(floorId, areaId, "Crypt", null, null);
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();

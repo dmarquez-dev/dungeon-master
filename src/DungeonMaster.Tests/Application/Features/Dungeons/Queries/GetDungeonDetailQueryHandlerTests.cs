@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using FluentAssertions;
 using NSubstitute;
@@ -21,7 +21,7 @@ public class GetDungeonDetailQueryHandlerTests
 	{
 		// Arrange
 		var id = Guid.NewGuid();
-		var dto = new DungeonDetailDto(id, "The Vault", null, null, 0, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, []);
+		var dto = new DungeonDetailDto(id, "The Vault", null, null, 0, DateTime.UtcNow, DateTime.UtcNow, []);
 		_readRepository
 			.GetDetailAsync(id, Arg.Any<CancellationToken>())
 			.Returns(dto);

@@ -33,6 +33,6 @@ public record DungeonDetailDto(
 	string? Description,
 	string? Notes,
 	int FloorCount,
-	DateTimeOffset CreatedAt,
-	DateTimeOffset LastModified,
+	DateTime CreatedAt,
+	DateTime LastModified,
 	IReadOnlyList<FloorDto> Floors);

@@ -1,6 +1,6 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 
@@ -9,7 +9,7 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 ///		Returns a not-found result if no dungeon exists with the given identifier.
 /// </summary>
 public sealed class DeleteDungeonCommandHandler(
-	IDungeonWriteRepository writeRepository)
+	IUnitOfWorkFactory unitOfWorkFactory)
 		: ICommandHandler<DeleteDungeonCommand>
 {
 	/// <inheritdoc/>
@@ -17,14 +17,21 @@ public sealed class DeleteDungeonCommandHandler(
 		DeleteDungeonCommand command,
 		CancellationToken ct)
 	{
-		var deleted = await writeRepository.DeleteAsync(
+		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(ct);
+
+		var removed = await unitOfWork.Dungeons.RemoveAsync(
 			command.Id,
 			ct);
 
-		return deleted
-			? Result.Success()
-			: Result.Failure(
+		if (!removed)
+		{
+			return Result.Failure(
 				$"Dungeon {command.Id} not found.",
 				ErrorCategory.NotFound);
+		}
+
+		await unitOfWork.CommitAsync(ct);
+
+		return Result.Success();
 	}
 }

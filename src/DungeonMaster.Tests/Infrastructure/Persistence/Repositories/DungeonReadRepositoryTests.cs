@@ -43,8 +43,7 @@ public class DungeonReadRepositoryTests : IDisposable
 			await ctx.SaveChangesAsync();
 		}
 
-		using var readCtx = CreateContext();
-		var repo = new DungeonReadRepository(readCtx);
+		var repo = new DungeonReadRepository(new TestDbContextFactory(_options));
 		var summaries = await repo.GetSummariesAsync(CancellationToken.None);
 
 		summaries.Should().HaveCount(2);
@@ -66,8 +65,7 @@ public class DungeonReadRepositoryTests : IDisposable
 			await ctx.SaveChangesAsync();
 		}
 
-		using var readCtx = CreateContext();
-		var repo = new DungeonReadRepository(readCtx);
+		var repo = new DungeonReadRepository(new TestDbContextFactory(_options));
 		var detail = await repo.GetDetailAsync(dungeon.Id, CancellationToken.None);
 
 		detail.Should().NotBeNull();
@@ -82,8 +80,7 @@ public class DungeonReadRepositoryTests : IDisposable
 	[Fact]
 	public async Task GetDetailAsync_WithNonExistentId_ReturnsNull()
 	{
-		using var readCtx = CreateContext();
-		var repo = new DungeonReadRepository(readCtx);
+		var repo = new DungeonReadRepository(new TestDbContextFactory(_options));
 
 		var result = await repo.GetDetailAsync(Guid.NewGuid(), CancellationToken.None);
 

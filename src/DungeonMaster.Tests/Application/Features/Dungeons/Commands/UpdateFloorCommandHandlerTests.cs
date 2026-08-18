@@ -1,7 +1,8 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateFloor;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,13 +10,15 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
 public class UpdateFloorCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly UpdateFloorCommandHandler _handler;
 
 	public UpdateFloorCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new UpdateFloorCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new UpdateFloorCommandHandler(_unitOfWork.Factory);
 	}
 
 	[Fact]
@@ -27,9 +30,6 @@ public class UpdateFloorCommandHandlerTests
 		_writeRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
-		_writeRepository
-			.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
 
 		var command = new UpdateFloorCommand(dungeon.Id, floor.Id, "New Name", null, "Some notes");
 
@@ -69,9 +69,6 @@ public class UpdateFloorCommandHandlerTests
 		_writeRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
-		_writeRepository
-			.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
 
 		var command = new UpdateFloorCommand(
 			dungeon.Id,
@@ -121,10 +118,8 @@ public class UpdateFloorCommandHandlerTests
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 }

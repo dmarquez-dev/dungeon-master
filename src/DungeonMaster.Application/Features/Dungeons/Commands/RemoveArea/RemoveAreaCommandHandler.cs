@@ -1,7 +1,7 @@
 using DungeonMaster.Application.Common.Dispatch;
 using DungeonMaster.Application.Common.Handlers;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 
@@ -10,14 +10,14 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 ///		Returns a not-found result if no dungeon exists with the given identifier, or if the aggregate has no matching floor or area.
 /// </summary>
 public sealed class RemoveAreaCommandHandler(
-	IDungeonWriteRepository writeRepository)
+	IUnitOfWorkFactory unitOfWorkFactory)
 		: ICommandHandler<RemoveAreaCommand>
 {
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		RemoveAreaCommand command,
 		CancellationToken ct) =>
-			writeRepository.MutateAsync(
+			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
 					dungeon
