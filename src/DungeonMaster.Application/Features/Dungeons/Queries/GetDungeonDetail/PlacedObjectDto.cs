@@ -14,8 +14,8 @@ namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 /// <param name="Rotation">The rotation applied to this object.</param>
 /// <param name="Scale">The scale factor applied to this object.</param>
 public record PlacedObjectDto(
-    Guid Id,
-    ObjectKind Kind,
-    CanvasPoint Position,
-    ObjectRotation Rotation,
-    float Scale);
+	Guid Id,
+	ObjectKind Kind,
+	CanvasPoint Position,
+	ObjectRotation Rotation,
+	float Scale);

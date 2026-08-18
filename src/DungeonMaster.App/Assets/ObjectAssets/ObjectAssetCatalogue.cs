@@ -8,11 +8,11 @@ namespace DungeonMaster.App.Assets.ObjectAssets;
 /// </summary>
 public static class ObjectAssetCatalogue
 {
-    private static IReadOnlyDictionary<ObjectKind, string> _paths =
-        new Dictionary<ObjectKind, string>();
+	private static IReadOnlyDictionary<ObjectKind, string> _paths =
+		new Dictionary<ObjectKind, string>();
 
-    public static IReadOnlyDictionary<ObjectKind, string> Paths => _paths;
+	public static IReadOnlyDictionary<ObjectKind, string> Paths => _paths;
 
-    internal static void SetPaths(IReadOnlyDictionary<ObjectKind, string> paths) =>
-        _paths = paths;
+	internal static void SetPaths(IReadOnlyDictionary<ObjectKind, string> paths) =>
+		_paths = paths;
 }

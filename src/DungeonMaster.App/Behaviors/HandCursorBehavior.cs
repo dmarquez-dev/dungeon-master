@@ -116,7 +116,7 @@ public class HandCursorBehavior : Behavior<View>
 				{
 					BehaviorCursorShape.IBeam => Microsoft.UI.Input.InputSystemCursorShape.IBeam,
 					BehaviorCursorShape.Arrow => Microsoft.UI.Input.InputSystemCursorShape.Arrow,
-					_                         => Microsoft.UI.Input.InputSystemCursorShape.Hand
+					_ => Microsoft.UI.Input.InputSystemCursorShape.Hand
 				}
 				: Microsoft.UI.Input.InputSystemCursorShape.Arrow;
 

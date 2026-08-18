@@ -11,10 +11,10 @@ public partial class ControlsPaletteView : ContentView
 	public ControlsPaletteView()
 	{
 		InitializeComponent();
-		AttachButtonBehavior(BtnCCW,       () => RotateRequested?.Invoke(this, RotationDirection.CounterClockwise));
-		AttachButtonBehavior(BtnCW,        () => RotateRequested?.Invoke(this, RotationDirection.Clockwise));
+		AttachButtonBehavior(BtnCCW, () => RotateRequested?.Invoke(this, RotationDirection.CounterClockwise));
+		AttachButtonBehavior(BtnCW, () => RotateRequested?.Invoke(this, RotationDirection.Clockwise));
 		AttachButtonBehavior(BtnScaleDown, () => ScaleRequested?.Invoke(this, ScaleDirection.Down));
-		AttachButtonBehavior(BtnScaleUp,   () => ScaleRequested?.Invoke(this, ScaleDirection.Up));
+		AttachButtonBehavior(BtnScaleUp, () => ScaleRequested?.Invoke(this, ScaleDirection.Up));
 	}
 
 	public void UpdateScale(float scale) => ScaleReadout.Text = $"{scale:0.##}×";
