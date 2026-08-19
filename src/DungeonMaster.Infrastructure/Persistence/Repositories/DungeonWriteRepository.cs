@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +6,7 @@ namespace DungeonMaster.Infrastructure.Persistence.Repositories;
 
 /// <summary>
 ///		Provides write-side data access operations for <see cref="Dungeon"/> aggregates.
+///		The context is owned by the <see cref="UnitOfWork"/> that constructed this repository; nothing here saves or disposes it.
 /// </summary>
 public sealed class DungeonWriteRepository(
 	AppDbContext dbContext)
@@ -22,31 +23,25 @@ public sealed class DungeonWriteRepository(
 				dungeon.Floors)
 			.ThenInclude(floor =>
 				floor.Objects)
+			.AsSplitQuery()
 			.FirstOrDefaultAsync(dungeon =>
 				dungeon.Id == id, ct);
 
 	/// <inheritdoc/>
-	public async Task AddAsync(Dungeon dungeon, CancellationToken ct)
-	{
-		await dbContext.Dungeons.AddAsync(dungeon, ct);
-		await dbContext.SaveChangesAsync(ct);
-	}
+	public void Add(Dungeon dungeon) =>
+		dbContext.Dungeons.Add(dungeon);
 
 	/// <inheritdoc/>
-	public async Task UpdateAsync(
-		Dungeon dungeon,
-		CancellationToken ct)
+	public void Update(Dungeon dungeon)
 	{
 		if (dbContext.Entry(dungeon).State is EntityState.Detached)
 		{
 			dbContext.Update(dungeon);
 		}
-
-		await dbContext.SaveChangesAsync(ct);
 	}
 
 	/// <inheritdoc/>
-	public async Task<bool> DeleteAsync(
+	public async Task<bool> RemoveAsync(
 		Guid id,
 		CancellationToken ct)
 	{
@@ -60,7 +55,6 @@ public sealed class DungeonWriteRepository(
 		}
 
 		dbContext.Dungeons.Remove(dungeon);
-		await dbContext.SaveChangesAsync(ct);
 
 		return true;
 	}

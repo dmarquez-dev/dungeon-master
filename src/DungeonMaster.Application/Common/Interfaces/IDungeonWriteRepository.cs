@@ -1,9 +1,10 @@
 using DungeonMaster.Domain.Entities.Dungeon;
 
-namespace DungeonMaster.Application.Features.Dungeons;
+namespace DungeonMaster.Application.Common.Interfaces;
 
 /// <summary>
 ///		Provides write access to the dungeon aggregate for command handling.
+///		Every method on this port only stages work; nothing reaches the store until <see cref="IUnitOfWork.CommitAsync"/> runs.
 /// </summary>
 public interface IDungeonWriteRepository
 {
@@ -24,44 +25,35 @@ public interface IDungeonWriteRepository
 		CancellationToken ct);
 
 	/// <summary>
-	///		Persists a newly created dungeon aggregate.
+	///		Marks a newly created dungeon aggregate for insertion.
 	/// </summary>
 	/// <param name="dungeon">
 	///		The dungeon aggregate to add.
 	/// </param>
-	/// <param name="ct">
-	///		Token used to cancel the operation.
-	/// </param>
-	Task AddAsync(
-		Dungeon dungeon,
-		CancellationToken ct);
+	void Add(Dungeon dungeon);
 
 	/// <summary>
-	///		Persists changes made to an existing dungeon aggregate.
+	///		Marks changes made to an existing dungeon aggregate for update.
 	/// </summary>
 	/// <param name="dungeon">
 	///		The dungeon aggregate to update.
 	/// </param>
-	/// <param name="ct">
-	///		Token used to cancel the operation.
-	/// </param>
-	Task UpdateAsync(
-		Dungeon dungeon,
-		CancellationToken ct);
+	void Update(Dungeon dungeon);
 
 	/// <summary>
-	///		Removes the dungeon with the specified identifier.
+	///		Marks the dungeon with the specified identifier for removal.
 	/// </summary>
 	/// <param name="id">
-	///		The unique identifier of the dungeon to delete.
+	///		The unique identifier of the dungeon to remove.
 	/// </param>
 	/// <param name="ct">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
-	///		<see langword="true"/> when a dungeon with the given identifier was found and deleted; otherwise <see langword="false"/>.
+	///		<see langword="true"/> when an aggregate with the given identifier was found and marked for removal; <see langword="false"/> when no aggregate with that identifier exists.
+	///		Neither value says anything about whether a commit happened.
 	/// </returns>
-	Task<bool> DeleteAsync(
+	Task<bool> RemoveAsync(
 		Guid id,
 		CancellationToken ct);
 }

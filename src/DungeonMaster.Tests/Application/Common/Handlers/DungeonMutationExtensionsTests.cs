@@ -1,6 +1,6 @@
 using DungeonMaster.Application.Common.Handlers;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Domain.Entities.Dungeon;
 using FluentAssertions;
 using NSubstitute;
@@ -9,23 +9,25 @@ namespace DungeonMaster.Tests.Application.Common.Handlers;
 
 /// <summary>
 ///		Unit tests for <see cref="DungeonMutationExtensions"/>.
-///		Both <c>MutateAsync</c> overloads carry their own copy of the load-guard-mutate-save prologue, so each
+///		Both <c>MutateAsync</c> overloads carry their own copy of the load-guard-mutate-commit prologue, so each
 ///		of the three behaviours below is proven twice, once against each overload.
 /// </summary>
 public class DungeonMutationExtensionsTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 
 	/// <summary>
-	///		Initializes the test class with a substituted repository.
+	///		Initializes the test class with a substituted unit-of-work chain.
 	/// </summary>
 	public DungeonMutationExtensionsTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
 	}
 
 	/// <summary>
-	///		Verifies that the non-generic overload reports not-found and never saves when the dungeon does not exist.
+	///		Verifies that the non-generic overload reports not-found and never commits when the dungeon does not exist.
 	/// </summary>
 	[Fact]
 	public async Task MutateAsync_WithUnknownDungeon_ReturnsNotFoundAndDoesNotSave()
@@ -41,7 +43,7 @@ public class DungeonMutationExtensionsTests
 			.Returns((Dungeon?)null);
 
 		// Act
-		var result = await _writeRepository.MutateAsync(
+		var result = await _unitOfWork.Factory.MutateAsync(
 			dungeonId,
 			dungeon =>
 			{
@@ -56,15 +58,17 @@ public class DungeonMutationExtensionsTests
 		result.Error.Should().Contain(dungeonId.ToString());
 		mutated.Should().BeFalse();
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
+
+		await _unitOfWork.UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	///		Verifies that the value-producing overload reports not-found and never saves when the dungeon does not exist.
+	///		Verifies that the value-producing overload reports not-found and never commits when the dungeon does not exist.
 	/// </summary>
 	[Fact]
 	public async Task MutateAsync_WithValue_WithUnknownDungeon_ReturnsNotFoundAndDoesNotSave()
@@ -80,7 +84,7 @@ public class DungeonMutationExtensionsTests
 			.Returns((Dungeon?)null);
 
 		// Act
-		var result = await _writeRepository.MutateAsync(
+		var result = await _unitOfWork.Factory.MutateAsync(
 			dungeonId,
 			dungeon =>
 			{
@@ -95,15 +99,17 @@ public class DungeonMutationExtensionsTests
 		result.Error.Should().Contain(dungeonId.ToString());
 		mutated.Should().BeFalse();
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
+
+		await _unitOfWork.UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	///		Verifies that the non-generic overload short-circuits the save when the mutation itself failed.
+	///		Verifies that the non-generic overload short-circuits the commit when the mutation itself failed.
 	/// </summary>
 	[Fact]
 	public async Task MutateAsync_WithFailingMutation_DoesNotSave()
@@ -118,7 +124,7 @@ public class DungeonMutationExtensionsTests
 			.Returns(dungeon);
 
 		// Act
-		var result = await _writeRepository.MutateAsync(
+		var result = await _unitOfWork.Factory.MutateAsync(
 			dungeon.Id,
 			_ =>
 				Result.Failure(
@@ -130,15 +136,17 @@ public class DungeonMutationExtensionsTests
 		result.IsFailure.Should().BeTrue();
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
+
+		await _unitOfWork.UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	///		Verifies that the value-producing overload short-circuits the save when the mutation itself failed.
+	///		Verifies that the value-producing overload short-circuits the commit when the mutation itself failed.
 	/// </summary>
 	[Fact]
 	public async Task MutateAsync_WithValue_WithFailingMutation_DoesNotSave()
@@ -153,7 +161,7 @@ public class DungeonMutationExtensionsTests
 			.Returns(dungeon);
 
 		// Act
-		var result = await _writeRepository.MutateAsync(
+		var result = await _unitOfWork.Factory.MutateAsync(
 			dungeon.Id,
 			_ =>
 				Result<Guid>.Failure(
@@ -165,15 +173,17 @@ public class DungeonMutationExtensionsTests
 		result.IsFailure.Should().BeTrue();
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
+
+		await _unitOfWork.UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	///		Verifies that the non-generic overload saves the aggregate exactly once when the mutation succeeded.
+	///		Verifies that the non-generic overload commits exactly once when the mutation succeeded.
 	/// </summary>
 	[Fact]
 	public async Task MutateAsync_WithSucceedingMutation_SavesOnce()
@@ -188,7 +198,7 @@ public class DungeonMutationExtensionsTests
 			.Returns(dungeon);
 
 		// Act
-		var result = await _writeRepository.MutateAsync(
+		var result = await _unitOfWork.Factory.MutateAsync(
 			dungeon.Id,
 			_ =>
 				Result.Success(),
@@ -197,15 +207,17 @@ public class DungeonMutationExtensionsTests
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 
-		await _writeRepository
+		_writeRepository
 			.Received(1)
-			.UpdateAsync(
-				dungeon,
-				Arg.Any<CancellationToken>());
+			.Update(dungeon);
+
+		await _unitOfWork.UnitOfWork
+			.Received(1)
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
-	///		Verifies that the value-producing overload saves the aggregate exactly once and carries the produced value.
+	///		Verifies that the value-producing overload commits exactly once and carries the produced value.
 	/// </summary>
 	[Fact]
 	public async Task MutateAsync_WithValue_WithSucceedingMutation_SavesOnce()
@@ -221,7 +233,7 @@ public class DungeonMutationExtensionsTests
 			.Returns(dungeon);
 
 		// Act
-		var result = await _writeRepository.MutateAsync(
+		var result = await _unitOfWork.Factory.MutateAsync(
 			dungeon.Id,
 			_ =>
 				Result<Guid>.Success(expectedValue),
@@ -231,10 +243,12 @@ public class DungeonMutationExtensionsTests
 		result.IsSuccess.Should().BeTrue();
 		result.Value.Should().Be(expectedValue);
 
-		await _writeRepository
+		_writeRepository
 			.Received(1)
-			.UpdateAsync(
-				dungeon,
-				Arg.Any<CancellationToken>());
+			.Update(dungeon);
+
+		await _unitOfWork.UnitOfWork
+			.Received(1)
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 }

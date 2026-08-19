@@ -115,7 +115,6 @@ public static class MauiProgram
 		var dbFolder = Path.Combine(
 			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 			"DungeonMaster");
-		Directory.CreateDirectory(dbFolder);
 
 		var dbPath = Path.Combine(dbFolder, "dungeon-master.db");
 		var connectionString = $"Data Source={dbPath}";
@@ -136,7 +135,37 @@ public static class MauiProgram
 
 		var app = builder.Build();
 
-		app.Services.MigrateDatabase();
+		// The database folder and the migration are the two startup steps that touch the file system.
+		// Neither may take the shell down: a failure here is logged and the app still starts.
+		var startupStep = "creating the database folder";
+
+		try
+		{
+			Directory.CreateDirectory(dbFolder);
+
+			startupStep = "applying database migrations";
+
+			// The migration is awaited synchronously on purpose: there is no schema until it completes and
+			// CreateMauiApp is not async. It runs before the MAUI application loop installs a
+			// SynchronizationContext, so GetResult cannot deadlock. The timeout converts the indefinite
+			// __EFMigrationsLock wait EF documents into a caught, logged failure.
+			using var startupCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+			app.Services
+				.MigrateDatabaseAsync(startupCts.Token)
+				.GetAwaiter()
+				.GetResult();
+		}
+		catch (Exception exception) when (
+			exception is IOException
+				or UnauthorizedAccessException
+				or OperationCanceledException
+				or Microsoft.Data.Sqlite.SqliteException
+				or Microsoft.EntityFrameworkCore.DbUpdateException)
+		{
+			System.Diagnostics.Debug.WriteLine(
+				$"Startup failed while {startupStep}: {exception}");
+		}
 
 		return app;
 	}

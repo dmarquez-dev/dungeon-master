@@ -1,9 +1,10 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -14,6 +15,7 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// </summary>
 public class UpdatePlacedObjectCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly UpdatePlacedObjectCommandHandler _handler;
 
@@ -22,8 +24,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 	/// </summary>
 	public UpdatePlacedObjectCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new UpdatePlacedObjectCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new UpdatePlacedObjectCommandHandler(_unitOfWork.Factory);
 	}
 
 	/// <summary>
@@ -67,11 +70,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 		obj.Rotation.Should().Be(ObjectRotation.CW90);
 		obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 
-		await _writeRepository
+		_writeRepository
 			.Received(1)
-			.UpdateAsync(
-				dungeon,
-				Arg.Any<CancellationToken>());
+			.Update(dungeon);
 	}
 
 	/// <summary>
@@ -134,11 +135,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 
 	/// <summary>
@@ -181,11 +180,9 @@ public class UpdatePlacedObjectCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		theObj.Position.Should().Be(originalPos);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 
 	/// <summary>

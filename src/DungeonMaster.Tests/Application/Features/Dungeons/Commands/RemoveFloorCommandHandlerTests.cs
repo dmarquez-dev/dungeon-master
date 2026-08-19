@@ -1,7 +1,8 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,13 +10,15 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
 public class RemoveFloorCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly RemoveFloorCommandHandler _handler;
 
 	public RemoveFloorCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new RemoveFloorCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new RemoveFloorCommandHandler(_unitOfWork.Factory);
 	}
 
 	[Fact]
@@ -25,8 +28,6 @@ public class RemoveFloorCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		_writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
-		_writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-
 		// Act
 		var result = await _handler.HandleAsync(new RemoveFloorCommand(dungeon.Id, floor.Id), CancellationToken.None);
 
@@ -78,10 +79,8 @@ public class RemoveFloorCommandHandlerTests
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 }

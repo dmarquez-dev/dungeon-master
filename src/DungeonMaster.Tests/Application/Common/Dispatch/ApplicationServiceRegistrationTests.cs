@@ -1,11 +1,12 @@
 using System.Reflection;
 using DungeonMaster.Application;
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -259,8 +260,8 @@ public class ApplicationServiceRegistrationTests
 	public async Task SendAsync_WithAnInvalidUpdateAreaCommand_IsRejectedByItsRegisteredValidator()
 	{
 		// Arrange
-		var writeRepository = Substitute.For<IDungeonWriteRepository>();
-		using var provider = BuildRealContainer(writeRepository);
+		var unitOfWork = new UnitOfWorkSubstitute();
+		using var provider = BuildRealContainer(unitOfWork);
 		using var scope = provider.CreateScope();
 
 		var command = new UpdateAreaCommand(
@@ -295,7 +296,7 @@ public class ApplicationServiceRegistrationTests
 			.Should()
 			.Be(nameof(UpdateAreaCommand.Name));
 
-		await writeRepository
+		await unitOfWork.Dungeons
 			.DidNotReceiveWithAnyArgs()
 			.LoadAsync(
 				default,
@@ -309,8 +310,8 @@ public class ApplicationServiceRegistrationTests
 	public async Task SendAsync_WithAnInvalidUpdateDungeonCommand_IsRejectedByItsRegisteredValidator()
 	{
 		// Arrange
-		var writeRepository = Substitute.For<IDungeonWriteRepository>();
-		using var provider = BuildRealContainer(writeRepository);
+		var unitOfWork = new UnitOfWorkSubstitute();
+		using var provider = BuildRealContainer(unitOfWork);
 		using var scope = provider.CreateScope();
 
 		var command = new UpdateDungeonCommand(
@@ -343,7 +344,7 @@ public class ApplicationServiceRegistrationTests
 			.Should()
 			.Be(nameof(UpdateDungeonCommand.Name));
 
-		await writeRepository
+		await unitOfWork.Dungeons
 			.DidNotReceiveWithAnyArgs()
 			.LoadAsync(
 				default,
@@ -351,19 +352,20 @@ public class ApplicationServiceRegistrationTests
 	}
 
 	private static ServiceProvider BuildRealContainer(
-		IDungeonWriteRepository? writeRepository = null) =>
-			BuildRealServiceCollection(writeRepository).BuildServiceProvider();
+		UnitOfWorkSubstitute? unitOfWork = null) =>
+			BuildRealServiceCollection(unitOfWork).BuildServiceProvider();
 
 	private static IServiceCollection BuildRealServiceCollection(
-		IDungeonWriteRepository? writeRepository = null)
+		UnitOfWorkSubstitute? unitOfWork = null)
 	{
 		var services = new ServiceCollection();
+		var unitOfWorkSubstitute = unitOfWork ?? new UnitOfWorkSubstitute();
 
 		services.AddApplicationServices();
 		services.AddScoped(_ =>
 			Substitute.For<IDungeonReadRepository>());
 		services.AddScoped(_ =>
-			writeRepository ?? Substitute.For<IDungeonWriteRepository>());
+			unitOfWorkSubstitute.Factory);
 
 		return services;
 	}

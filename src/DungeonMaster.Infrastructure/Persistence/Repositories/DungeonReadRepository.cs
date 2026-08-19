@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 using Microsoft.EntityFrameworkCore;
@@ -7,14 +7,18 @@ namespace DungeonMaster.Infrastructure.Persistence.Repositories;
 
 /// <summary>
 ///		Provides read-side data access operations for <see cref="DungeonMaster.Domain.Entities.Dungeon.Dungeon"/> aggregates.
+///		Each query is its own unit of work: it creates a context, projects, and disposes.
 /// </summary>
 public sealed class DungeonReadRepository(
-	AppDbContext dbContext)
+	IDbContextFactory<AppDbContext> dbContextFactory)
 		: IDungeonReadRepository
 {
 	/// <inheritdoc/>
 	public async Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken ct)
-		=> await dbContext.Dungeons
+	{
+		await using var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
+
+		return await dbContext.Dungeons
 			.AsNoTracking()
 			.Select(dungeon =>
 				new DungeonSummaryDto(
@@ -25,13 +29,18 @@ public sealed class DungeonReadRepository(
 					dungeon.CreatedAt,
 					dungeon.LastModified))
 			.ToListAsync(ct);
+	}
 
 	/// <inheritdoc/>
 	public async Task<DungeonDetailDto?> GetDetailAsync(
 		Guid id,
 		CancellationToken ct)
-		=> await dbContext.Dungeons
+	{
+		await using var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
+
+		return await dbContext.Dungeons
 			.AsNoTracking()
+			.AsSplitQuery()
 			.Where(dungeon =>
 				dungeon.Id == id)
 			.Select(dungeon =>
@@ -73,4 +82,5 @@ public sealed class DungeonReadRepository(
 									.ToList()))
 						.ToList()))
 			.FirstOrDefaultAsync(ct);
+	}
 }

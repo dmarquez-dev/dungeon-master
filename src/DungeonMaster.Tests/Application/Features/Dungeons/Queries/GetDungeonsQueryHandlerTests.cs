@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 using FluentAssertions;
 using NSubstitute;
@@ -31,8 +31,8 @@ public class GetDungeonsQueryHandlerTests
 		// Arrange
 		var summaries = new List<DungeonSummaryDto>
 		{
-			new(Guid.NewGuid(), "Caverns of Doom", "A dark and dangerous place.", 0, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow),
-			new(Guid.NewGuid(), "Crystal Labyrinth", null, 2, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow),
+			new(Guid.NewGuid(), "Caverns of Doom", "A dark and dangerous place.", 0, DateTime.UtcNow, DateTime.UtcNow),
+			new(Guid.NewGuid(), "Crystal Labyrinth", null, 2, DateTime.UtcNow, DateTime.UtcNow),
 		};
 
 		_readRepository

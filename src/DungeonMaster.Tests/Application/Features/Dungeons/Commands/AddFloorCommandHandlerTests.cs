@@ -1,7 +1,8 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,13 +10,15 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
 public class AddFloorCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly AddFloorCommandHandler _handler;
 
 	public AddFloorCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new AddFloorCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new AddFloorCommandHandler(_unitOfWork.Factory);
 	}
 
 	[Fact]
@@ -24,8 +27,6 @@ public class AddFloorCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		_writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
-		_writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
-
 		// Act
 		var result = await _handler.HandleAsync(new AddFloorCommand(dungeon.Id, "Entry"), CancellationToken.None);
 

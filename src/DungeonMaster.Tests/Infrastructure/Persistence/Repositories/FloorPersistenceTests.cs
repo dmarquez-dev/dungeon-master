@@ -1,3 +1,4 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
@@ -34,14 +35,17 @@ public class FloorPersistenceTests : IDisposable
 
 	private AppDbContext CreateContext() => new(_options);
 
+	private IUnitOfWorkFactory CreateFactory() =>
+		new UnitOfWorkFactory(new TestDbContextFactory(_options));
+
 	private async Task<(Guid DungeonId, Guid FloorId)> SeedAsync()
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 		var floor = dungeon.AddFloor("Crypt");
 
-		using var ctx = CreateContext();
-		var repo = new DungeonWriteRepository(ctx);
-		await repo.AddAsync(dungeon, CancellationToken.None);
+		await using var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None);
+		unitOfWork.Dungeons.Add(dungeon);
+		await unitOfWork.CommitAsync(CancellationToken.None);
 
 		return (dungeon.Id, floor.Id);
 	}
@@ -51,12 +55,12 @@ public class FloorPersistenceTests : IDisposable
 	{
 		var (dungeonId, floorId) = await SeedAsync();
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.UpdateFloor(floorId, "Crypt", "The air grows cold.", "Ghasts.");
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -73,12 +77,12 @@ public class FloorPersistenceTests : IDisposable
 	{
 		var (dungeonId, floorId) = await SeedAsync();
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			loaded!.UpdateFloor(floorId, "Crypt", "The air grows cold.", "Ghasts.");
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		// Asserts the repository and mapping layer preserve description and notes when an
@@ -86,13 +90,13 @@ public class FloorPersistenceTests : IDisposable
 		// nulls (DungeonDetailViewModel.UpdateFloorAsync) is not reachable from this test
 		// project — DungeonMaster.Tests does not reference DungeonMaster.App — and is covered
 		// by manual verification instead.
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeonId, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
 			var existing = loaded!.Floors.Single();
 			loaded.UpdateFloor(floorId, "Ossuary", existing.Description, existing.Notes);
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();

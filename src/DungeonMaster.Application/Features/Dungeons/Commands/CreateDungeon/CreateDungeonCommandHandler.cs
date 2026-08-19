@@ -1,6 +1,6 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Domain.Entities.Dungeon;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
@@ -9,7 +9,7 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 ///		Handles the <see cref="CreateDungeonCommand"/> by creating and persisting a new dungeon aggregate.
 /// </summary>
 public sealed class CreateDungeonCommandHandler(
-	IDungeonWriteRepository writeRepository)
+	IUnitOfWorkFactory unitOfWorkFactory)
 		: ICommandHandler<CreateDungeonCommand, Guid>
 {
 	/// <inheritdoc/>
@@ -17,13 +17,15 @@ public sealed class CreateDungeonCommandHandler(
 		CreateDungeonCommand command,
 		CancellationToken ct)
 	{
+		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(ct);
+
 		var dungeon = new Dungeon(
 			command.Name,
 			command.Description);
 
-		await writeRepository.AddAsync(
-			dungeon,
-			ct);
+		unitOfWork.Dungeons.Add(dungeon);
+
+		await unitOfWork.CommitAsync(ct);
 
 		return Result<Guid>.Success(dungeon.Id);
 	}

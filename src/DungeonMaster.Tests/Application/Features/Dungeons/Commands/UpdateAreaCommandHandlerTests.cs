@@ -1,7 +1,8 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,13 +10,15 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
 public class UpdateAreaCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly UpdateAreaCommandHandler _handler;
 
 	public UpdateAreaCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new UpdateAreaCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new UpdateAreaCommandHandler(_unitOfWork.Factory);
 	}
 
 	[Fact]
@@ -28,9 +31,6 @@ public class UpdateAreaCommandHandlerTests
 		_writeRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
-		_writeRepository
-			.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
 
 		var area = floor.Areas[0];
 		var command = new UpdateAreaCommand(dungeon.Id, floor.Id, area.Id, "New Name", "New Desc", "My Notes");
@@ -94,10 +94,8 @@ public class UpdateAreaCommandHandlerTests
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 }

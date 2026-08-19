@@ -1,7 +1,8 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,13 +10,15 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
 public class RemoveAreaCommandHandlerTests
 {
+	private readonly UnitOfWorkSubstitute _unitOfWork;
 	private readonly IDungeonWriteRepository _writeRepository;
 	private readonly RemoveAreaCommandHandler _handler;
 
 	public RemoveAreaCommandHandlerTests()
 	{
-		_writeRepository = Substitute.For<IDungeonWriteRepository>();
-		_handler = new RemoveAreaCommandHandler(_writeRepository);
+		_unitOfWork = new UnitOfWorkSubstitute();
+		_writeRepository = _unitOfWork.Dungeons;
+		_handler = new RemoveAreaCommandHandler(_unitOfWork.Factory);
 	}
 
 	[Fact]
@@ -28,9 +31,6 @@ public class RemoveAreaCommandHandlerTests
 		_writeRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
-		_writeRepository
-			.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>())
-			.Returns(Task.CompletedTask);
 
 		var command = new RemoveAreaCommand(dungeon.Id, floor.Id, area.Id);
 
@@ -89,10 +89,8 @@ public class RemoveAreaCommandHandlerTests
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		await _writeRepository
+		_writeRepository
 			.DidNotReceive()
-			.UpdateAsync(
-				Arg.Any<Dungeon>(),
-				Arg.Any<CancellationToken>());
+			.Update(Arg.Any<Dungeon>());
 	}
 }

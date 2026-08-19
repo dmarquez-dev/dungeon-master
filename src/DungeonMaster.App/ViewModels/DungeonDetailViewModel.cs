@@ -80,20 +80,73 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	/// </summary>
 	public ObservableCollection<FloorDto> Floors { get; } = [];
 
+	/// <summary>
+	///		Gets the task representing the load started by the most recent call to <see cref="ApplyQueryAttributes"/>.
+	///		The page awaits this rather than letting the started load be discarded, so a load that faults is observed instead of being captured on a <see cref="Task"/> nobody holds.
+	///		This is <see cref="Task.CompletedTask"/> before any navigation has been applied and when the navigation carried no usable identifier.
+	/// </summary>
+	public Task LoadTask { get; private set; } = Task.CompletedTask;
+
+	private static readonly Result UnusableNavigationIdResult = Result.Failure(
+		"This dungeon could not be opened because the navigation request carried no usable dungeon identifier.",
+		ErrorCategory.NotFound);
+
+	private static readonly Result NoDungeonLoadedResult = Result.Failure(
+		"No dungeon is loaded, so there is nothing to save. Return to the dungeon list and open a dungeon.",
+		ErrorCategory.NotFound);
+
 	private Guid _dungeonId;
 
 	/// <summary>
 	///		Applies query-string attributes from Shell navigation to load the correct dungeon.
 	/// </summary>
 	/// <param name="query">
-	///		The query attributes provided by Shell navigation. Must contain an <c>id</c> key with a valid <see cref="Guid"/> string.
+	///		The query attributes provided by Shell navigation.
+	///		An <c>id</c> key holding a valid <see cref="Guid"/> string starts a load.
+	///		A missing, empty, or unparsable <c>id</c> is not silently ignored: the view model clears any dungeon it was showing, leaves <see cref="LoadTask"/> completed, and reports the failure on <see cref="ErrorMessage"/>.
+	///		Every editing command is refused while that state holds, so no write is aimed at a dungeon that does not exist.
 	/// </param>
 	public void ApplyQueryAttributes(IDictionary<string, object> query)
 	{
-		if (query.TryGetValue("id", out var val) && Guid.TryParse(val?.ToString(), out var id))
+		ErrorMessage = null;
+
+		if (!query.TryGetValue("id", out var val) || !Guid.TryParse(val?.ToString(), out var id))
 		{
-			_ = LoadDungeonCommand.ExecuteAsync(id);
+			_dungeonId = Guid.Empty;
+
+			// Set editable fields first so the PropertyChanged handler for Dungeon reads current values
+			DungeonName = string.Empty;
+			DungeonDescription = null;
+			DungeonNotes = null;
+			Dungeon = null;
+
+			Floors.Clear();
+			LoadTask = Task.CompletedTask;
+			ErrorMessage = ResultMessage.ForFailure(UnusableNavigationIdResult);
+
+			return;
 		}
+
+		LoadTask = LoadDungeonCommand.ExecuteAsync(id);
+	}
+
+	/// <summary>
+	///		Reports whether no dungeon is loaded and, when none is, sets <see cref="ErrorMessage"/> so the refusal is visible.
+	///		Callers return without dispatching when this returns <see langword="true"/>.
+	/// </summary>
+	/// <returns>
+	///		<see langword="true"/> when no dungeon is loaded and the operation must not proceed; otherwise <see langword="false"/>.
+	/// </returns>
+	private bool NoDungeonIsLoaded()
+	{
+		if (_dungeonId != Guid.Empty)
+		{
+			return false;
+		}
+
+		ErrorMessage = ResultMessage.ForFailure(NoDungeonLoadedResult);
+
+		return true;
 	}
 
 	/// <summary>
@@ -135,6 +188,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	{
 		ErrorMessage = null;
 
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
+
 		var result = await dispatcher.SendAsync(
 			new UpdateDungeonCommand(
 				_dungeonId,
@@ -158,6 +216,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	private async Task AddFloorAsync()
 	{
 		ErrorMessage = null;
+
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
 
 		var result = await dispatcher.SendAsync<Guid>(
 			new AddFloorCommand(
@@ -186,6 +249,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	{
 		ErrorMessage = null;
 
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
+
 		var result = await dispatcher.SendAsync(
 			new RemoveFloorCommand(
 				_dungeonId,
@@ -213,6 +281,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	private async Task UpdateFloorAsync((Guid FloorId, string? Name, string? Description, string? Notes) args)
 	{
 		ErrorMessage = null;
+
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
 
 		var result = await dispatcher.SendAsync(
 			new UpdateFloorCommand(
@@ -244,6 +317,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	{
 		ErrorMessage = null;
 
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
+
 		var result = await dispatcher.SendAsync(
 			new ReorderFloorCommand(
 				_dungeonId,
@@ -271,6 +349,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	private async Task AddAreaAsync(Guid floorId)
 	{
 		ErrorMessage = null;
+
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
 
 		var result = await dispatcher.SendAsync<Guid>(
 			new AddAreaCommand(
@@ -300,6 +383,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	private async Task RemoveAreaAsync((Guid FloorId, Guid AreaId) args)
 	{
 		ErrorMessage = null;
+
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
 
 		var result = await dispatcher.SendAsync(
 			new RemoveAreaCommand(
@@ -332,6 +420,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	{
 		ErrorMessage = null;
 
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
+
 		var result = await dispatcher.SendAsync(
 			new UpdateAreaCommand(
 				_dungeonId,
@@ -363,6 +456,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	{
 		ErrorMessage = null;
 
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
+
 		var result = await dispatcher.SendAsync(
 			new UpdateAreaOutlineCommand(
 				_dungeonId,
@@ -389,6 +487,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	private async Task AddAreaWithOutlineAsync((Guid FloorId, IReadOnlyList<PathSegment> Outline) args)
 	{
 		ErrorMessage = null;
+
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
 
 		var result = await dispatcher.SendAsync<Guid>(
 			new AddAreaCommand(
@@ -466,6 +569,11 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	private async Task AddPlacedObjectAsync(PlaceObjectArgs args)
 	{
 		ErrorMessage = null;
+
+		if (NoDungeonIsLoaded())
+		{
+			return;
+		}
 
 		var result = await dispatcher.SendAsync<Guid>(
 			new AddPlacedObjectCommand(

@@ -1,3 +1,4 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
@@ -31,15 +32,18 @@ public class DungeonWriteRepositoryTests : IDisposable
 
 	private AppDbContext CreateContext() => new(_options);
 
+	private IUnitOfWorkFactory CreateFactory() =>
+		new UnitOfWorkFactory(new TestDbContextFactory(_options));
+
 	[Fact]
-	public async Task AddAsync_PersistsDungeon()
+	public async Task Add_PersistsDungeon()
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			await repo.AddAsync(dungeon, CancellationToken.None);
+			unitOfWork.Dungeons.Add(dungeon);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -49,7 +53,7 @@ public class DungeonWriteRepositoryTests : IDisposable
 	}
 
 	[Fact]
-	public async Task DeleteAsync_RemovesDungeon()
+	public async Task RemoveAsync_RemovesDungeon()
 	{
 		var dungeon = new Dungeon("Tomb of the Ancients");
 		using (var ctx = CreateContext())
@@ -58,10 +62,10 @@ public class DungeonWriteRepositoryTests : IDisposable
 			await ctx.SaveChangesAsync();
 		}
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			await repo.DeleteAsync(dungeon.Id, CancellationToken.None);
+			await unitOfWork.Dungeons.RemoveAsync(dungeon.Id, CancellationToken.None);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -93,7 +97,7 @@ public class DungeonWriteRepositoryTests : IDisposable
 	}
 
 	[Fact]
-	public async Task UpdateAsync_PersistsDomainMutations()
+	public async Task Update_PersistsDomainMutations()
 	{
 		var dungeon = new Dungeon("Old Name");
 		using (var ctx = CreateContext())
@@ -102,12 +106,12 @@ public class DungeonWriteRepositoryTests : IDisposable
 			await ctx.SaveChangesAsync();
 		}
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			var loaded = await repo.LoadAsync(dungeon.Id, CancellationToken.None);
+			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeon.Id, CancellationToken.None);
 			loaded!.Update("New Name", null, "Some notes");
-			await repo.UpdateAsync(loaded, CancellationToken.None);
+			unitOfWork.Dungeons.Update(loaded);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
@@ -117,7 +121,7 @@ public class DungeonWriteRepositoryTests : IDisposable
 	}
 
 	[Fact]
-	public async Task DeleteAsync_WithExistingDungeon_ReturnsTrue()
+	public async Task RemoveAsync_WithExistingDungeon_ReturnsTrue()
 	{
 		// Arrange
 		var dungeon = new Dungeon("Doomed Keep");
@@ -129,16 +133,16 @@ public class DungeonWriteRepositoryTests : IDisposable
 		}
 
 		// Act
-		bool deleted;
+		bool removed;
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			deleted = await repo.DeleteAsync(dungeon.Id, CancellationToken.None);
+			removed = await unitOfWork.Dungeons.RemoveAsync(dungeon.Id, CancellationToken.None);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		// Assert
-		deleted.Should().BeTrue();
+		removed.Should().BeTrue();
 
 		using var verify = CreateContext();
 		var found = await verify.Dungeons.FindAsync(dungeon.Id);
@@ -146,7 +150,7 @@ public class DungeonWriteRepositoryTests : IDisposable
 	}
 
 	[Fact]
-	public async Task DeleteAsync_WithUnknownId_ReturnsFalseAndSavesNothing()
+	public async Task RemoveAsync_WithUnknownId_ReturnsFalseAndSavesNothing()
 	{
 		// Arrange
 		var survivor = new Dungeon("Untouched Vault");
@@ -158,16 +162,16 @@ public class DungeonWriteRepositoryTests : IDisposable
 		}
 
 		// Act
-		bool deleted;
+		bool removed;
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			deleted = await repo.DeleteAsync(Guid.NewGuid(), CancellationToken.None);
+			removed = await unitOfWork.Dungeons.RemoveAsync(Guid.NewGuid(), CancellationToken.None);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		// Assert
-		deleted.Should().BeFalse();
+		removed.Should().BeFalse();
 
 		using var verify = CreateContext();
 		var found = await verify.Dungeons.FindAsync(survivor.Id);
@@ -176,7 +180,7 @@ public class DungeonWriteRepositoryTests : IDisposable
 	}
 
 	[Fact]
-	public async Task UpdateAsync_WithDetachedAggregate_PersistsTheChange()
+	public async Task Update_WithDetachedAggregate_PersistsTheChange()
 	{
 		// Arrange
 		var dungeon = new Dungeon("Detached Original");
@@ -204,7 +208,8 @@ public class DungeonWriteRepositoryTests : IDisposable
 			observedState = updateCtx.Entry(detached).State;
 
 			var updateRepo = new DungeonWriteRepository(updateCtx);
-			await updateRepo.UpdateAsync(detached, CancellationToken.None);
+			updateRepo.Update(detached);
+			await updateCtx.SaveChangesAsync();
 		}
 
 		// Assert
@@ -227,10 +232,10 @@ public class DungeonWriteRepositoryTests : IDisposable
 			ObjectRotation.CW90,
 			1.5f);
 
-		using (var ctx = CreateContext())
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
-			var repo = new DungeonWriteRepository(ctx);
-			await repo.AddAsync(dungeon, CancellationToken.None);
+			unitOfWork.Dungeons.Add(dungeon);
+			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
 		using var verify = CreateContext();
