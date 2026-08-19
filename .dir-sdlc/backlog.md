@@ -7,8 +7,9 @@ entries are in `docs/audit/00-master-index.md`, and this file should not expand 
 completion state for the audit lives in that index's `Status` column; this file holds only what was
 deferred rather than scheduled.
 
-_Last reconciled 2026-08-18, after Session 1 ("Pin the build") completed. Nothing below was resolved
-by Session 1; all nine items remain open._
+_Last reconciled 2026-08-18, after Session 3 ("Settle the data-access lifetime and the persistence
+contract") completed. Session 3 resolved nothing previously listed here; it added six items of its own.
+The Session 5 and Session 7 items and the audit-document corrections all remain open._
 
 ## Repository work
 
@@ -19,6 +20,20 @@ by Session 1; all nine items remain open._
 - 2026-08-18 — `2026-08-18-make-failure-observable` — Cover the marker-check hookup at `src/DungeonMaster.Application/DependencyInjection.cs:112`. `MarkerViolationFor` is proven to fire correctly by a test-assembly type `TwoMarkerRequest : ICommand, IQuery<int>`, and the surrounding `problems.Add`/throw machinery is proven by the missing-handler test, but the single line connecting them is exercised by no test. This is the residue of an unavoidable trade-off -- a real two-marker type cannot live in the Application assembly without permanently reddening the real-container test -- rather than an oversight. Deferred as an advisory at Gate 3.
 
 - 2026-08-18 — `2026-08-18-make-failure-observable` — Recorded decision, no action expected unless it surprises someone later: `SetTextTrimmingOnChildren` in `src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs` now runs unconditionally after the catch, where it was previously skipped whenever an earlier statement in the theming block threw, and its own exceptions now propagate out of a `Loaded` handler instead of being swallowed. Both are required by the MASTER-005 fix and are the intended effect of making failure observable -- the tree walk only sets `TextTrimming` on `TextBlock` children and is independent of the theme dictionary. Recorded so it reads as a decision rather than an accident.
+
+### Not assigned to a session -- from Session 3
+
+- 2026-08-18 — `2026-08-18-settle-the-data-access-lifetime` — Move the startup migration off the `CreateMauiApp` construction path so first paint does not wait on it. Session 3 landed the other half of `MASTER-012` / `UI-002`: directory creation and migration now share one `try` with a filtered `catch`, a 30-second `CancellationTokenSource`, and a `Debug.WriteLine` naming the failing step. The migration is still awaited synchronously via `.GetAwaiter().GetResult()`, which cannot deadlock because it runs before the MAUI application loop installs a `SynchronizationContext`. Finishing it needs a loading state and a user-visible error surface — view work this session deliberately did not do. Declared in T1's acceptance criterion 14 rather than discovered at review.
+
+- 2026-08-18 — `2026-08-18-settle-the-data-access-lifetime` — Have startup detect an unrecognised `__EFMigrationsHistory` and refuse with a usable diagnostic. This is the open half of `MASTER-093` / `INFRA-020`, and it is blocked on the same user-visible error surface the item above defers. Session 3 closed the rest: `docs/persistence-contract.md` now records the `7a4bb2d` squash and quotes its decision, and the stale comment at `PlacedObjectConfiguration.cs:36` is deleted.
+
+- 2026-08-18 — `2026-08-18-settle-the-data-access-lifetime` — Add `dotnet ef migrations has-pending-model-changes` to CI. **There is no `.github/workflows` directory in this repository** — `ls -d .github/workflows` fails — so this had nothing to attach to, and no task in Session 3 was permitted to create a pipeline to host it. Revisit when CI exists. The check itself passes today: it was run by both the implementer and the reviewer against the session's migration.
+
+- 2026-08-18 — `2026-08-18-settle-the-data-access-lifetime` — **Nothing enforces the UTC invariant on timestamps.** Session 3 moved `Entity.CreatedAt`/`LastModified` from `DateTimeOffset` to `DateTime` UTC, and both the implementer and the reviewer confirmed by probe that SQLite reads them back as `DateTimeKind.Unspecified` — the provider records no kind. The guarantee that these are UTC now lives in `Entity` and nowhere else, undefended by any test, so a future `.ToLocalTime()` or `.ToUniversalTime()` on a loaded timestamp would silently shift by the local offset. `docs/persistence-contract.md` §2.1 documents it; a test asserting no `DateTime.Now` in the solution, or read-side normalisation, would defend it. Advisory, deferred at Gate 3.
+
+- 2026-08-18 — `2026-08-18-settle-the-data-access-lifetime` — **A well-formed `Guid` naming a nonexistent dungeon still produces a silent empty page.** `DungeonDetailViewModel.LoadDungeonAsync` sets `_dungeonId = id` at line 161 *before* the query and never resets it or sets `ErrorMessage` when the result comes back null, so the new `NoDungeonIsLoaded()` guard passes and saves dispatch against an id with no row. This is the same class of defect `UI-005` describes but sits outside `MASTER-017`'s wording, which covers only an absent or unparsable id — Session 3 fixed that half and proved it by observation. Found by `dir-reviewer` outside the acceptance criteria. Probably deserves its own audit entry.
+
+- 2026-08-18 — `2026-08-18-settle-the-data-access-lifetime` — Update the local `dotnet-ef` tooling. Every `dotnet ef` invocation during Session 3 printed `The Entity Framework tools version '10.0.3' is older than that of the runtime '10.0.11'.`, reproduced independently by the reviewer. The migration and model snapshot came out correct regardless, so this is not a defect in what landed, but it should be fixed before the next scaffold.
 
 ### For Session 5 -- the editor seam and the control kit
 

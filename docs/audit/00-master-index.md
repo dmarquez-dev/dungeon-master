@@ -52,7 +52,7 @@ its per-entry form.
 |---|---|---|---|
 | 1 -- Pin the build | 10 | **Complete** 2026-08-18 | `66e41ef`, `cf49081`, `413be78`, merged `079195f` on `chore/repo-audit` |
 | 2 -- Make failure observable in the Application core | 16 | **Complete** 2026-08-18 | `afbed1e`, `781f73b`, `91658eb`, `3b44d91`, `f9a665b`, `bcb49dc`, `09f4360`, `476259c`, `5e09334` on `chore/repo-audit` |
-| 3 -- Settle the data-access lifetime and the persistence contract | 16 | Not started | |
+| 3 -- Settle the data-access lifetime and the persistence contract | 16 | **Complete** 2026-08-18 | `ef0b0b6`, `1453cbd`, `9051eeb` on `chore/repo-audit` |
 | 4 -- Async, disposal and threading discipline | 11 | Not started | |
 | 5 -- Give the editor a seam and the control kit its own contract | 32 | Not started | |
 | 6 -- Rebuild the App sub-suite and de-duplicate the fixtures | 25 | Not started | |
@@ -185,36 +185,36 @@ target frameworks rather than from any decision a test author made.
 | 1 | MASTER-001 | S1 | UI | correctness | M | low | DungeonDetailViewModel discards the Result of every dispatched command | UI-004 | **done** |
 | 2 | MASTER-002 | S2 | CORE | async | XS | low | ValidationBehavior validates synchronously and never passes the cancellation token | CORE-003 | **done** |
 | 3 | MASTER-003 | S2 | CORE | structure | XS | low | Floor.UpdateNumber is the only entity mutator that does not call Touch | CORE-021 | **done** |
-| 4 | MASTER-004 | S2 | INFRA | performance | XS | low | LoadAsync includes two sibling collections, producing a cartesian product per floor | INFRA-011 | |
+| 4 | MASTER-004 | S2 | INFRA | performance | XS | low | LoadAsync includes two sibling collections, producing a cartesian product per floor | INFRA-011 | **done** |
 | 5 | MASTER-005 | S2 | UI | correctness | XS | low | The object palette swallows every exception from its WinUI theming block | UI-022 | **done** |
 | 6 | MASTER-006 | S2 | UIKIT | disposal | XS | low | HoverOrLongPressBehavior never detaches the pan recogniser it adds | UIKIT-003 | |
 | 7 | MASTER-007 | S2 | UIKIT | correctness | XS | low | NotNullConverter reports an unresolved binding as a non-null value | UIKIT-004 | |
 | 8 | MASTER-008 | S2 | TEST | correctness | XS | low | RepoPaths accepts any ancestor with a .git entry without checking the App project is beneath it | TEST-003 | |
 | 9 | MASTER-009 | S2 | XCUT | dependency | XS | low | No global.json and no AnalysisLevel pin, so the analyzer set floats under TreatWarningsAsErrors | XCUT-003 | **done** |
 | 10 | MASTER-010 | S2 | CORE | correctness | S | low | AddArea throws InvalidOperationException for a missing floor while siblings return a Result | CORE-002 | **done** |
-| 11 | MASTER-011 | S2 | INFRA | async | S | low | MigrateDatabase applies migrations synchronously on the startup path and takes no cancellation token | INFRA-019 | |
-| 12 | MASTER-012 | S2 | UI | correctness | S | low | Database directory creation and migration run synchronously and unguarded inside CreateMauiApp | UI-002 | |
+| 11 | MASTER-011 | S2 | INFRA | async | S | low | MigrateDatabase applies migrations synchronously on the startup path and takes no cancellation token | INFRA-019 | **done** |
+| 12 | MASTER-012 | S2 | UI | correctness | S | low | Database directory creation and migration run synchronously and unguarded inside CreateMauiApp | UI-002 | **done** |
 | 13 | MASTER-013 | S2 | UIKIT | disposal | S | low | FloorMapDrawable caches IDisposable images and never disposes them | UIKIT-001 | |
 | 14 | MASTER-014 | S2 | TEST | correctness | S | low | Every persistence test builds its schema with EnsureCreated, so no test exercises a migration | TEST-002 | |
-| 15 | MASTER-015 | S2 | INFRA | correctness | S | medium | Outline JSON conversion has no ValueComparer, so every tracked Area is reported as modified | INFRA-004 | |
+| 15 | MASTER-015 | S2 | INFRA | correctness | S | medium | Outline JSON conversion has no ValueComparer, so every tracked Area is reported as modified | INFRA-004 | **done** |
 | 16 | MASTER-016 | S2 | INFRA | correctness | S | medium | UpdateAsync attaches a detached aggregate, which marks it Unchanged and saves nothing | INFRA-012 | **done** |
-| 17 | MASTER-017 | S2 | UI | async | S | medium | ApplyQueryAttributes starts the load as a discarded task and silently ignores a bad id | UI-005 | |
+| 17 | MASTER-017 | S2 | UI | async | S | medium | ApplyQueryAttributes starts the load as a discarded task and silently ignores a bad id | UI-005 | **done** |
 | 18 | MASTER-018 | S2 | UI | async | S | medium | async void on three methods that are not event handlers | UI-013 | |
 | 19 | MASTER-019 | S2 | UI | async | M | low | async void event handlers across the layer carry no exception guard | UI-014 | |
 | 20 | MASTER-020 | S2 | TEST | testability | M | low | The dispatcher, the validation pipeline and the Result type have no tests at all | TEST-001 | |
 | 21 | MASTER-021 | S2 | CORE | correctness | M | medium | Aggregate mutators silently no-op on an unknown child id and the command still reports success | CORE-001 | **done** |
 | 22 | MASTER-022 | S2 | CORE | naming | M | medium | Entity namespaces share the name of the type they contain, forcing Floor.Floor qualification | CORE-004 | |
-| 23 | MASTER-023 | S2 | INFRA, UI, XCUT | dependency | M | medium | Agree one DbContext and repository lifetime across the Infrastructure and App composition roots | INFRA-018, UI-001, XCUT-001 | |
+| 23 | MASTER-023 | S2 | INFRA, UI, XCUT | dependency | M | medium | Agree one DbContext and repository lifetime across the Infrastructure and App composition roots | INFRA-018, UI-001, XCUT-001 | **done** |
 | 24 | MASTER-024 | S2 | UI | async | M | medium | Discarded tasks in the keyboard, gesture, and popup dispatch paths | UI-015 | |
 | 25 | MASTER-025 | S2 | UIKIT | async | M | medium | Image loading blocks on async file I/O from inside the Draw call path | UIKIT-002 | |
 | 26 | MASTER-026 | S2 | XCUT | boundary | M | medium | Tests targets net10.0 and App targets platform frameworks, so no test can reference App | XCUT-002 | |
 | 27 | MASTER-027 | S2 | UIKIT | boundary | L | medium | The reusable control kit binds directly to Application query DTOs | UIKIT-005 | |
 | 28 | MASTER-028 | S2 | TEST | correctness | L | medium | Eleven of the thirteen App files assert over XAML as text; a twelfth parses it as XML | TEST-004 | |
-| 29 | MASTER-029 | S2 | INFRA | performance | L | high | Every timestamp column is DateTimeOffset, a type the SQLite provider does not natively support | INFRA-003 | |
+| 29 | MASTER-029 | S2 | INFRA | performance | L | high | Every timestamp column is DateTimeOffset, a type the SQLite provider does not natively support | INFRA-003 | **done** |
 | 30 | MASTER-030 | S2 | UI, XCUT | correctness | L | high | Resolve the macCatalyst target framework: implement it fully or drop it from the solution | UI-021, UI-036, XCUT-004 | |
 | 31 | MASTER-031 | S3 | CORE | api-design | XS | low | AddPlacedObject reports a missing floor as a Validation failure with an opaque message | CORE-014 | **done** |
-| 32 | MASTER-032 | S3 | INFRA | dead-code | XS | low | AppDbContext exposes Floors and Areas DbSets that nothing in the solution reads | INFRA-001 | |
-| 33 | MASTER-033 | S3 | INFRA | async | XS | low | AddAsync is used where the API documentation prescribes the synchronous Add | INFRA-013 | |
+| 32 | MASTER-032 | S3 | INFRA | dead-code | XS | low | AppDbContext exposes Floors and Areas DbSets that nothing in the solution reads | INFRA-001 | **done** |
+| 33 | MASTER-033 | S3 | INFRA | async | XS | low | AddAsync is used where the API documentation prescribes the synchronous Add | INFRA-013 | **done** |
 | 34 | MASTER-034 | S3 | UIKIT | api-design | XS | low | One-way converters throw from ConvertBack where the guidance is to return null | UIKIT-006 | |
 | 35 | MASTER-035 | S3 | UIKIT | duplication | XS | low | DrawAreasViewMode and DrawAreasEditMode differ only in the alpha rule | UIKIT-010 | |
 | 36 | MASTER-036 | S3 | UIKIT | duplication | XS | low | The 44-unit touch-target minimum is a bare literal repeated ten times | UIKIT-014 | |
@@ -229,9 +229,9 @@ target frameworks rather than from any decision a test author made.
 | 45 | MASTER-045 | S3 | CORE | api-design | S | low | Two ErrorCategory members are never produced and no production caller reads the category | CORE-007 | **done** |
 | 46 | MASTER-046 | S3 | CORE | api-design | S | low | ValidationBehavior discards every validation failure except the first | CORE-008 | **done** |
 | 47 | MASTER-047 | S3 | CORE | dead-code | S | low | Five Domain overloads have no production caller and are reachable only from the test assembly | CORE-019 | |
-| 48 | MASTER-048 | S3 | CORE, XCUT | boundary | S | low | Move the two persistence port interfaces to Application/Common/Interfaces | CORE-029, XCUT-006 | |
-| 49 | MASTER-049 | S3 | INFRA | performance | S | low | The detail projection materialises two sibling collections per floor in one query | INFRA-010 | |
-| 50 | MASTER-050 | S3 | INFRA | correctness | S | low | The design-time factory hard-codes a relative database path that differs from the runtime one | INFRA-016 | |
+| 48 | MASTER-048 | S3 | CORE, XCUT | boundary | S | low | Move the two persistence port interfaces to Application/Common/Interfaces | CORE-029, XCUT-006 | **done** |
+| 49 | MASTER-049 | S3 | INFRA | performance | S | low | The detail projection materialises two sibling collections per floor in one query | INFRA-010 | **done** |
+| 50 | MASTER-050 | S3 | INFRA | correctness | S | low | The design-time factory hard-codes a relative database path that differs from the runtime one | INFRA-016 | **done** |
 | 51 | MASTER-051 | S3 | UI | duplication | S | low | The Entry and Editor handler mappers repeat the same eight WinUI resource assignments verbatim | UI-003 | |
 | 52 | MASTER-052 | S3 | UI | api-design | S | low | Five public async methods sit outside the command surface, three re-taking an id the type holds | UI-008 | |
 | 53 | MASTER-053 | S3 | UI | testability | S | low | The view model navigates through the static Shell.Current | UI-009 | |
@@ -256,7 +256,7 @@ target frameworks rather than from any decision a test author made.
 | 72 | MASTER-072 | S3 | XCUT | security | S | low | No nuget.config, no package source mapping and no lock file at the repository root | XCUT-009 | **done** |
 | 73 | MASTER-073 | S3 | CORE | api-design | S | medium | ObjectKind has no zero value, so default(ObjectKind) silently means DoorWood | CORE-017 | |
 | 74 | MASTER-074 | S3 | CORE | api-design | S | medium | Entity provides no identity-based equality, so two instances of the same entity compare unequal | CORE-018 | |
-| 75 | MASTER-075 | S3 | INFRA | correctness | S | medium | Scale is configured with a store default, which makes the CLR default 0f unsendable | INFRA-008 | |
+| 75 | MASTER-075 | S3 | INFRA | correctness | S | medium | Scale is configured with a store default, which makes the CLR default 0f unsendable | INFRA-008 | **done** |
 | 76 | MASTER-076 | S3 | UI | api-design | S | medium | The create view model reports its outcome through two events that the popup converts to a result | UI-012 | |
 | 77 | MASTER-077 | S3 | UIKIT | structure | S | medium | propertyChanged handlers imperatively write properties the XAML already binds | UIKIT-007 | |
 | 78 | MASTER-078 | S3 | XCUT | dependency | S | medium | Analysis mode is left at Default and code-style rules are not enforced on build | XCUT-010 | **done** |
@@ -273,8 +273,8 @@ target frameworks rather than from any decision a test author made.
 | 89 | MASTER-089 | S3 | CORE | structure | M | medium | Dispatcher is a service locator over a hand-maintained handler registration list | CORE-010 | **done** |
 | 90 | MASTER-090 | S3 | CORE | performance | M | medium | Every dispatch performs reflection and dynamic binding with no caching of the closed handler type | CORE-011 | **done** |
 | 91 | MASTER-091 | S3 | CORE | duplication | M | medium | Fourteen command handlers repeat one load / null-check / mutate / save skeleton | CORE-013 | **done** |
-| 92 | MASTER-092 | S3 | INFRA | structure | M | medium | Each write method commits its own transaction, so the repository is also the unit of work | INFRA-014 | |
-| 93 | MASTER-093 | S3 | INFRA | correctness | M | medium | The migration history was squashed onto a new baseline identifier no database has applied | INFRA-020 | |
+| 92 | MASTER-092 | S3 | INFRA | structure | M | medium | Each write method commits its own transaction, so the repository is also the unit of work | INFRA-014 | **done** |
+| 93 | MASTER-093 | S3 | INFRA | correctness | M | medium | The migration history was squashed onto a new baseline identifier no database has applied | INFRA-020 | **done** |
 | 94 | MASTER-094 | S3 | UI | performance | M | medium | Every mutation reloads the whole dungeon aggregate, and exactly one does not | UI-007 | |
 | 95 | MASTER-095 | S3 | UI | testability | M | medium | Geometry and model transformation are performed in the page rather than in a testable type | UI-017 | |
 | 96 | MASTER-096 | S3 | UI | correctness | M | medium | The canvas cursor is set through private reflection with the failure silently swallowed | UI-019 | |
@@ -284,7 +284,7 @@ target frameworks rather than from any decision a test author made.
 | 100 | MASTER-100 | S3 | TEST | structure | M | medium | MAUI property types and the conversion matrix are hand-transcribed into the test at a fixed date | TEST-014 | |
 | 101 | MASTER-101 | S3 | TEST | structure | M | medium | A TrueType cmap parser lives in a test class and three of its four subtable branches are unexercised | TEST-015 | |
 | 102 | MASTER-102 | S3 | TEST | testability | M | medium | Assertions live inside shared scan helpers, so failures are reported against the helper | TEST-016 | |
-| 103 | MASTER-103 | S3 | XCUT | boundary | M | medium | Domain CLR type choices set Infrastructure's storage cost with no port between the two | XCUT-007 | |
+| 103 | MASTER-103 | S3 | XCUT | boundary | M | medium | Domain CLR type choices set Infrastructure's storage cost with no port between the two | XCUT-007 | **done** |
 | 104 | MASTER-104 | S3 | XCUT | dependency | M | medium | A prerelease package is referenced by the only project that ships | XCUT-011 | **done** |
 | 105 | MASTER-105 | S3 | UIKIT | structure | M | high | DmInlineEditor concentrates five responsibilities and hides a state change in ClearFocusGlow | UIKIT-019 | |
 | 106 | MASTER-106 | S3 | UI | structure | L | medium | DungeonDetailViewModel carries four unrelated responsibilities in one 397-line type | UI-006 | |
@@ -395,11 +395,12 @@ the one that gives the persistence port an address.
 - **Rationale:** The solution's one S1 sits here alongside the Domain and Application changes that make it meaningful. `MASTER-021` gives the aggregate mutators something to report and `MASTER-001` makes the view model read it; neither is worth doing without the other, which is why they share a session while remaining separate entries. The dispatcher and validation entries ride along because they touch the same files and the same failure path.
 - **Outcome:** All sixteen entries landed across nine tasks. **83 of 83 acceptance criteria met**, one revision round, no unresolved blocking findings. Tests **292 -> 434**; build clean at 0 warnings for both App target frameworks under `TreatWarningsAsErrors`, verified on a `--no-incremental` full build. The three silent-success mechanisms are closed by three separate fixes exactly as this index predicted they would have to be: `MASTER-021` gave the Domain mutators a `MutationOutcome` to report, `MASTER-016` replaced `Attach` with `Update` so a detached aggregate persists, and `MASTER-001` made the detail view model surface every `Result` through the `ErrorMessage` channel the other two view models already used. `MASTER-088` was resolved as a genuinely **non-generic `Result` alongside `Result<T>`**, sibling records rather than a hierarchy because a base class cannot be `sealed` and `sealed` is the invariant that entry exists to establish -- which is the answer the five parked design questions (`MASTER-044`, `073`, `074`, `081`, `107`) were waiting on. `MASTER-045` kept the five-member `ErrorCategory` named by `backend-conventions.md` §2 and gave it a production consumer in `ResultMessage`. Two criteria needed a human at the keyboard rather than a test, because `DungeonMaster.Tests` cannot reference the multi-targeted App project (`MASTER-026`, Session 5): both were performed on Windows and observed. Session artifacts: `.dir-sdlc/sessions/2026-08-18-make-failure-observable/`.
 
-### Session 3 -- Settle the data-access lifetime and the persistence contract
+### Session 3 -- Settle the data-access lifetime and the persistence contract -- COMPLETE (2026-08-18)
 - **Entries:** MASTER-004, MASTER-011, MASTER-012, MASTER-015, MASTER-017, MASTER-023, MASTER-029, MASTER-032, MASTER-033, MASTER-048, MASTER-049, MASTER-050, MASTER-075, MASTER-092, MASTER-093, MASTER-103
 - **Combined effort:** ~4.1 days
 - **Highest risk:** high
 - **Rationale:** One blast radius: `Persistence/`, the two repositories and the two composition roots. `MASTER-023` is the gate -- deciding the `DbContext` lifetime changes what `MASTER-015`'s spurious writes and `MASTER-092`'s transaction boundary even mean -- so it is taken first and the provider-fit findings follow behind it. This session carries the highest risk of the early ones and should not be attempted before Session 2 has stabilised the handlers above it.
+- **Outcome:** All sixteen entries landed across three tasks. **48 of 48 acceptance criteria met**, **zero revision rounds**, no unresolved blocking findings. Tests **434 -> 448**; build clean at 0 warnings for both App target frameworks under `TreatWarningsAsErrors`, verified on a `--no-incremental` full build. `MASTER-023` resolved as **`IDbContextFactory<AppDbContext>`, one context per unit of work** -- chosen on performance grounds after a search round, because a root-scoped context accumulates every entity ever loaded and snapshot change tracking compares all of them at every `SaveChanges`. Per-*call* contexts were explicitly rejected: they would leave the aggregate detached at save and send `MASTER-016`'s `Update` down the path that marks the whole graph modified. That decision then settled `MASTER-092` as an explicit `IUnitOfWork.CommitAsync` -- a factory makes the unit of work explicit rather than ambient -- and `SaveChangesAsync` now appears at exactly one production site. `MASTER-029` was taken at the Domain rather than through a converter, and proved smaller than this index recorded: the timestamps are declared **once** on `Entity.cs:16,21` and inherited by all four entity types, so the Domain edit was three lines in one file, not eight properties across four. The stored-format question was settled by running the experiment rather than assuming a format -- the two forms differ only by a six-character `+00:00` suffix, and the reviewer independently confirmed the migrated value is byte-identical to what the `DateTime` model writes natively. Two entries closed partially by design, both declared in the contracts rather than discovered at review: `MASTER-012`'s cold-start half and `MASTER-093`'s startup-refusal and CI halves, the latter because no `.github/workflows` exists to attach to. See `.dir-sdlc/backlog.md`. Session artifacts: `.dir-sdlc/sessions/2026-08-18-settle-the-data-access-lifetime/`.
 
 ### Session 4 -- Async, disposal and threading discipline in the presentation layers
 - **Entries:** MASTER-006, MASTER-013, MASTER-018, MASTER-019, MASTER-024, MASTER-025, MASTER-038, MASTER-039, MASTER-055, MASTER-062, MASTER-153

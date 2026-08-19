@@ -1,0 +1,175 @@
+{
+  "session": "2026-08-18-settle-the-data-access-lifetime",
+  "updatedAt": "2026-08-18",
+  "phase": "merged",
+  "worktree": "C:/Users/dmarq/Development/Repos/dungeon-master/.claude-worktrees/2026-08-18-settle-the-data-access-lifetime",
+  "branch": "dir/2026-08-18-settle-the-data-access-lifetime",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "9903f405dc919f782ba9048cae9623bcf1d79297",
+      "commit": "ef0b0b65750f386c63ad32ce667832a84e675576"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "ef0b0b65750f386c63ad32ce667832a84e675576",
+      "commit": "1453cbd1d90753fdaab2141e1d15425cf44dde3f"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "9903f405dc919f782ba9048cae9623bcf1d79297",
+      "note": "Review round 1 passed 8 of 9 criteria; criterion 4 (observe the malformed-dungeon-id case in the running app) was blocking finding B1. Reviewer ruled the criterion unachievable within T3's ownership set and that T3 stopping was correct -- a spec defect, not implementer error. No revision round was started because re-dispatching the same implementer against the same ownership could not produce the evidence. RESOLVED via escalation E4: the orchestrator performed the observation on Windows with a temporary edit to DungeonListViewModel.cs:104, saw the error label render, and reverted (git diff --stat HEAD on that file: no diff). Criterion 4 is now MET and no code change was required. Full procedure in reviews/T3.md.",
+      "commit": "9051eebab7ff4bfd65885223cfe16021aacd893b"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-023 -- what lifetime does AppDbContext get across the Infrastructure and App composition roots? This is the session gate: it changes what MASTER-015's spurious writes and MASTER-092's transaction boundary mean.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "User deferred to a search round with an explicit decision procedure: pick on latency and CPU/memory if one approach has a clear advantage; else general best practice, with IDbContextFactory favoured absent something strongly favouring AddScoped; else the audit's first suggested direction. The search resolved at step one. Decision: IDbContextFactory<AppDbContext>, one context per UNIT OF WORK -- not per call. Per-call would leave LoadAsync and UpdateAsync on separate contexts, so Update() marks the whole aggregate graph modified and every save rewrites every floor, area and object. Exact shape of the unit of work handed to dir-architect as a design constraint.",
+      "options": [
+        {
+          "summary": "IDbContextFactory<AppDbContext>, one context per unit of work",
+          "rationale": "EF's API remarks recommend a factory for 'Blazor applications and other situations where the dependency injection scope is not aligned with the context lifetime', which describes MAUI exactly. On the perf criterion the advantage is clear and one-directional: a root-scoped context accumulates every entity ever loaded, and snapshot change tracking compares every tracked entity at every SaveChanges, so DetectChanges cost and memory both grow monotonically -- compounding today with MASTER-015. The counter-cost of per-operation construction is what pooling removes (MS benchmark: 701.6us/50.38KB unpooled vs 350.1us/4.63KB pooled; caveat -- SQL Server, single-threaded, single-row, whole-fetch, not a SQLite desktop number).",
+          "evidence": {
+            "kind": "external",
+            "sources": [
+              "https://learn.microsoft.com/dotnet/api/microsoft.extensions.dependencyinjection.entityframeworkservicecollectionextensions.adddbcontextfactory?view=efcore-10.0",
+              "https://learn.microsoft.com/ef/core/dbcontext-configuration/#use-a-dbcontext-factory",
+              "https://learn.microsoft.com/ef/core/change-tracking/change-detection#snapshot-change-tracking",
+              "https://learn.microsoft.com/ef/ef6/fundamentals/working-with-dbcontext#lifetime",
+              "https://learn.microsoft.com/ef/core/performance/advanced-performance-topics#dbcontext-pooling"
+            ]
+          }
+        },
+        {
+          "summary": "Keep AddScoped and open an explicit IServiceScope per dispatch",
+          "rationale": "INFRA-018's named alternative. Delivers the same one-context-per-unit-of-work property with an ambient context instead of an explicit one, and needs no change to the Application-layer port. Rejected: it touches three layers instead of one in the session already rated highest risk, and the search found nothing favouring AddScoped in a host with no request scope.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/02-infrastructure.md:645-687 (INFRA-018)"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-092 -- DungeonWriteRepository owns the transaction boundary at three SaveChangesAsync call sites (DungeonWriteRepository.cs:32, 45, 63) and IDungeonWriteRepository exposes no commit operation. Move SaveChangesAsync behind an explicit commit, or document that one call equals one transaction?",
+      "reason": "external-contract",
+      "resolved": true,
+      "answer": "User made this conditional on E1's outcome. E1 landed on a factory, which forces the unit of work to be named rather than ambient, so this resolves as INFRA-014's first option: an explicit commit boundary. Correction recorded against the question as originally put to the user -- a factory does not preclude a unit of work, it makes it explicit; the two lifetime options differ in how the context arrives, not in whether a unit of work is possible.",
+      "options": [
+        {
+          "summary": "Explicit commit boundary on the write port (INFRA-014 option 1)",
+          "rationale": "With contexts created from a factory, the load-mutate-save sequence must share one context or change tracking is lost between calls. Naming the unit of work is the direct consequence of E1 rather than an independent enlargement of scope.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/02-infrastructure.md:515-548 (INFRA-014)",
+              "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonWriteRepository.cs:32,45,63"
+            ]
+          }
+        },
+        {
+          "summary": "Document that one repository call equals one transaction (INFRA-014 option 2)",
+          "rationale": "No code change to handlers and no new interface. Rejected as the primary because it only holds if each repository call gets its own context, which is the per-call shape E1 rejected on performance grounds.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/02-infrastructure.md:515-548 (INFRA-014)"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "question": "MASTER-029 + MASTER-103 -- eight DateTimeOffset timestamp columns on a provider that does not natively support the type, rated L/high, the only such entry in the session. Infrastructure converter, Domain type change, or document the contract and defer the conversion?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Change the Domain to DateTime (UTC): CreatedAt and LastModified on all four entity types, every test that constructs one, and the migration for the column-value rewrite. Removes the mismatch at its source rather than converting around it, which is what XCUT-007 argues is actually missing.",
+      "options": [
+        {
+          "summary": "Change the Domain to DateTime (UTC)",
+          "rationale": "Chosen by the user. Largest blast radius in the session -- reaches Domain and the test suite -- but resolves MASTER-029 and MASTER-103 at the type choice rather than at the mapping.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/02-infrastructure.md:159-194 (INFRA-003)",
+              "docs/audit/06-cross-cutting.md (XCUT-007)"
+            ]
+          }
+        },
+        {
+          "summary": "Infrastructure converter plus migration",
+          "rationale": "HasConversion<DateTime>() on the eight timestamp properties across the four configuration files; Domain keeps DateTimeOffset. Not chosen.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/02-infrastructure.md:159-194 (INFRA-003)"
+            ]
+          }
+        },
+        {
+          "summary": "Document the persistence contract now, defer the conversion",
+          "rationale": "Land MASTER-103 only and carry MASTER-029 to the backlog. Not chosen.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/06-cross-cutting.md (XCUT-007)"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T3's acceptance criterion 4 requires observing the malformed-dungeon-id case in the running app, but the only navigation call site is src/DungeonMaster.App/ViewModels/DungeonListViewModel.cs:104, which is outside every task's owns set and always formats a real Guid. T3 observed the valid case on Windows and stopped rather than editing a file it does not own. dir-reviewer independently confirmed stopping was correct and ruled the criterion unachievable within the ownership set it was paired with -- a spec defect, not implementer error -- but still recorded criterion 4 as NOT MET (blocking finding B1). How should the observation be obtained?",
+      "options": [
+        {
+          "summary": "Orchestrator performs the observation after all tasks are committed, via a temporary uncommitted edit to DungeonListViewModel.cs that is reverted before the merge",
+          "rationale": "Produces exactly the evidence the criterion asks for. Safe once no implementer is in flight, and writes nothing to the branch. T3's own first-ranked option.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/ViewModels/DungeonListViewModel.cs:104 is the sole GoToAsync in the App project"
+            ]
+          }
+        },
+        {
+          "summary": "Widen T3's owns to include DungeonListViewModel.cs for the duration of the observation",
+          "rationale": "Requires reopening the frozen manifest, which is itself an escalation, to buy a one-off manual check.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Accept the source-scanned facts plus the observed valid case, and record the malformed case as unverified",
+          "rationale": "Weakest: it is the substitution the criterion explicitly warns against.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "User chose the first-ranked option, which T3 and dir-reviewer had independently converged on: the orchestrator performs the observation itself once no implementer is in flight, via a one-off temporary edit to src/DungeonMaster.App/ViewModels/DungeonListViewModel.cs:104 pointing at a malformed id, runs the app on Windows, observes whether the error label renders, and reverts before the merge so nothing lands on the branch and the committed diff stays inside T3's ownership."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 4,
+    "reviewRounds": 0
+  }
+}
