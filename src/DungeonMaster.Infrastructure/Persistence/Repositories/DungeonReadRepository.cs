@@ -16,9 +16,10 @@ public sealed class DungeonReadRepository(
 	/// <inheritdoc/>
 	public async Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken ct)
 	{
-		await using var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		await using var dbContextScope = dbContext.ConfigureAwait(false);
 
-		return await dbContext.Dungeons
+		var summaries = dbContext.Dungeons
 			.AsNoTracking()
 			.Select(dungeon =>
 				new DungeonSummaryDto(
@@ -27,8 +28,9 @@ public sealed class DungeonReadRepository(
 					dungeon.Description,
 					dungeon.Floors.Count,
 					dungeon.CreatedAt,
-					dungeon.LastModified))
-			.ToListAsync(ct);
+					dungeon.LastModified));
+
+		return await summaries.ToListAsync(ct).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -36,9 +38,10 @@ public sealed class DungeonReadRepository(
 		Guid id,
 		CancellationToken ct)
 	{
-		await using var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		await using var dbContextScope = dbContext.ConfigureAwait(false);
 
-		return await dbContext.Dungeons
+		var detail = dbContext.Dungeons
 			.AsNoTracking()
 			.AsSplitQuery()
 			.Where(dungeon =>
@@ -80,7 +83,8 @@ public sealed class DungeonReadRepository(
 											Rotation: obj.Rotation,
 											Scale: obj.Scale))
 									.ToList()))
-						.ToList()))
-			.FirstOrDefaultAsync(ct);
+						.ToList()));
+
+		return await detail.FirstOrDefaultAsync(ct).ConfigureAwait(false);
 	}
 }
