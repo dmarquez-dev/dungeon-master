@@ -55,9 +55,37 @@ public partial class DmConfirmPopup : Popup<bool>
 			: DmTheme.ConfirmButton;
 	}
 
-	private void OnConfirm(object? sender, EventArgs e) =>
-		_ = CloseAsync(true);
+	private async void OnConfirm(object? sender, EventArgs e)
+	{
+		try
+		{
+			await CloseAsync(true);
+		}
+		catch (Exception exception)
+		{
+			// A failed close leaves the popup on screen and the awaiting caller's Task<bool>
+			// incomplete, so the failure is recorded rather than swallowed. This control has no
+			// view model and Popup<bool> exposes no error channel, so Debug.WriteLine is the
+			// App layer's last-resort channel here.
+			System.Diagnostics.Debug.WriteLine(
+				$"DmConfirmPopup: failed to close with the confirm result. {exception}");
+		}
+	}
 
-	private void OnCancel(object? sender, EventArgs e) =>
-		_ = CloseAsync(false);
+	private async void OnCancel(object? sender, EventArgs e)
+	{
+		try
+		{
+			await CloseAsync(false);
+		}
+		catch (Exception exception)
+		{
+			// A failed close leaves the popup on screen and the awaiting caller's Task<bool>
+			// incomplete, so the failure is recorded rather than swallowed. This control has no
+			// view model and Popup<bool> exposes no error channel, so Debug.WriteLine is the
+			// App layer's last-resort channel here.
+			System.Diagnostics.Debug.WriteLine(
+				$"DmConfirmPopup: failed to close with the cancel result. {exception}");
+		}
+	}
 }

@@ -68,14 +68,24 @@ public partial class DungeonListPage : ContentPage
 
 	private async void OnCreateClicked(object? sender, EventArgs e)
 	{
-		var popup = _services.GetRequiredService<CreateDungeonPopup>();
-		var result = await Navigation.ShowPopupAsync<bool>(
-			popup,
-			new PopupOptions { Shape = null, Shadow = null });
-
-		if (result.Result is true)
+		try
 		{
-			await _viewModel.LoadDungeonsCommand.ExecuteAsync(null);
+			var popup = _services.GetRequiredService<CreateDungeonPopup>();
+			var result = await Navigation.ShowPopupAsync<bool>(
+				popup,
+				new PopupOptions { Shape = null, Shadow = null });
+
+			if (result.Result is true)
+			{
+				await _viewModel.LoadDungeonsCommand.ExecuteAsync(null);
+			}
+		}
+		catch (Exception exception)
+		{
+			// async void: an escaping exception is UNOBSERVED and is rethrown on the
+			// synchronisation context, which takes the process down. The failure goes to the
+			// same ErrorMessage banner OnAppearing uses, per that method's remarks.
+			_viewModel.ErrorMessage = $"Could not create a dungeon: {exception.Message}";
 		}
 	}
 
@@ -105,9 +115,19 @@ public partial class DungeonListPage : ContentPage
 			return;
 		}
 
-		if (sender is DmCard card && card.BindingContext is DungeonSummaryDto dto)
+		try
 		{
-			await _viewModel.NavigateToDetailCommand.ExecuteAsync(dto.Id);
+			if (sender is DmCard card && card.BindingContext is DungeonSummaryDto dto)
+			{
+				await _viewModel.NavigateToDetailCommand.ExecuteAsync(dto.Id);
+			}
+		}
+		catch (Exception exception)
+		{
+			// async void: an escaping exception is UNOBSERVED and is rethrown on the
+			// synchronisation context, which takes the process down. The failure goes to the
+			// same ErrorMessage banner OnAppearing uses, per that method's remarks.
+			_viewModel.ErrorMessage = $"Could not open that dungeon: {exception.Message}";
 		}
 	}
 
@@ -115,9 +135,19 @@ public partial class DungeonListPage : ContentPage
 	{
 		_suppressCardNavigation = true;
 
-		if (sender is Button btn && btn.CommandParameter is Guid id)
+		try
 		{
-			await _viewModel.NavigateToDetailCommand.ExecuteAsync(id);
+			if (sender is Button btn && btn.CommandParameter is Guid id)
+			{
+				await _viewModel.NavigateToDetailCommand.ExecuteAsync(id);
+			}
+		}
+		catch (Exception exception)
+		{
+			// async void: an escaping exception is UNOBSERVED and is rethrown on the
+			// synchronisation context, which takes the process down. The failure goes to the
+			// same ErrorMessage banner OnAppearing uses, per that method's remarks.
+			_viewModel.ErrorMessage = $"Could not open that dungeon: {exception.Message}";
 		}
 	}
 
@@ -130,16 +160,26 @@ public partial class DungeonListPage : ContentPage
 			return;
 		}
 
-		var confirmed = await Navigation.ShowConfirmPopupAsync(
-			"Delete Dungeon",
-			"This will permanently remove the dungeon and all its content. Are you sure?",
-			"DELETE",
-			"CANCEL",
-			isDestructive: true);
-
-		if (confirmed)
+		try
 		{
-			await _viewModel.DeleteDungeonCommand.ExecuteAsync(id);
+			var confirmed = await Navigation.ShowConfirmPopupAsync(
+				"Delete Dungeon",
+				"This will permanently remove the dungeon and all its content. Are you sure?",
+				"DELETE",
+				"CANCEL",
+				isDestructive: true);
+
+			if (confirmed)
+			{
+				await _viewModel.DeleteDungeonCommand.ExecuteAsync(id);
+			}
+		}
+		catch (Exception exception)
+		{
+			// async void: an escaping exception is UNOBSERVED and is rethrown on the
+			// synchronisation context, which takes the process down. The failure goes to the
+			// same ErrorMessage banner OnAppearing uses, per that method's remarks.
+			_viewModel.ErrorMessage = $"Could not delete that dungeon: {exception.Message}";
 		}
 	}
 }
