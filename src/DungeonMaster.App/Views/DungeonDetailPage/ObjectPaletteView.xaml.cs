@@ -18,6 +18,13 @@ public partial class ObjectPaletteView : ContentView
 	public event EventHandler? SecondaryPaletteDismissed;
 	public event EventHandler? PackChanged;
 
+	/// <summary>
+	///		Raised when loading an object pack fails. This view has no view model of its own,
+	///		so the message is handed to <c>DungeonDetailPage</c>, which routes it to
+	///		<c>DungeonDetailViewModel.ErrorMessage</c>.
+	/// </summary>
+	public event EventHandler<string>? LoadFailed;
+
 	public ObjectPaletteView()
 	{
 		InitializeComponent();
@@ -142,24 +149,46 @@ public partial class ObjectPaletteView : ContentView
 
 	private async void OnLoaded(object? sender, EventArgs e)
 	{
-		if (ObjectPackRegistry.AvailablePacks.Count == 0)
+		// async void: an escaping exception is UNOBSERVED and is rethrown on the
+		// synchronisation context, which takes the process down. The try therefore opens
+		// before the first await.
+		try
 		{
-			return;
-		}
+			if (ObjectPackRegistry.AvailablePacks.Count == 0)
+			{
+				return;
+			}
 
-		PackPicker.SelectedIndex = 0;
-		await LoadPackAsync(ObjectPackRegistry.AvailablePacks[0].Id);
+			PackPicker.SelectedIndex = 0;
+			await LoadPackAsync(ObjectPackRegistry.AvailablePacks[0].Id);
+		}
+		catch (Exception exception)
+		{
+			// No view model here, so the failure leaves on LoadFailed and DungeonDetailPage
+			// puts it on DungeonDetailViewModel.ErrorMessage.
+			LoadFailed?.Invoke(this, $"Could not load the object palette: {exception.Message}");
+		}
 	}
 
 	private async void OnPackPickerChanged(object? sender, EventArgs e)
 	{
-		var idx = PackPicker.SelectedIndex;
-		if (idx < 0 || idx >= ObjectPackRegistry.AvailablePacks.Count)
+		// async void: see OnLoaded. The try opens before the first await.
+		try
 		{
-			return;
-		}
+			var idx = PackPicker.SelectedIndex;
+			if (idx < 0 || idx >= ObjectPackRegistry.AvailablePacks.Count)
+			{
+				return;
+			}
 
-		await LoadPackAsync(ObjectPackRegistry.AvailablePacks[idx].Id);
+			await LoadPackAsync(ObjectPackRegistry.AvailablePacks[idx].Id);
+		}
+		catch (Exception exception)
+		{
+			// No view model here, so the failure leaves on LoadFailed and DungeonDetailPage
+			// puts it on DungeonDetailViewModel.ErrorMessage.
+			LoadFailed?.Invoke(this, $"Could not switch object pack: {exception.Message}");
+		}
 	}
 
 	private async Task LoadPackAsync(string packId)
