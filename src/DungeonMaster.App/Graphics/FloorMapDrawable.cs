@@ -22,9 +22,69 @@ public sealed class FloorMapDrawable : IDrawable
 
 	public FloorMapDrawable() { }
 
-	/// <summary>Clears the image cache so assets reload from the active pack.</summary>
-	public void ClearObjectImageCache() =>
+	/// <summary>
+	///     Disposes every cached object image and clears the cache so assets reload from the active pack.
+	/// </summary>
+	/// <remarks>
+	///     Disposal here is not the fix for the cached-image lifetime defect (UIKIT-001 / MASTER-013),
+	///     which is still open: nothing releases these handles when the owning page is torn down.
+	///     It is here only so that PreloadObjectImagesAsync, which fills an entry for every kind the
+	///     active pack declares rather than only the kinds actually drawn, does not make that open
+	///     defect worse on every pack change.
+	/// </remarks>
+	public void ClearObjectImageCache()
+	{
+		foreach (var image in _imageCache.Values)
+		{
+			try
+			{
+				image?.Dispose();
+			}
+			catch
+			{
+				// Ignored per entry, and only per entry: one failing native release must not stop the
+				// remaining handles from being released. The entry is dropped by the Clear() below
+				// regardless, so retrying it is not possible and re-throwing would only strand the rest.
+			}
+		}
+
 		_imageCache.Clear();
+	}
+
+	/// <summary>
+	///     Loads and decodes every image named by <see cref="ObjectAssetCatalogue.Paths"/> into the cache.
+	///     Must be called on the UI thread. Safe to call repeatedly; entries already cached are not reloaded.
+	/// </summary>
+	/// <remarks>
+	///     Every write to _imageCache happens on the thread that called this method. The awaits deliberately
+	///     carry no ConfigureAwait(false), so each continuation resumes on the caller's UI context, and no
+	///     work is offloaded to a Task.Run, a thread or a Parallel call. _imageCache is a plain Dictionary
+	///     that Draw reads on the UI thread; it must never be written from another one.
+	/// </remarks>
+	public async Task PreloadObjectImagesAsync()
+	{
+		foreach (var (kind, path) in ObjectAssetCatalogue.Paths)
+		{
+			// A cached non-null image is already decoded. A cached null is a previous failed attempt
+			// (e.g. the Win2D resource creator was not ready yet) and is retried on the next call.
+			if (_imageCache.TryGetValue(kind, out var cached) && cached is not null)
+				continue;
+
+			try
+			{
+				using var stream = await FileSystem.OpenAppPackageFileAsync(path);
+				_imageCache[kind] = PlatformImage.FromStream(stream);
+			}
+			catch
+			{
+				// Ignored per entry so one unreadable asset does not abort the remaining kinds: this
+				// kind renders as the existing missing-object placeholder ("?") until a later call
+				// succeeds. On Windows this also catches the Win2D "No resource creator" exception
+				// raised when the GraphicsView handler is not yet ready.
+				_imageCache[kind] = null;
+			}
+		}
+	}
 
 	/// <summary>
 	///     The floor whose areas are rendered. When null only the grid is drawn.
@@ -279,44 +339,18 @@ public sealed class FloorMapDrawable : IDrawable
 		new((screen.X - PanOffset.X) / ZoomLevel,
 			(screen.Y - PanOffset.Y) / ZoomLevel);
 
-	private Microsoft.Maui.Graphics.IImage? LoadOrGetImage(ObjectKind kind)
-	{
-		// A cached null means a previous load attempt failed (e.g. Win2D creator not yet ready).
-		// Return it as-is so that in-progress frames are not blocked, but do not treat it as a
-		// permanent miss — ClearObjectImageCache() is called after the GraphicsView handler is
-		// ready so that the next Invalidate() triggers a fresh decode attempt.
-		if (_imageCache.TryGetValue(kind, out var cached) && cached is not null)
-			return cached;
-
-		// TODO(macOS): FileSystem.OpenAppPackageFileAsync().GetAwaiter().GetResult() is sync-over-async.
-		// On iOS/macCatalyst this is safe in practice because the MAUI file system implementation on Apple
-		// platforms does not use a thread-pool continuation (it resolves synchronously via NSBundle), so no
-		// deadlock occurs. On Windows the Win2D resource creator must be initialised before PlatformImage
-		// can decode; the outer try/catch already handles the "No resource creator" exception gracefully by
-		// falling back to the missing-image placeholder. The correct long-term fix is to pre-load images
-		// asynchronously (e.g. in a Task that runs after the GraphicsView Loaded event) and store them in
-		// _imageCache before the first Draw call, removing the sync-over-async pattern entirely.
-		Microsoft.Maui.Graphics.IImage? image = null;
-		if (ObjectAssetCatalogue.Paths.TryGetValue(kind, out var path))
-		{
-			try
-			{
-				using var stream = FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
-				image = PlatformImage.FromStream(stream);
-			}
-			catch
-			{
-				// Swallowed: image renders as the missing-object placeholder ("?").
-				// On Windows this also catches the Win2D "No resource creator" exception on first call
-				// before the GraphicsView handler is ready; the cache stores null and the next
-				// Invalidate() after the view is loaded will re-enter here with a valid creator.
-				image = null;
-			}
-		}
-
-		_imageCache[kind] = image;
-		return image;
-	}
+	/// <summary>
+	///     Reads an already-decoded object image out of the cache. This is a pure dictionary lookup:
+	///     it opens no file, decodes nothing and starts no task, because it runs on the Draw path and
+	///     Draw runs on the UI thread for every frame.
+	/// </summary>
+	/// <remarks>
+	///     The cache is filled by PreloadObjectImagesAsync. A miss, or a cached null left by a load that
+	///     failed, renders as the missing-object placeholder via DrawMissingObjectFallback — the same
+	///     fallback a failed decode produced before the load moved off this path.
+	/// </remarks>
+	private Microsoft.Maui.Graphics.IImage? LoadOrGetImage(ObjectKind kind) =>
+		_imageCache.TryGetValue(kind, out var cached) ? cached : null;
 
 	private void DrawPlacedObjects(ICanvas canvas)
 	{

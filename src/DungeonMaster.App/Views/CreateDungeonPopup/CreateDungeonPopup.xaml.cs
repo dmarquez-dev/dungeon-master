@@ -21,10 +21,34 @@ public partial class CreateDungeonPopup : Popup<bool>
 		InitializeComponent();
 		BindingContext = viewModel;
 
-		viewModel.CreatedSuccessfully += (_, _) =>
-			_ = CloseAsync(true);
+		viewModel.CreatedSuccessfully += async (_, _) =>
+		{
+			try
+			{
+				await CloseAsync(true);
+			}
+			catch (Exception exception)
+			{
+				// A failed close leaves the form on screen, so the failure is surfaced on the
+				// form's own error banner rather than swallowed.
+				viewModel.ErrorMessage =
+					$"The dungeon was created, but the form could not be closed: {exception.Message}";
+			}
+		};
 
-		viewModel.Cancelled += (_, _) =>
-			_ = CloseAsync(false);
+		viewModel.Cancelled += async (_, _) =>
+		{
+			try
+			{
+				await CloseAsync(false);
+			}
+			catch (Exception exception)
+			{
+				// A failed close leaves the form on screen, so the failure is surfaced on the
+				// form's own error banner rather than swallowed.
+				viewModel.ErrorMessage =
+					$"The form could not be closed: {exception.Message}";
+			}
+		};
 	}
 }

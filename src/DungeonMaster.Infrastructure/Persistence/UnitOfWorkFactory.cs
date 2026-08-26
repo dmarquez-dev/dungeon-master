@@ -13,7 +13,7 @@ public sealed class UnitOfWorkFactory(
 	/// <inheritdoc/>
 	public async Task<IUnitOfWork> CreateAsync(CancellationToken ct)
 	{
-		var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
 		return new UnitOfWork(dbContext);
 	}

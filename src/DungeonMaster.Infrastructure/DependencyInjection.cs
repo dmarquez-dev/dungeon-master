@@ -53,8 +53,9 @@ public static class InfrastructureServiceCollectionExtensions
 		CancellationToken ct)
 	{
 		var dbContextFactory = services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-		await using var dbContext = await dbContextFactory.CreateDbContextAsync(ct);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		await using var dbContextScope = dbContext.ConfigureAwait(false);
 
-		await dbContext.Database.MigrateAsync(ct);
+		await dbContext.Database.MigrateAsync(ct).ConfigureAwait(false);
 	}
 }
