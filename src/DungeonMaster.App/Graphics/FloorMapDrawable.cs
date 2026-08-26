@@ -1,6 +1,6 @@
 using DungeonMaster.App.Assets.ObjectAssets;
+using DungeonMaster.App.Core.Map;
 using DungeonMaster.App.Theme;
-using DungeonMaster.Application.Common.Map;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
@@ -550,12 +550,9 @@ public sealed class FloorMapDrawable : IDrawable
 			canvas.StrokeDashPattern = null;
 
 			// Distance label: integer feet to the snapped position, matching what clicking now would produce.
-			var dx = snapped.Col - lastVert.Col;
-			var dy = snapped.Row - lastVert.Row;
-			var distTiles = MathF.Sqrt(dx * dx + dy * dy);
-			if (distTiles > 0f)
+			if (snapped != lastVert)
 			{
-				var distFeet = (int)MathF.Round(distTiles * TileSizeInFeet);
+				var distFeet = TileDistance.InFeet(lastVert, snapped, TileSizeInFeet);
 				var midX = (lastX + PhantomEnd.Value.X) / 2f;
 				var midY = (lastY + PhantomEnd.Value.Y) / 2f;
 				canvas.FontColor = DmTheme.MapVertex.WithAlpha(0.9f);

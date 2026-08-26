@@ -1,8 +1,8 @@
-using DungeonMaster.Application.Common.Map;
+using DungeonMaster.App.Core.Map;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
 
-namespace DungeonMaster.Tests.Application.Common.Map;
+namespace DungeonMaster.Tests.AppCore.Map;
 
 public class TileCoordinateHelperTests
 {

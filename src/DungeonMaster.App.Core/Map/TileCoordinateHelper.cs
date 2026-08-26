@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Application.Common.Map;
+namespace DungeonMaster.App.Core.Map;
 
 /// <summary>
 ///		Provides static utility methods for converting between tile-grid coordinates and pixel positions,

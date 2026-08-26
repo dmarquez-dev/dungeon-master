@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Application.Common.Map;
+namespace DungeonMaster.App.Core.Map;
 
 /// <summary>
 ///		Represents the result of a single vertex placement attempt in a <see cref="MapDrawingSession"/>.
@@ -42,14 +42,6 @@ public sealed class MapDrawingSession
 	/// </summary>
 	public bool IsActive =>
 		_vertices.Count > 0;
-
-	/// <summary>
-	///		Gets the most recently placed vertex, or <see langword="null"/> if no vertices have been placed.
-	/// </summary>
-	public TilePoint? LastVertex =>
-		_vertices.Count > 0
-			? _vertices[^1]
-			: null;
 
 	/// <summary>
 	///		Attempts to place a new vertex at the given tile-grid point.
