@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
@@ -32,11 +32,11 @@ public partial class FloorSidebarItem : ContentView
 	public static readonly BindableProperty FloorProperty =
 		BindableProperty.Create(
 			nameof(Floor),
-			typeof(FloorDto),
+			typeof(FloorItem),
 			typeof(FloorSidebarItem),
 			null,
 			propertyChanged: (bindable, _, newValue) =>
-				((FloorSidebarItem)bindable).Populate((FloorDto?)newValue));
+				((FloorSidebarItem)bindable).Populate((FloorItem?)newValue));
 
 	/// <summary>
 	///		Raised when the user activates this floor item, signalling the page to deselect all others.
@@ -71,12 +71,12 @@ public partial class FloorSidebarItem : ContentView
 	/// <summary>
 	///		Raised when the user requests deletion of this floor.
 	/// </summary>
-	public event EventHandler<FloorDto>? DeleteRequested;
+	public event EventHandler<FloorItem>? DeleteRequested;
 
 	/// <summary>
 	///		Raised when the user requests the notebook for this floor.
 	/// </summary>
-	public event EventHandler<FloorDto>? NotebookRequested;
+	public event EventHandler<FloorItem>? NotebookRequested;
 
 	/// <summary>
 	///		Raised when the user requests a new area to be added to this floor.
@@ -86,27 +86,27 @@ public partial class FloorSidebarItem : ContentView
 	/// <summary>
 	///		Raised when the user taps an area item to enter area edit context.
 	/// </summary>
-	public event EventHandler<AreaDto>? AreaSelectRequested;
+	public event EventHandler<AreaItem>? AreaSelectRequested;
 
 	/// <summary>
 	///     Raised when the pointer enters an area item in this floor.
 	/// </summary>
-	public event EventHandler<AreaDto>? AreaHoverStarted;
+	public event EventHandler<AreaItem>? AreaHoverStarted;
 
 	/// <summary>
 	///     Raised when the pointer exits an area item in this floor.
 	/// </summary>
-	public event EventHandler<AreaDto>? AreaHoverEnded;
+	public event EventHandler<AreaItem>? AreaHoverEnded;
 
 	/// <summary>
 	///     Raised when the user requests deletion of an area in this floor.
 	/// </summary>
-	public event EventHandler<AreaDto>? AreaDeleteRequested;
+	public event EventHandler<AreaItem>? AreaDeleteRequested;
 
 	/// <summary>
 	///     Raised when the user requests the notebook for an area in this floor.
 	/// </summary>
-	public event EventHandler<AreaDto>? AreaNotebookRequested;
+	public event EventHandler<AreaItem>? AreaNotebookRequested;
 
 	private bool _isExpanded;
 	private bool _suppressCardTap;
@@ -114,9 +114,9 @@ public partial class FloorSidebarItem : ContentView
 	/// <summary>
 	///		Gets or sets the floor data displayed and edited by this item.
 	/// </summary>
-	public FloorDto? Floor
+	public FloorItem? Floor
 	{
-		get => (FloorDto?)GetValue(FloorProperty);
+		get => (FloorItem?)GetValue(FloorProperty);
 		set => SetValue(FloorProperty, value);
 	}
 
@@ -128,7 +128,7 @@ public partial class FloorSidebarItem : ContentView
 		InitializeComponent();
 	}
 
-	private void Populate(FloorDto? floor)
+	private void Populate(FloorItem? floor)
 	{
 		if (floor is null)
 		{
@@ -150,13 +150,12 @@ public partial class FloorSidebarItem : ContentView
 		// and not two copies.
 		NotebookAffordance.Apply(
 			NotebookButton,
-			!string.IsNullOrWhiteSpace(floor.Description) ||
-			!string.IsNullOrWhiteSpace(floor.Notes));
+			floor.HasNotebookContent);
 
 		RebuildAreas(floor);
 	}
 
-	private void RebuildAreas(FloorDto floor)
+	private void RebuildAreas(FloorItem floor)
 	{
 		AreaContainer.Children.Clear();
 

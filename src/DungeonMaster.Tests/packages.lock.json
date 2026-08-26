@@ -281,6 +281,13 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "dungeonmaster.app.core": {
+        "type": "Project",
+        "dependencies": {
+          "DungeonMaster.Application": "[1.0.0, )",
+          "DungeonMaster.Domain": "[1.0.0, )"
+        }
+      },
       "dungeonmaster.application": {
         "type": "Project",
         "dependencies": {

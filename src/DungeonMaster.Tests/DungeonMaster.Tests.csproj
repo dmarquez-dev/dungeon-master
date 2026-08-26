@@ -22,6 +22,7 @@
     <ProjectReference Include="..\DungeonMaster.Domain\DungeonMaster.Domain.csproj" />
     <ProjectReference Include="..\DungeonMaster.Application\DungeonMaster.Application.csproj" />
     <ProjectReference Include="..\DungeonMaster.Infrastructure\DungeonMaster.Infrastructure.csproj" />
+    <ProjectReference Include="..\DungeonMaster.App.Core\DungeonMaster.App.Core.csproj" />
   </ItemGroup>
 
 </Project>

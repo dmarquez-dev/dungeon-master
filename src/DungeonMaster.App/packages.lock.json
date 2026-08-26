@@ -317,6 +317,13 @@
           "SQLitePCLRaw.core": "2.1.12"
         }
       },
+      "dungeonmaster.app.core": {
+        "type": "Project",
+        "dependencies": {
+          "DungeonMaster.Application": "[1.0.0, )",
+          "DungeonMaster.Domain": "[1.0.0, )"
+        }
+      },
       "dungeonmaster.application": {
         "type": "Project",
         "dependencies": {
@@ -845,6 +852,13 @@
         "type": "Transitive",
         "resolved": "10.0.1",
         "contentHash": "Sra5Gv7qcZzLuQW4alVglQpnDgJiqeGmbwz8WLZa1QdqmTo4bi7FYQP5CJAzlwLDcmHrBS2L7+W6HqFT14HBTA=="
+      },
+      "dungeonmaster.app.core": {
+        "type": "Project",
+        "dependencies": {
+          "DungeonMaster.Application": "[1.0.0, )",
+          "DungeonMaster.Domain": "[1.0.0, )"
+        }
       },
       "dungeonmaster.application": {
         "type": "Project",

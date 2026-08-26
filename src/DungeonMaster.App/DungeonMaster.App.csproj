@@ -96,6 +96,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\DungeonMaster.Application\DungeonMaster.Application.csproj" />
+	  <ProjectReference Include="..\DungeonMaster.App.Core\DungeonMaster.App.Core.csproj" />
 	  <ProjectReference Include="..\DungeonMaster.Infrastructure\DungeonMaster.Infrastructure.csproj" />
 	</ItemGroup>
 

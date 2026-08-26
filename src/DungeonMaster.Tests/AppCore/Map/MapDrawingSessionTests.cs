@@ -1,8 +1,8 @@
-using DungeonMaster.Application.Common.Map;
+using DungeonMaster.App.Core.Map;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
 
-namespace DungeonMaster.Tests.Application.Common.Map;
+namespace DungeonMaster.Tests.AppCore.Map;
 
 public class MapDrawingSessionTests
 {
@@ -69,7 +69,7 @@ public class MapDrawingSessionTests
 		var undone = session.UndoLastVertex();
 		undone.Should().BeTrue();
 		session.Vertices.Should().HaveCount(1);
-		session.LastVertex.Should().Be(new TilePoint(0, 0));
+		session.Vertices[^1].Should().Be(new TilePoint(0, 0));
 	}
 
 	[Fact]

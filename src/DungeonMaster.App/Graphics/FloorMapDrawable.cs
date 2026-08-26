@@ -1,7 +1,7 @@
 using DungeonMaster.App.Assets.ObjectAssets;
+using DungeonMaster.App.Core.Map;
+using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.App.Theme;
-using DungeonMaster.Application.Common.Map;
-using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using Microsoft.Maui.Graphics;
@@ -89,7 +89,7 @@ public sealed class FloorMapDrawable : IDrawable
 	/// <summary>
 	///     The floor whose areas are rendered. When null only the grid is drawn.
 	/// </summary>
-	public FloorDto? Floor { get; set; }
+	public FloorItem? Floor { get; set; }
 
 	/// <summary>
 	///     When set, this area renders at full opacity and all others render dimmed.
@@ -157,7 +157,7 @@ public sealed class FloorMapDrawable : IDrawable
 
 	/// <summary>
 	///     Target position for the object being drag-moved, in canvas-space pixels (same coordinate space as
-	///     the bounding-box center stored on <see cref="PlacedObjectDto.Position"/>: absolute floor pixels).
+	///     the bounding-box center stored on <see cref="PlacedObjectItem.Position"/>: absolute floor pixels).
 	///     Null when no drag is in progress.
 	/// </summary>
 	public PointF? DraggingObjectTargetCanvas { get; set; }
@@ -264,7 +264,7 @@ public sealed class FloorMapDrawable : IDrawable
 		}
 	}
 
-	private IReadOnlyList<PathSegment> GetEffectiveOutline(AreaDto area)
+	private IReadOnlyList<PathSegment> GetEffectiveOutline(AreaItem area)
 	{
 		if (PendingOutlines.TryGetValue(area.Id, out var pending))
 			return pending;
@@ -361,7 +361,7 @@ public sealed class FloorMapDrawable : IDrawable
 			DrawPlacedObject(canvas, obj);
 	}
 
-	private void DrawPlacedObject(ICanvas canvas, PlacedObjectDto obj)
+	private void DrawPlacedObject(ICanvas canvas, PlacedObjectItem obj)
 	{
 		var isDragging = DraggingObjectId == obj.Id;
 
@@ -550,12 +550,9 @@ public sealed class FloorMapDrawable : IDrawable
 			canvas.StrokeDashPattern = null;
 
 			// Distance label: integer feet to the snapped position, matching what clicking now would produce.
-			var dx = snapped.Col - lastVert.Col;
-			var dy = snapped.Row - lastVert.Row;
-			var distTiles = MathF.Sqrt(dx * dx + dy * dy);
-			if (distTiles > 0f)
+			if (snapped != lastVert)
 			{
-				var distFeet = (int)MathF.Round(distTiles * TileSizeInFeet);
+				var distFeet = TileDistance.InFeet(lastVert, snapped, TileSizeInFeet);
 				var midX = (lastX + PhantomEnd.Value.X) / 2f;
 				var midY = (lastY + PhantomEnd.Value.Y) / 2f;
 				canvas.FontColor = DmTheme.MapVertex.WithAlpha(0.9f);
