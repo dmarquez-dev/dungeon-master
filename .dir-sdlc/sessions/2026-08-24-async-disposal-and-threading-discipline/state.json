@@ -1,0 +1,291 @@
+{
+  "session": "2026-08-24-async-disposal-and-threading-discipline",
+  "updatedAt": "2026-08-26T11:00:00Z",
+  "phase": "merged",
+  "worktree": "C:\\Users\\dmarq\\Development\\Repos\\dungeon-master\\.claude-worktrees\\dir\\2026-08-24-async-disposal-and-threading-discipline",
+  "branch": "dir/2026-08-24-async-disposal-and-threading-discipline",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "e795365f37a5946b793241f2cc97b62b8512726c",
+      "commit": "706b6da1c4e7760f61248ee52274b93815a70370"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "706b6da1c4e7760f61248ee52274b93815a70370",
+      "commit": "7d00448e338f5b75cf3bfd11123beb4fa6ea61c9"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "7d00448e338f5b75cf3bfd11123beb4fa6ea61c9",
+      "commit": "b461bab"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "706b6da1c4e7760f61248ee52274b93815a70370",
+      "commit": "32a020a8009bacbfe85dab0d59679db40e0a9501"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "706b6da1c4e7760f61248ee52274b93815a70370",
+      "commit": "5fa398a200c296809882e58284b974e8987cf4e7",
+      "note": "Criterion 7 (manual observation of the dungeon-list delete flow) is UNMET and no revision round could close it. DmCard TrailingPresenter renders empty inside the list DataTemplate, so the Edit and Delete buttons never materialize and DungeonListPage.OnEditClicked and OnDeleteClicked are guarded but never executed. Pre-existing defect owned by no task; filed as a new audit entry by T7. Accepted unmet by the user at the batched escalation E5."
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "e795365f37a5946b793241f2cc97b62b8512726c",
+      "commit": "33da60f4c4d16b95d059d2e9f07538f76e0b951a"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "32a020a8009bacbfe85dab0d59679db40e0a9501",
+      "commit": "9677992"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T6",
+      "question": "MASTER-153 / INFRA-015: apply ConfigureAwait(false) to the 9 awaits across the 4 Infrastructure files, or deliberately decline? The entry is S5, authority: judgment, citation: n/a, and states outright that doing nothing is defensible. T6 exists or is struck on the answer.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Apply it. The user answered conditionally - decline if a best practice argues against it, implement if the practice merely distinguishes shipped libraries from internal ones without applying against it. Resolved with one of the two permitted lookups against Microsoft Learn: CA2007's 'When to suppress' names the hazard as application code, specifically WinForms/WPF button click handlers, which is DungeonMaster.App and not DungeonMaster.Infrastructure; the ExecutionContext/SynchronizationContext page states library authors should use it on every await unless the code needs the captured context, which Infrastructure does not; and CA2007 ships an output_kind option separating DynamicallyLinkedLibrary from UI apps. No best practice argues against it, so the condition resolves to implement. Recorded caveat: CA2007 is not enabled by default in .NET 10, so nothing in the build enforces the rule and T6's guard test is the only enforcement.",
+      "options": [
+        {
+          "summary": "Decline, and record the decline in docs/audit/00-master-index.md. T6 is struck; T7 writes the reason.",
+          "rationale": "The current convention is uniform across the whole solution, and the entry itself notes there is no deadlock risk because nothing in the chain blocks on .Result or .Wait(). The value is stylistic; the cost includes an `await using` form nobody in this repository has compiled.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "grep -rn \"ConfigureAwait\" --include=*.cs src | wc -l -> 0 across the whole solution",
+              "docs/audit/02-infrastructure.md:548 (INFRA-015)"
+            ]
+          }
+        },
+        {
+          "summary": "Apply it to all 9 awaits across the 4 files. T6 runs as written.",
+          "rationale": "These are library types with no UI state, and a library being context-agnostic is the conventional expectation and the audit author's own stated preference.",
+          "evidence": {
+            "kind": "external",
+            "sources": [
+              "https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca2007",
+              "https://learn.microsoft.com/dotnet/standard/asynchronous-programming-patterns/executioncontext-synchronizationcontext"
+            ]
+          }
+        },
+        {
+          "summary": "Apply it only to the two repository files INFRA-015 names.",
+          "rationale": "Minimises the diff, but leaves the layer half-converted - the one outcome that makes the convention harder to state than either extreme.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-006, MASTER-013, MASTER-055 and MASTER-062 can be covered structurally and no other way - they are three leaks and a memory-visibility race, no test in this repository executes App code, and none of the four produces anything a human can see in a running app. Accept structural evidence for these four, or reschedule them behind Session 6's MASTER-026?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Reschedule all four to Session 6, where MASTER-026 lands and they can be demonstrated rather than asserted. Session 4 now closes seven entries: MASTER-018, 019, 024, 025, 038, 039, 153. The manifest was amended before the freeze: T1 dropped guards G5-G8, T2 lost IDisposable/Dispose(), T3 lost the scroll-zoom work and the Dispose() call site, T4 narrowed to HandCursorBehavior.cs alone, and T7 gained the reassignment bookkeeping.",
+      "options": [
+        {
+          "summary": "Accept structural evidence. The criteria assert what the source states and explicitly forbid claiming the defect is gone; revisit after MASTER-026 lands.",
+          "rationale": "The fixes are individually small, well-understood and low-risk, and the alternative leaves four latent leaks in the tree for the length of two more sessions.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/06-cross-cutting.md XCUT-002",
+              "src/DungeonMaster.Tests/DungeonMaster.Tests.csproj targets net10.0"
+            ]
+          }
+        },
+        {
+          "summary": "Reschedule the four behind Session 6, so they land with MASTER-026 and can be demonstrated rather than asserted.",
+          "rationale": "Buys real evidence for the four entries whose defect class - leaks and races - is exactly the class where structural review is weakest. The cost is that Session 4 closes 7 entries rather than 11, and Session 6 grows.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md, Session 6 block"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "taskId": "T2",
+      "question": "Fixing MASTER-025 amplifies MASTER-013's leak, which E2 just rescheduled to Session 6. LoadOrGetImage populates _imageCache lazily - one entry per kind actually drawn - while PreloadObjectImagesAsync() populates one per kind the active pack declares, and ObjectKind has 37 members. Images abandoned per ClearObjectImageCache() call therefore go from the kinds the user drew to up to the whole pack, on every pack change. How should T2 handle it?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Dispose on clear, keep the rest in Session 6. ClearObjectImageCache() gains per-entry disposal - three lines, entirely inside T2's own file, no call site in any other task's file - as a no-regression measure rather than a claim the leak is fixed. IDisposable, Dispose() and T3's call site stay Session 6's. MASTER-013 is therefore partly landed, and T7 carries a criterion recording exactly which half closed and which did not.",
+      "options": [
+        {
+          "summary": "Dispose on clear, keep IDisposable/Dispose() and the call site in Session 6.",
+          "rationale": "Three lines inside T2's own file prevent Session 4 from making the deferred leak worse, without claiming MASTER-013 is closed. The partial state is recorded by T7 so it does not rot.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "ObjectKind.cs has 37 members",
+              "ObjectAssetCatalogue.cs:14 keys Paths by ObjectKind",
+              "LoadOrGetImage called only from FloorMapDrawable.cs:354,447",
+              "ClearObjectImageCache() called from DungeonDetailPage.xaml.cs:100"
+            ]
+          }
+        },
+        {
+          "summary": "Keep MASTER-013 whole for Session 6 and accept the amplification.",
+          "rationale": "Honours E2 literally - no part of MASTER-013 lands on structural evidence - at the cost of Session 6 inheriting a leak worse than the audit describes.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Reschedule MASTER-025 as well, leaving FloorMapDrawable untouched this session.",
+          "rationale": "T2 is struck, T3 loses its preload wiring and its manual-observation criterion, and Session 4 closes six entries rather than seven. Nothing about the drawable changes until both halves can land together.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "taskId": "T4",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T4 criterion 6: the hand-cursor observation on Windows could not be obtained. The app launches and renders, but SetCursorPos/GetCursorInfo reported ARROW everywhere - including, on an unmodified baseline build, over a native WinUI TextBox that should show an I-beam regardless. That control isolates the measurement method rather than the change, but the reviewer refused 'met by baseline parity' as inspection in disguise. No revision round can close it. How should criterion 6 be closed?",
+      "options": [
+        {
+          "summary": "A human performs the two hovers and reports what they saw.",
+          "rationale": "Criterion 6 is written as a human observation, the app launches fine, and the only missing ingredient is a hand on the mouse. It would also settle advisory A1, the one unconfirmed risk in the change.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "manifest.json T4 criterion 6",
+              "reviews/T4.md B1"
+            ]
+          }
+        },
+        {
+          "summary": "Accept it as the session s one unobserved criterion and carry the control into the Gate 3 report.",
+          "rationale": "The change is a pure hoist of two expressions with identical per-event semantics; the residual risk is small and now documented rather than hidden.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Add a temporary per-event log of the value assigned to ProtectedCursor, run, hover by hand.",
+          "rationale": "Proves SetCursor is reached with the right shape, but still not that the visible cursor changes - strictly weaker than option 1 and costs a build cycle.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "The user performed the hover by hand and reported the cursor behaviour good on the dungeon cards, working across multiple cards without degrading. Criterion 6 is therefore MET by human observation. This also settles advisory A1, the session s one unconfirmed risk: the shared cached InputSystemCursor is not being closed out from under other elements in the observation performed. Recorded as observed-not-degraded rather than as a soak test, since that is what was actually done. The user also asked whether the absence of a hand cursor on floor cards in the detail page was a regression - it is not, and the orchestrator established this from the code: dungeon list cards are DmCard, which self-attaches HandCursorBehavior at DmCard.xaml.cs:93, while floor cards are FloorSidebarItem : ContentView whose root Border carries a TapGestureRecognizer but no HandCursorBehavior, its three declarations sitting on child buttons only. Decisively, the session touched no XAML at all - git diff e795365 --name-only -- *.xaml is empty - so no declaration could have been added or removed."
+    },
+    {
+      "id": "E5",
+      "taskId": "T5",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T5 criterion 7: the dungeon-LIST delete flow could not be observed, because DmCard's TrailingPresenter renders empty inside the list DataTemplate, so the Edit and Delete buttons never materialize. DungeonListPage.OnEditClicked and OnDeleteClicked were therefore never executed. The defect is pre-existing and owned by no task. No revision round can close it without T5 editing DmCard, which is a contract violation. How should criterion 7 be closed?",
+      "options": [
+        {
+          "summary": "Accept criterion 7 as escalated-unmet at Gate 3, recording exactly which two handlers are unobserved.",
+          "rationale": "The other nine criteria are met and independently verified; the gap is two handlers whose guards are structurally identical to OnCreateClicked s, which was observed working.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "DmCard.xaml.cs:46,101-105",
+              "base-commit diff empty for Controls/DmCard"
+            ]
+          }
+        },
+        {
+          "summary": "File the DmCard trailing-content defect as a new audit entry and carry the two-handler observation to the session that fixes it.",
+          "rationale": "Turns an unobservable criterion into scheduled work instead of a permanent hole, and the fix would unblock the edit/delete affordances for real users, not only for observation.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md"
+            ]
+          }
+        },
+        {
+          "summary": "Re-attempt the observation after T3 lands, driving delete via UIA on the detail page.",
+          "rationale": "Weakest: it still would not execute DungeonListPage.OnDeleteClicked, so it buys confidence in the popup T5 already has and nothing in the two unobserved handlers.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Accept criterion 7 as unmet. The user confirmed there is nothing to hover - DmCard s Edit and Delete buttons never render on list cards, so the flow is unreachable for a human too. T5 did observe the same popup s OnConfirm and OnCancel via the detail page. The DmCard defect is filed as a new audit entry by T7."
+    },
+    {
+      "id": "E6",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T3 criterion 8 demands observing that switching object packs re-renders images, but ObjectPackRegistry.cs:8-9 declares exactly one pack and re-selecting index 0 raises no event. The criterion asks for something the codebase cannot produce. The other two halves - images rendering rather than the ? placeholder, and scroll-zoom - were observed. This moves scoped work, because T7 reconciles MASTER-025 on the strength of that observation.",
+      "options": [
+        {
+          "summary": "Accept criterion 8 as met-in-part and have T7 record that the pack-change path is structurally correct but unexercised until a second pack exists.",
+          "rationale": "Keeps the gap visible to Session 6 instead of letting a done row imply the path was seen working. The image-render half is strong runtime evidence on its own: both writers to the cache live inside PreloadObjectImagesAsync, so rendered artwork entails the preload ran.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "ObjectPackRegistry.cs:8-9",
+              "FloorMapDrawable.cs:51,76,84",
+              "docs/audit/00-master-index.md already carries per-entry qualifications"
+            ]
+          }
+        },
+        {
+          "summary": "Accept criterion 8 as met-in-part and amend its wording only, without a qualification in the audit row.",
+          "rationale": "Lighter record. A revision round would return the identical verdict either way.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "ObjectPackRegistry.cs:8-9"
+            ]
+          }
+        },
+        {
+          "summary": "Add a second object pack so the path becomes observable.",
+          "rationale": "Would make the criterion literally satisfiable, but touches assets and registry files no task in this session owns - a feature change wearing a review fix s clothes.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Accept criterion 8 as met-in-part. Nothing to switch to - ObjectPackRegistry declares exactly one pack. T7 records in the MASTER-025 row that the pack-change path is structurally correct but unexercised until a second pack exists, so a done row does not imply the path was seen working. The image-render half stands as strong runtime evidence in its own right."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 6,
+    "reviewRounds": 1
+  }
+}
