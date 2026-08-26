@@ -8,6 +8,7 @@ using DungeonMaster.App.Graphics;
 using DungeonMaster.App.Theme;
 using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views.DungeonDetail;
+using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
@@ -610,7 +611,7 @@ public partial class DungeonDetailPage : ContentPage
 	}
 
 	// Every write path below ends in a full reload that clears Floors and rebuilds every sidebar
-	// item, so no FloorDto or AreaDto may be held across the await — only identifiers survive it.
+	// item, so no FloorItem or AreaItem may be held across the await — only identifiers survive it.
 	//
 	// All three branches follow one rule: description and notes are written exactly as typed, but a
 	// blank name falls back to the entity's last known good one. Each level punishes a blank name
@@ -938,7 +939,7 @@ public partial class DungeonDetailPage : ContentPage
 
 	// Confirms and removes an area from the sidebar. Placed objects belong to the floor,
 	// so they survive area deletion; only the annotation is removed.
-	private async Task DeleteAreaAsync(Guid floorId, AreaDto area)
+	private async Task DeleteAreaAsync(Guid floorId, AreaItem area)
 	{
 		var confirmed = await Navigation.ShowConfirmPopupAsync(
 			"Delete Area",
@@ -968,7 +969,7 @@ public partial class DungeonDetailPage : ContentPage
 	// ─── Area focus ─────────────────────────────────────────────────────────────
 
 	// Focuses an area so the canvas dims every other area. Display only — it gates nothing.
-	private void FocusArea(Guid floorId, AreaDto area)
+	private void FocusArea(Guid floorId, AreaItem area)
 	{
 		if (floorId != _selectedFloorId)
 		{
@@ -1152,7 +1153,7 @@ public partial class DungeonDetailPage : ContentPage
 	private void OnToolEraseClicked(object? sender, EventArgs e) =>
 		ToggleOrSetTool(MapTool.Erase);
 
-	private async Task EraseAreaAsync(Guid floorId, AreaDto area)
+	private async Task EraseAreaAsync(Guid floorId, AreaItem area)
 	{
 		_drawable.HoveredAreaId = null;
 		MapCanvas.Invalidate();
@@ -1826,14 +1827,14 @@ public partial class DungeonDetailPage : ContentPage
 
 	// ─── Hit testing ────────────────────────────────────────────────────────────
 
-	private AreaDto? HitTestArea(PointF pixelPoint)
+	private AreaItem? HitTestArea(PointF pixelPoint)
 	{
 		if (_drawable.Floor?.Areas is null)
 		{
 			return null;
 		}
 
-		AreaDto? bestMatch = null;
+		AreaItem? bestMatch = null;
 		var bestArea = float.MaxValue;
 
 		foreach (var area in _drawable.Floor.Areas)
@@ -1923,7 +1924,7 @@ public partial class DungeonDetailPage : ContentPage
 			return null;
 
 		// Pick the smallest object whose bounding box contains the hit point (topmost = smallest area).
-		PlacedObjectDto? best = null;
+		PlacedObjectItem? best = null;
 		var bestArea = float.MaxValue;
 		foreach (var obj in _drawable.Floor.Objects)
 		{

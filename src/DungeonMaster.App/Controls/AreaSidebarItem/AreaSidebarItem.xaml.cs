@@ -1,4 +1,4 @@
-using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.App.Theme;
 
 namespace DungeonMaster.App.Controls;
@@ -14,45 +14,45 @@ public partial class AreaSidebarItem : ContentView
 	public static readonly BindableProperty AreaProperty =
 		BindableProperty.Create(
 			nameof(Area),
-			typeof(AreaDto),
+			typeof(AreaItem),
 			typeof(AreaSidebarItem),
 			null,
 			propertyChanged: (bindable, _, newValue) =>
-				((AreaSidebarItem)bindable).Populate((AreaDto?)newValue));
+				((AreaSidebarItem)bindable).Populate((AreaItem?)newValue));
 
 	/// <summary>
 	///		Raised when the user taps this area to enter area edit context.
 	/// </summary>
-	public event EventHandler<AreaDto>? SelectRequested;
+	public event EventHandler<AreaItem>? SelectRequested;
 
 	/// <summary>
 	///     Raised when the pointer enters this area item.
 	/// </summary>
-	public event EventHandler<AreaDto>? HoverStarted;
+	public event EventHandler<AreaItem>? HoverStarted;
 
 	/// <summary>
 	///     Raised when the pointer exits this area item.
 	/// </summary>
-	public event EventHandler<AreaDto>? HoverEnded;
+	public event EventHandler<AreaItem>? HoverEnded;
 
 	/// <summary>
 	///		Raised when the user requests deletion of this area.
 	/// </summary>
-	public event EventHandler<AreaDto>? DeleteRequested;
+	public event EventHandler<AreaItem>? DeleteRequested;
 
 	/// <summary>
 	///		Raised when the user requests the notebook for this area.
 	/// </summary>
-	public event EventHandler<AreaDto>? NotebookRequested;
+	public event EventHandler<AreaItem>? NotebookRequested;
 
 	private bool _isSelected;
 
 	/// <summary>
 	///		Gets or sets the area data displayed and edited by this item.
 	/// </summary>
-	public AreaDto? Area
+	public AreaItem? Area
 	{
-		get => (AreaDto?)GetValue(AreaProperty);
+		get => (AreaItem?)GetValue(AreaProperty);
 		set => SetValue(AreaProperty, value);
 	}
 
@@ -64,7 +64,7 @@ public partial class AreaSidebarItem : ContentView
 		InitializeComponent();
 	}
 
-	private void Populate(AreaDto? area)
+	private void Populate(AreaItem? area)
 	{
 		if (area is null)
 		{
@@ -77,8 +77,7 @@ public partial class AreaSidebarItem : ContentView
 		// and not two copies.
 		NotebookAffordance.Apply(
 			NotebookButton,
-			!string.IsNullOrWhiteSpace(area.Description) ||
-			!string.IsNullOrWhiteSpace(area.Notes));
+			area.HasNotebookContent);
 	}
 
 	private void OnHoverEntered(object? sender, EventArgs e)

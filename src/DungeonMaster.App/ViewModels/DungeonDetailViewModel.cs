@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DungeonMaster.App.Core.Map;
+using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
@@ -78,7 +79,7 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 	/// <summary>
 	///		Gets the observable collection of floors belonging to the current dungeon.
 	/// </summary>
-	public ObservableCollection<FloorDto> Floors { get; } = [];
+	public ObservableCollection<FloorItem> Floors { get; } = [];
 
 	/// <summary>
 	///		Gets the task representing the load started by the most recent call to <see cref="ApplyQueryAttributes"/>.
@@ -173,7 +174,9 @@ public partial class DungeonDetailViewModel(AppDispatcher dispatcher) : Observab
 
 		if (Dungeon is not null)
 		{
-			foreach (var floor in Dungeon.Floors)
+			// The one translation point from the query projection to the control kit's own
+			// shapes. Every consumer of Floors reads FloorItem, so no control names a DTO.
+			foreach (var floor in DungeonDetailPresentationMapper.ToItems(Dungeon.Floors))
 			{
 				Floors.Add(floor);
 			}
