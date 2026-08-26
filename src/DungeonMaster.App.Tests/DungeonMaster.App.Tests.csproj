@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<UseMaui>true</UseMaui>
+		<SingleProject>false</SingleProject>
+		<OutputType>Library</OutputType>
+		<IsPackable>false</IsPackable>
+		<WindowsPackageType>None</WindowsPackageType>
+		<EnableMsixTooling>false</EnableMsixTooling>
+		<DisableResizetizer>true</DisableResizetizer>
+		<AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" />
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DungeonMaster.App\DungeonMaster.App.csproj" />
+	</ItemGroup>
+
+</Project>
