@@ -102,4 +102,30 @@ public sealed record Result<T>
 				ErrorCategory = Results.ErrorCategory.Validation,
 				ValidationErrors = errors,
 			};
+
+	/// <summary>
+	///		Converts a <see cref="Result{T}"/> into a valueless <see cref="Result"/>, discarding only the value. The summary message, the category and every individual validation error are carried across, so a caller that reports the converted result still has the per-field validation text to show.
+	/// </summary>
+	/// <param name="result">
+	///		The result whose outcome is to be carried across.
+	/// </param>
+	/// <returns>
+	///		A <see cref="Result"/> representing the same outcome as <paramref name="result"/>.
+	/// </returns>
+	public static implicit operator Result(Result<T> result)
+	{
+		if (result.IsSuccess)
+		{
+			return Result.Success();
+		}
+
+		if (result.ValidationErrors.Count > 0)
+		{
+			return Result.ValidationFailure(result.ValidationErrors);
+		}
+
+		return Result.Failure(
+			result.Error!,
+			result.ErrorCategory!.Value);
+	}
 }
