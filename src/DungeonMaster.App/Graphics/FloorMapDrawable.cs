@@ -549,6 +549,17 @@ public sealed class FloorMapDrawable : IDrawable
 			canvas.DrawLine(lastX, lastY, PhantomEnd.Value.X, PhantomEnd.Value.Y);
 			canvas.StrokeDashPattern = null;
 
+			// Guard-equivalence note (bounded, currently unreachable divergence) — recorded, not fixed.
+			// This guard replaced `if (distTiles > 0f)` when the distance arithmetic moved into
+			// TileDistance.InFeet (called immediately below). The two agree on every reachable input:
+			// TilePoint is a positional record over two ints, so `snapped != lastVert` is exactly
+			// `dx != 0 || dy != 0`. The one divergence is that `dx * dx + dy * dy` inside InFeet is
+			// unchecked int arithmetic — at |dx| >= 46341 it can overflow to a negative value (MathF.Sqrt
+			// then returns NaN, so the old `> 0f` guard was false) or to exactly 0 (where
+			// `snapped != lastVert` is true). That is unreachable today: TileSize is declared
+			// `public float TileSize { get; set; } = 40f;` in this file (line 144 as written), and zoom is
+			// a separate value clamped to [0.25, 4.0], so a 46,000-tile separation cannot reach a
+			// rendered frame.
 			// Distance label: integer feet to the snapped position, matching what clicking now would produce.
 			if (snapped != lastVert)
 			{
