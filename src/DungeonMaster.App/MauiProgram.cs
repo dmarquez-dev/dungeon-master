@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui;
 using Plugin.Maui.KeyListener;
 using DungeonMaster.Application;
+using DungeonMaster.App.Services.Navigation;
 using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views;
 using DungeonMaster.Infrastructure;
@@ -122,10 +123,20 @@ public static class MauiProgram
 		builder.Services.AddApplicationServices();
 		builder.Services.AddInfrastructureServices(connectionString);
 
+		// Shell navigation, behind an interface so no view model reads Shell.Current itself.
+		// A singleton: it holds no state and reads the ambient Shell on each call.
+		builder.Services.AddSingleton<INavigationService, ShellNavigationService>();
+
 		builder.Services.AddTransient<DungeonListViewModel>();
 		builder.Services.AddTransient<DungeonListPage>();
 		builder.Services.AddTransient<CreateDungeonViewModel>();
 		builder.Services.AddTransient<CreateDungeonPopup>();
+
+		// The create-dungeon popup is resolved PER CLICK: DungeonListPage takes this factory
+		// rather than the container, and each invocation is a fresh resolution of the transient
+		// registration above, so a second click builds a second popup with an empty form.
+		builder.Services.AddTransient<Func<CreateDungeonPopup>>(
+			sp => sp.GetRequiredService<CreateDungeonPopup>);
 		builder.Services.AddTransient<DungeonDetailViewModel>();
 		builder.Services.AddTransient<DungeonDetailPage>();
 
