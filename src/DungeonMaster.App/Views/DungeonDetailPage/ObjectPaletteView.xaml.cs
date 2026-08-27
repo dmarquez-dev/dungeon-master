@@ -272,57 +272,13 @@ public partial class ObjectPaletteView : ContentView
 		return new VerticalStackLayout { Spacing = DmTheme.SpaceXS, Children = { label, grid } };
 	}
 
-	private View BuildThumbButton(ObjectKind kind)
-	{
-		var border = new Border
-		{
-			WidthRequest = 48,
-			HeightRequest = 48,
-			Padding = 0,
-			BackgroundColor = DmTheme.SurfaceToolChip,
-			Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
-			StrokeThickness = 1,
-			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
-			{
-				CornerRadius = DmTheme.RadiusTight
-			}
-		};
-
-		var displayName = ObjectKindInfo.GetDisplayName(kind);
-
-		// The tooltip is a hover affordance and reaches nobody who is not holding a mouse; the
-		// chip's only other content is an image, so the description is its one text alternative.
-		ToolTipProperties.SetText(border, displayName);
-		SemanticProperties.SetDescription(border, displayName);
-
-		if (ObjectAssetCatalogue.Paths.TryGetValue(kind, out var path))
-		{
-			border.Content = new Image
-			{
-				Source = path,
-				Aspect = Aspect.AspectFit,
-				Margin = 2
-			};
-		}
-		else
-		{
-			border.Content = new Label
-			{
-				Text = displayName.Length > 0 ? displayName[..1] : "?",
-				FontSize = DmTheme.FontSizeMeta,
-				TextColor = DmTheme.TextParchment,
-				HorizontalOptions = LayoutOptions.Center,
-				VerticalOptions = LayoutOptions.Center
-			};
-		}
-
-		var tap = new TapGestureRecognizer();
-		tap.Tapped += (_, _) =>
-			SelectObject(kind);
-		border.GestureRecognizers.Add(tap);
-		PaletteThumb.AttachHover(border);
-		return border;
-	}
+	/// <summary>
+	///		The chip for one object in the primary palette. The chip itself is
+	///		<see cref="PaletteThumb"/>'s; this palette supplies only what is its own, which is that
+	///		a tap selects the object directly rather than raising an event.
+	/// </summary>
+	private View BuildThumbButton(ObjectKind kind) =>
+		PaletteThumb.Build(kind, SelectObject);
 
 	private Border BuildExpanderButton(string category, IReadOnlyList<ObjectKind> allObjects)
 	{
@@ -335,20 +291,9 @@ public partial class ObjectPaletteView : ContentView
 			VerticalOptions = LayoutOptions.Center
 		};
 
-		var border = new Border
-		{
-			WidthRequest = 48,
-			HeightRequest = 48,
-			Padding = 0,
-			BackgroundColor = DmTheme.SurfaceToolChip,
-			Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
-			StrokeThickness = 1,
-			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
-			{
-				CornerRadius = DmTheme.RadiusTight
-			},
-			Content = label
-		};
+		// The same chip frame the object thumbnails use, so the expander cannot drift away from
+		// the row it sits in. Everything below it is the expander's own and is not shared.
+		var border = PaletteThumb.CreateShell(label);
 
 		// The label is an ellipsis and nothing else, so the description is the whole of what a
 		// reader gets; it names the category the expander opens.

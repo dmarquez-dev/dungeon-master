@@ -1,5 +1,3 @@
-using DungeonMaster.App.Assets.ObjectAssets;
-using DungeonMaster.App.Theme;
 using DungeonMaster.Domain.Entities.Floor;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
@@ -31,57 +29,12 @@ public partial class SecondaryPaletteView : ContentView
 
 		for (var i = 0; i < objects.Count; i++)
 		{
-			var kind = objects[i];
-			var name = ObjectKindInfo.GetDisplayName(kind);
-
-			View content;
-			if (ObjectAssetCatalogue.Paths.TryGetValue(kind, out var path))
-			{
-				content = new Image
-				{
-					Source = path,
-					Aspect = Aspect.AspectFit,
-					Margin = 3
-				};
-			}
-			else
-			{
-				content = new Label
-				{
-					Text = name.Length > 0 ? name[..1] : "?",
-					FontSize = DmTheme.FontSizeMeta,
-					TextColor = DmTheme.TextParchment,
-					HorizontalOptions = LayoutOptions.Center,
-					VerticalOptions = LayoutOptions.Center
-				};
-			}
-
-			var border = new Border
-			{
-				WidthRequest = 48,
-				HeightRequest = 48,
-				Padding = 0,
-				BackgroundColor = DmTheme.SurfaceToolChip,
-				Stroke = new SolidColorBrush(DmTheme.BorderToolChip),
-				StrokeThickness = 1,
-				StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
-				{
-					CornerRadius = DmTheme.RadiusTight
-				},
-				Content = content
-			};
-			// The tooltip is a hover affordance and reaches nobody who is not holding a mouse;
-			// the chip's only other content is an image, so the description is its one text
-			// alternative.
-			ToolTipProperties.SetText(border, name);
-			SemanticProperties.SetDescription(border, name);
-
-			var tap = new TapGestureRecognizer();
-			tap.Tapped += (_, _) =>
-				ObjectSelected?.Invoke(this, kind);
-			border.GestureRecognizers.Add(tap);
-
-			PaletteThumb.AttachHover(border);
+			// The chip is PaletteThumb's; the only part that is this view's own is that a tap is
+			// reported to whoever opened the palette rather than acted on here.
+			var border = PaletteThumb.Build(
+				objects[i],
+				kind =>
+					ObjectSelected?.Invoke(this, kind));
 
 			ObjectGrid.Add(border, i % 5, i / 5);
 		}
