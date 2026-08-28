@@ -12,6 +12,22 @@ public class NavigationLoadIsObservedTests
 {
 	private const string MethodSignature = "public void ApplyQueryAttributes(IDictionary<string, object> query)";
 
+	private const string DispatchToken = "dispatcher.SendAsync";
+
+	// Matched on either receiver: the children guard through the context, and a guard written on
+	// the composition root itself would read the same identifier.
+	private const string GuardToken = "NoDungeonIsLoaded()";
+
+	// The composition root and its three children. Named rather than globbed: this fact must fail
+	// loudly if one of them is renamed or removed, not quietly scan whatever it happens to find.
+	private static readonly string[] DetailViewModelFileNames =
+	[
+		"DungeonDetailViewModel.cs",
+		"DungeonHeaderViewModel.cs",
+		"FloorListViewModel.cs",
+		"MapCanvasViewModel.cs",
+	];
+
 	/// <summary>
 	///		Asserts that <c>ApplyQueryAttributes</c> does not start the load as a discarded task.
 	///		MASTER-017: a task assigned to a discard is never awaited and never observed, so a load that faults is captured on a <c>Task</c> nobody holds.
@@ -109,23 +125,89 @@ public class NavigationLoadIsObservedTests
 	/// <summary>
 	///		Asserts that every editing command that writes against the loaded dungeon refuses to dispatch while no dungeon is loaded.
 	/// </summary>
+	/// <remarks>
+	///		The editing surface was split out of <c>DungeonDetailViewModel</c> into a composition root plus three children, so the guard now stands in each child as <c>context.NoDungeonIsLoaded()</c> against the identifier the root owns.
+	///		The scan follows it, and judges each dispatch rather than counting guards: a guard must stand earlier in the SAME member as the dispatch it protects, so deleting one guard is caught even while the other twelve stand.
+	/// </remarks>
 	[Fact]
 	public void EveryCommandThatWritesTheLoadedDungeon_IsGuardedWhileNoDungeonIsLoaded()
 	{
 		// Arrange
-		var lines = File.ReadAllLines(DungeonDetailViewModelPath);
+		var unguarded = new List<string>();
+		var dispatchTotal = 0;
 
 		// Act
-		var guardCount = lines
-			.Count(line =>
-				line.Contains("if (NoDungeonIsLoaded())", StringComparison.Ordinal));
+		foreach (var source in DetailViewModelSources())
+		{
+			var lines = File.ReadAllLines(source.Path);
+
+			for (var index = 0; index < lines.Length; index++)
+			{
+				if (!lines[index].Contains(DispatchToken, StringComparison.Ordinal))
+				{
+					continue;
+				}
+
+				dispatchTotal++;
+
+				if (!IsGuarded(
+					lines,
+					index))
+				{
+					unguarded.Add($"{source.Name}:{index + 1}");
+				}
+			}
+		}
 
 		// Assert
-		guardCount
+		dispatchTotal
 			.Should()
 			.BeGreaterThan(
 				0,
-				"a command dispatched while _dungeonId is Guid.Empty targets a dungeon that does not exist");
+				"this fact must find the mutating dispatches it judges; finding none would pass it without testing anything");
+
+		unguarded
+			.Should()
+			.BeEmpty(
+				"a command dispatched while the loaded dungeon identifier is Guid.Empty targets a dungeon that does not exist, but {0} of {1} dispatches reach the dispatcher with no NoDungeonIsLoaded guard ahead of them in their own member, at {2}",
+				unguarded.Count,
+				dispatchTotal,
+				string.Join(", ", unguarded));
+	}
+
+	private static IReadOnlyList<(string Name, string Path)> DetailViewModelSources() =>
+		DetailViewModelFileNames
+			.Select(name =>
+				(Name: name, Path: Path.Combine(
+					RepoPaths.AppRoot,
+					"ViewModels",
+					name)))
+			.ToList();
+
+	// True when a NoDungeonIsLoaded guard stands earlier in the SAME member as the dispatch. The
+	// class body sits one tab deep, so a member closes at exactly one tab and the walk backwards
+	// stops there rather than crossing into the member above and borrowing its guard.
+	private static bool IsGuarded(
+		IReadOnlyList<string> lines,
+		int dispatchIndex)
+	{
+		for (var index = dispatchIndex - 1; index >= 0; index--)
+		{
+			var line = lines[index];
+
+			if (line == "\t}")
+			{
+				return false;
+			}
+
+			if (line.TrimStart().StartsWith("if (", StringComparison.Ordinal)
+				&& line.Contains(GuardToken, StringComparison.Ordinal))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static string DungeonDetailViewModelPath =>

@@ -14,7 +14,7 @@ namespace DungeonMaster.App.Views;
 public partial class DungeonListPage : ContentPage
 {
 	private readonly DungeonListViewModel _viewModel;
-	private readonly IServiceProvider _services;
+	private readonly Func<CreateDungeonPopup> _createPopup;
 	private bool _suppressCardNavigation;
 
 	/// <summary>
@@ -23,16 +23,18 @@ public partial class DungeonListPage : ContentPage
 	/// <param name="viewModel">
 	///		The view model that drives the dungeon list.
 	/// </param>
-	/// <param name="services">
-	///		The service provider used to resolve the create-dungeon popup.
+	/// <param name="createPopup">
+	///		Produces a create-dungeon popup. It is a factory rather than a single instance because
+	///		the popup carries per-session form state and must be new on every click; the page
+	///		declares that one dependency instead of holding the container.
 	/// </param>
 	public DungeonListPage(
 		DungeonListViewModel viewModel,
-		IServiceProvider services)
+		Func<CreateDungeonPopup> createPopup)
 	{
 		InitializeComponent();
 		_viewModel = viewModel;
-		_services = services;
+		_createPopup = createPopup;
 		BindingContext = viewModel;
 	}
 
@@ -70,7 +72,7 @@ public partial class DungeonListPage : ContentPage
 	{
 		try
 		{
-			var popup = _services.GetRequiredService<CreateDungeonPopup>();
+			var popup = _createPopup();
 			var result = await Navigation.ShowPopupAsync<bool>(
 				popup,
 				new PopupOptions { Shape = null, Shadow = null });

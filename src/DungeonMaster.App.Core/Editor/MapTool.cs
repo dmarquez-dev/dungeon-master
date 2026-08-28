@@ -1,4 +1,4 @@
-namespace DungeonMaster.App.ViewModels;
+namespace DungeonMaster.App.Core.Editor;
 
 /// <summary>
 ///		Identifies the active drawing tool on the map canvas.

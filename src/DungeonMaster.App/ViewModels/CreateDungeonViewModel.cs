@@ -31,19 +31,24 @@ public partial class CreateDungeonViewModel(AppDispatcher dispatcher) : Observab
 	public partial string? ErrorMessage { get; set; }
 
 	/// <summary>
-	///		Raised when the dungeon was created successfully. The page closes the popup and reloads.
+	///		Gets or sets the form's outcome: <see langword="null"/> while the form is still open,
+	///		<see langword="true"/> once a dungeon has been created, and <see langword="false"/>
+	///		once the user has cancelled.
 	/// </summary>
-	public event EventHandler? CreatedSuccessfully;
-
-	/// <summary>
-	///		Raised when the user cancels. The page closes the popup without reloading.
-	/// </summary>
-	public event EventHandler? Cancelled;
+	/// <remarks>
+	///		This is the form's ONE outcome channel, replacing the pair of events the popup used to
+	///		convert into a result. Two channels meant two subscriptions, two close sites and two
+	///		chances to leave one of them wired; one observable value means the popup closes from a
+	///		single place with the value the form states.
+	/// </remarks>
+	[ObservableProperty]
+	public partial bool? Outcome { get; set; }
 
 	private bool CanCreate() => !string.IsNullOrWhiteSpace(Name);
 
 	/// <summary>
-	///		Sends <see cref="CreateDungeonCommand"/> and raises <see cref="CreatedSuccessfully"/> on success.
+	///		Sends <see cref="CreateDungeonCommand"/> and states <see cref="Outcome"/> as
+	///		<see langword="true"/> on success.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanCreate))]
 	private async Task CreateAsync()
@@ -56,7 +61,7 @@ public partial class CreateDungeonViewModel(AppDispatcher dispatcher) : Observab
 
 		if (result.IsSuccess)
 		{
-			CreatedSuccessfully?.Invoke(this, EventArgs.Empty);
+			Outcome = true;
 		}
 		else
 		{
@@ -65,9 +70,10 @@ public partial class CreateDungeonViewModel(AppDispatcher dispatcher) : Observab
 	}
 
 	/// <summary>
-	///		Raises <see cref="Cancelled"/> to signal the popup should be closed without saving.
+	///		States <see cref="Outcome"/> as <see langword="false"/> to signal the popup should be
+	///		closed without saving.
 	/// </summary>
 	[RelayCommand]
 	private void Cancel() =>
-		Cancelled?.Invoke(this, EventArgs.Empty);
+		Outcome = false;
 }

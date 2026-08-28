@@ -18,6 +18,20 @@ public class FailureIsSurfacedTests
 
 	private const string ErrorMessageDeclaration = "public partial string? ErrorMessage { get; set; }";
 
+	// The second error channel: a child of the dungeon-detail composition root hands its failure
+	// to the root, which owns the one ErrorMessage the page binds.
+	private const string ContextFailureRouting = "context.ReportFailure(";
+
+	// The composition root and its three children. Named rather than globbed: this fact must fail
+	// loudly if one of them is renamed or removed, not quietly scan whatever it happens to find.
+	private static readonly string[] DetailViewModelFileNames =
+	[
+		"DungeonDetailViewModel.cs",
+		"DungeonHeaderViewModel.cs",
+		"FloorListViewModel.cs",
+		"MapCanvasViewModel.cs",
+	];
+
 	// A dispatch whose result is captured. The variable name is captured rather than assumed so
 	// the branch below is checked against the name actually used at that call site.
 	private static readonly Regex CapturedDispatchPattern =
@@ -33,83 +47,131 @@ public class FailureIsSurfacedTests
 			RegexOptions.Compiled);
 
 	/// <summary>
-	///		Asserts that every dispatch in <c>DungeonDetailViewModel</c> captures the result it is
-	///		handed and branches on its failure. MASTER-001: a discarded result is a rejected write
+	///		Asserts that every dispatch across the dungeon-detail view models captures the result it
+	///		is handed and branches on its failure. MASTER-001: a discarded result is a rejected write
 	///		the user is never told about, and the unconditional reload that follows repaints the
 	///		pre-edit values over the edit that was lost.
 	/// </summary>
+	/// <remarks>
+	///		The editing surface was split out of <c>DungeonDetailViewModel</c> into a composition
+	///		root plus three children, so the dispatches this fact judges now live across four files
+	///		rather than one. The scan follows them; the fourteen it counts are the same fourteen.
+	/// </remarks>
 	[Fact]
 	public void EveryDispatchInDungeonDetailViewModel_BranchesOnTheResult()
 	{
-		var lines = File.ReadAllLines(DungeonDetailViewModelPath);
+		var discarded = new List<string>();
+		var unbranched = new List<string>();
+		var dispatchTotal = 0;
 
-		// The dispatch count is read from the file, never hard-coded, so this fact measures the
-		// file it is given rather than a number that was true when it was written.
-		var dispatchLines = lines
-			.Select((line, index) =>
-				(Line: line, Number: index + 1))
-			.Where(entry =>
-				entry.Line.Contains(DispatchToken, StringComparison.Ordinal))
-			.Select(entry =>
-				entry.Number)
-			.ToList();
+		foreach (var source in DetailViewModelSources())
+		{
+			var lines = File.ReadAllLines(source.Path);
 
-		var discarded = dispatchLines
-			.Where(number =>
-				!CapturedDispatchPattern.IsMatch(lines[number - 1].TrimStart()))
-			.ToList();
+			// The dispatch count is read from the file, never hard-coded, so this fact measures the
+			// files it is given rather than a number that was true when it was written.
+			var dispatchLines = lines
+				.Select((line, index) =>
+					(Line: line, Number: index + 1))
+				.Where(entry =>
+					entry.Line.Contains(DispatchToken, StringComparison.Ordinal))
+				.Select(entry =>
+					entry.Number)
+				.ToList();
 
-		var unbranched = dispatchLines
-			.Except(discarded)
-			.Where(number =>
-				!IsBranchedOn(
-					lines,
-					number))
-			.ToList();
+			dispatchTotal += dispatchLines.Count;
+
+			var captured = dispatchLines
+				.Where(number =>
+					CapturedDispatchPattern.IsMatch(lines[number - 1].TrimStart()))
+				.ToList();
+
+			discarded.AddRange(
+				dispatchLines
+					.Except(captured)
+					.Select(number =>
+						$"{source.Name}:{number}"));
+
+			unbranched.AddRange(
+				captured
+					.Where(number =>
+						!IsBranchedOn(
+							lines,
+							number))
+					.Select(number =>
+						$"{source.Name}:{number}"));
+		}
 
 		discarded
 			.Should()
 			.BeEmpty(
-				"all {0} dispatches in DungeonDetailViewModel must capture their result, but {1} discard it at lines {2}",
-				dispatchLines.Count,
+				"all {0} dispatches across the dungeon-detail view models must capture their result, but {1} discard it at {2}",
+				dispatchTotal,
 				discarded.Count,
 				string.Join(", ", discarded));
 
 		unbranched
 			.Should()
 			.BeEmpty(
-				"every captured result must be followed by an IsFailure branch, but {0} is not, at lines {1}",
+				"every captured result must be followed by an IsFailure branch, but {0} is not, at {1}",
 				unbranched.Count,
 				string.Join(", ", unbranched));
 
-		dispatchLines
+		dispatchTotal
 			.Should()
-			.HaveCount(
+			.Be(
 				14,
-				"DungeonDetailViewModel dispatches fourteen commands; a change to that number is a change this fact must be re-read against");
+				"the dungeon-detail view models dispatch fourteen commands between them; a change to that number is a change this fact must be re-read against");
 	}
 
 	/// <summary>
 	///		Asserts that every view model which dispatches a command also owns a channel on which to
 	///		report a rejected one.
 	/// </summary>
+	/// <remarks>
+	///		There are two legitimate channels. A view model either declares
+	///		<c>ErrorMessage</c> itself, or it is a child of the dungeon-detail composition root and
+	///		routes every rejection through <c>IDungeonEditingContext.ReportFailure</c> to the one
+	///		<c>ErrorMessage</c> the root declares — the seam that keeps a single error channel on
+	///		screen instead of four competing ones. The second channel is held to a count: a child
+	///		must route at least as many failures as it dispatches commands, so removing one routing
+	///		site is caught here even though the <c>IsFailure</c> branch around it survives.
+	/// </remarks>
 	[Fact]
 	public void EveryViewModelWithADispatch_DeclaresAnErrorMessageProperty()
 	{
-		var offenders = ViewModelSources()
-			.Where(source =>
-				source.Text.Contains(DispatchToken, StringComparison.Ordinal))
-			.Where(source =>
-				!source.Text.Contains(ErrorMessageDeclaration, StringComparison.Ordinal))
-			.Select(source =>
-				source.Name)
-			.ToList();
+		var offenders = new List<string>();
+
+		foreach (var source in ViewModelSources())
+		{
+			var dispatches = Occurrences(
+				source.Text,
+				DispatchToken);
+
+			if (dispatches == 0 || source.Text.Contains(ErrorMessageDeclaration, StringComparison.Ordinal))
+			{
+				continue;
+			}
+
+			var routings = Occurrences(
+				source.Text,
+				ContextFailureRouting);
+
+			if (routings >= dispatches)
+			{
+				continue;
+			}
+
+			offenders.Add(
+				$"{source.Name}: {dispatches} dispatches, {routings} routed through {ContextFailureRouting}");
+		}
 
 		offenders
 			.Should()
 			.BeEmpty(
-				"a view model that dispatches a command must declare '{0}' so a rejection has somewhere to be shown",
-				ErrorMessageDeclaration);
+				"a view model that dispatches a command must declare '{0}', or route every rejection through '{1}' to the composition root that declares it",
+				ErrorMessageDeclaration,
+				ContextFailureRouting);
 	}
 
 	/// <summary>
@@ -145,11 +207,33 @@ public class FailureIsSurfacedTests
 			.BeEmpty("ErrorMessage is assigned either null or ResultMessage.ForFailure(result), never a hand-built string");
 	}
 
-	private static string DungeonDetailViewModelPath =>
-		Path.Combine(
-			RepoPaths.AppRoot,
-			"ViewModels",
-			"DungeonDetailViewModel.cs");
+	private static IReadOnlyList<(string Name, string Path)> DetailViewModelSources() =>
+		DetailViewModelFileNames
+			.Select(name =>
+				(Name: name, Path: Path.Combine(
+					RepoPaths.AppRoot,
+					"ViewModels",
+					name)))
+			.ToList();
+
+	private static int Occurrences(
+		string text,
+		string token)
+	{
+		var count = 0;
+		var index = text.IndexOf(token, StringComparison.Ordinal);
+
+		while (index >= 0)
+		{
+			count++;
+			index = text.IndexOf(
+				token,
+				index + token.Length,
+				StringComparison.Ordinal);
+		}
+
+		return count;
+	}
 
 	private static IReadOnlyList<(string Name, string Text)> ViewModelSources()
 	{

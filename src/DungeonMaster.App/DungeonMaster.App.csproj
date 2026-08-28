@@ -23,6 +23,13 @@
 		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
+		<!-- Compile a {Binding} that carries an explicit Source against THAT source's type
+		     instead of against the enclosing x:DataType. Without it the binding generator
+		     applies the ambient DataType to every binding in scope, so
+		     `{Binding ButtonRowSpacing, Source={x:Reference Chrome}}` is compiled against the
+		     view model, which has no such property. See CreateDungeonPopup.xaml. -->
+		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+
 		<!-- Display name -->
 		<ApplicationTitle>DungeonMaster.App</ApplicationTitle>
 

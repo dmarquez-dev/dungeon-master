@@ -28,6 +28,36 @@
         </Style>
     </ContentPage.Resources>
 
+    <!-- MASTER-058. The back action is owned by this page, not inferred from platform
+         chrome. Shell.NavBarIsVisible is False above and no code path pops this page, so
+         until now returning to the dungeon list depended entirely on whatever the host's
+         own title-bar arrow chose to do. Binding the behaviour's Command routes that arrow
+         through DungeonDetailViewModel.GoBackCommand, which calls INavigationService
+         .GoBackAsync() — the page states the destination rather than inheriting it.
+
+         Command binds OneTime by design (Microsoft.Maui.Controls.BackButtonBehavior): it
+         resolves when BindingContext is set, which for this page happens once. IsVisible
+         and IsEnabled are left at their true defaults so the arrow is unchanged visually.
+
+         x:DataType={x:Null} OPTS THIS ONE BINDING OUT OF COMPILATION, and is not optional.
+         GoBackCommand is emitted by CommunityToolkit.Mvvm's [RelayCommand] generator, and
+         MAUI's binding generator cannot see another generator's output. With the root
+         x:DataType above in force the build fails, verbatim:
+
+           error MAUIG2045: Binding: Property "GoBackCommand" not found on
+           "global::DungeonMaster.App.ViewModels.DungeonDetailViewModel". The binding will
+           use slower reflection-based binding at runtime.
+
+         under TreatWarningsAsErrors (Directory.Build.props). It is the same cross-generator
+         gap already recorded at CreateDungeonPopup.xaml:15-47 for CreateCommand. The fix there
+         was to drop the root x:DataType, which is not affordable here because every other
+         binding on this page compiles against it; narrowing the opt-out to this one binding
+         keeps all of those compiled and costs one reflective lookup per back press.
+         Revisit when MAUI's generator handles cross-generator members. -->
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior Command="{Binding GoBackCommand, x:DataType={x:Null}}" />
+    </Shell.BackButtonBehavior>
+
     <!-- Page inset with the bottom edge deliberately suppressed: the map canvas and the floor
          sidebar are the last row and run to the window edge, so a bottom inset would leave a
          strip of tavern background under them. Left/right/top are DmPaddingPage's 16,12. -->
@@ -37,7 +67,17 @@
              Column 0 is deliberately empty. It used to hold an in-page "← Back" button, which
              duplicated the Shell's own back arrow in the Windows title bar — that arrow is
              present and working on this page even with Shell.NavBarIsVisible false, and it is
-             what returns to the dungeon list now. Verified by clicking it, not by reading. -->
+             what returns to the dungeon list now. Verified by clicking it, not by reading.
+
+             It stays empty. MASTER-058 asked for the back action to be explicitly owned by
+             the page, and the Shell.BackButtonBehavior declared above does that without
+             reinstating the duplicate control this column lost: the same arrow now invokes
+             the page's own GoBackCommand. Re-adding a button here would restore exactly the
+             duplication that emptied the column.
+
+             The macCatalyst affordance remains UNVERIFIED. net10.0-maccatalyst compiles but
+             cannot be run under ADR-001, so no one has clicked a back arrow on that target;
+             the claim above ("verified by clicking it") is a Windows claim only. -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
             <HorizontalStackLayout
                 Grid.Column="1"
@@ -277,6 +317,9 @@
             <Grid x:Name="MapOverlay" Grid.Row="1" Grid.Column="0">
                 <GraphicsView
                     x:Name="MapCanvas"
+                    AutomationId="MapCanvas"
+                    SemanticProperties.Description="Dungeon map editing canvas"
+                    SemanticProperties.Hint="Draw, move, select, erase and place tiles and objects on the current floor. The active tool is chosen in the map toolbar above."
                     StartInteraction="OnMapStartInteraction"
                     DragInteraction="OnMapDragInteraction"
                     EndInteraction="OnMapEndInteraction"
@@ -598,6 +641,7 @@
                     <Label
                         Grid.Column="0"
                         Text="FLOORS"
+                        SemanticProperties.HeadingLevel="Level2"
                         FontFamily="{StaticResource DmFontTitle}"
                         FontSize="{StaticResource DmFontSizeHeading}"
                         CharacterSpacing="1"
@@ -639,6 +683,7 @@
         -->
         <controls:NotebookView
             x:Name="Notebook"
+            SemanticProperties.Description="Dungeon notebook"
             Grid.Row="0"
             Grid.RowSpan="5"
             IsVisible="False"

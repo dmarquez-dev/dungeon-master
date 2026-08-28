@@ -267,7 +267,6 @@ public class GeometryScaleTests
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
 			Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
-			Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml.cs"),
 			Relative("Views", "DungeonListPage", "DungeonListPage.xaml"),
 		};
 
@@ -290,8 +289,7 @@ public class GeometryScaleTests
 			Relative("Controls", "AreaSidebarItem", "AreaSidebarItem.xaml.cs"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
-			Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml.cs"),
-			Relative("Views", "DungeonDetailPage", "SecondaryPaletteView.xaml.cs"),
+			Relative("Views", "DungeonDetailPage", "PaletteThumb.cs"),
 		};
 
 	/// <summary>
