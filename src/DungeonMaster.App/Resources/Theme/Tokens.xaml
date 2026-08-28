@@ -121,8 +121,8 @@
         tinted derivatives sitting on the old hue. THE ALPHA DERIVATIVES ARE PART
         OF THE RAMP AND MUST MOVE WITH THEIR BASE.
 
-          #C8A040 — gold accent (12 tokens)
-            (opaque) DmAccentGoldLight, DmDragPlaceholderStroke,
+          #C8A040 — gold accent (13 tokens)
+            (opaque) DmAccentGoldLight, DmScrollGoldLight, DmDragPlaceholderStroke,
                      DmAreaSelectedBorder, DmMapAreaStroke, DmMapObjectPlaceholder
             10       DmGoldHoverTint
             18       DmAreaSelectedTint
@@ -204,6 +204,14 @@
     <Color x:Key="DmAccentGold">#C4862A</Color>
     <Color x:Key="DmAccentGoldLight">#C8A040</Color>
     <Color x:Key="DmAccentGoldDark">#B08828</Color>
+    <!-- The authored-content indicator gold: the notebook glyph of an entity that has notes,
+         and the name label of a floor that has been named. It equals DmAccentGoldLight today
+         and is declared anyway, because DmTheme.ScrollGoldLight previously resolved the SAME
+         KEY as DmTheme.Gold — so the two could not be moved apart by editing a value, only by
+         adding a token and repointing the accessor. This is that token, added for the reason
+         DmMapObjectPlaceholder was added and pointed at by the same argument. A restyle that
+         wants the content indicator to stop tracking the accent now edits one line here. -->
+    <Color x:Key="DmScrollGoldLight">#C8A040</Color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          Action semantics
@@ -680,6 +688,31 @@
     <Thickness x:Key="DmPaddingPanel">14,10</Thickness>
     <!-- Page roots — the outermost inset of a ContentPage. -->
     <Thickness x:Key="DmPaddingPage">16,12</Thickness>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Geometry: the touch-target floor
+
+         ONE value, and it is not a ramp. 44 is the platform touch target — the minimum
+         edge an interactive control must present — and not a step on the DmSpace* scale
+         it happens to sit near. It was written as a bare literal at twelve sites: ten
+         setters in Implicit.xaml and Controls.Base.xaml, plus the two call sites that opt
+         out of an implicit style and have to restate the floor for themselves
+         (DmSearchBar.xaml's Entry and ControlsPaletteView.xaml's scale readout).
+
+         x:Double, NOT x:Int32. Every property that consumes it is MinimumHeightRequest or
+         MinimumWidthRequest, and both are System.Double; BindableProperty.TryConvert does
+         no numeric narrowing, so an x:Int32 token here would be rejected on every
+         evaluation with a console warning and nothing else. That failure is the one
+         TokenTypeMatchesTargetPropertyTests exists for, and it enforces this pairing.
+
+         The name obeys the rule stated below the spacing scale: it names the ROLE and not
+         the value, so a platform that raises its floor to 48 is one edit here rather than
+         twelve edits and a name that has become a lie.
+
+         GeometryScaleTests.NoBareMinimumSizeValues is the ratchet that keeps the next one
+         from being written as a literal.
+    ═══════════════════════════════════════════════════════════════ -->
+    <x:Double x:Key="DmTouchTargetMinimum">44</x:Double>
 
     <!-- There is deliberately no toolbar-height token here any more.
          DmToolbarHeight (54.4) existed only because the designer's map toolbar and its sidebar

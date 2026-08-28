@@ -92,7 +92,7 @@ internal static class PaletteThumb
 			Padding = 0,
 			BackgroundColor = SurfaceNormal,
 			Stroke = StrokeNormal(),
-			StrokeThickness = 1,
+			StrokeThickness = DmTheme.StrokeHairline,
 			StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle
 			{
 				CornerRadius = DmTheme.RadiusTight

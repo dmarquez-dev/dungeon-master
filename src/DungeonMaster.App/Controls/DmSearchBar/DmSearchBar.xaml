@@ -20,16 +20,18 @@
         </Border.StrokeShape>
         <!-- MinimumHeightRequest is stated here and nowhere else. A control carrying Style= is
              ignored by the implicit Entry style in Implicit.xaml, which is what supplies the
-             44px touch target; adopting DmEntryTavern therefore opts out of it. That floor is
+             touch target; adopting DmEntryTavern therefore opts out of it. That floor is
              load-bearing for THIS field specifically — it was measured dropping from 51px to
-             42px when the stock styles were deleted (see Implicit.xaml). The 44 lives at the
-             call site rather than on DmEntryBase because putting it on the base would grow
-             CreateDungeonPopup's Entry and Editor, which have never had a minimum. -->
+             42px when the stock styles were deleted (see Implicit.xaml). The floor is restated
+             at the call site rather than on DmEntryBase because putting it on the base would
+             grow CreateDungeonPopup's Entry and Editor, which have never had a minimum. What
+             the call site names is now DmTouchTargetMinimum rather than a literal 44; the
+             reasoning above is unchanged, only the source of the number is. -->
         <Entry
             AutomationId="DungeonSearchEntry"
             SemanticProperties.Description="Search dungeons"
             Style="{StaticResource DmEntryTavern}"
-            MinimumHeightRequest="44"
+            MinimumHeightRequest="{StaticResource DmTouchTargetMinimum}"
             Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay}"
             Placeholder="Search dungeons..."
             Focused="OnSearchFocused"

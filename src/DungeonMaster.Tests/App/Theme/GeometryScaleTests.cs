@@ -6,7 +6,8 @@ namespace DungeonMaster.Tests.App.Theme;
 /// <summary>
 ///		Ratchets guarding the spacing scale, the padding roles, the radius tokens and the stroke
 ///		scale introduced by <c>docs/superpowers/specs/2026-08-07-design-system-completion-design.md</c>
-///		§3, plus margin, which §3 did not name and which moves the same pixels.
+///		§3, plus margin and the touch-target minimum, neither of which §3 named and both of which
+///		move the same pixels.
 ///		<para>
 ///		Each fact carries its own allow-list, seeded with every file that offended when the
 ///		ratchet was written. A migrating wave removes its own entries and converts the sites;
@@ -137,6 +138,34 @@ public class GeometryScaleTests
 	[
 		new(
 			@"(?<![A-Za-z])(?:StrokeThickness|BorderWidth)\s*=(?!>)\s*(?<value>[0-9][0-9.f]*)",
+			RegexOptions.Compiled),
+	];
+
+	// The touch-target floor. MinimumHeightRequest and MinimumWidthRequest were the last
+	// geometry properties in the theme with a shared value and no token at all: 44 was restated
+	// as a bare literal at twelve sites, ten of them setters in the two highest-fanout
+	// dictionaries. DmTouchTargetMinimum now holds it and this is what stops the thirteenth.
+	//
+	// The lookbehind keeps nothing out that these names could collide with — no MAUI property
+	// ends in "MinimumHeightRequest" — but it is written the same way as its five siblings so
+	// that the whole family reads identically and a later widening starts from a known shape.
+	// HeightRequest and WidthRequest WITHOUT the Minimum prefix are deliberately not scanned:
+	// a fixed size is a measured shape, not a floor on a scale, and reporting one here would
+	// tell the reader to fix it with a touch-target token that is not what it means.
+	private static readonly IReadOnlyList<Regex> MinimumSizeXamlPatterns =
+	[
+		new(
+			@"(?<![A-Za-z])Minimum(?:Height|Width)Request=""(?<value>[0-9][^""]*)""",
+			RegexOptions.Compiled),
+		new(
+			@"<Setter\s+Property=""Minimum(?:Height|Width)Request""\s+Value=""(?<value>[0-9][^""]*)""",
+			RegexOptions.Compiled),
+	];
+
+	private static readonly IReadOnlyList<Regex> MinimumSizeCSharpPatterns =
+	[
+		new(
+			@"(?<![A-Za-z])Minimum(?:Height|Width)Request\s*=(?!>)\s*(?<value>[0-9][0-9.f]*)",
 			RegexOptions.Compiled),
 	];
 
@@ -276,11 +305,20 @@ public class GeometryScaleTests
 	///		was defined by spec §3 and then guarded by nothing at all in either language, so every
 	///		literal below came through the whole migration unexamined.
 	///		<para>
+	///		THREE entries, of which TWO are C#. The comment this replaces said "the four C#
+	///		entries" of a list that has never had four C# entries: it had four ENTRIES, three of
+	///		them C#, and the XAML one was described in the very sentence before. Counted from the
+	///		initialiser below as it stands.
+	///		</para>
+	///		<para>
 	///		The XAML entry is <c>DungeonDetailPage.xaml</c>, whose map-object glyphs are stroked at
 	///		<c>1.25</c> and <c>1.45</c> — values off the 1 / 1.5 / 2 ladder entirely, and the two
-	///		that most need a human decision rather than a mechanical snap. The four C# entries are
-	///		all hairlines built imperatively, which the ladder already expresses; they are
-	///		conversions still to do rather than exemptions.
+	///		that most need a human decision rather than a mechanical snap. The two C# entries are
+	///		hairlines built imperatively, which the ladder already expresses; they are conversions
+	///		still to do rather than exemptions. <c>PaletteThumb.cs</c> was the third and was
+	///		converted when <c>DmTheme.StrokeHairline</c> was added, which is why it is gone from
+	///		here: <see cref="EveryGeometryAllowListEntryStillOffends"/> requires the entry and the
+	///		literal to leave in the same change.
 	///		</para>
 	/// </summary>
 	private static readonly HashSet<string> StrokePendingMigration =
@@ -289,7 +327,38 @@ public class GeometryScaleTests
 			Relative("Controls", "AreaSidebarItem", "AreaSidebarItem.xaml.cs"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
-			Relative("Views", "DungeonDetailPage", "PaletteThumb.cs"),
+		};
+
+	/// <summary>
+	///		Files still carrying a literal <c>MinimumHeightRequest</c> or
+	///		<c>MinimumWidthRequest</c>. This is the census taken when the touch-target ratchet was
+	///		added, not a set of approvals.
+	///		<para>
+	///		WHY THESE ARE A CENSUS AND NOT EXEMPTIONS, stated plainly because the distinction
+	///		matters here more than on the other lists. Every one of the four is a minimum that is
+	///		a LAYOUT DIMENSION rather than a touch target — a popup's minimum width, the notebook
+	///		editors' minimum height, a palette column's minimum width — and none of them is 44.
+	///		A regex cannot tell those two meanings apart from a number, and neither can this list:
+	///		deciding whether each is a measured shape that should stay a literal, a shape that
+	///		wants a token of its own, or drift, is a human decision that has not been taken. The
+	///		entries record that it has not been taken; they do not pretend it has.
+	///		</para>
+	///		<para>
+	///		Four files, six literals as counted on 2026-08-28 with
+	///		<c>grep -rn 'Minimum\(Height\|Width\)Request' --include=*.xaml --include=*.cs</c> from
+	///		<c>src/DungeonMaster.App</c>: <c>DmPopup.xaml</c> 300, <c>NotebookView.xaml</c> 24 and
+	///		150 twice, <c>DungeonDetailPage.xaml</c> 22, <c>ObjectPaletteView.xaml</c> 204.
+	///		<see cref="EveryGeometryAllowListEntryStillOffends"/> makes an entry that no longer
+	///		bites a failure, so the list can only shrink.
+	///		</para>
+	/// </summary>
+	private static readonly HashSet<string> MinimumSizePendingMigration =
+		new(StringComparer.OrdinalIgnoreCase)
+		{
+			Relative("Controls", "DmPopup", "DmPopup.xaml"),
+			Relative("Controls", "NotebookView", "NotebookView.xaml"),
+			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
+			Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml"),
 		};
 
 	/// <summary>
@@ -490,6 +559,46 @@ public class GeometryScaleTests
 	}
 
 	/// <summary>
+	///		Asserts that no literal minimum size survives outside the token declarations.
+	/// </summary>
+	/// <remarks>
+	///		The touch target — 44 — was the one shared geometry value in this theme that had no
+	///		token at all. It was restated as a bare literal at twelve sites: ten setters across
+	///		<c>Implicit.xaml</c> and <c>Controls.Base.xaml</c>, plus the two call sites that carry
+	///		a <c>Style=</c> and so opt out of the implicit floor and must restate it
+	///		(<c>DmSearchBar.xaml</c> and <c>ControlsPaletteView.xaml</c>). All twelve now name
+	///		<c>DmTouchTargetMinimum</c>; this fact is what makes the thirteenth a failure rather
+	///		than a thirteenth.
+	/// </remarks>
+	[Fact]
+	public void NoBareMinimumSizeValues()
+	{
+		var offenders = Scan(
+				"*.xaml",
+				MinimumSizeXamlPatterns,
+				MinimumSizePendingMigration)
+			.Concat(
+				Scan(
+					"*.cs",
+					MinimumSizeCSharpPatterns,
+					MinimumSizePendingMigration))
+			.Where(found =>
+				found.Value != ZeroMeansNone)
+			.Select(Describe)
+			.OrderBy(
+				entry =>
+					entry,
+				StringComparer.Ordinal)
+			.ToList();
+
+		offenders
+			.Should()
+			.BeEmpty("every minimum size must name a token in Resources/Theme/Tokens.xaml — "
+				+ "DmTouchTargetMinimum where it is the platform touch target — or be recorded "
+				+ "in MinimumSizePendingMigration with the rest of the census");
+	}
+
+	/// <summary>
 	///		Asserts that every allow-listed path names a file that exists and still carries the
 	///		literal its list exempts. Without this the three ratchets are not self-checking as
 	///		they shrink: a stale or mistyped entry exempts nothing, and the wave that "removed its
@@ -527,6 +636,12 @@ public class GeometryScaleTests
 					StrokePendingMigration,
 					StrokeXamlPatterns,
 					StrokeCSharpPatterns))
+			.Concat(
+				Stale(
+					"MinimumSize",
+					MinimumSizePendingMigration,
+					MinimumSizeXamlPatterns,
+					MinimumSizeCSharpPatterns))
 			.Concat(StaleValueExceptions())
 			.OrderBy(
 				entry =>

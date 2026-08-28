@@ -165,7 +165,7 @@
                            FontSize="{StaticResource DmFontSizeMeta}"
                            FontAttributes="Bold"
                            TextColor="{StaticResource DmTextToolPanel}"
-                           MinimumWidthRequest="44"
+                           MinimumWidthRequest="{StaticResource DmTouchTargetMinimum}"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            HorizontalTextAlignment="Center" />

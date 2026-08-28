@@ -76,6 +76,12 @@ public class TokenNamingTests
 		"AccentGold", "Gold", "Confirm", "Destructive", "Neutral", "Save", "Discard",
 		"Ribbon", "Banner", "DragPlaceholder", "AreaSelected", "EditorGlow", "Map",
 		"Scrollbar", "PopupButton", "Hairline", "SavedStamp",
+
+		// The authored-content indicator, named for the scroll the notebook affordance draws.
+		// Registered as a role rather than left to parse as "Scroll" + "Gold" because Gold is
+		// itself a role and cannot also be a qualifier: the pair is one name. Longest match is
+		// what keeps it apart from Scrollbar — neither key is a prefix of the other.
+		"ScrollGold",
 	];
 
 	/// <summary>
@@ -131,6 +137,12 @@ public class TokenNamingTests
 			["DmAccentGold"] = "Role hue. The accent itself; painted as fill, stroke and ink.",
 			["DmAccentGoldLight"] = "Role hue, lighter shade of the accent ramp.",
 			["DmAccentGoldDark"] = "Role hue, darker shade of the accent ramp.",
+			["DmScrollGoldLight"] =
+				"Role hue. The authored-content indicator: it paints a notebook GLYPH on one "
+				+ "control and a floor's NAME LABEL on another — two categories, one hue, so "
+				+ "naming either would make the other a lie. Equal in value to DmAccentGoldLight "
+				+ "and deliberately a separate key, so the indicator can stop tracking the "
+				+ "accent by one edit in Tokens.xaml.",
 			["DmConfirm"] = "Role hue. DmConfirmText is its categorised derivative.",
 			["DmDestructive"] =
 				"Role hue. Paints a button fill, the notebook's unsaved label and an icon "
