@@ -14,6 +14,7 @@
         x:Name="SearchBorder"
         Style="{StaticResource DmBorderTavernStyle}"
         BackgroundColor="{StaticResource DmSurfaceTavernRaised}"
+        Stroke="{StaticResource DmBorderTavernBrush}"
         Padding="{StaticResource DmPaddingControl}">
         <Border.StrokeShape>
             <RoundRectangle CornerRadius="{StaticResource DmRadiusLoose}" />
@@ -28,13 +29,49 @@
              the call site names is now DmTouchTargetMinimum rather than a literal 44; the
              reasoning above is unchanged, only the source of the number is. -->
         <Entry
+            x:Name="SearchEntry"
             AutomationId="DungeonSearchEntry"
             SemanticProperties.Description="Search dungeons"
             Style="{StaticResource DmEntryTavern}"
             MinimumHeightRequest="{StaticResource DmTouchTargetMinimum}"
             Text="{Binding SearchText, Source={x:Reference Root}, Mode=TwoWay}"
-            Placeholder="Search dungeons..."
-            Focused="OnSearchFocused"
-            Unfocused="OnSearchUnfocused" />
+            Placeholder="Search dungeons..." />
+        <!-- THE FOCUS APPEARANCE LIVES HERE AND NOWHERE ELSE, and it is declarative so a theme
+             dictionary can reach it. It used to be two code-behind assignments to
+             SearchBorder.Stroke, which no dictionary could reach at all (UIKIT-013,
+             docs/audit/04-app-controls-and-theme.md:545-551).
+
+             WHY A TRIGGER RATHER THAN A VISUAL STATE, because the obvious answer is wrong twice
+             over. Focused/Unfocused are raised by the ENTRY, but the element that shows focus is
+             this outer BORDER, so a CommonStates group on the Border never fires — that
+             mismatch is exactly what the old code-behind was working around. MAUI's answer to
+             it is a CommonStates group on the Entry whose Setters carry
+             TargetName="SearchBorder" and Property="Border.Stroke" (the "set state on multiple
+             elements" form). That was built and it works, but the fully qualified property name
+             it REQUIRES is unreadable to
+             TokenTypeMatchesTargetPropertyTests.EveryDmTokenBindingTargetsAPropertyOfAKnownType,
+             which attributes a Setter to its nearest element ancestor and so sees
+             "Entry.Border.Stroke" — an element+property pair no table can name. Teaching that
+             fact about TargetName means editing DungeonMaster.Tests, which this control's task
+             does not own.
+
+             So the dependency is inverted instead: the Border reads the Entry's IsFocused
+             rather than the Entry pushing at the Border. Same single owner for the focus
+             appearance, same two tokens, and the Setter's target is an ordinary Border.Stroke.
+             The resting value is the Stroke attribute above; DataTrigger outranks a local value
+             (see the precedence note in Controls.Base.xaml) and restores it on deactivation, so
+             the two states are stated as a pair the way DmCard.xaml states Normal/PointerOver.
+
+             The brushes are the border-brush tokens themselves now, not
+             DmTheme.FloorBorderActive/FloorBorderNormal, whose names describe the floor card.
+             Nothing about the rendered colour changes: those two members resolve these very
+             keys (DmTheme.cs:91-99). -->
+        <Border.Triggers>
+            <DataTrigger TargetType="Border"
+                Binding="{Binding IsFocused, Source={x:Reference SearchEntry}}"
+                Value="True">
+                <Setter Property="Stroke" Value="{StaticResource DmBorderTavernHoverBrush}" />
+            </DataTrigger>
+        </Border.Triggers>
     </Border>
 </ContentView>

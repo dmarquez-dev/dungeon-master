@@ -1,9 +1,10 @@
-using DungeonMaster.App.Theme;
-
 namespace DungeonMaster.App.Controls;
 
 /// <summary>
-///		A themed search bar control that wraps a native entry with styled focus and blur states.
+///		A themed search bar control that wraps a native entry.
+///		Focus and blur are painted declaratively in DmSearchBar.xaml, not from here; see the
+///		comment there for why not a visual state. This class carries the
+///		<see cref="SearchText"/> binding and nothing else.
 /// </summary>
 public partial class DmSearchBar : ContentView
 {
@@ -33,15 +34,5 @@ public partial class DmSearchBar : ContentView
 	public DmSearchBar()
 	{
 		InitializeComponent();
-	}
-
-	private void OnSearchFocused(object? sender, FocusEventArgs e)
-	{
-		SearchBorder.Stroke = DmTheme.FloorBorderActive;
-	}
-
-	private void OnSearchUnfocused(object? sender, FocusEventArgs e)
-	{
-		SearchBorder.Stroke = DmTheme.FloorBorderNormal;
 	}
 }
