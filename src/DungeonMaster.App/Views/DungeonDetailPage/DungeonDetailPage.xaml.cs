@@ -2,14 +2,15 @@ using DungeonMaster.App.Assets.ObjectAssets;
 using Plugin.Maui.KeyListener;
 using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Controls;
+using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Core.Map;
 using DungeonMaster.App.Extensions;
 using DungeonMaster.App.Graphics;
+using DungeonMaster.App.Services.Platform;
 using DungeonMaster.App.Theme;
 using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views.DungeonDetail;
 using DungeonMaster.App.Core.Presentation;
-using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.ValueObjects;
 using Microsoft.Maui.Controls.Shapes;
@@ -27,52 +28,23 @@ public partial class DungeonDetailPage : ContentPage
 	private readonly DungeonDetailViewModel _viewModel;
 	private readonly FloorMapDrawable _drawable;
 
-	// Floor list state
-	private Guid? _selectedFloorId;
+	// The editor's interaction state and its transitions. Every fact the page used to hold in a
+	// private field — which floor is selected, which area is focused, where the draw state
+	// machine stands, the area move drag, the pan anchor, the ghost rotation, and the whole
+	// object hover/select/press/drag group — lives here, in a type with no MAUI dependency that
+	// DungeonMaster.Tests exercises directly. See MapEditorState for the field-by-field mapping.
+	private readonly MapEditorState _editor = new();
+
+	// Floor list drag-and-drop plumbing. This is view work and stays: it is the placeholder Border
+	// this page inserts into its own sidebar and the item it is currently dragging.
 	private View? _dragPlaceholder;
 	private FloorSidebarItem? _draggingItem;
 	private FloorSidebarItem? _currentPlaceholderTarget;
 	private bool _placeholderAfterTarget;
 
-	// Area focus — drives the canvas dim only. Never gates input.
-	private Guid? _focusedAreaId;
-
-	// Draw state machine
-	private enum DrawState { Idle, DrawingReady, Drawing }
-	private DrawState _drawState = DrawState.Idle;
-
-	// Current drag state
-	private bool _isMoveDragging;
-	private Guid? _draggingAreaId;
-	private TilePoint? _moveGrabTile;
-
-	// Pan tool anchor (screen space)
-	private PointF? _panAnchorScreen;
-
-	// Ghost placement rotation state (cycles when R pressed in Place mode)
-	private ObjectRotation _ghostRotation = ObjectRotation.None;
-
-	// Object action popup state
-	private Guid? _hoveredObjectId;   // canvas highlight (follows cursor)
-	private Guid? _selectedObjectId;  // popup target (set on click/long-press)
-	private RectF _popupBounds;       // hit-zone guard for popup button dispatch
-	private PointF _lastTouchPoint;
 	private readonly CanvasLongPressDetector _longPressDetector = new();
 
-	// Object drag-to-move state
-	private const float ObjectDragThreshold = 6f;
-	private Guid? _pendingObjectClickId;    // touch down on object, waiting to disambiguate click vs drag
-	private PointF _objectDragAnchorScreen;
-	private bool _isObjectDragConfirmed;
-	private CanvasPoint? _objectDragTargetCanvas;   // floor-absolute pixel position being previewed
-	private bool _objectLongPressHandled;            // prevents EndInteraction from re-triggering click after long press
-
 	private KeyboardBehavior? _keyboardBehavior;
-
-#if WINDOWS
-	[System.Runtime.InteropServices.DllImport("user32.dll")]
-	private static extern short GetAsyncKeyState(int vKey);
-#endif
 
 	private const float ZoomStep = 0.1f;
 	private const float ZoomSnapThreshold = 0.05f;
@@ -149,16 +121,16 @@ public partial class DungeonDetailPage : ContentPage
 			{
 				if (ObjectPalette.ActiveObject is not null)
 				{
-					_ghostRotation = dir == RotationDirection.Clockwise
-						? (ObjectRotation)(((int)_ghostRotation + 1) % 4)
-						: (ObjectRotation)(((int)_ghostRotation + 3) % 4);
-					_drawable.GhostRotation = _ghostRotation;
+					_editor.GhostRotation = dir == RotationDirection.Clockwise
+						? (ObjectRotation)(((int)_editor.GhostRotation + 1) % 4)
+						: (ObjectRotation)(((int)_editor.GhostRotation + 3) % 4);
+					_drawable.GhostRotation = _editor.GhostRotation;
 					MapCanvas.Invalidate();
 				}
 				else
 				{
-					_selectedObjectId ??= _hoveredObjectId;
-					if (_selectedObjectId is not null)
+					_editor.SelectedObjectId ??= _editor.HoveredObjectId;
+					if (_editor.SelectedObjectId is not null)
 					{
 						await RotateObjectAsync(dir == RotationDirection.Clockwise);
 					}
@@ -187,8 +159,8 @@ public partial class DungeonDetailPage : ContentPage
 				}
 				else
 				{
-					_selectedObjectId ??= _hoveredObjectId;
-					if (_selectedObjectId is not null)
+					_editor.SelectedObjectId ??= _editor.HoveredObjectId;
+					if (_editor.SelectedObjectId is not null)
 					{
 						await ScaleObjectAsync(down);
 					}
@@ -239,7 +211,7 @@ public partial class DungeonDetailPage : ContentPage
 		_runtimeHandlersAttached = true;
 
 		_viewModel.PropertyChanged += OnViewModelPropertyChanged;
-		_viewModel.Floors.CollectionChanged += OnFloorsChanged;
+		_viewModel.FloorList.Items.CollectionChanged += OnFloorsChanged;
 
 		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed += OnObjectLongPressed;
@@ -269,7 +241,7 @@ public partial class DungeonDetailPage : ContentPage
 		_runtimeHandlersAttached = false;
 
 		_viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-		_viewModel.Floors.CollectionChanged -= OnFloorsChanged;
+		_viewModel.FloorList.Items.CollectionChanged -= OnFloorsChanged;
 
 		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed -= OnObjectLongPressed;
@@ -293,10 +265,27 @@ public partial class DungeonDetailPage : ContentPage
 	}
 
 	/// <inheritdoc/>
-	protected override void OnNavigatedTo(NavigatedToEventArgs args)
+	/// <remarks>
+	///		ApplyQueryAttributes starts the load and holds it on <c>LoadTask</c>; this is where the
+	///		page observes it. Without the await the load is a task nobody holds: a faulted one is
+	///		never seen, and the page sits empty with nothing anywhere saying why.
+	/// </remarks>
+	protected override async void OnNavigatedTo(NavigatedToEventArgs args)
 	{
-		base.OnNavigatedTo(args);
-		AttachRuntimeHandlers();
+		// async void: an escaping exception is UNOBSERVED and is rethrown on the
+		// synchronisation context, which takes the process down. The try opens before the
+		// first await for that reason, not as defensive style.
+		try
+		{
+			base.OnNavigatedTo(args);
+			AttachRuntimeHandlers();
+
+			await _viewModel.LoadTask;
+		}
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not load that dungeon: {exception.Message}";
+		}
 	}
 
 	/// <inheritdoc/>
@@ -363,7 +352,7 @@ public partial class DungeonDetailPage : ContentPage
 			switch (char.ToLower(e.KeyChar))
 			{
 				case 'd':
-					if (_viewModel.ActiveTool == MapTool.Draw && _drawState == DrawState.Drawing)
+					if (_viewModel.Canvas.ActiveTool == MapTool.Draw && _editor.DrawState == DrawState.Drawing)
 						AbortInProgressDraw();   // pressing D while drawing cancels in-progress vertices
 					else
 						ToggleOrSetTool(MapTool.Draw);
@@ -374,26 +363,26 @@ public partial class DungeonDetailPage : ContentPage
 				case 's': ToggleOrSetTool(MapTool.Select); break;
 				case 'e': ToggleOrSetTool(MapTool.Erase); break;
 				case 'r':
-					if (_viewModel.ActiveTool == MapTool.Place)
+					if (_viewModel.Canvas.ActiveTool == MapTool.Place)
 					{
 						if (ObjectPalette.ActiveObject is not null)
 						{
 							// Rotate ghost preview.
-							_ghostRotation = (ObjectRotation)(((int)_ghostRotation + 1) % 4);
-							_drawable.GhostRotation = _ghostRotation;
+							_editor.GhostRotation = (ObjectRotation)(((int)_editor.GhostRotation + 1) % 4);
+							_drawable.GhostRotation = _editor.GhostRotation;
 							MapCanvas.Invalidate();
 						}
 						else
 						{
 							// Rotate selected or hovered placed object.
-							_selectedObjectId ??= _hoveredObjectId;
-							if (_selectedObjectId is not null)
+							_editor.SelectedObjectId ??= _editor.HoveredObjectId;
+							if (_editor.SelectedObjectId is not null)
 								await RotateObjectAsync(clockwise: true);
 						}
 					}
 					break;
 				case '[':
-					if (_viewModel.ActiveTool == MapTool.Place)
+					if (_viewModel.Canvas.ActiveTool == MapTool.Place)
 					{
 						if (ObjectPalette.ActiveObject is not null)
 						{
@@ -403,8 +392,8 @@ public partial class DungeonDetailPage : ContentPage
 						}
 						else
 						{
-							_selectedObjectId ??= _hoveredObjectId;
-							if (_selectedObjectId is not null)
+							_editor.SelectedObjectId ??= _editor.HoveredObjectId;
+							if (_editor.SelectedObjectId is not null)
 							{
 								await ScaleObjectAsync(down: true);
 							}
@@ -412,7 +401,7 @@ public partial class DungeonDetailPage : ContentPage
 					}
 					break;
 				case ']':
-					if (_viewModel.ActiveTool == MapTool.Place)
+					if (_viewModel.Canvas.ActiveTool == MapTool.Place)
 					{
 						if (ObjectPalette.ActiveObject is not null)
 						{
@@ -422,8 +411,8 @@ public partial class DungeonDetailPage : ContentPage
 						}
 						else
 						{
-							_selectedObjectId ??= _hoveredObjectId;
-							if (_selectedObjectId is not null)
+							_editor.SelectedObjectId ??= _editor.HoveredObjectId;
+							if (_editor.SelectedObjectId is not null)
 							{
 								await ScaleObjectAsync(down: false);
 							}
@@ -445,7 +434,7 @@ public partial class DungeonDetailPage : ContentPage
 	// If tool is already active, revert to Pan (deactivate); otherwise activate.
 	private void ToggleOrSetTool(MapTool tool)
 	{
-		if (_viewModel.ActiveTool == tool)
+		if (_viewModel.Canvas.ActiveTool == tool)
 			SetActiveTool(MapTool.Pan);
 		else
 			SetActiveTool(tool);
@@ -574,7 +563,7 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		if (e.PropertyName == nameof(DungeonDetailViewModel.Dungeon) && _viewModel.Dungeon is not null)
 		{
-			TitleBanner.Title = _viewModel.DungeonName;
+			TitleBanner.Title = _viewModel.Header.DungeonName;
 			RefreshDungeonNotebookButton();
 		}
 	}
@@ -586,8 +575,8 @@ public partial class DungeonDetailPage : ContentPage
 	private void RefreshDungeonNotebookButton()
 	{
 		var hasContent =
-			!string.IsNullOrWhiteSpace(_viewModel.DungeonDescription) ||
-			!string.IsNullOrWhiteSpace(_viewModel.DungeonNotes);
+			!string.IsNullOrWhiteSpace(_viewModel.Header.DungeonDescription) ||
+			!string.IsNullOrWhiteSpace(_viewModel.Header.DungeonNotes);
 
 		DungeonNotebookButton.TextColor = hasContent
 			? DmTheme.ScrollGoldLight
@@ -605,9 +594,9 @@ public partial class DungeonDetailPage : ContentPage
 			_viewModel.Dungeon.Id,
 			null,
 			NotebookKind.Dungeon,
-			_viewModel.DungeonName,
-			_viewModel.DungeonDescription,
-			_viewModel.DungeonNotes));
+			_viewModel.Header.DungeonName,
+			_viewModel.Header.DungeonDescription,
+			_viewModel.Header.DungeonNotes));
 	}
 
 	// Every write path below ends in a full reload that clears Floors and rebuilds every sidebar
@@ -632,24 +621,23 @@ public partial class DungeonDetailPage : ContentPage
 					{
 						if (!string.IsNullOrWhiteSpace(e.Name))
 						{
-							_viewModel.DungeonName = e.Name;
+							_viewModel.Header.DungeonName = e.Name;
 						}
 
-						_viewModel.DungeonDescription = e.Description;
-						_viewModel.DungeonNotes = e.Notes;
+						_viewModel.Header.DungeonDescription = e.Description;
+						_viewModel.Header.DungeonNotes = e.Notes;
 
-						await _viewModel.SaveDungeonCommand.ExecuteAsync(null);
-
-						// SaveDungeonCommand does not reload, so the banner and the sidebar row would keep
-						// showing the pre-edit name until something else refreshed them.
-						await _viewModel.LoadDungeonCommand.ExecuteAsync(e.Id);
+						// The header's save now reloads the detail on success, like every other
+						// mutation. The page therefore no longer chases it with a second load of
+						// its own: the banner and the sidebar row repaint from that reload.
+						await _viewModel.Header.SaveCommand.ExecuteAsync(null);
 
 						// A blank name never overwrote DungeonName above, so it still holds the last known
 						// good one. The notebook does not know that — it is still showing what the user
 						// typed — so tell it, unless it has since been retargeted to a different entity.
-						if (_viewModel.DungeonName != e.Name && Notebook.CurrentId == e.Id)
+						if (_viewModel.Header.DungeonName != e.Name && Notebook.CurrentId == e.Id)
 						{
-							Notebook.SyncName(_viewModel.DungeonName);
+							Notebook.SyncName(_viewModel.Header.DungeonName);
 						}
 
 						break;
@@ -658,13 +646,13 @@ public partial class DungeonDetailPage : ContentPage
 				case NotebookKind.Floor:
 					{
 						// Resolved before the await, because the reload it triggers replaces this instance.
-						var lastGoodName = _viewModel.Floors
+						var lastGoodName = _viewModel.FloorList.Items
 							.FirstOrDefault(floorItem => floorItem.Id == e.Id)?.Name;
 
 						var floorName = string.IsNullOrWhiteSpace(e.Name) ? lastGoodName : e.Name;
 
-						await _viewModel.UpdateFloorCommand.ExecuteAsync(
-							(e.Id, floorName, e.Description, e.Notes));
+						await _viewModel.FloorList.UpdateFloorCommand.ExecuteAsync(
+							new UpdateFloorArgs(e.Id, floorName, e.Description, e.Notes));
 
 						// Same fallback-visibility gap as the dungeon case above.
 						if (floorName != e.Name && Notebook.CurrentId == e.Id)
@@ -683,7 +671,7 @@ public partial class DungeonDetailPage : ContentPage
 							return;
 						}
 
-						var lastGoodName = _viewModel.Floors
+						var lastGoodName = _viewModel.FloorList.Items
 							.FirstOrDefault(floorItem => floorItem.Id == e.FloorId.Value)?.Areas
 							.FirstOrDefault(areaItem => areaItem.Id == e.Id)?.Name;
 
@@ -696,8 +684,8 @@ public partial class DungeonDetailPage : ContentPage
 							return;
 						}
 
-						await _viewModel.UpdateAreaCommand.ExecuteAsync(
-							(e.FloorId.Value, e.Id, areaName, e.Description, e.Notes));
+						await _viewModel.Canvas.UpdateAreaCommand.ExecuteAsync(
+							new UpdateAreaArgs(e.FloorId.Value, e.Id, areaName, e.Description, e.Notes));
 
 						// Same fallback-visibility gap as the dungeon case above.
 						if (areaName != e.Name && Notebook.CurrentId == e.Id)
@@ -711,7 +699,7 @@ public partial class DungeonDetailPage : ContentPage
 
 			// The reload replaced every floor projection, so the drawable is still pointing at the
 			// pre-save instance. Re-resolve it by id rather than reusing the captured DTO.
-			_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
+			_drawable.Floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
 			RefreshDungeonNotebookButton();
 			MapCanvas.Invalidate();
 		}
@@ -730,9 +718,14 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		FloorListContainer.Children.Clear();
 
-		foreach (var floor in _viewModel.Floors)
+		foreach (var floor in _viewModel.FloorList.Items)
 		{
 			var item = new FloorSidebarItem { Floor = floor };
+
+			// Each floor row is a heading in the sidebar's outline, one level below the FLOORS
+			// caption the XAML carries. Without it a screen reader reads the sidebar as an
+			// undifferentiated run of controls and offers no way to jump between floors.
+			SemanticProperties.SetHeadingLevel(item, SemanticHeadingLevel.Level3);
 
 			item.DeleteRequested += async (_, floorToDelete) =>
 			{
@@ -756,18 +749,18 @@ public partial class DungeonDetailPage : ContentPage
 					// Deleting the selected floor must drop every piece of state that points at it,
 					// otherwise the drawable keeps rendering the deleted floor's projection.
 					// Deleting any other floor leaves the current selection untouched.
-					var wasSelected = _selectedFloorId == floorToDelete.Id;
+					var wasSelected = _editor.SelectedFloorId == floorToDelete.Id;
 					if (wasSelected)
 					{
 						ClearAreaFocus();
-						_selectedFloorId = null;
+						_editor.SelectedFloorId = null;
 						_drawable.Floor = null;
 						_drawable.HoveredAreaId = null;
 						ResetDrawState();
 						SetMapToolbarShown(false);
 					}
 
-					await _viewModel.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
+					await _viewModel.FloorList.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
 
 					// The deleted floor, or any of its areas, may be what the notebook is open on.
 					CloseNotebookIfOrphaned();
@@ -788,7 +781,7 @@ public partial class DungeonDetailPage : ContentPage
 			{
 				// Re-tapping the floor card while an area is focused clears the focus first;
 				// a further tap falls through to the deselect branch below.
-				if (_focusedAreaId is not null && _selectedFloorId == floor.Id)
+				if (_editor.FocusedAreaId is not null && _editor.SelectedFloorId == floor.Id)
 				{
 					ClearAreaFocus();
 					return;
@@ -797,9 +790,9 @@ public partial class DungeonDetailPage : ContentPage
 				// Re-tapping the already-selected floor toggles it off: collapse it and route
 				// back through RefreshMap so the resulting state is identical to the page's
 				// initial no-floor-selected state rather than a hand-rolled second copy of it.
-				if (_selectedFloorId == floor.Id)
+				if (_editor.SelectedFloorId == floor.Id)
 				{
-					_selectedFloorId = null;
+					_editor.SelectedFloorId = null;
 					item.Deselect();
 					ResetDrawState();
 					RefreshMap();
@@ -816,7 +809,7 @@ public partial class DungeonDetailPage : ContentPage
 					return;
 				}
 
-				_selectedFloorId = floor.Id;
+				_editor.SelectedFloorId = floor.Id;
 				CollapseAllExcept(item);
 				RefreshMap();
 			};
@@ -828,8 +821,9 @@ public partial class DungeonDetailPage : ContentPage
 				// first await for that reason, not as defensive style.
 				try
 				{
-					_selectedFloorId = args.DraggedFloorId;
-					await _viewModel.ReorderFloorCommand.ExecuteAsync((args.DraggedFloorId, args.TargetNumber));
+					_editor.SelectedFloorId = args.DraggedFloorId;
+					await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
+						new ReorderFloorArgs(args.DraggedFloorId, args.TargetNumber));
 				}
 				catch (Exception exception)
 				{
@@ -861,7 +855,7 @@ public partial class DungeonDetailPage : ContentPage
 				// async void lambda: the try opens before the first await so nothing escapes.
 				try
 				{
-					await _viewModel.AddAreaCommand.ExecuteAsync(floor.Id);
+					await _viewModel.Canvas.AddAreaCommand.ExecuteAsync(floor.Id);
 				}
 				catch (Exception exception)
 				{
@@ -871,7 +865,7 @@ public partial class DungeonDetailPage : ContentPage
 
 			item.AreaSelectRequested += (_, area) =>
 			{
-				if (_focusedAreaId == area.Id)
+				if (_editor.FocusedAreaId == area.Id)
 				{
 					ClearAreaFocus();
 					return;
@@ -927,7 +921,7 @@ public partial class DungeonDetailPage : ContentPage
 
 			FloorListContainer.Children.Add(item);
 
-			if (floor.Id == _selectedFloorId)
+			if (floor.Id == _editor.SelectedFloorId)
 			{
 				item.Select();
 			}
@@ -953,14 +947,15 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		if (_focusedAreaId == area.Id)
+		if (_editor.FocusedAreaId == area.Id)
 		{
 			ClearAreaFocus();
 		}
 
 		_drawable.HoveredAreaId = null;
 
-		await _viewModel.RemoveAreaCommand.ExecuteAsync((floorId, area.Id));
+		await _viewModel.Canvas.RemoveAreaCommand.ExecuteAsync(
+			new RemoveAreaArgs(floorId, area.Id));
 		await RefreshFloorAsync();
 		CloseNotebookIfOrphaned();
 		MapCanvas.Invalidate();
@@ -971,35 +966,33 @@ public partial class DungeonDetailPage : ContentPage
 	// Focuses an area so the canvas dims every other area. Display only — it gates nothing.
 	private void FocusArea(Guid floorId, AreaItem area)
 	{
-		if (floorId != _selectedFloorId)
+		if (floorId != _editor.SelectedFloorId)
 		{
 			return;
 		}
 
 		// Guard against a stale sidebar row whose area no longer exists in the current data.
-		var currentFloor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == floorId);
+		var currentFloor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == floorId);
 		if (currentFloor?.Areas.Any(areaItem => areaItem.Id == area.Id) != true)
 		{
 			ClearAreaFocus();
 			return;
 		}
 
-		if (_drawState == DrawState.Drawing)
+		if (_editor.DrawState == DrawState.Drawing)
 		{
 			AbortInProgressDraw();
 		}
 
 		// Abort any in-progress move drag
-		if (_isMoveDragging)
+		if (_editor.IsMoveDragging)
 		{
-			_isMoveDragging = false;
-			_draggingAreaId = null;
-			_moveGrabTile = null;
+			_editor.EndMoveDrag();
 			_drawable.DragPreviewAreaId = null;
 			_drawable.DragPreviewDelta = null;
 		}
 
-		_focusedAreaId = area.Id;
+		_editor.FocusedAreaId = area.Id;
 		_drawable.ActiveAreaId = area.Id;
 
 		UpdateActiveAreaSidebarHighlight();
@@ -1010,122 +1003,97 @@ public partial class DungeonDetailPage : ContentPage
 	// Clears the area focus so every area renders at full opacity again.
 	private void ClearAreaFocus()
 	{
-		_focusedAreaId = null;
+		_editor.FocusedAreaId = null;
 		_drawable.ActiveAreaId = null;
 
 		UpdateActiveAreaSidebarHighlight();
 		MapCanvas.Invalidate();
 	}
 
-	private void AbortInProgressDraw()
+	// The MAUI-touching half of ending an in-progress draw: drop the vertices the session was
+	// collecting and the canvas preview painted from them. It deliberately does NOT move the draw
+	// state, because the two callers want it moved to different places and neither of them
+	// computes the value — MapEditorState does.
+	private void ClearInProgressDraw()
 	{
-		_viewModel.DrawingSession.Reset();
-		_drawState = DrawState.DrawingReady;
+		_viewModel.Canvas.DrawingSession.Reset();
 		_drawable.InProgressVertices = [];
 		_drawable.PhantomEnd = null;
-		_drawable.ActiveAreaId = _focusedAreaId;
+		_drawable.ActiveAreaId = _editor.FocusedAreaId;
 	}
 
+	// Abandons an in-progress draw while STAYING on the Draw tool, so the tool re-arms and a new
+	// outline can be started. A tool change does not come through here: it ends at Idle, and
+	// MapEditorState.SetActiveTool has already put the state there by the time it reports that an
+	// abort is owed.
+	private void AbortInProgressDraw()
+	{
+		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
+		ClearInProgressDraw();
+	}
+
+	// The page names the cursor shape the tool implies; each platform maps that shape to its own
+	// native cursor behind PlatformCanvasCursor. No WinUI or AppKit type is named here, and the
+	// ProtectedCursor reflection that used to sit in this method now lives in the Windows file and
+	// is resolved once for the process rather than on every call.
 	private void SetCanvasCursor(MapTool tool, bool isDragging = false)
 	{
-#if WINDOWS
-		if (MapCanvas.Handler?.PlatformView is Microsoft.UI.Xaml.UIElement element)
+		var shape = tool switch
 		{
-			var shape = tool switch
-			{
-				MapTool.Draw => Microsoft.UI.Input.InputSystemCursorShape.Cross,
-				MapTool.Move => Microsoft.UI.Input.InputSystemCursorShape.SizeAll,
-				MapTool.Pan => isDragging
-					? Microsoft.UI.Input.InputSystemCursorShape.SizeAll
-					: Microsoft.UI.Input.InputSystemCursorShape.Hand,
-				MapTool.Erase => Microsoft.UI.Input.InputSystemCursorShape.Cross,
-				_ => Microsoft.UI.Input.InputSystemCursorShape.Arrow
-			};
+			MapTool.Draw => CanvasCursorShape.Crosshair,
+			MapTool.Erase => CanvasCursorShape.Crosshair,
+			MapTool.Move => CanvasCursorShape.Move,
+			MapTool.Pan => isDragging
+				? CanvasCursorShape.Grabbing
+				: CanvasCursorShape.Grab,
+			_ => CanvasCursorShape.Arrow,
+		};
 
-			typeof(Microsoft.UI.Xaml.UIElement)
-				.GetProperty(
-					"ProtectedCursor",
-					System.Reflection.BindingFlags.Instance |
-					System.Reflection.BindingFlags.NonPublic |
-					System.Reflection.BindingFlags.Public)
-				?.SetValue(element, Microsoft.UI.Input.InputSystemCursor.Create(shape));
-		}
-#elif MACCATALYST
-		// On macCatalyst the GraphicsView platform view is a UIView; cursor shape is set via NSCursor.
-		// UIHoverGestureRecognizer fires continuously while the pointer is over the view, so we push
-		// the cursor once here and rely on the next hover event (or tool switch) to pop it.
-		// TODO(macOS): NSCursor does not have a SizeAll/crosshair that maps 1:1 to WinUI's SizeAll.
-		// The closest available cursors are used below. Consider caching the hover recognizer on the
-		// canvas view and updating its action delegate rather than re-adding it each time.
-		switch (tool)
-		{
-			case MapTool.Draw:
-			case MapTool.Erase:
-				AppKit.NSCursor.CrosshairCursor.Set();
-				break;
-			case MapTool.Move:
-				AppKit.NSCursor.OpenHandCursor.Set();
-				break;
-			case MapTool.Pan:
-				(isDragging ? AppKit.NSCursor.ClosedHandCursor : AppKit.NSCursor.OpenHandCursor).Set();
-				break;
-			default:
-				AppKit.NSCursor.ArrowCursor.Set();
-				break;
-		}
-#endif
+		PlatformCanvasCursor.SetShape(MapCanvas.Handler?.PlatformView, shape);
 	}
 
 	// ─── Toolbar handlers ────────────────────────────────────────────────────────
 
 
+	// The state half of a tool change belongs to MapEditorState, which also clears the whole object
+	// interaction group and reports back what the view still owes. Everything below the call is a
+	// MAUI-touching consequence of that decision and nothing here computes a DrawState.
 	private void SetActiveTool(MapTool tool)
 	{
-		_viewModel.ActiveTool = tool;
+		_viewModel.Canvas.ActiveTool = tool;
 
-		switch (tool)
+		var change = _editor.SetActiveTool(tool, _viewModel.Canvas.DrawingSession.IsActive);
+
+		// ClearInProgressDraw, not AbortInProgressDraw: a tool change ends at Idle and the state
+		// machine has already put it there. Re-arming here would silently leave the Draw tool
+		// primed on a tool the user has just left.
+		if (change.AbortInProgressDraw)
 		{
-			case MapTool.Draw:
-				_drawState = _viewModel.DrawingSession.IsActive ? DrawState.Drawing : DrawState.DrawingReady;
-				break;
-			case MapTool.Move:
-			case MapTool.Pan:
-			case MapTool.Place:
-			case MapTool.Select:
-			case MapTool.Erase:
-				if (_drawState == DrawState.Drawing)
-				{
-					AbortInProgressDraw();
-				}
-				_drawState = DrawState.Idle;
-				break;
+			ClearInProgressDraw();
 		}
 
 		// Clear canvas hover highlight when leaving tools that show it.
-		if (tool != MapTool.Move && tool != MapTool.Select && tool != MapTool.Erase)
+		if (change.ClearHoveredArea)
 		{
 			_drawable.HoveredAreaId = null;
 		}
 
-		// Dismiss object popup and clear any hover highlight when switching tools.
-		_selectedObjectId = null;
-		_hoveredObjectId = null;
+		// Dismiss object popup and clear any hover highlight when switching tools. The state side
+		// of this was done by SetActiveTool above; these are the drawable and the popup control.
 		_drawable.HoveredObjectId = null;
-		_pendingObjectClickId = null;
-		_isObjectDragConfirmed = false;
 		_drawable.DraggingObjectId = null;
 		_drawable.DraggingObjectTargetCanvas = null;
 		ObjectActionPopup.IsVisible = false;
 
 		ObjectPalette.IsVisible = tool == MapTool.Place;
 		ControlsPalette.IsVisible = tool == MapTool.Place && ObjectPalette.ActiveObject is not null;
-		if (tool != MapTool.Place)
+		if (change.LeavingPlaceTool)
 		{
 			OnSecondaryPaletteDismissed(null, EventArgs.Empty);
 			_drawable.GhostObjectKind = null;
 			_drawable.GhostCanvasPosition = null;
 			_drawable.GhostRotation = ObjectRotation.None;
-			_ghostRotation = ObjectRotation.None;
+			_editor.GhostRotation = ObjectRotation.None;
 			_drawable.GhostScale = ObjectScale.Default;
 			ControlsPalette.ResetScale();
 			MapCanvas.Invalidate();
@@ -1157,7 +1125,8 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		_drawable.HoveredAreaId = null;
 		MapCanvas.Invalidate();
-		await _viewModel.RemoveAreaCommand.ExecuteAsync((floorId, area.Id));
+		await _viewModel.Canvas.RemoveAreaCommand.ExecuteAsync(
+			new RemoveAreaArgs(floorId, area.Id));
 		await RefreshFloorAsync();
 		CloseNotebookIfOrphaned();
 		MapCanvas.Invalidate();
@@ -1172,8 +1141,8 @@ public partial class DungeonDetailPage : ContentPage
 		ObjectRotation rotation,
 		float scale)
 	{
-		await _viewModel.AddPlacedObjectCommand.ExecuteAsync(
-			new DungeonDetailViewModel.PlaceObjectArgs(floorId, kind, position, rotation, scale));
+		await _viewModel.Canvas.AddPlacedObjectCommand.ExecuteAsync(
+			new PlaceObjectArgs(floorId, kind, position, rotation, scale));
 		// Reload only the floor data — do NOT call RefreshMap(), which would reset tool/context state.
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
@@ -1182,7 +1151,7 @@ public partial class DungeonDetailPage : ContentPage
 	private void OnPaletteObjectChanged(object? sender, ObjectKind? kind)
 	{
 		_drawable.GhostObjectKind = kind;
-		_ghostRotation = ObjectRotation.None;
+		_editor.GhostRotation = ObjectRotation.None;
 		_drawable.GhostRotation = ObjectRotation.None;
 		_drawable.GhostScale = ObjectScale.Default;
 		ControlsPalette.ResetScale();
@@ -1233,12 +1202,12 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void UpdateToolbarButtonState()
 	{
-		var isDrawActive = _viewModel.ActiveTool == MapTool.Draw;
-		var isMoveActive = _viewModel.ActiveTool == MapTool.Move;
-		var isPanActive = _viewModel.ActiveTool == MapTool.Pan;
-		var isPlaceActive = _viewModel.ActiveTool == MapTool.Place;
-		var isSelectActive = _viewModel.ActiveTool == MapTool.Select;
-		var isEraseActive = _viewModel.ActiveTool == MapTool.Erase;
+		var isDrawActive = _viewModel.Canvas.ActiveTool == MapTool.Draw;
+		var isMoveActive = _viewModel.Canvas.ActiveTool == MapTool.Move;
+		var isPanActive = _viewModel.Canvas.ActiveTool == MapTool.Pan;
+		var isPlaceActive = _viewModel.Canvas.ActiveTool == MapTool.Place;
+		var isSelectActive = _viewModel.Canvas.ActiveTool == MapTool.Select;
+		var isEraseActive = _viewModel.Canvas.ActiveTool == MapTool.Erase;
 
 		ToolDrawTile.IsActive = isDrawActive;
 		ToolMoveTile.IsActive = isMoveActive;
@@ -1247,22 +1216,24 @@ public partial class DungeonDetailPage : ContentPage
 		ToolPlaceTile.IsActive = isPlaceActive;
 		ToolPanTile.IsActive = isPanActive;
 
-		var hasVertices = _viewModel.DrawingSession.Vertices.Count > 0;
+		var hasVertices = _viewModel.Canvas.DrawingSession.Vertices.Count > 0;
 		UndoButton.IsEnabled = hasVertices;
 		UndoButton.Opacity = hasVertices ? 1.0 : 0.35;
 	}
 
 	private void OnUndoClicked(object? sender, EventArgs e)
 	{
-		if (_viewModel.DrawingSession.UndoLastVertex())
+		if (_viewModel.Canvas.DrawingSession.UndoLastVertex())
 		{
-			if (!_viewModel.DrawingSession.IsActive)
+			if (!_viewModel.Canvas.DrawingSession.IsActive)
 			{
-				_drawState = DrawState.DrawingReady;
+				// Undoing the last vertex leaves the Draw tool armed rather than idle, which is
+				// exactly what MapEditorState.ResetDrawState reports for a selected floor.
+				_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 			}
 
-			_drawable.InProgressVertices = [.. _viewModel.DrawingSession.Vertices];
-			var hasVertices = _viewModel.DrawingSession.Vertices.Count > 0;
+			_drawable.InProgressVertices = [.. _viewModel.Canvas.DrawingSession.Vertices];
+			var hasVertices = _viewModel.Canvas.DrawingSession.Vertices.Count > 0;
 			UndoButton.IsEnabled = hasVertices;
 			UndoButton.Opacity = hasVertices ? 1.0 : 0.35;
 			MapCanvas.Invalidate();
@@ -1272,21 +1243,23 @@ public partial class DungeonDetailPage : ContentPage
 	// ─── Auto-save helpers ───────────────────────────────────────────────────────
 
 	// Reloads floor data from the VM after any auto-save operation and syncs the drawable.
+	// The dungeon identifier is the editing context's, never the page's: ReloadAsync re-runs the
+	// detail query for the dungeon the view model already holds, so nothing here re-takes an id
+	// through a null-forgiving read of Dungeon.
 	private async Task RefreshFloorAsync()
 	{
-		if (_selectedFloorId is null) return;
-		await _viewModel.LoadDungeonCommand.ExecuteAsync(_viewModel.Dungeon!.Id);
-		_drawable.Floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
+		if (_editor.SelectedFloorId is null) return;
+		await _viewModel.ReloadAsync();
+		_drawable.Floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
 	}
 
 	private void ResetDrawState()
 	{
-		_viewModel.DrawingSession.Reset();
-		_drawState = _selectedFloorId is not null ? DrawState.DrawingReady : DrawState.Idle;
+		_viewModel.Canvas.DrawingSession.Reset();
 
-		_isMoveDragging = false;
-		_draggingAreaId = null;
-		_moveGrabTile = null;
+		// The draw state and the area-move drag move together, and MapEditorState owns both
+		// transitions; the page computes neither value.
+		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 
 		_drawable.InProgressVertices = [];
 		_drawable.PhantomEnd = null;
@@ -1301,39 +1274,33 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async void OnMapStartInteraction(object? sender, TouchEventArgs e)
 	{
-#if WINDOWS
-		// GraphicsView's StartInteraction fires for all pointer buttons including right-click.
-		// GetAsyncKeyState polls the right mouse button state synchronously so we can suppress
-		// StartInteraction when the secondary button is pressed (right-click triggers Undo/Deselect
-		// via the separate OnMapSecondaryTapped handler instead).
-		const int VK_RBUTTON = 0x02;
-		if ((GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0)
+		// GraphicsView's StartInteraction fires for all pointer buttons including right-click, so
+		// the secondary button is suppressed here; right-click triggers Undo/Deselect through the
+		// separate OnMapSecondaryTapped handler instead. Each platform answers the question in its
+		// own file behind PlatformPointer, including the macCatalyst gap the TODO(macOS) note
+		// there records.
+		if (PlatformPointer.IsSecondaryButtonPressed())
 		{
 			return;
 		}
-		// TODO(macOS): On macCatalyst there is no GetAsyncKeyState equivalent. The platform maps
-		// a right-click / two-finger-tap to the SecondaryTapped event, which already routes to
-		// OnMapSecondaryTapped. However, if the native UIGestureRecognizer fires StartInteraction
-		// before SecondaryTapped on macCatalyst (which can happen), a spurious StartInteraction
-		// will execute draw/place logic. Verify on a real Mac that right-click-only does NOT
-		// trigger OnMapStartInteraction; if it does, add a UIEvent.IsSecondaryButton check here
-		// using the platform view's gesture recognizers.
-#endif
 
 		// async void: an escaping exception is UNOBSERVED and is rethrown on the
 		// synchronisation context, which takes the process down. The try opens before the
 		// first await for that reason, not as defensive style.
 		try
 		{
-			_lastTouchPoint = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
+			var touchPoint = new CanvasPoint((float)e.Touches[0].X, (float)e.Touches[0].Y);
+			_editor.LastTouchPoint = touchPoint;
 
 			// GraphicsView on WinUI consumes all pointer events, so overlaid MAUI buttons never
 			// fire Clicked. Instead we manually hit-test the popup rect and dispatch the action.
-			if (ObjectActionPopup.IsVisible && _popupBounds.Contains(_lastTouchPoint.X, _lastTouchPoint.Y))
+			if (ObjectActionPopup.IsVisible
+				&& _editor.PopupBounds is CanvasRect popupBounds
+				&& popupBounds.Contains(touchPoint.X, touchPoint.Y))
 			{
 				_longPressDetector.TouchStarted();
-				var relX = _lastTouchPoint.X - _popupBounds.X;
-				var zoneW = _popupBounds.Width / 5f;
+				var relX = touchPoint.X - popupBounds.X;
+				var zoneW = popupBounds.Width / 5f;
 				if (relX < zoneW)
 					await RotateObjectAsync(clockwise: false);
 				else if (relX < zoneW * 2)
@@ -1349,9 +1316,9 @@ public partial class DungeonDetailPage : ContentPage
 
 			_longPressDetector.TouchStarted();
 
-			if (_viewModel.ActiveTool == MapTool.Pan)
+			if (_viewModel.Canvas.ActiveTool == MapTool.Pan)
 			{
-				_panAnchorScreen = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
+				_editor.PanAnchorScreen = touchPoint;
 				SetCanvasCursor(MapTool.Pan, isDragging: true);
 				return;
 			}
@@ -1361,27 +1328,27 @@ public partial class DungeonDetailPage : ContentPage
 
 			// Object interaction: the Select tool, or Place mode with no active palette item.
 			// Left-click with a palette item = place; otherwise inspect/drag existing objects.
-			if (_viewModel.ActiveTool == MapTool.Select
-				|| (_viewModel.ActiveTool == MapTool.Place && ObjectPalette.ActiveObject is null))
+			if (_viewModel.Canvas.ActiveTool == MapTool.Select
+				|| (_viewModel.Canvas.ActiveTool == MapTool.Place && ObjectPalette.ActiveObject is null))
 			{
 				var hitObjectId = GetObjectAtCanvasPoint(canvasHitPoint);
 				if (hitObjectId is not null)
 				{
 					// Enter pending state — we disambiguate click vs drag in EndInteraction.
-					_pendingObjectClickId = hitObjectId;
-					_objectDragAnchorScreen = _lastTouchPoint;
-					_isObjectDragConfirmed = false;
-					_objectLongPressHandled = false;
-					_hoveredObjectId = hitObjectId;
+					// BeginObjectPress records the id and the drag anchor and clears the
+					// confirmation flag; the long-press flag is cleared alongside it.
+					_editor.BeginObjectPress(hitObjectId.Value, touchPoint);
+					_editor.ObjectLongPressHandled = false;
+					_editor.HoveredObjectId = hitObjectId;
 					_drawable.HoveredObjectId = hitObjectId;
 					MapCanvas.Invalidate();
 					return;
 				}
 
-				// Click on empty canvas — dismiss popup and clear hover highlight.
-				_pendingObjectClickId = null;
-				_selectedObjectId = null;
-				_hoveredObjectId = null;
+				// Click on empty canvas — dismiss popup and clear hover highlight. Releasing the
+				// pending press is what ClearObjectInteraction is for, and every other field it
+				// clears is already null or false at the start of an interaction on empty canvas.
+				_editor.ClearObjectInteraction();
 				_drawable.HoveredObjectId = null;
 				if (ObjectActionPopup.IsVisible)
 				{
@@ -1391,66 +1358,71 @@ public partial class DungeonDetailPage : ContentPage
 				// Don't return — let the click fall through to tool logic.
 			}
 
-			if (_viewModel.ActiveTool == MapTool.Erase
-				&& _selectedFloorId is not null)
+			if (_viewModel.Canvas.ActiveTool == MapTool.Erase
+				&& _editor.SelectedFloorId is not null)
 			{
 				var hit = HitTestArea(canvasHitPoint);
 				if (hit is not null)
 				{
-					await EraseAreaAsync(_selectedFloorId.Value, hit);
+					await EraseAreaAsync(_editor.SelectedFloorId.Value, hit);
 				}
 				return;
 			}
 
-			if (_viewModel.ActiveTool == MapTool.Place
+			if (_viewModel.Canvas.ActiveTool == MapTool.Place
 				&& ObjectPalette.ActiveObject is ObjectKind placedKind
-				&& _selectedFloorId is not null)
+				&& _editor.SelectedFloorId is not null)
 			{
 				var placeRaw = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
 				var placeCanvas = _drawable.ScreenToCanvas(placeRaw);
 
 				await PlaceObjectAsync(
-					_selectedFloorId.Value,
+					_editor.SelectedFloorId.Value,
 					placedKind,
 					new CanvasPoint(placeCanvas.X, placeCanvas.Y),
-					_ghostRotation,
+					_editor.GhostRotation,
 					_drawable.GhostScale);
 				return;
 			}
 
 			var canvasPoint = canvasHitPoint;
 
-			if (_viewModel.ActiveTool == MapTool.Move && _selectedFloorId is not null)
+			if (_viewModel.Canvas.ActiveTool == MapTool.Move && _editor.SelectedFloorId is not null)
 			{
 				var hit = HitTestArea(canvasPoint);
 				if (hit is not null)
 				{
-					_draggingAreaId = hit.Id;
-					_moveGrabTile = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
+					_editor.BeginMoveDrag(
+						hit.Id,
+						TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize));
 					_drawable.DragPreviewAreaId = hit.Id;
 					_drawable.DragPreviewDelta = new TilePoint(0, 0);
-					_isMoveDragging = true;
 					MapCanvas.Invalidate();
 				}
 				return;
 			}
 
-			if (_viewModel.ActiveTool != MapTool.Draw || _selectedFloorId is null)
+			if (_viewModel.Canvas.ActiveTool != MapTool.Draw || _editor.SelectedFloorId is null)
 			{
 				return;
 			}
 
 			var snapped = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
-			var result = _viewModel.DrawingSession.PlaceVertex(snapped);
+			var result = _viewModel.Canvas.DrawingSession.PlaceVertex(snapped);
 
 			if (result == DrawSessionResult.Added)
 			{
-				if (_drawState == DrawState.DrawingReady)
+				if (_editor.DrawState == DrawState.DrawingReady)
 				{
-					_drawState = DrawState.Drawing;
+					// The first vertex arms the Draw tool into Drawing. That is the same
+					// transition MapEditorState makes when the Draw tool is asserted with a live
+					// session, and it is the only frozen operation that produces the value — the
+					// page must not compute a DrawState of its own. The tool is unchanged, so
+					// _viewModel.Canvas.ActiveTool is deliberately not reassigned.
+					_editor.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 				}
 
-				_drawable.InProgressVertices = [.. _viewModel.DrawingSession.Vertices];
+				_drawable.InProgressVertices = [.. _viewModel.Canvas.DrawingSession.Vertices];
 				UpdateToolbarButtonState();
 				MapCanvas.Invalidate();
 			}
@@ -1471,22 +1443,22 @@ public partial class DungeonDetailPage : ContentPage
 		var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
 		var needsInvalidate = false;
 
-		if (_viewModel.ActiveTool == MapTool.Place && _drawable.GhostObjectKind is not null)
+		if (_viewModel.Canvas.ActiveTool == MapTool.Place && _drawable.GhostObjectKind is not null)
 		{
 			_drawable.GhostCanvasPosition = canvasPoint;
 			MapCanvas.Invalidate();
 			return;
 		}
 
-		if (_drawState == DrawState.Drawing)
+		if (_editor.DrawState == DrawState.Drawing)
 		{
 			_drawable.PhantomEnd = canvasPoint;
 			needsInvalidate = true;
 		}
 
 		// Canvas hover highlighting — for Move, Select, and Erase tools
-		if (_selectedFloorId is not null
-			&& (_viewModel.ActiveTool == MapTool.Move || _viewModel.ActiveTool == MapTool.Select || _viewModel.ActiveTool == MapTool.Erase))
+		if (_editor.SelectedFloorId is not null
+			&& (_viewModel.Canvas.ActiveTool == MapTool.Move || _viewModel.Canvas.ActiveTool == MapTool.Select || _viewModel.Canvas.ActiveTool == MapTool.Erase))
 		{
 			var hit = HitTestArea(canvasPoint);
 			var newId = hit?.Id;
@@ -1498,15 +1470,15 @@ public partial class DungeonDetailPage : ContentPage
 		}
 
 		// Hover highlight for placed objects (canvas glow only — popup is click-driven).
-		if (_viewModel.ActiveTool == MapTool.Place || _viewModel.ActiveTool == MapTool.Select)
+		if (_viewModel.Canvas.ActiveTool == MapTool.Place || _viewModel.Canvas.ActiveTool == MapTool.Select)
 		{
 			var cp = _drawable.ScreenToCanvas(new PointF((float)e.Touches.FirstOrDefault().X, (float)e.Touches.FirstOrDefault().Y));
 			var newHovered = GetObjectAtCanvasPoint(cp);
-			if (newHovered != _hoveredObjectId)
+			if (newHovered != _editor.HoveredObjectId)
 			{
-				_hoveredObjectId = newHovered;
+				_editor.HoveredObjectId = newHovered;
 				// Only update the drawable's hover if the popup isn't pinned to a selected object.
-				if (_selectedObjectId is null)
+				if (_editor.SelectedObjectId is null)
 				{
 					_drawable.HoveredObjectId = newHovered;
 				}
@@ -1524,7 +1496,7 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		var needsInvalidate = false;
 
-		if (_viewModel.ActiveTool == MapTool.Place)
+		if (_viewModel.Canvas.ActiveTool == MapTool.Place)
 		{
 			_drawable.GhostCanvasPosition = null;
 			needsInvalidate = true;
@@ -1544,10 +1516,10 @@ public partial class DungeonDetailPage : ContentPage
 
 		// Clear hover highlight when cursor leaves the canvas.
 		// The selected-object popup stays until explicitly dismissed.
-		if (_hoveredObjectId is not null)
+		if (_editor.HoveredObjectId is not null)
 		{
-			_hoveredObjectId = null;
-			if (_selectedObjectId is null)
+			_editor.HoveredObjectId = null;
+			if (_editor.SelectedObjectId is null)
 			{
 				_drawable.HoveredObjectId = null;
 			}
@@ -1564,61 +1536,61 @@ public partial class DungeonDetailPage : ContentPage
 	private void OnMapDragInteraction(object? sender, TouchEventArgs e)
 	{
 		// Object drag-to-move: active whenever a touch started on an object in Place mode.
-		if (_pendingObjectClickId is not null
-			&& (_viewModel.ActiveTool == MapTool.Place || _viewModel.ActiveTool == MapTool.Select))
+		if (_editor.PendingObjectClickId is not null
+			&& (_viewModel.Canvas.ActiveTool == MapTool.Place || _viewModel.Canvas.ActiveTool == MapTool.Select))
 		{
 			var current = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
-			var dist = MathF.Sqrt(
-				MathF.Pow(current.X - _objectDragAnchorScreen.X, 2) +
-				MathF.Pow(current.Y - _objectDragAnchorScreen.Y, 2));
+			// The distance test and the threshold live in MapEditorState; the page only reacts to
+			// the promotion. The id is read before the call because the state machine keeps it.
+			var draggingObjectId = _editor.PendingObjectClickId;
+			var wasAlreadyConfirmed = _editor.IsObjectDragConfirmed;
 
-			if (!_isObjectDragConfirmed && dist > ObjectDragThreshold)
+			if (_editor.ConfirmObjectDragIfPastThreshold(new CanvasPoint(current.X, current.Y)))
 			{
-				_isObjectDragConfirmed = true;
-				_longPressDetector.TouchEnded(); // cancel the long-press timer
-				_selectedObjectId = null;
-				ObjectActionPopup.IsVisible = false;
-				_drawable.DraggingObjectId = _pendingObjectClickId;
-			}
+				if (!wasAlreadyConfirmed)
+				{
+					_longPressDetector.TouchEnded(); // cancel the long-press timer
+					_editor.SelectedObjectId = null;
+					ObjectActionPopup.IsVisible = false;
+					_drawable.DraggingObjectId = draggingObjectId;
+				}
 
-			if (_isObjectDragConfirmed)
-			{
 				var canvasPoint = _drawable.ScreenToCanvas(current);
 
 				_drawable.DraggingObjectTargetCanvas = canvasPoint;
-				_objectDragTargetCanvas = new CanvasPoint(canvasPoint.X, canvasPoint.Y);
+				_editor.ObjectDragTargetCanvas = new CanvasPoint(canvasPoint.X, canvasPoint.Y);
 
 				MapCanvas.Invalidate();
 			}
 			return;
 		}
 
-		if (_viewModel.ActiveTool == MapTool.Pan && _panAnchorScreen is PointF anchor)
+		if (_viewModel.Canvas.ActiveTool == MapTool.Pan && _editor.PanAnchorScreen is CanvasPoint anchor)
 		{
 			var current = new PointF((float)e.Touches[0].X, (float)e.Touches[0].Y);
 			var delta = new PointF(current.X - anchor.X, current.Y - anchor.Y);
 			_drawable.PanOffset = new PointF(
 				_drawable.PanOffset.X + delta.X,
 				_drawable.PanOffset.Y + delta.Y);
-			_panAnchorScreen = current;
+			_editor.PanAnchorScreen = new CanvasPoint(current.X, current.Y);
 			MapCanvas.Invalidate();
 			return;
 		}
 
-		if (_viewModel.ActiveTool == MapTool.Move && _isMoveDragging
-			&& _moveGrabTile is not null && _draggingAreaId is not null)
+		if (_viewModel.Canvas.ActiveTool == MapTool.Move && _editor.IsMoveDragging
+			&& _editor.MoveGrabTile is not null && _editor.DraggingAreaId is not null)
 		{
 			var point = e.Touches.FirstOrDefault();
 			var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
 			var currentTile = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
 			_drawable.DragPreviewDelta = new TilePoint(
-				currentTile.Col - _moveGrabTile.Col,
-				currentTile.Row - _moveGrabTile.Row);
+				currentTile.Col - _editor.MoveGrabTile.Col,
+				currentTile.Row - _editor.MoveGrabTile.Row);
 			MapCanvas.Invalidate();
 			return;
 		}
 
-		if (_drawState == DrawState.Drawing)
+		if (_editor.DrawState == DrawState.Drawing)
 		{
 			var point = e.Touches.FirstOrDefault();
 			var canvasPoint = _drawable.ScreenToCanvas(new PointF(point.X, point.Y));
@@ -1637,17 +1609,22 @@ public partial class DungeonDetailPage : ContentPage
 			_longPressDetector.TouchEnded();
 
 			// Resolve pending object click vs drag.
-			if (_pendingObjectClickId is not null)
+			if (_editor.PendingObjectClickId is not null)
 			{
-				var clickId = _pendingObjectClickId.Value;
-				_pendingObjectClickId = null;
+				// Everything the decision below needs is read BEFORE the press is released:
+				// ClearObjectInteraction is the only way to release it, and it clears the whole
+				// group in one step — which is also exactly what both branches want afterwards.
+				var clickId = _editor.PendingObjectClickId.Value;
+				var wasDrag = _editor.IsObjectDragConfirmed;
+				var targetPos = _editor.ObjectDragTargetCanvas;
+				var longPressHandled = _editor.ObjectLongPressHandled;
+				var previouslySelectedId = _editor.SelectedObjectId;
 
-				if (_isObjectDragConfirmed)
+				_editor.ClearObjectInteraction();
+
+				if (wasDrag)
 				{
 					// Was a drag — commit the move to the dropped floor-absolute position.
-					var targetPos = _objectDragTargetCanvas;
-					_isObjectDragConfirmed = false;
-					_objectDragTargetCanvas = null;
 					_drawable.DraggingObjectId = null;
 					_drawable.DraggingObjectTargetCanvas = null;
 					if (targetPos is not null)
@@ -1658,50 +1635,43 @@ public partial class DungeonDetailPage : ContentPage
 				}
 
 				// Was a click — show/toggle popup (unless long press already handled it).
-				_isObjectDragConfirmed = false;
-				_objectDragTargetCanvas = null;
-				if (!_objectLongPressHandled)
+				if (!longPressHandled)
 				{
-					if (_selectedObjectId == clickId && ObjectActionPopup.IsVisible)
+					if (previouslySelectedId == clickId && ObjectActionPopup.IsVisible)
 					{
-						_selectedObjectId = null;
-						_hoveredObjectId = null;
 						_drawable.HoveredObjectId = null;
 						ObjectActionPopup.IsVisible = false;
 					}
 					else
 					{
-						_selectedObjectId = clickId;
-						_hoveredObjectId = clickId;
+						_editor.SelectedObjectId = clickId;
+						_editor.HoveredObjectId = clickId;
 						_drawable.HoveredObjectId = clickId;
 						UpdateObjectPopup();
 					}
 					MapCanvas.Invalidate();
 				}
-				_objectLongPressHandled = false;
 				return;
 			}
 
-			if (_viewModel.ActiveTool == MapTool.Pan)
+			if (_viewModel.Canvas.ActiveTool == MapTool.Pan)
 			{
-				_panAnchorScreen = null;
+				_editor.PanAnchorScreen = null;
 				SetCanvasCursor(MapTool.Pan, isDragging: false);
 				return;
 			}
 
-			if (_viewModel.ActiveTool == MapTool.Move && _isMoveDragging
-				&& _draggingAreaId is not null && _selectedFloorId is not null)
+			if (_viewModel.Canvas.ActiveTool == MapTool.Move && _editor.IsMoveDragging
+				&& _editor.DraggingAreaId is not null && _editor.SelectedFloorId is not null)
 			{
 				var drag = _drawable.DragPreviewDelta ?? new TilePoint(0, 0);
-				var areaId = _draggingAreaId.Value;
-				var floorId = _selectedFloorId.Value;
+				var areaId = _editor.DraggingAreaId.Value;
+				var floorId = _editor.SelectedFloorId.Value;
 				var area = _drawable.Floor?.Areas.FirstOrDefault(areaItem => areaItem.Id == areaId);
 
 				_drawable.DragPreviewAreaId = null;
 				_drawable.DragPreviewDelta = null;
-				_isMoveDragging = false;
-				_draggingAreaId = null;
-				_moveGrabTile = null;
+				_editor.EndMoveDrag();
 
 				if (area is not null && (drag.Col != 0 || drag.Row != 0))
 				{
@@ -1709,19 +1679,12 @@ public partial class DungeonDetailPage : ContentPage
 					_drawable.PendingMoveOffsets[areaId] = drag;
 					MapCanvas.Invalidate();
 
-					var newOutline = area.Outline
-						.Select(segment => segment with
-						{
-							End = new TilePoint(segment.End.Col + drag.Col, segment.End.Row + drag.Row),
-							Ctrl1 = segment.Ctrl1 is null ? null : new TilePoint(segment.Ctrl1.Col + drag.Col, segment.Ctrl1.Row + drag.Row),
-							Ctrl2 = segment.Ctrl2 is null ? null : new TilePoint(segment.Ctrl2.Col + drag.Col, segment.Ctrl2.Row + drag.Row),
-						})
-						.ToList();
+					// The offset that gets persisted. Translating an outline is geometry, so it
+					// lives in App.Core where it is tested against the value the command writes.
+					var newOutline = AreaOutlineGeometry.Translate(area.Outline, drag);
 
-					await _viewModel.MoveAreaOutlineAsync(
-						floorId,
-						areaId,
-						(IReadOnlyList<DungeonMaster.Domain.ValueObjects.PathSegment>)newOutline);
+					await _viewModel.Canvas.MoveAreaOutlineCommand.ExecuteAsync(
+						new MoveAreaOutlineArgs(floorId, areaId, newOutline));
 
 					_drawable.PendingMoveOffsets.Clear();
 					await RefreshFloorAsync();
@@ -1739,25 +1702,29 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async Task FinishDrawing()
 	{
-		var vertices = _viewModel.DrawingSession.Vertices;
+		var vertices = _viewModel.Canvas.DrawingSession.Vertices;
 		if (vertices.Count < 3)
 		{
 			AbortInProgressDraw();
 			return;
 		}
 
-		var outline = _viewModel.DrawingSession.BuildOutline();
+		var outline = _viewModel.Canvas.DrawingSession.BuildOutline();
 
 		// Show optimistic visual immediately, then auto-save and reload
-		if (_selectedFloorId is not null)
+		if (_editor.SelectedFloorId is not null)
 		{
 			_drawable.GhostAreas.Add(outline);
 			MapCanvas.Invalidate();
-			await _viewModel.AddAreaWithOutlineCommand.ExecuteAsync((_selectedFloorId.Value, outline));
+			await _viewModel.Canvas.AddAreaWithOutlineCommand.ExecuteAsync(
+				new AddAreaWithOutlineArgs(_editor.SelectedFloorId.Value, outline));
 		}
 
-		_viewModel.DrawingSession.Reset();
-		_drawState = DrawState.DrawingReady;
+		_viewModel.Canvas.DrawingSession.Reset();
+
+		// A completed outline leaves the Draw tool armed for the next one, which is what
+		// MapEditorState.ResetDrawState reports while a floor is selected.
+		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 		_drawable.InProgressVertices = [];
 		_drawable.PhantomEnd = null;
 		_drawable.GhostAreas.Clear();
@@ -1765,9 +1732,9 @@ public partial class DungeonDetailPage : ContentPage
 
 		await RefreshFloorAsync();
 		// Restore the focus dim if an area was focused before the draw
-		if (_focusedAreaId is not null)
+		if (_editor.FocusedAreaId is not null)
 		{
-			_drawable.ActiveAreaId = _focusedAreaId;
+			_drawable.ActiveAreaId = _editor.FocusedAreaId;
 			UpdateActiveAreaSidebarHighlight();
 		}
 
@@ -1782,7 +1749,7 @@ public partial class DungeonDetailPage : ContentPage
 		// first await for that reason, not as defensive style.
 		try
 		{
-			if (_drawState == DrawState.Drawing && _viewModel.DrawingSession.Vertices.Count >= 3)
+			if (_editor.DrawState == DrawState.Drawing && _viewModel.Canvas.DrawingSession.Vertices.Count >= 3)
 			{
 				_drawable.PhantomEnd = null;
 				await FinishDrawing();
@@ -1801,17 +1768,17 @@ public partial class DungeonDetailPage : ContentPage
 		// first await for that reason, not as defensive style.
 		try
 		{
-			if (_viewModel.ActiveTool == MapTool.Place)
+			if (_viewModel.Canvas.ActiveTool == MapTool.Place)
 			{
 				if (ObjectPalette.ActiveObject is not null)
 				{
 					// Deselect the active palette item.
 					ObjectPalette.ClearActiveObject();
 				}
-				else if (_hoveredObjectId is not null)
+				else if (_editor.HoveredObjectId is not null)
 				{
 					// Right-click on a hovered placed object (inspect mode) deletes it.
-					_selectedObjectId = _hoveredObjectId;
+					_editor.SelectedObjectId = _editor.HoveredObjectId;
 					await DeleteSelectedObjectAsync();
 				}
 				return;
@@ -1827,135 +1794,65 @@ public partial class DungeonDetailPage : ContentPage
 
 	// ─── Hit testing ────────────────────────────────────────────────────────────
 
+	// The polygon construction, the ray-casting containment test, the shoelace area and the
+	// smallest-wins tie-break all live in MapHitTester, where they are testable without a canvas.
+	// The page's remaining job is to say WHICH areas to test and at what tile size, and to pass on
+	// the drag preview so hit testing follows the dragged position.
 	private AreaItem? HitTestArea(PointF pixelPoint)
 	{
-		if (_drawable.Floor?.Areas is null)
+		if (_drawable.Floor?.Areas is not { } areas)
 		{
 			return null;
 		}
 
-		AreaItem? bestMatch = null;
-		var bestArea = float.MaxValue;
-
-		foreach (var area in _drawable.Floor.Areas)
-		{
-			if (area.Outline.Count == 0)
-			{
-				continue;
-			}
-
-			var outline = area.Outline;
-
-			// The polygon is closed, so the final segment's end point is also its start point.
-			var start = outline[^1].End;
-
-			// Account for an active drag preview so hit-testing follows the dragged position
-			var dragDelta = area.Id == _drawable.DragPreviewAreaId ? _drawable.DragPreviewDelta : null;
-			var visualOrigin = dragDelta is null
-				? start
-				: new TilePoint(start.Col + dragDelta.Col, start.Row + dragDelta.Row);
-
-			// Build pixel-space polygon vertices from the area outline
-			var verts = new List<PointF>(outline.Count + 1);
-			var (ox, oy) = TileCoordinateHelper.ToPixel(visualOrigin, _drawable.TileSize);
-			verts.Add(new PointF(ox, oy));
-
-			foreach (var seg in outline)
-			{
-				var visualEnd = dragDelta is null
-					? seg.End
-					: new TilePoint(seg.End.Col + dragDelta.Col, seg.End.Row + dragDelta.Row);
-				var (ex, ey) = TileCoordinateHelper.ToPixel(visualEnd, _drawable.TileSize);
-				verts.Add(new PointF(ex, ey));
-			}
-
-			// The last segment closes back to origin — remove the duplicate closing vertex
-			if (verts.Count > 1)
-			{
-				verts.RemoveAt(verts.Count - 1);
-			}
-
-			if (!IsPointInPolygon(pixelPoint, verts))
-			{
-				continue;
-			}
-
-			// When multiple areas overlap at the cursor, prefer the smallest (most specific) target
-			var polyArea = PolygonArea(verts);
-			if (polyArea < bestArea)
-			{
-				bestArea = polyArea;
-				bestMatch = area;
-			}
-		}
-
-		return bestMatch;
-	}
-
-	private static bool IsPointInPolygon(PointF point, List<PointF> polygon)
-	{
-		var n = polygon.Count;
-		var inside = false;
-		for (int i = 0, j = n - 1; i < n; j = i++)
-		{
-			var xi = polygon[i].X; var yi = polygon[i].Y;
-			var xj = polygon[j].X; var yj = polygon[j].Y;
-			if (((yi > point.Y) != (yj > point.Y)) &&
-				point.X < (xj - xi) * (point.Y - yi) / (yj - yi) + xi)
-				inside = !inside;
-		}
-		return inside;
-	}
-
-	private static float PolygonArea(List<PointF> polygon)
-	{
-		var n = polygon.Count;
-		var sum = 0f;
-		for (int i = 0, j = n - 1; i < n; j = i++)
-			sum += (polygon[j].X + polygon[i].X) * (polygon[j].Y - polygon[i].Y);
-		return MathF.Abs(sum * 0.5f);
+		return MapHitTester.HitTestArea(
+			areas,
+			pixelPoint.X,
+			pixelPoint.Y,
+			_drawable.TileSize,
+			_drawable.DragPreviewAreaId,
+			_drawable.DragPreviewDelta);
 	}
 
 	// ─── Object popup helpers ───────────────────────────────────────────────────
 
+	// Smallest-object-wins bounding-box hit testing, in MapHitTester for the same reason as
+	// HitTestArea. ObjectKindInfo is passed as a delegate rather than called there: it lives in the
+	// App layer, which App.Core cannot reference, and it is deliberately not moved this session.
 	private Guid? GetObjectAtCanvasPoint(PointF canvasPoint)
 	{
-		if (_drawable.Floor is null)
-			return null;
-
-		// Pick the smallest object whose bounding box contains the hit point (topmost = smallest area).
-		PlacedObjectItem? best = null;
-		var bestArea = float.MaxValue;
-		foreach (var obj in _drawable.Floor.Objects)
+		if (_drawable.Floor?.Objects is not { } objects)
 		{
-			var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(obj.Kind);
-			var halfW = wTiles * _drawable.TileSize / 2f;
-			var halfH = hTiles * _drawable.TileSize / 2f;
-
-			if (canvasPoint.X >= obj.Position.X - halfW && canvasPoint.X <= obj.Position.X + halfW &&
-				canvasPoint.Y >= obj.Position.Y - halfH && canvasPoint.Y <= obj.Position.Y + halfH)
-			{
-				var area = wTiles * hTiles;
-				if (area < bestArea)
-				{
-					bestArea = area;
-					best = obj;
-				}
-			}
+			return null;
 		}
-		return best?.Id;
+
+		return MapHitTester
+			.HitTestObject(
+				objects,
+				canvasPoint.X,
+				canvasPoint.Y,
+				_drawable.TileSize,
+				ObjectKindInfo.GetObjectSize)
+			?.Id;
 	}
 
 	private void OnObjectLongPressed(object? sender, EventArgs e)
 	{
-		var canvasPoint = _drawable.ScreenToCanvas(_lastTouchPoint);
+		if (_editor.LastTouchPoint is not CanvasPoint lastTouch)
+		{
+			return;
+		}
+
+		var canvasPoint = _drawable.ScreenToCanvas(new PointF(lastTouch.X, lastTouch.Y));
 		var objectId = GetObjectAtCanvasPoint(canvasPoint);
 		if (objectId is not null)
 		{
-			_objectLongPressHandled = true; // prevent EndInteraction from firing click logic again
-			_pendingObjectClickId = null;
-			_selectedObjectId = objectId;
-			_hoveredObjectId = objectId;
+			// The pending press is released first, because a long press has already decided this
+			// is not a click; ClearObjectInteraction is what releases it.
+			_editor.ClearObjectInteraction();
+			_editor.ObjectLongPressHandled = true; // prevent EndInteraction from firing click logic again
+			_editor.SelectedObjectId = objectId;
+			_editor.HoveredObjectId = objectId;
 			_drawable.HoveredObjectId = objectId;
 			UpdateObjectPopup();
 			MapCanvas.Invalidate();
@@ -1964,16 +1861,18 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void UpdateObjectPopup()
 	{
-		if (_selectedObjectId is null || _drawable.Floor is null)
+		if (_editor.SelectedObjectId is null || _drawable.Floor is null)
 		{
+			_editor.PopupBounds = null;
 			ObjectActionPopup.IsVisible = false;
 			return;
 		}
 
-		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _selectedObjectId);
+		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _editor.SelectedObjectId);
 
 		if (obj is null)
 		{
+			_editor.PopupBounds = null;
 			ObjectActionPopup.IsVisible = false;
 			return;
 		}
@@ -1984,7 +1883,10 @@ public partial class DungeonDetailPage : ContentPage
 
 		const float PopupWidth = 182f;
 		const float PopupHeight = 40f;
-		_popupBounds = new RectF(screenX, screenY, PopupWidth, PopupHeight);
+
+		// The hit-zone guard OnMapStartInteraction dispatches through. A CanvasRect rather than a
+		// RectF because it is interaction state and lives on MapEditorState with the rest of it.
+		_editor.PopupBounds = new CanvasRect(screenX, screenY, PopupWidth, PopupHeight);
 
 		ObjectActionPopup.Margin = new Thickness(screenX, screenY, 0, 0);
 		ObjectActionPopup.HorizontalOptions = LayoutOptions.Start;
@@ -2050,12 +1952,12 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async Task RotateObjectAsync(bool clockwise)
 	{
-		if (_selectedObjectId is null || _selectedFloorId is null || _drawable.Floor is null)
+		if (_editor.SelectedObjectId is null || _editor.SelectedFloorId is null || _drawable.Floor is null)
 		{
 			return;
 		}
 
-		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _selectedObjectId);
+		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _editor.SelectedObjectId);
 
 		if (obj is null)
 		{
@@ -2066,17 +1968,17 @@ public partial class DungeonDetailPage : ContentPage
 			? (ObjectRotation)(((int)obj.Rotation + 1) % 4)
 			: (ObjectRotation)(((int)obj.Rotation + 3) % 4);
 
-		await _viewModel.UpdatePlacedObjectAsync(
-			_viewModel.Dungeon!.Id,
-			_selectedFloorId.Value,
-			_selectedObjectId.Value,
-			obj.Position,
-			newRotation,
-			obj.Scale);
+		await _viewModel.Canvas.UpdatePlacedObjectCommand.ExecuteAsync(
+			new UpdatePlacedObjectArgs(
+				_editor.SelectedFloorId.Value,
+				_editor.SelectedObjectId.Value,
+				obj.Position,
+				newRotation,
+				obj.Scale));
 
 		await RefreshFloorAsync();
 		// Re-pin popup to the refreshed object position.
-		if (_selectedObjectId is not null)
+		if (_editor.SelectedObjectId is not null)
 		{
 			UpdateObjectPopup();
 		}
@@ -2086,13 +1988,13 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async Task ScaleObjectAsync(bool down)
 	{
-		if (_selectedObjectId is null || _selectedFloorId is null || _drawable.Floor is null)
+		if (_editor.SelectedObjectId is null || _editor.SelectedFloorId is null || _drawable.Floor is null)
 		{
 			return;
 		}
 
 		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj =>
-			placedObj.Id == _selectedObjectId.Value);
+			placedObj.Id == _editor.SelectedObjectId.Value);
 
 		if (obj is null)
 		{
@@ -2103,16 +2005,16 @@ public partial class DungeonDetailPage : ContentPage
 			? ObjectScale.StepDown(obj.Scale)
 			: ObjectScale.StepUp(obj.Scale);
 
-		await _viewModel.UpdatePlacedObjectAsync(
-			_viewModel.Dungeon!.Id,
-			_selectedFloorId.Value,
-			_selectedObjectId.Value,
-			obj.Position,
-			obj.Rotation,
-			newScale);
+		await _viewModel.Canvas.UpdatePlacedObjectCommand.ExecuteAsync(
+			new UpdatePlacedObjectArgs(
+				_editor.SelectedFloorId.Value,
+				_editor.SelectedObjectId.Value,
+				obj.Position,
+				obj.Rotation,
+				newScale));
 
 		await RefreshFloorAsync();
-		if (_selectedObjectId is not null)
+		if (_editor.SelectedObjectId is not null)
 		{
 			UpdateObjectPopup();
 		}
@@ -2122,7 +2024,7 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async Task MoveObjectAsync(Guid objectId, CanvasPoint newPosition)
 	{
-		if (_selectedFloorId is null || _drawable.Floor is null)
+		if (_editor.SelectedFloorId is null || _drawable.Floor is null)
 		{
 			return;
 		}
@@ -2134,17 +2036,17 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		_hoveredObjectId = null;
+		_editor.HoveredObjectId = null;
 		_drawable.HoveredObjectId = null;
 		MapCanvas.Invalidate();
 
-		await _viewModel.UpdatePlacedObjectAsync(
-			_viewModel.Dungeon!.Id,
-			_selectedFloorId.Value,
-			objectId,
-			newPosition,
-			obj.Rotation,
-			obj.Scale);
+		await _viewModel.Canvas.UpdatePlacedObjectCommand.ExecuteAsync(
+			new UpdatePlacedObjectArgs(
+				_editor.SelectedFloorId.Value,
+				objectId,
+				newPosition,
+				obj.Rotation,
+				obj.Scale));
 
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
@@ -2152,27 +2054,25 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async Task DeleteSelectedObjectAsync()
 	{
-		if (_selectedObjectId is null || _selectedFloorId is null || _drawable.Floor is null)
+		if (_editor.SelectedObjectId is null || _editor.SelectedFloorId is null || _drawable.Floor is null)
 		{
 			return;
 		}
 
-		if (!_drawable.Floor.Objects.Any(placedObj => placedObj.Id == _selectedObjectId))
+		if (!_drawable.Floor.Objects.Any(placedObj => placedObj.Id == _editor.SelectedObjectId))
 		{
 			return;
 		}
 
-		var deleteId = _selectedObjectId.Value;
-		_selectedObjectId = null;
-		_hoveredObjectId = null;
+		var deleteId = _editor.SelectedObjectId.Value;
+		_editor.SelectedObjectId = null;
+		_editor.HoveredObjectId = null;
 		_drawable.HoveredObjectId = null;
 		ObjectActionPopup.IsVisible = false;
 		MapCanvas.Invalidate();
 
-		await _viewModel.RemovePlacedObjectAsync(
-			_viewModel.Dungeon!.Id,
-			_selectedFloorId.Value,
-			deleteId);
+		await _viewModel.Canvas.RemovePlacedObjectCommand.ExecuteAsync(
+			new RemovePlacedObjectArgs(_editor.SelectedFloorId.Value, deleteId));
 
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
@@ -2182,12 +2082,12 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void RefreshMap()
 	{
-		var floor = _viewModel.Floors.FirstOrDefault(floorItem => floorItem.Id == _selectedFloorId);
+		var floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
 		_drawable.Floor = floor;
 
 		// The focused area belongs to a floor we just left — drop the focus so nothing stays dimmed.
-		if (_focusedAreaId is not null
-			&& floor?.Areas.Any(areaItem => areaItem.Id == _focusedAreaId) != true)
+		if (_editor.FocusedAreaId is not null
+			&& floor?.Areas.Any(areaItem => areaItem.Id == _editor.FocusedAreaId) != true)
 		{
 			ClearAreaFocus();
 		}
@@ -2195,15 +2095,15 @@ public partial class DungeonDetailPage : ContentPage
 		// Same reasoning one level up: the notebook may be open on an entity the reload removed.
 		CloseNotebookIfOrphaned();
 
-		if (_drawState == DrawState.Idle)
+		if (_editor.DrawState == DrawState.Idle)
 		{
 			_drawable.InProgressVertices = [];
 			_drawable.PhantomEnd = null;
 		}
 
-		SetMapToolbarShown(_selectedFloorId is not null);
+		SetMapToolbarShown(_editor.SelectedFloorId is not null);
 
-		if (_selectedFloorId is not null && _drawState == DrawState.Idle)
+		if (_editor.SelectedFloorId is not null && _editor.DrawState == DrawState.Idle)
 			SetActiveTool(MapTool.Pan);
 
 		UpdateToolbarButtonState();
@@ -2223,7 +2123,7 @@ public partial class DungeonDetailPage : ContentPage
 
 		var isLive =
 			_viewModel.Dungeon?.Id == notebookId
-			|| _viewModel.Floors.Any(floorItem =>
+			|| _viewModel.FloorList.Items.Any(floorItem =>
 				floorItem.Id == notebookId
 				|| floorItem.Areas.Any(areaItem => areaItem.Id == notebookId));
 
@@ -2239,12 +2139,12 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		foreach (var child in FloorListContainer.Children)
 		{
-			if (child is not FloorSidebarItem floorItem || floorItem.Floor is not { } floor || floor.Id != _selectedFloorId)
+			if (child is not FloorSidebarItem floorItem || floorItem.Floor is not { } floor || floor.Id != _editor.SelectedFloorId)
 				continue;
 
 			foreach (var area in floor.Areas)
 			{
-				floorItem.SetAreaEditing(area.Id, area.Id == _focusedAreaId);
+				floorItem.SetAreaEditing(area.Id, area.Id == _editor.FocusedAreaId);
 			}
 
 			break;
@@ -2350,8 +2250,9 @@ public partial class DungeonDetailPage : ContentPage
 					return;
 				}
 
-				_selectedFloorId = draggedId;
-				await _viewModel.ReorderFloorCommand.ExecuteAsync((draggedId, capturedTarget.Floor.Number));
+				_editor.SelectedFloorId = draggedId;
+				await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
+					new ReorderFloorArgs(draggedId, capturedTarget.Floor.Number));
 			}
 			catch (Exception exception)
 			{
@@ -2394,7 +2295,7 @@ public partial class DungeonDetailPage : ContentPage
 		// first await for that reason, not as defensive style.
 		try
 		{
-			await _viewModel.AddFloorCommand.ExecuteAsync(null);
+			await _viewModel.FloorList.AddFloorCommand.ExecuteAsync(null);
 
 			Dispatcher.DispatchDelayed(
 				TimeSpan.FromMilliseconds(80),
