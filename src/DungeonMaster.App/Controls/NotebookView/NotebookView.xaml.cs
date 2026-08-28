@@ -1,5 +1,4 @@
 using DungeonMaster.App.Theme;
-using MauiApplication = Microsoft.Maui.Controls.Application;
 
 namespace DungeonMaster.App.Controls;
 
@@ -99,6 +98,59 @@ public partial class NotebookView : ContentView
 	private const float SelectedFoldFactor = 0.72f;
 	private const float UnselectedFoldFactor = 0.78f;
 
+	/// <summary>
+	///		One ribbon's two fold gradients — selected and unselected — built on first use and
+	///		reused for every later selection change.
+	/// </summary>
+	/// <remarks>
+	///		<para>
+	///		A ribbon has exactly two possible gradients and the theme is fixed for the process
+	///		lifetime, so neither needs rebuilding: without this, every tap allocated a fresh
+	///		<c>LinearGradientBrush</c> and two <c>GradientStop</c>s per ribbon.
+	///		</para>
+	///		<para>
+	///		One holder PER RIBBON rather than one pair shared by both, even though the two ribbons
+	///		only ever differ in which of the two gradients they wear. This is not tidiness: it is
+	///		measured. With a single shared pair — so that each brush moves between the two ribbons
+	///		on every toggle — 35 of the 34400 pixels in the ribbon strip render differently from
+	///		the pre-change build, all of them glyph edges in a ribbon's label, up to 44 per channel
+	///		and reproducible across runs. With a pair per ribbon, 0 differ in the DM-only state and
+	///		2-3 at 1 per channel in the Read-aloud state. (Measured 2026-08-28 by screen-capturing
+	///		the ribbon strip from both builds and comparing pixel by pixel; the capture noise floor,
+	///		two captures of one build in one state, is 0-1 pixels at 1 per channel, so the 2-3 sits
+	///		at the floor and the 35 does not.) The likely cause is ownership:
+	///		<c>Brush</c> derives from <c>Element</c> and carries a single <c>Parent</c>, so a
+	///		shared instance is re-parented on every toggle, where a per-ribbon instance keeps one
+	///		owner for life — which is what the pre-change code got for free by allocating a new
+	///		brush per assignment.
+	///		</para>
+	///		<para>
+	///		Built lazily rather than in a field initialiser: an initialiser runs at
+	///		type-initialisation time, which can precede <c>Application.Current.Resources</c>, and
+	///		<c>DmTheme</c> throws when those resources are absent. See <c>DmTheme</c>'s remarks and
+	///		the guard test <c>NoEagerDmThemeRead</c>.
+	///		</para>
+	/// </remarks>
+	private sealed class RibbonBrushes
+	{
+		private Brush? _selected;
+		private Brush? _unselected;
+
+		public Brush For(bool isSelected)
+		{
+			if (isSelected)
+			{
+				return _selected ??= BuildRibbonBrush(
+					"DmRibbonRead",
+					SelectedFoldFactor);
+			}
+
+			return _unselected ??= BuildRibbonBrush(
+				"DmRibbonReadDim",
+				UnselectedFoldFactor);
+		}
+	}
+
 	// The save stamp's two states. The green is deliberately DmSavedStampText rather than
 	// DmConfirm: here "committed" needs to read as reassuring rather than as an action to take.
 	//
@@ -126,6 +178,8 @@ public partial class NotebookView : ContentView
 	public event EventHandler<NotebookSaveArgs>? SaveRequested;
 
 	private NotebookTarget? _target;
+	private readonly RibbonBrushes _readRibbonBrushes = new();
+	private readonly RibbonBrushes _dmRibbonBrushes = new();
 	private readonly IDispatcherTimer _debounceTimer;
 	private bool _isDirty;
 	private bool _isPopulating;
@@ -361,11 +415,11 @@ public partial class NotebookView : ContentView
 		var readSelected = pane == NotebookPane.Description;
 
 		SetRibbonHeight(ReadRibbon, readSelected ? SelectedRibbonHeight : UnselectedRibbonHeight, animate);
-		ReadRibbon.Background = RibbonBrush(readSelected);
+		ReadRibbon.Background = _readRibbonBrushes.For(readSelected);
 		ReadRibbon.Opacity = readSelected ? 1 : 0.78;
 
 		SetRibbonHeight(DmRibbon, readSelected ? UnselectedRibbonHeight : SelectedRibbonHeight, animate);
-		DmRibbon.Background = RibbonBrush(!readSelected);
+		DmRibbon.Background = _dmRibbonBrushes.For(!readSelected);
 		DmRibbon.Opacity = readSelected ? 0.78 : 1;
 
 		// Which ribbon is selected is expressed only in height, opacity and shade, none of which
@@ -409,16 +463,19 @@ public partial class NotebookView : ContentView
 	}
 
 	/// <summary>
-	///		Builds the vertical fold gradient for a ribbon from the shared ribbon colour, using the
-	///		active or inactive shade depending on <paramref name="isSelected"/>.
+	///		Builds one ribbon's fold gradient from the theme colour named by
+	///		<paramref name="colorKey"/>, darkened toward its foot by <paramref name="foldFactor"/>.
 	/// </summary>
-	private static Brush RibbonBrush(bool isSelected)
+	private static Brush BuildRibbonBrush(string colorKey, float foldFactor)
 	{
-		// Raw indexer rather than DmTheme: the key is chosen at runtime, and DmTheme exposes one
-		// member per fixed key, so there is nothing here for it to route through.
-		var colorKey = isSelected ? "DmRibbonRead" : "DmRibbonReadDim";
-		var top = (Color)MauiApplication.Current!.Resources[colorKey];
-		var foot = Darken(top, isSelected ? SelectedFoldFactor : UnselectedFoldFactor);
+		// DmTheme.ColorByKey rather than a raw indexer: the key is chosen at runtime, and
+		// ColorByKey routes it through the same Resolve<T> every fixed-key accessor uses, so this
+		// call site keeps the three diagnostics the indexer discards — resources read too early,
+		// an undefined key, and a key bound to something that is not a Color. None of the three is
+		// caught here: a missing or wrong-typed ribbon colour is a defect in the theme, not an
+		// expected failure this control can paint around, so there is no fallback and no try.
+		var top = DmTheme.ColorByKey(colorKey);
+		var foot = Darken(top, foldFactor);
 
 		return new LinearGradientBrush(
 			[
