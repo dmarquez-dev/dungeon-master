@@ -47,8 +47,8 @@
              opts into a keyed style is opting into the themed 3px radius on
              purpose. -->
         <Setter Property="Padding" Value="14,10" />
-        <Setter Property="MinimumHeightRequest" Value="44" />
-        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="{StaticResource DmTouchTargetMinimum}" />
+        <Setter Property="MinimumWidthRequest" Value="{StaticResource DmTouchTargetMinimum}" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">

@@ -4,14 +4,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
-    x:Class="DungeonMaster.App.Controls.FloorSidebarItem">
+    xmlns:presentation="clr-namespace:DungeonMaster.App.Core.Presentation;assembly=DungeonMaster.App.Core"
+    x:Class="DungeonMaster.App.Controls.FloorSidebarItem"
+    x:Name="Root">
 
     <!-- DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and the
          DmRadiusDefault corner. BackgroundColor is restated because the style inherits
-         BackgroundColor="Transparent" from DmBorderBase. Both Stroke and BackgroundColor are
-         then rewritten imperatively by the hover, active and drag-over handlers below; an
-         assignment is a local value and outranks a Style setter, so the style is the first
-         frame's appearance and the resting state the handlers return to. -->
+         BackgroundColor="Transparent" from DmBorderBase. Both Stroke and BackgroundColor are the
+         FIRST FRAME only: from the first GoToState on, the FloorStates group below owns them, and
+         a visual-state setter outranks both a style setter and a local value. -->
     <Border
         x:Name="FloorBorder"
         Style="{StaticResource DmBorderTavernStyle}"
@@ -19,12 +20,62 @@
         Padding="{StaticResource DmPaddingCompact}"
         Margin="0,0,0,4">
 
+        <!-- THE RESTING, HOVER, EXPANDED AND DROP-TARGET APPEARANCE LIVES HERE AND NOWHERE ELSE
+             (MASTER-098). It was five imperative writes to BackgroundColor and Stroke, one inside
+             SetExpanded and four outside it in the pointer and drag handlers, so two mechanisms
+             drove one property and no theme dictionary could reach either.
+
+             The group is named FloorStates rather than CommonStates on purpose: MAUI drives
+             CommonStates itself, and its automatic PointerOver would outrank Expanded whenever the
+             pointer rested on an open floor. UpdateVisualState in the code-behind is the single
+             owner of the transition and states the precedence once: Expanded, then DragOver, then
+             Hovered, then Normal. That is what the four "if (!_isExpanded)" and
+             "_isExpanded ? ... : ..." guards used to say four times over.
+
+             Every state sets BOTH properties. A state naming only Stroke would let MAUI restore
+             BackgroundColor to the attribute above on entry, and the expanded surface would drop
+             back to the resting one the moment a drag passed over an open floor. -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="FloorStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Hovered">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaisedHover}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Expanded">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaisedActive}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernHoverBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="DragOver">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernHoverBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
+
         <!-- This layout, not the toggle glyph, is the tap target that expands and collapses the
              floor — and expanding is the only route to a floor's areas. ExpandToggle below tells
              the user to "tap the floor card", so the card has to be in the accessibility tree
              and has to say what it is; without a description it was an unlabelled target that
              another control pointed at. The description is static because the toggle beside it
-             already carries the expanded/collapsed state, rewritten in SetExpanded. -->
+             already carries the expanded/collapsed state, rewritten in ApplyExpanded.
+
+             MASTER-161: the behavior gives the pointer the hand cursor over the card body. The
+             three Buttons in this file already carried one; the largest clickable surface in the
+             sidebar, and the only route to a floor's areas, did not. -->
         <VerticalStackLayout
             Spacing="{StaticResource DmSpaceXS}"
             AutomationId="FloorCard"
@@ -33,12 +84,15 @@
             <VerticalStackLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCardTapped" />
             </VerticalStackLayout.GestureRecognizers>
+            <VerticalStackLayout.Behaviors>
+                <behaviors:HandCursorBehavior />
+            </VerticalStackLayout.Behaviors>
 
             <!-- Header row -->
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
                 <!-- Expand toggle (visual indicator only — card tap handles expand). The glyph
-                     flips between ▸ and ▾ in SetExpanded, so the description is rewritten there
+                     flips between ▸ and ▾ in ApplyExpanded, so the description is rewritten there
                      alongside it; the value here is the collapsed state the glyph starts in. -->
                 <Label
                     x:Name="ExpandToggle"
@@ -125,10 +179,13 @@
                 </Label>
             </Grid>
 
-            <!-- Separator between the floor's own row and its area list; visible only while expanded -->
+            <!-- Separator between the floor's own row and its area list; visible only while
+                 expanded. The three IsVisible bindings below read IsExpanded straight off this
+                 control, so the expanded/collapsed fact has exactly one owner and no handler
+                 restates it. -->
             <BoxView
                 x:Name="AreaSeparator"
-                IsVisible="False"
+                IsVisible="{Binding IsExpanded, Source={x:Reference Root}}"
                 Color="{StaticResource DmHairline}"
                 HeightRequest="1" />
 
@@ -137,9 +194,33 @@
                  button sits tight beneath the last area and the rows run to the card edge. -->
             <VerticalStackLayout
                 x:Name="AreaContainer"
-                IsVisible="False"
+                IsVisible="{Binding IsExpanded, Source={x:Reference Root}}"
                 Spacing="0"
-                Padding="8,4,0,0" />
+                Padding="8,4,0,0"
+                BindableLayout.ItemsSource="{Binding Floor.Areas, Source={x:Reference Root}}">
+
+                <!-- MASTER-099. The rows are generated from the bound collection rather than
+                     built by hand in RebuildAreas, and each one takes this control's five area
+                     commands DIRECTLY. That is what removes the Middle Man: the five Area*
+                     events this control used to declare existed only to re-raise the child's
+                     five identically-shaped events, and re-wire five closures per child on every
+                     Floor assignment. The command travels down a binding now, so nothing in
+                     between re-raises anything.
+
+                     RelativeSource rather than x:Reference: a DataTemplate is its own name scope
+                     and cannot see the Root name declared outside it. -->
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="presentation:AreaItem">
+                        <controls:AreaSidebarItem
+                            Area="{Binding .}"
+                            SelectCommand="{Binding AreaSelectCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            HoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            HoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            DeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            NotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
             <!-- Add area row (visible when expanded) -->
             <Button
@@ -152,7 +233,7 @@
                 BackgroundColor="Transparent"
                 Padding="{StaticResource DmPaddingCompact}"
                 HorizontalOptions="Start"
-                IsVisible="False"
+                IsVisible="{Binding IsExpanded, Source={x:Reference Root}}"
                 Clicked="OnAddAreaClicked">
                 <Button.Behaviors>
                     <behaviors:HandCursorBehavior />

@@ -30,8 +30,9 @@ public static class DmTheme
 	/// <summary>
 	///		Gets the active tool and focus highlight gold.
 	///		Also used as the hover stroke on object-palette thumbnails and as the WinUI
-	///		scrollbar thumb fill on pointer-over. <see cref="ScrollGoldLight"/> resolves the same
-	///		token; see the note there before trying to move the two apart. Shares its value with
+	///		scrollbar thumb fill on pointer-over. <see cref="ScrollGoldLight"/> resolves a
+	///		DIFFERENT key holding the same value, so the two can be moved apart by editing
+	///		Tokens.xaml alone. Shares its value with
 	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/>,
 	///		<see cref="MapAreaStroke"/> and <see cref="MapObjectPlaceholder"/> today; see the
 	///		shared-colour list at the top of Tokens.xaml.
@@ -120,20 +121,17 @@ public static class DmTheme
 		Resolve<Color>("DmEditorGlowTint");
 
 	/// <summary>
-	///		Gets the notebook icon gold shown when an entity has authored content.
-	///		This resolves the SAME token as <see cref="Gold"/>, not merely the same value, so the
-	///		two cannot be moved apart by editing a value: splitting them means adding a token to
-	///		Tokens.xaml and repointing this member at it, the way DmMapObjectPlaceholder was added
-	///		for <see cref="MapObjectPlaceholder"/>. The second name is kept because the call sites
-	///		read differently — this one is a content indicator, <see cref="Gold"/> is the active
-	///		tool and focus highlight — but the seam is nominal until that token exists. Also
-	///		shares its value with <see cref="AreaSelectedBorder"/>,
-	///		<see cref="DragPlaceholderStroke"/>, <see cref="MapAreaStroke"/> and
-	///		<see cref="MapObjectPlaceholder"/> today; see the shared-colour list at the top of
-	///		Tokens.xaml.
+	///		Gets the authored-content indicator gold: the notebook icon of an entity that has
+	///		content, and the name label of a floor that has been named.
+	///		Resolves its own key, <c>DmScrollGoldLight</c>, which holds the same VALUE as
+	///		<see cref="Gold"/>'s <c>DmAccentGoldLight</c> and is a different KEY — so the two can
+	///		now be moved apart by editing one line in Tokens.xaml. Also equal in value to
+	///		<see cref="AreaSelectedBorder"/>, <see cref="DragPlaceholderStroke"/>,
+	///		<see cref="MapAreaStroke"/> and <see cref="MapObjectPlaceholder"/> today; see the
+	///		shared-colour list at the top of Tokens.xaml.
 	/// </summary>
 	public static Color ScrollGoldLight =>
-		Resolve<Color>("DmAccentGoldLight");
+		Resolve<Color>("DmScrollGoldLight");
 
 	/// <summary>
 	///		Gets the muted parchment ink used for de-emphasised glyphs and labels.
@@ -345,6 +343,49 @@ public static class DmTheme
 		Resolve<Color>("DmMapObjectPlaceholder");
 
 	/// <summary>
+	///		Resolves a theme colour whose key is chosen at run time.
+	/// </summary>
+	/// <param name="key">
+	///		The resource key of the colour to resolve.
+	/// </param>
+	/// <returns>
+	///		The colour the key is bound to.
+	/// </returns>
+	/// <exception cref="InvalidOperationException">
+	///		Thrown when the application resources are not yet available, when the key is absent,
+	///		or when the key is bound to a value that is not a <see cref="Color"/>.
+	/// </exception>
+	/// <remarks>
+	///		THE ONLY REASON THIS EXISTS. Every other member here names a fixed key, so a call site
+	///		that picks its key at run time had nowhere to go and read
+	///		<c>Application.Current!.Resources[key]</c> directly — which discards all three
+	///		diagnostics <see cref="Resolve{T}"/> raises, replacing them with a
+	///		<c>NullReferenceException</c>, a <c>KeyNotFoundException</c> naming neither the file
+	///		nor the reason, and an <c>InvalidCastException</c> that does not name the actual type.
+	///		This routes such a call site through the same resolver as every fixed key.
+	///		<para>
+	///		It is <c>internal</c> deliberately. Nothing outside this assembly needs a runtime-keyed
+	///		lookup, and making it public would invite one; a caller that knows its key at compile
+	///		time should get a member of its own, which is also what keeps
+	///		<c>ThemeTokenParityTests</c> and <c>DmThemeKeysResolveTests</c> able to see the key.
+	///		</para>
+	///		<para>
+	///		It is NOT named <c>Color</c>. That is the name of the type ~40 members here return, and
+	///		a method of that name in this class would make every <c>public static Color …</c> line
+	///		in the file read ambiguously to a human.
+	///		</para>
+	///		<para>
+	///		None of the three failures is caught, wrapped or softened, and there is no fallback
+	///		colour and no <see langword="null"/> return. A missing or wrong-typed theme key is a
+	///		defect in the theme, not an expected failure a caller handles.
+	///		</para>
+	/// </remarks>
+	internal static Color ColorByKey(string key)
+	{
+		return Resolve<Color>(key);
+	}
+
+	/// <summary>
 	///		Gets the body font family.
 	/// </summary>
 	public static string FontBody =>
@@ -393,7 +434,7 @@ public static class DmTheme
 	//
 	// THIS IS NOT A COMPLETE RAMP, AND IT SHOULD NOT BE. Sixteen accessors were declared and
 	// eleven of them never had a caller; they were mirrors of the token set rather than answers
-	// to a question C# had asked. They are deleted. The five below are the five that code-behind
+	// to a question C# had asked. They are deleted. The six below are the six that code-behind
 	// actually reads. The tokens they omit are not gone — every DmSpace*, DmPadding* and
 	// DmRadius* still exists in Tokens.xaml and is still reachable from markup, which is where
 	// geometry belongs. Add the accessor back at the moment a C# call site needs it, and not
@@ -439,6 +480,22 @@ public static class DmTheme
 	/// </summary>
 	public static int RadiusTight =>
 		Resolve<int>("DmRadiusTight");
+
+	/// <summary>
+	///		Gets the lightest weight on the stroke ladder, used for incidental separators and for
+	///		the frame of a palette thumbnail built in code.
+	///		<para>
+	///		This one returns <c>double</c> where <see cref="RadiusTight"/> returns <c>int</c>, and
+	///		the difference is not a style choice: <c>DmStrokeHairline</c> is declared
+	///		<c>x:Double</c> because <c>Border.StrokeThickness</c> and <c>Button.BorderWidth</c> are
+	///		both <c>System.Double</c>, while the radius ladder is <c>x:Int32</c> for
+	///		<c>Button.CornerRadius</c>. <see cref="Resolve{T}"/> matches on <c>value is T</c> and
+	///		does no numeric conversion at all, so <c>Resolve&lt;int&gt;</c> here would throw at
+	///		runtime rather than fail to compile.
+	///		</para>
+	/// </summary>
+	public static double StrokeHairline =>
+		Resolve<double>("DmStrokeHairline");
 
 #if WINDOWS
 	/// <summary>

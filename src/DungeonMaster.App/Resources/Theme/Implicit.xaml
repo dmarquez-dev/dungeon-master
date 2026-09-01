@@ -177,7 +177,7 @@
         the app's 20 — changes shape. That is intended. Buttons now match the cards,
         popups, chips and panels around them.
 
-        The remaining four values stay literals, and each for its own reason rather
+        The remaining two values stay literals, and each for its own reason rather
         than for want of a token:
 
           Padding 14,10          matches DmPaddingPanel by value, but a Button is not a
@@ -186,15 +186,19 @@
                                  button in the app. The button footprint is settled by
                                  adopting the paired DmButton* styles (spec §4.4), not
                                  by borrowing a role that happens to share its numbers.
-          MinimumHeightRequest   44, and MinimumWidthRequest 44 — the platform touch
-          MinimumWidthRequest    target, not a spacing step.
           BorderWidth 0          zero means "none"; it is the absence of a stroke
                                  rather than the smallest one on the stroke ladder.
+
+        MinimumHeightRequest and MinimumWidthRequest were the third and fourth of those
+        literals until DmTouchTargetMinimum was declared. They are the platform touch
+        target rather than a spacing step, which is why they were not on the DmSpace*
+        scale — but that made them tokenless, not untokenable, and they were restated by
+        hand at twelve sites. They now name the token.
     -->
     <Style TargetType="Button">
         <Setter Property="Padding" Value="14,10" />
-        <Setter Property="MinimumHeightRequest" Value="44" />
-        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="{StaticResource DmTouchTargetMinimum}" />
+        <Setter Property="MinimumWidthRequest" Value="{StaticResource DmTouchTargetMinimum}" />
         <Setter Property="CornerRadius" Value="{StaticResource DmRadiusLoose}" />
         <Setter Property="BorderWidth" Value="0" />
 
@@ -262,10 +266,12 @@
     <!--
         Geometry-only implicit Entry, Editor and Picker styles.
 
-        The two setters on each are copied verbatim from the stock styles they replace
+        The two setters on each carry the same value as the stock styles they replace
         (d7caa72:Resources/Styles/Styles.xaml — Editor :111-112, Entry :133-134,
         Picker :196-197), which set MinimumHeightRequest and MinimumWidthRequest to 44 on
-        all three. Nothing else from those stock styles is carried: TextColor,
+        all three; the value now arrives through DmTouchTargetMinimum rather than as a
+        literal, which is a change of source and not of pixels. Nothing else from those
+        stock styles is carried: TextColor,
         BackgroundColor, PlaceholderColor, FontFamily, FontSize and the Disabled visual
         state are all deliberately omitted per the invariant at the top of this file, and
         every Entry, Editor and Picker in the app already sets its own colour and font.
@@ -279,18 +285,18 @@
         Entry and Editor never had the 44px minimum in the first place.
     -->
     <Style TargetType="Entry">
-        <Setter Property="MinimumHeightRequest" Value="44" />
-        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="{StaticResource DmTouchTargetMinimum}" />
+        <Setter Property="MinimumWidthRequest" Value="{StaticResource DmTouchTargetMinimum}" />
     </Style>
 
     <Style TargetType="Editor">
-        <Setter Property="MinimumHeightRequest" Value="44" />
-        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="{StaticResource DmTouchTargetMinimum}" />
+        <Setter Property="MinimumWidthRequest" Value="{StaticResource DmTouchTargetMinimum}" />
     </Style>
 
     <Style TargetType="Picker">
-        <Setter Property="MinimumHeightRequest" Value="44" />
-        <Setter Property="MinimumWidthRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="{StaticResource DmTouchTargetMinimum}" />
+        <Setter Property="MinimumWidthRequest" Value="{StaticResource DmTouchTargetMinimum}" />
     </Style>
 
     <Style TargetType="Page" ApplyToDerivedTypes="True">

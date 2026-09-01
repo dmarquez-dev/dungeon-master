@@ -16,8 +16,11 @@ public partial class DmFlagBanner : ContentView
 			string.Empty,
 			propertyChanged: (bindable, _, newValue) =>
 			{
+				// TitleLabel is NOT written here. Its Text is bound to Title in the XAML and that
+				// binding is its only writer; an imperative write beside it wins under MAUI value
+				// precedence and leaves two mechanisms driving one label. TitleEditor.Text has no
+				// binding, so pushing it here is the whole of its ownership.
 				var banner = (DmFlagBanner)bindable;
-				banner.TitleLabel.Text = (string?)newValue ?? string.Empty;
 				banner.TitleEditor.Text = (string?)newValue ?? string.Empty;
 			});
 
@@ -72,8 +75,10 @@ public partial class DmFlagBanner : ContentView
 
 	private void OnTitleCommitted(object? sender, string? value)
 	{
-		// Keep the static label in sync so switching back is seamless
-		TitleLabel.Text = value ?? string.Empty;
+		// Route the committed value through Title rather than painting TitleLabel directly, so the
+		// static label stays seamless on the way back without a second writer. Title is the one
+		// owner of the banner heading; the label is its projection through the XAML binding.
+		Title = value ?? string.Empty;
 		TextCommitted?.Invoke(this, value);
 	}
 }

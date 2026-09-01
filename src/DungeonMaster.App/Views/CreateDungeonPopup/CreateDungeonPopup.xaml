@@ -5,18 +5,20 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
+    xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
     x:Class="DungeonMaster.App.Views.CreateDungeonPopup"
     x:TypeArguments="x:Boolean"
     BackgroundColor="Transparent"
     Margin="0"
     Padding="0"
-    CanBeDismissedByTappingOutsideOfPopup="False">
+    CanBeDismissedByTappingOutsideOfPopup="False"
+    x:DataType="vm:CreateDungeonViewModel">
 
-    <!-- NO x:DataType ON THE ROOT, AND THEREFORE NO xmlns:vm. This was tried, not assumed, and
-         retried on 2026-08-27 (MASTER-083 / UI-030). Adding
+    <!-- THE ROOT x:DataType IS ON, AND EXACTLY ONE BINDING OPTS OUT OF IT. This was tried, not
+         assumed, and retried on 2026-08-27 (MASTER-083 / UI-030). Adding
          x:DataType="vm:CreateDungeonViewModel" here to compile the view-model bindings FAILED
          the build under TreatWarningsAsErrors, with MAUIG2045 on two distinct causes. ONE OF
-         THE TWO IS NOW FIXED; the other still stands.
+         THE TWO IS FIXED; the other is opted out per-binding, below.
 
            - FIXED. "Property 'ButtonRowSpacing' not found on
              'global::DungeonMaster.App.ViewModels.CreateDungeonViewModel'" for the button row
@@ -27,8 +29,8 @@
              binding-level x:DataType=controls:DmPopup on that binding, which names the type the
              Source is. That binding IS compiled today.
 
-           - STILL FAILING, AND NOT ADDRESSABLE FROM THIS FILE. With the root x:DataType in
-             place the build reports, verbatim:
+           - STILL UNCOMPILED, AND OPTED OUT EXPLICITLY. With the root x:DataType in place and
+             no opt-out, the build reports, verbatim (re-observed 2026-09-01):
 
                error MAUIG2045: Binding: Property "CreateCommand" not found on
                "global::DungeonMaster.App.ViewModels.CreateDungeonViewModel". The binding will
@@ -40,11 +42,20 @@
              CreateCommand is emitted by CommunityToolkit.Mvvm's [RelayCommand] generator and
              MAUI's binding generator cannot see another generator's output — the diagnostic
              says so itself. Note that CancelCommand, from the same generator, is NOT reported;
-             the interop is partial, not absent. Nothing in this markup can close the gap, and
-             the root x:DataType is not worth a broken build, so it stays off.
+             the interop is partial, not absent. This markup CAN close the gap, with a
+             per-binding opt-out: x:DataType={x:Null} written as an argument INSIDE the
+             {Binding ...} markup extension, comma-separated after the path, excludes that one
+             binding from the ambient root DataType and leaves it reflection-based:
 
-         Revisit when MAUI's generator handles cross-generator members. The Source half needs no
-         revisiting: it is done. -->
+               Command="{Binding CreateCommand, x:DataType={x:Null}}"
+
+             The same technique is used at Views/DungeonDetailPage/DungeonDetailPage.xaml:58.
+
+         CreateCommand is the ONLY binding here that needs the opt-out; the compiler names it and
+         nothing else. Do not add a speculative one — every unnecessary opt-out silently
+         un-compiles a binding that was working. Measured 2026-09-01: 7 bindings in this file,
+         6 compiled, 1 opted out. No revisit is needed; if MAUI's generator later handles
+         cross-generator members the opt-out can simply go. The Source half is likewise done. -->
     <controls:DmPopup x:Name="Chrome" Title="New Dungeon">
         <controls:DmPopup.Body>
             <!-- No Spacing here: DmPopup.ContentSpacing supplies it, so every popup
@@ -114,7 +125,7 @@
                         Grid.Column="1"
                         Text="CREATE"
                         Style="{StaticResource DmConfirmButton}"
-                        Command="{Binding CreateCommand}"
+                        Command="{Binding CreateCommand, x:DataType={x:Null}}"
                         CharacterSpacing="1">
                         <Button.Behaviors>
                             <behaviors:HandCursorBehavior />

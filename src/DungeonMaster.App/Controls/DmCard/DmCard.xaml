@@ -41,13 +41,37 @@
                     FontFamily="{StaticResource DmFontTitleStrong}"
                     FontSize="{StaticResource DmFontSizeTitle}"
                     TextColor="{StaticResource DmTextTavern}" />
+                <!--
+                    The subtitle row hides itself, so DmCard's code-behind no longer writes
+                    SubtitleLabel.IsVisible at all. Two property Triggers on the label's OWN Text
+                    rather than one converter binding, because Subtitle's test is emptiness and not
+                    nullness: NotNullConverter would keep the row for a subtitle of "". A null Text
+                    and an empty one each hide it; anything else leaves the element default of
+                    IsVisible=True standing. Together that is exactly !string.IsNullOrEmpty.
+
+                    They are Triggers and not DataTriggers deliberately. DataTriggers with
+                    Binding="{Binding Subtitle, Source={x:Reference Root}}" were tried first and
+                    MEASURED not to fire: with them in place the second dungeon-list card, whose
+                    description is empty, rendered a visible empty subtitle row, present in the UIA
+                    tree as a 1161x29 Text and making the card 13px taller than the same card built
+                    from the previous code. A property Trigger watches the element's own
+                    already-bound Text and needs no source resolution of its own.
+                -->
                 <Label
                     x:Name="SubtitleLabel"
                     Text="{Binding Subtitle, Source={x:Reference Root}}"
                     FontFamily="{StaticResource DmFontBodyItalic}"
                     FontSize="{StaticResource DmFontSizeBody}"
-                    TextColor="{StaticResource DmTextTavernMuted}"
-                    IsVisible="False" />
+                    TextColor="{StaticResource DmTextTavernMuted}">
+                    <Label.Triggers>
+                        <Trigger TargetType="Label" Property="Text" Value="{x:Null}">
+                            <Setter Property="IsVisible" Value="False" />
+                        </Trigger>
+                        <Trigger TargetType="Label" Property="Text" Value="">
+                            <Setter Property="IsVisible" Value="False" />
+                        </Trigger>
+                    </Label.Triggers>
+                </Label>
             </VerticalStackLayout>
             <ContentView x:Name="TrailingPresenter"
                          Grid.Column="1"

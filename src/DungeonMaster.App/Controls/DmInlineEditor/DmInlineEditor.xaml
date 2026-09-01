@@ -24,11 +24,18 @@
         </Border.GestureRecognizers>
 
         <Grid>
+            <!--
+                DisplayLabel has no TextColor binding on purpose. Its colour is not TextColor: it
+                is TextColor or PlaceholderColor depending on whether the value is empty, and that
+                switch lives in SyncDisplay, which is the label's single writer. A binding here
+                would be clobbered by the first SyncDisplay under MAUI value precedence and would
+                read as though the colour came from markup. FontFamily and FontSize are pass-
+                throughs with no such switch, so they stay bound.
+            -->
             <Label
                 x:Name="DisplayLabel"
                 FontFamily="{Binding FontFamily, Source={x:Reference Root}}"
                 FontSize="{Binding FontSize, Source={x:Reference Root}}"
-                TextColor="{Binding TextColor, Source={x:Reference Root}}"
                 LineBreakMode="TailTruncation"
                 VerticalOptions="Center">
                 <Label.Behaviors>

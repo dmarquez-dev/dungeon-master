@@ -46,30 +46,16 @@ public sealed class GreaterThanZeroConverter : IValueConverter
 	}
 
 	/// <summary>
-	///		Not supported. Throws <see cref="NotSupportedException"/>.
+	///		Back-conversion is not meaningful for this converter, which is used only in one-way
+	///		bindings, so it is inert rather than throwing.
 	/// </summary>
-	/// <param name="value">
-	///		The value that is produced by the binding target.
-	/// </param>
-	/// <param name="targetType">
-	///		The type to convert to.
-	/// </param>
-	/// <param name="parameter">
-	///		An optional converter parameter.
-	/// </param>
-	/// <param name="culture">
-	///		The culture to use in the converter.
-	/// </param>
 	/// <returns>
-	///		This method always throws.
+	///		Always <see langword="null"/>.
 	/// </returns>
-	/// <exception cref="NotSupportedException">
-	///		Always thrown; back-conversion is not supported.
-	/// </exception>
-	public object ConvertBack(
+	public object? ConvertBack(
 		object? value,
 		Type targetType,
 		object? parameter,
 		CultureInfo culture) =>
-		throw new NotSupportedException($"{nameof(GreaterThanZeroConverter)} does not support back-conversion.");
+		null;
 }
