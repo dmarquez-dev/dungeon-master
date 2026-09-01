@@ -275,11 +275,12 @@ public class TokenTypeMatchesTargetPropertyTests
 	///		Asserts that every <c>{StaticResource Dm…}</c> occurrence in the application's XAML
 	///		was attributed to an element and a property.
 	///		<para>
-	///		This is the fact that keeps the other two honest. The scan understands three binding
-	///		shapes — an attribute on an element, a <c>Setter</c> inside a keyed <c>Style</c>, and
-	///		a <c>Setter</c> inside a <c>VisualStateManager.VisualStateGroups</c> attached to an
-	///		element — and a fourth shape appearing in the tree would otherwise be silently
-	///		invisible to a guard that still reported green.
+	///		This is the fact that keeps the other two honest. The scan understands four binding
+	///		shapes — an attribute on an element, a <c>Setter</c> inside a keyed <c>Style</c>, a
+	///		<c>Setter</c> inside a <c>VisualStateManager.VisualStateGroups</c> attached to an
+	///		element, and a <c>Setter</c> carrying <c>TargetName</c> at another element in the same
+	///		file — and a fifth shape appearing in the tree would otherwise be silently invisible to
+	///		a guard that still reported green.
 	///		</para>
 	/// </summary>
 	[Fact]
@@ -545,6 +546,17 @@ public class TokenTypeMatchesTargetPropertyTests
 			return;
 		}
 
+		// The cross-element form qualifies Property with a type. That qualifier names where the
+		// property is DECLARED, not the element it is set on — the element is TargetName — so it
+		// is stripped here and only here. Elsewhere a dotted Property is an attached property
+		// (Shell.BackgroundColor) whose dot is part of the name.
+		if (setter.Attribute("TargetName") is not null)
+		{
+			property = property
+				.Split('.')
+				.Last();
+		}
+
 		foreach (Match match in StaticResourcePattern.Matches(value))
 		{
 			bindings.Add(
@@ -561,14 +573,42 @@ public class TokenTypeMatchesTargetPropertyTests
 	/// <summary>
 	///		Returns the name of the element a <c>Setter</c> applies to.
 	///		<para>
-	///		Two shapes reach here. A setter inside a keyed <c>Style</c> applies to that style's
+	///		Three shapes reach here. A setter inside a keyed <c>Style</c> applies to that style's
 	///		<c>TargetType</c>. A setter inside a <c>VisualStateManager.VisualStateGroups</c>
 	///		attached directly to an element — DmCard.xaml does this — applies to that element, so
 	///		the walk skips the property-element and state scaffolding to find it.
 	///		</para>
+	///		<para>
+	///		The third is MAUI's documented cross-element form: a setter inside a group on element A
+	///		carrying <c>TargetName="B"</c> and a type-qualified <c>Property</c> such as
+	///		<c>Border.Stroke</c>, meaning "set <c>Stroke</c> on the element named B". THE ANCESTOR
+	///		WALK IS WRONG FOR IT — it would attribute the setter to A and compose the fictitious
+	///		<c>Entry.Border.Stroke</c>, which no table can name, failing
+	///		<see cref="EveryDmTokenBindingTargetsAPropertyOfAKnownType"/> over correct XAML. So
+	///		<c>TargetName</c> is consulted first and resolved against the <c>x:Name</c>s in the
+	///		same file, which is the scope MAUI resolves it in. A <c>TargetName</c> naming no element
+	///		in the file resolves to <see cref="UnknownType"/> rather than to whatever happens to be
+	///		up the tree; the binding is then checked against
+	///		<see cref="PropertyTypesByName"/> alone, exactly as a <c>Style</c> with no
+	///		<c>TargetType</c> is. MEASURED, not assumed: a setter with an unresolvable
+	///		<c>TargetName</c> and <c>Property="Border.Stroke"</c> passes both facts, because
+	///		<c>Stroke</c> is element-independent. This guard checks token types, not name
+	///		resolution — a dangling <c>TargetName</c> is the XAML compiler's to catch.
+	///		</para>
 	/// </summary>
 	private static string SetterTarget(XElement setter)
 	{
+		var targetName = setter
+			.Attribute("TargetName")
+			?.Value;
+
+		if (targetName is not null)
+		{
+			return NamedElement(
+				setter,
+				targetName);
+		}
+
 		foreach (var ancestor in setter.Ancestors())
 		{
 			var name = ancestor.Name.LocalName;
@@ -595,6 +635,30 @@ public class TokenTypeMatchesTargetPropertyTests
 		}
 
 		return UnknownType;
+	}
+
+	/// <summary>
+	///		Returns the element type of the element carrying <c>x:Name="…"</c> in the same file,
+	///		or <see cref="UnknownType"/> if no element does.
+	/// </summary>
+	private static string NamedElement(
+		XElement setter,
+		string name)
+	{
+		var target = setter
+			.Document
+			?.Descendants()
+			.FirstOrDefault(element =>
+				string.Equals(
+					element
+						.Attribute(XName.Get("Name", XamlNamespace))
+						?.Value,
+					name,
+					StringComparison.Ordinal));
+
+		return target is null
+			? UnknownType
+			: QualifiedName(target.Name);
 	}
 
 	private static Binding Describe(
