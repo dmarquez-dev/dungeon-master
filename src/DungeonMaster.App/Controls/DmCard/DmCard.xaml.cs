@@ -27,14 +27,22 @@ public partial class DmCard : ContentView
 	/// <summary>
 	///		Identifies the <see cref="Subtitle"/> bindable property.
 	/// </summary>
+	/// <remarks>
+	///		There is deliberately no <c>propertyChanged</c> callback. The subtitle row's visibility
+	///		is expressed in <c>DmCard.xaml</c>, by two property <c>Trigger</c>s on
+	///		<c>SubtitleLabel</c>'s own <c>Text</c> that hide it for a null value and for an empty
+	///		one — together the whole of
+	///		<c>!string.IsNullOrEmpty(Subtitle)</c>, which <c>NotNullConverter</c> alone cannot
+	///		express because it tests nullness rather than emptiness. Expressing it in markup leaves
+	///		the label one writer, where a markup default and a code-behind write were two, and puts
+	///		the rule where a theme dictionary can reach it.
+	/// </remarks>
 	public static readonly BindableProperty SubtitleProperty =
 		BindableProperty.Create(
 			nameof(Subtitle),
 			typeof(string),
 			typeof(DmCard),
-			null,
-			propertyChanged: (bindable, _, _) =>
-				((DmCard)bindable).UpdateSubtitleVisibility());
+			null);
 
 	/// <summary>
 	///		Identifies the <see cref="TrailingContent"/> bindable property.
@@ -212,7 +220,4 @@ public partial class DmCard : ContentView
 			}
 		}
 	}
-
-	private void UpdateSubtitleVisibility() =>
-		SubtitleLabel.IsVisible = !string.IsNullOrEmpty(Subtitle);
 }
