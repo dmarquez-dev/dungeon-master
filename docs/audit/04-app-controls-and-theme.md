@@ -216,12 +216,20 @@ sentinel is a non-null object, so the converter returns `true`.
 
 **Why it matters.** The Microsoft converters guidance directs converters to inspect the incoming
 value with `as`, `is`, or `GetType` rather than assume its shape, precisely because a converter is
-handed values it did not anticipate. Both consumers bind this converter to a visibility target for
-an error message -- `Views/CreateDungeonPopup/CreateDungeonPopup.xaml:42` and
-`Views/DungeonListPage/DungeonListPage.xaml:26` (both T3 files, named as context only). A typo or
+handed values it did not anticipate. Three consumers bind this converter to a visibility target
+for an error message -- `Views/CreateDungeonPopup/CreateDungeonPopup.xaml`,
+`Views/DungeonDetailPage/DungeonDetailPage.xaml` and `Views/DungeonListPage/DungeonListPage.xaml`
+(named as context only) -- plus the resource declaration at `App.xaml:20`. A typo or
 rename in the bound path therefore renders a permanently visible, empty error banner instead of
 failing quietly. `GreaterThanZeroConverter` does not share the defect: its `value is int n` test
 rejects the sentinel.
+
+**Count corrected 2026-09-01 (sub-session 5c, T1).** This record said "Both consumers" and named
+two. There are three, measured with
+`grep -rn 'NotNullConverter' src/ --include=*.xaml`: the popup, the detail page and the list page.
+The `DungeonDetailPage` omission was an error when this record was written, not later drift. The
+per-site line numbers are dropped rather than renumbered -- `CreateDungeonPopup.xaml`'s binding has
+moved twice since the audit -- because the file plus the converter name is the durable address.
 
 **Suggested direction.** Test the sentinel explicitly -- `value is not null && value !=
 BindableProperty.UnsetValue` -- or narrow the check to the type the converter actually expects.
@@ -368,6 +376,15 @@ independent: true
 `PendingOutlines` as `Dictionary<,>`, `GhostAreas` as `List<>`, and `InProgressVertices` as a
 `List<>` with a public setter.
 
+**Public-surface removal, 2026-09-01 (sub-session 5c, T7, closing `MASTER-059`).** One of the four
+was not just badly typed but **dead**: no write to `PendingOutlines` existed anywhere in the
+repository, so `GetEffectiveOutline` always fell through to `area.Outline`. Both were removed rather
+than retyped, and `grep -rn "PendingOutlines\|GetEffectiveOutline" src/` now exits 1 with no hits.
+The other three were replaced by six `Set`/`Add`/`Clear` members that raise a `RedrawRequested`
+event, which is the "mutation points raise a redraw request" half of the suggested direction below;
+the page subscribes once. Recorded here because a public member disappearing from a shipped assembly
+is worth stating explicitly, even when nothing consumed it.
+
 **Why it matters.** The Framework Design Guidelines state "DO NOT use `ArrayList` or `List<T>` in
 public APIs" and "DO NOT use `Hashtable` or `Dictionary<TKey,TValue>` in public APIs" -- both are
 implementation data structures -- and separately "DO NOT provide settable collection properties".
@@ -379,6 +396,14 @@ recompute anything derived.
 **Suggested direction.** Expose `IDictionary<,>` / `IList<>` (or narrower read-only surfaces with
 explicit `Set...` methods), remove the setter on `InProgressVertices`, and consider having the
 mutation points raise a redraw request so the caller cannot forget.
+
+**Line references, corrected 2026-09-01.** The line numbers in this record's `locations` and prose
+address the file as it stood at the 2026-08-17 audit and predate Sessions 4 and 5, which grew it;
+they are left unchanged rather than renumbered, because renumbering goes stale again at the next
+session. **The durable address is the symbol name.** Measured by sub-session 5c's T7 at `7a0b506`,
+where `FloorMapDrawable.cs` was 576 lines: the four
+collection properties were at `:108`, `:123`, `:128` and `:133`, not the `:48`/`:63`/`:68`/`:73`
+recorded above. The file is 776 lines as of 2026-09-01, so those numbers have moved again.
 
 ### UIKIT-009 -- Draw allocates per area, per segment and per frame
 
@@ -406,7 +431,7 @@ independent: true
 a `Color` per area via `WithAlpha` (line 236), and a `TilePoint` per segment and per Bezier control
 point (lines 243, 251, 262-267). `DrawInProgressOverlay` allocates another `PathF` (line 485) and
 an interpolated string per frame while a phantom segment is live (line 529). Every `DmTheme.*`
-read in this file is a resource-dictionary lookup plus a type test, and there are more than a dozen
+read in this file is a resource-dictionary lookup plus a type test, and there are exactly twelve
 of them across one pass.
 
 **Why it matters.** I believe this is a measurable cost rather than a theoretical one: at a plain
@@ -421,6 +446,18 @@ offset, and invalidate on change; hoist the per-frame `DmTheme` reads into local
 `Draw`; and cache the distance label string on the snapped value rather than reformatting it each
 frame. Measure before and after -- this is the kind of change that should be justified by a
 number.
+
+**Count corrected 2026-09-01 (sub-session 5c, T7).** "More than a dozen" `DmTheme` reads was
+exactly twelve, measured with `grep -o 'DmTheme\.' <file> | wc -l` at `7a0b506` (lines 210, 296,
+419, 421, 458, 461, 498, 514, 530, 546, 569, 570) and equally twelve at the audit-era commit, so
+the claim was wrong when written rather than overtaken. The judgement is unchanged, and the number
+is now seven, T7 having hoisted the reads into one per-frame palette.
+
+**Line references, corrected 2026-09-01.** The line numbers in this record's `locations` and prose
+address the file as it stood at the 2026-08-17 audit and predate Sessions 4 and 5, which grew it;
+they are left unchanged rather than renumbered, because renumbering goes stale again at the next
+session. **The durable address is the symbol name.** The `locations` numbers above address the
+pre-Session-4 file.
 
 ### UIKIT-010 -- DrawAreasViewMode and DrawAreasEditMode differ only in the alpha rule
 
@@ -450,6 +487,15 @@ selected by a single `if` at line 131, so nothing but the alpha rule needs two c
 
 **Suggested direction.** Collapse to one loop and extract the alpha decision into a small helper
 that takes the edit/view distinction, or compute it inline from `ActiveAreaId is not null`.
+
+**Line references, corrected 2026-09-01.** The line numbers in this record's `locations` and prose
+address the file as it stood at the 2026-08-17 audit and predate Sessions 4 and 5, which grew it;
+they are left unchanged rather than renumbered, because renumbering goes stale again at the next
+session. **The durable address is the symbol name.** Measured by sub-session 5c's T7 at `7a0b506`:
+`DrawAreasViewMode` was at `:231-241` and
+`DrawAreasEditMode` at `:243-257`, not the `:171-181` and `:183-197` recorded above, and the
+selecting `if` was at `:191-198`, not line 131. Both methods have since been collapsed into one
+`DrawAreas` loop under `MASTER-035`, so the two names no longer exist.
 
 ### UIKIT-011 -- Sidebar items expose visual state through imperative methods, not bindable properties
 
@@ -508,7 +554,14 @@ independent: true
 `AreaDeleteRequested` and `AreaNotebookRequested`, which exist only to republish the identically
 shaped events of its child `AreaSidebarItem`s. `RebuildAreas` wires five closures per child on
 every `Floor` assignment, having first cleared and reconstructed the whole child collection.
-`FloorSidebarItem` exposes 12 public events in total.
+`FloorSidebarItem` exposes 14 public events in total.
+
+**Count corrected 2026-09-01 (sub-session 5c, T6).** This record said 12. It was 14, measured with
+`TAB=$(printf '\t'); grep -c "^${TAB}public event"` over
+`src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs` -- 14 at the audit-era
+commit as well as at `0c8f98f`, so the claim was wrong when written rather than overtaken by later
+work. It is 9 as of 2026-09-01, the five forwarded area events having been replaced by commands on
+a `BindableLayout` template under `MASTER-099`.
 
 **Why it matters.** This is Fowler's Middle Man: five members of the type's public surface add no
 behaviour, and adding a sixth area-level event means edits in three files. The forwarding closures
@@ -556,6 +609,14 @@ handlers. If a distinct token is warranted for a focused input, add one rather t
 floor-card pair.
 
 ### UIKIT-014 -- The 44-unit touch-target minimum is a bare literal repeated ten times
+
+**The count of ten is CORRECT and must not be "corrected".** Re-measured 2026-09-01 from
+`src/DungeonMaster.App` with `grep -rn '"44"' Resources/Theme/` against the pre-fix tree: exactly
+10 occurrences, 2 in `Controls.Base.xaml` and 8 in `Implicit.xaml`, which are this record's own
+named locations. An earlier handoff called the count wrong after searching `Controls/` and
+`Views/` -- a different population, and not the one this record names. The literals number 0 as of
+2026-09-01, `MASTER-036` having replaced them with `{StaticResource DmTouchTargetMinimum}`; the ten
+describes the state at audit time and is right about it.
 
 ```yaml
 id: UIKIT-014
@@ -625,9 +686,18 @@ precedent (`DmMapObjectPlaceholder` was added to make exactly this kind of seam 
 other way.
 
 **Suggested direction.** Either add the distinct token now, so the seam is real and the doc comment
-collapses to one line, or delete `ScrollGoldLight` and let its four call sites read `Gold`. The
+collapses to one line, or delete `ScrollGoldLight` and let its three call sites read `Gold`. The
 same question applies to the several other members the file documents as sharing a value; those
 at least resolve distinct keys.
+
+**Count corrected 2026-09-01 (sub-session 5c, T3).** This record said "four call sites". There are
+three, measured with
+`grep -rn 'ScrollGoldLight' src/ --include=*.cs --include=*.xaml | grep -v '/obj/\|/bin/'` and
+counting only reads of the accessor: `Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs`,
+`Controls/NotebookAffordance.cs` and `Views/DungeonDetailPage/DungeonDetailPage.xaml.cs`. It was
+three at the audit-era commit too, so the claim was wrong when written. Line numbers are omitted
+deliberately: all three files were edited in Session 5, and the numbers this session first measured
+were already two revisions old by the time it finished.
 
 ### UIKIT-016 -- NotebookView resolves a theme colour through a raw indexer and a null-forgiving operator
 
@@ -765,6 +835,22 @@ with honest names, drop the redundant `SyncDisplay` call in `Commit`, and consid
 commit/suppression protocol into a small collaborator so the control's remaining job is display.
 High risk: the commit ordering is carefully reasoned in the existing comments and must be preserved
 exactly.
+
+**Line references, corrected 2026-09-01.** The line numbers in this record's `locations` and prose
+address the file as it stood at the 2026-08-17 audit and predate Sessions 4 and 5, which grew it;
+they are left unchanged rather than renumbered, because renumbering goes stale again at the next
+session. **The durable address is the symbol name.** Measured by sub-session 5c's T8 on the pre-T8
+file (431 lines): `ClearFocusGlow` was `:422-430`,
+not the `:415-430` recorded above; the range recorded above as `Commit`, `:352-366`, is
+`ApplyFocusGlow`, a different method, and `Commit` was `:415-420`; `SyncDisplay` was `:312-318`.
+Those two are an identification error rather than drift. `MASTER-105` has since split the painting
+from the edit-state transition, so `ClearFocusGlow` no longer writes `_isEditing`.
+
+**The `OnPointerExited` sentence above is accurate and was NOT amended.** Sub-session 5c reported it
+as overstating the harm; a reviewer read this record and found it already says the call is guarded
+by `!_isEditing` and that the guard and the mutation sit in different methods, which is exactly the
+correct statement. The overstatement was in that session's own task criterion, not here. Recorded so
+the point is not re-litigated.
 
 ### UIKIT-020 -- HandCursorBehavior reflects for ProtectedCursor on every pointer event
 
