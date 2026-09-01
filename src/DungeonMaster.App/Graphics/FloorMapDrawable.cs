@@ -11,16 +11,148 @@ using Microsoft.Maui.Storage;
 namespace DungeonMaster.App.Graphics;
 
 /// <summary>
+///     The colours and the one font size a single map frame is painted with, resolved together
+///     rather than read one at a time from the draw path.
+/// </summary>
+/// <remarks>
+///     LIFETIME: <see cref="FromTheme"/> reads <see cref="DmTheme"/>, so it must not be called
+///     before <c>Application.Current.Resources</c> exists. <see cref="FloorMapDrawable"/> holds it
+///     as a method group and invokes it at the top of <see cref="FloorMapDrawable.Draw"/> — inside
+///     the draw path — never at construction time. See the remarks on <see cref="DmTheme"/> and the
+///     guard test <c>DmThemeKeysResolveTests.NoEagerDmThemeRead</c>.
+///     <para>
+///     The four dimmed and tinted variants are materialised HERE, once per frame, because
+///     <c>Color.WithAlpha</c> allocates: computing them at their use sites allocated one Color per
+///     area and per phantom-segment label on every frame (MASTER-097 / UIKIT-009).
+///     </para>
+/// </remarks>
+/// <param name="Grid">The tile grid stroke.</param>
+/// <param name="AreaOutline">The area outline stroke at full opacity.</param>
+/// <param name="AreaOutlineDimmed">The area outline stroke for areas that are not highlighted.</param>
+/// <param name="ObjectHighlightFill">The hover-glow fill behind a hovered placed object.</param>
+/// <param name="ObjectHighlightStroke">The hover-glow border around a hovered placed object.</param>
+/// <param name="ObjectPlaceholder">The stroke and glyph colour of the missing-object placeholder.</param>
+/// <param name="Vertex">The confirmed in-progress vertex dot fill.</param>
+/// <param name="VertexPath">The stroke joining the confirmed in-progress vertices.</param>
+/// <param name="PhantomSegment">The dashed stroke from the last vertex to the pointer.</param>
+/// <param name="DistanceLabel">The font colour of the phantom segment's distance label.</param>
+/// <param name="DistanceLabelFontSize">The font size of the phantom segment's distance label.</param>
+public readonly record struct FloorMapPalette(
+	Color Grid,
+	Color AreaOutline,
+	Color AreaOutlineDimmed,
+	Color ObjectHighlightFill,
+	Color ObjectHighlightStroke,
+	Color ObjectPlaceholder,
+	Color Vertex,
+	Color VertexPath,
+	Color PhantomSegment,
+	Color DistanceLabel,
+	float DistanceLabelFontSize)
+{
+	/// <summary>
+	///     The opacity every area that is not the highlighted one renders at.
+	/// </summary>
+	public const float DimmedAlpha = 0.3f;
+
+	/// <summary>
+	///     Reads the live theme. Call this only from the draw path; see the remarks on this type.
+	/// </summary>
+	public static FloorMapPalette FromTheme()
+	{
+		// Read once each and derive the variants, so the twelve DmTheme reads a frame used to make
+		// are seven resource-dictionary lookups.
+		var areaOutline = DmTheme.MapAreaStroke;
+		var vertex = DmTheme.MapVertex;
+
+		return new FloorMapPalette(
+			DmTheme.MapGrid,
+			// WithAlpha(1f) rather than the token as read: the call sites this replaced always
+			// went through WithAlpha, so a token declared with alpha below 1 must keep rendering
+			// exactly as it did.
+			areaOutline.WithAlpha(1f),
+			areaOutline.WithAlpha(DimmedAlpha),
+			DmTheme.MapAreaFillActive,
+			DmTheme.MapAreaStrokeActive,
+			DmTheme.MapObjectPlaceholder,
+			vertex,
+			vertex.WithAlpha(0.85f),
+			vertex.WithAlpha(0.5f),
+			vertex.WithAlpha(0.9f),
+			(float)DmTheme.FontSizeMicro);
+	}
+}
+
+/// <summary>
 ///     Renders the tile grid, area outlines, in-progress draw vertices, and phantom segment
 ///     for the currently selected dungeon floor.
 /// </summary>
+/// <remarks>
+///     The drawable owns its own draw state. Callers do not reach into a collection on it; they ask
+///     it to change — <see cref="SetInProgressVertices"/>, <see cref="AddGhostArea"/> and the rest —
+///     and every one of those members raises <see cref="RedrawRequested"/>. That is the answer to
+///     UIKIT-008 / MASTER-059: a mutation made through a handed-out <c>List</c> or
+///     <c>Dictionary</c> is invisible to the drawable, so a caller that forgot to call
+///     <c>Invalidate()</c> afterwards left a stale frame with nothing to catch it.
+/// </remarks>
 public sealed class FloorMapDrawable : IDrawable
 {
 	// Colours are read from DmTheme at draw time, never cached in a static field: see DmTheme's
-	// remarks and the guard test NoEagerDmThemeRead.
+	// remarks and the guard test NoEagerDmThemeRead. _paletteSource holds FloorMapPalette.FromTheme
+	// as a METHOD GROUP — building the delegate reads nothing; the read happens when Draw invokes it.
+	private readonly Func<FloorMapPalette> _paletteSource;
+
 	private readonly Dictionary<ObjectKind, Microsoft.Maui.Graphics.IImage?> _imageCache = new();
 
-	public FloorMapDrawable() { }
+	private readonly Dictionary<Guid, TilePoint> _pendingMoveOffsets = new();
+
+	private readonly List<IReadOnlyList<PathSegment>> _ghostAreas = [];
+
+	private readonly List<TilePoint> _inProgressVertices = [];
+
+	// The phantom segment's distance label is the same string for every frame the pointer stays
+	// the same whole number of feet away, so it is formatted only when that number changes rather
+	// than once per frame (MASTER-097 / UIKIT-009). InFeet never returns a negative, so -1 is
+	// unreachable and the first label always formats.
+	private int _distanceLabelFeet = -1;
+
+	private string _distanceLabelText = string.Empty;
+
+	/// <summary>
+	///     Initializes a new instance that reads its colours from <see cref="DmTheme"/>.
+	/// </summary>
+	public FloorMapDrawable()
+		: this(FloorMapPalette.FromTheme)
+	{
+	}
+
+	/// <summary>
+	///     Initializes a new instance that reads its colours from <paramref name="paletteSource"/>.
+	///     The source is invoked once per <see cref="Draw"/> call.
+	/// </summary>
+	/// <param name="paletteSource">
+	///     Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
+	///     resolve a theme at a call site. Tests pass a fixed palette because <see cref="DmTheme"/>
+	///     needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
+	///     host, cannot create.
+	/// </param>
+	/// <exception cref="ArgumentNullException"><paramref name="paletteSource"/> is null.</exception>
+	public FloorMapDrawable(Func<FloorMapPalette> paletteSource) =>
+		_paletteSource = paletteSource ?? throw new ArgumentNullException(nameof(paletteSource));
+
+	/// <summary>
+	///     Raised when a change to this drawable's state means the painted frame is now out of
+	///     date. The host subscribes once and calls <c>Invalidate()</c> on the view it is drawn
+	///     into; nothing else has to remember to.
+	/// </summary>
+	/// <remarks>
+	///     The scalar rendering properties on this type deliberately do NOT raise it. Those are
+	///     plain assignments, visible in the diff at the site that makes them, and each is already
+	///     paired with an invalidation there. What UIKIT-008 named was the mutation made THROUGH a
+	///     handed-out collection, which the drawable could not see at all — that class of mutation
+	///     is what this event covers, and after MASTER-059 it is the only way to make one.
+	/// </remarks>
+	public event EventHandler? RedrawRequested;
 
 	/// <summary>
 	///     Disposes every cached object image and clears the cache so assets reload from the active pack.
@@ -98,14 +230,10 @@ public sealed class FloorMapDrawable : IDrawable
 	public Guid? ActiveAreaId { get; set; }
 
 	/// <summary>
-	///     When set in view mode, this area renders highlighted; all others render dimmed.
+	///     When set, this area renders highlighted and all others render dimmed. It outranks
+	///     <see cref="ActiveAreaId"/>.
 	/// </summary>
 	public Guid? HoveredAreaId { get; set; }
-
-	/// <summary>
-	///     Accumulated committed move offsets per area (not yet saved to DB).
-	/// </summary>
-	public Dictionary<Guid, TilePoint> PendingMoveOffsets { get; } = new();
 
 	/// <summary>
 	///     The area currently being dragged. Its live delta is added on top of any pending offset.
@@ -118,23 +246,81 @@ public sealed class FloorMapDrawable : IDrawable
 	public TilePoint? DragPreviewDelta { get; set; }
 
 	/// <summary>
-	///     Pending outline replacements for existing areas (not yet saved to DB).
+	///     Records a committed move offset for one area (not yet saved to the database), so the
+	///     area keeps rendering at its new position while the write completes.
 	/// </summary>
-	public Dictionary<Guid, IReadOnlyList<PathSegment>> PendingOutlines { get; } = new();
+	/// <param name="areaId">The area the offset applies to.</param>
+	/// <param name="offset">The offset in tiles.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="offset"/> is null.</exception>
+	public void SetPendingMoveOffset(Guid areaId, TilePoint offset)
+	{
+		ArgumentNullException.ThrowIfNull(offset);
+
+		_pendingMoveOffsets[areaId] = offset;
+		RaiseRedrawRequested();
+	}
 
 	/// <summary>
-	///     New areas drawn on the canvas that have not yet been persisted to the DB.
+	///     Drops every pending move offset, so areas render at the position the floor reports.
 	/// </summary>
-	public List<IReadOnlyList<PathSegment>> GhostAreas { get; } = [];
+	public void ClearPendingMoveOffsets()
+	{
+		_pendingMoveOffsets.Clear();
+		RaiseRedrawRequested();
+	}
 
 	/// <summary>
-	///     Confirmed vertices for the in-progress draw operation.
+	///     Adds a newly drawn outline that has not yet been persisted, so it is visible from the
+	///     moment it is closed rather than from the reload that follows the write.
 	/// </summary>
-	public List<TilePoint> InProgressVertices { get; set; } = [];
+	/// <param name="outline">The closed outline polygon, in tile coordinates.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="outline"/> is null.</exception>
+	public void AddGhostArea(IReadOnlyList<PathSegment> outline)
+	{
+		ArgumentNullException.ThrowIfNull(outline);
+
+		_ghostAreas.Add(outline);
+		RaiseRedrawRequested();
+	}
+
+	/// <summary>
+	///     Drops every unpersisted outline, normally because the reload that now carries them has
+	///     completed.
+	/// </summary>
+	public void ClearGhostAreas()
+	{
+		_ghostAreas.Clear();
+		RaiseRedrawRequested();
+	}
+
+	/// <summary>
+	///     Replaces the confirmed vertices of the in-progress draw with <paramref name="vertices"/>.
+	/// </summary>
+	/// <param name="vertices">The vertices, in the order they were placed.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="vertices"/> is null.</exception>
+	public void SetInProgressVertices(IEnumerable<TilePoint> vertices)
+	{
+		ArgumentNullException.ThrowIfNull(vertices);
+
+		// Refilling the list this drawable already owns, rather than taking a caller's new one,
+		// is what stops a fresh List allocation on every vertex the user places.
+		_inProgressVertices.Clear();
+		_inProgressVertices.AddRange(vertices);
+		RaiseRedrawRequested();
+	}
+
+	/// <summary>
+	///     Drops the confirmed vertices of the in-progress draw.
+	/// </summary>
+	public void ClearInProgressVertices()
+	{
+		_inProgressVertices.Clear();
+		RaiseRedrawRequested();
+	}
 
 	/// <summary>
 	///     Current pointer position for the phantom segment preview.
-	///     Only rendered when InProgressVertices has at least one point.
+	///     Only rendered when the in-progress draw has at least one confirmed vertex.
 	/// </summary>
 	public PointF? PhantomEnd { get; set; }
 
@@ -180,34 +366,36 @@ public sealed class FloorMapDrawable : IDrawable
 	/// <inheritdoc/>
 	public void Draw(ICanvas canvas, RectF dirtyRect)
 	{
+		ArgumentNullException.ThrowIfNull(canvas);
+
+		// Resolved here, at the top of the draw path, and threaded down. Hoisting it any higher —
+		// a field initialiser, the constructor — would read DmTheme before
+		// Application.Current.Resources exists; see the remarks on FloorMapPalette.
+		var palette = _paletteSource();
+
 		canvas.SaveState();
 		canvas.Translate(PanOffset.X, PanOffset.Y);
 		canvas.Scale(ZoomLevel, ZoomLevel);
 
-		DrawGrid(canvas, dirtyRect);
+		DrawGrid(canvas, dirtyRect, palette.Grid);
 
 		if (Floor is not null)
 		{
-			if (ActiveAreaId is not null)
-			{
-				DrawAreasEditMode(canvas);
-			}
-			else
-			{
-				DrawAreasViewMode(canvas);
-			}
-
-			DrawPlacedObjects(canvas);
-			DrawGhostObject(canvas);
-			DrawInProgressOverlay(canvas);
+			DrawAreas(canvas, in palette);
+			DrawPlacedObjects(canvas, in palette);
+			DrawGhostObject(canvas, palette.ObjectPlaceholder);
+			DrawInProgressOverlay(canvas, in palette);
 		}
 
 		canvas.RestoreState();
 	}
 
-	private void DrawGrid(ICanvas canvas, RectF dirtyRect)
+	private void RaiseRedrawRequested() =>
+		RedrawRequested?.Invoke(this, EventArgs.Empty);
+
+	private void DrawGrid(ICanvas canvas, RectF dirtyRect, Color stroke)
 	{
-		canvas.StrokeColor = DmTheme.MapGrid;
+		canvas.StrokeColor = stroke;
 		canvas.StrokeSize = 0.5f;
 
 		// Convert screen edges to canvas space so the grid fills the entire view
@@ -228,88 +416,90 @@ public sealed class FloorMapDrawable : IDrawable
 		}
 	}
 
-	private void DrawAreasViewMode(ICanvas canvas)
+	/// <summary>
+	///     Draws every area on the floor, then the unpersisted ghost outlines.
+	/// </summary>
+	/// <remarks>
+	///     One loop, where MASTER-035 found two byte-identical ones differing only in the alpha
+	///     expression. The rule both encoded is the same rule: ONE area renders at full opacity and
+	///     the rest render dimmed, and which one it is is the hovered area when there is one and
+	///     the active area otherwise — that is exactly <c>HoveredAreaId ?? ActiveAreaId</c>. When
+	///     neither is set, nothing is singled out and every area renders at full opacity.
+	/// </remarks>
+	private void DrawAreas(ICanvas canvas, in FloorMapPalette palette)
 	{
+		var highlightedAreaId = HoveredAreaId ?? ActiveAreaId;
+
 		foreach (var area in Floor!.Areas)
 		{
-			var alpha = HoveredAreaId is null || area.Id == HoveredAreaId ? 1f : 0.3f;
-			var outline = GetEffectiveOutline(area);
-			DrawAreaOutline(canvas, outline, alpha, GetEffectiveOffset(area.Id));
+			var stroke = highlightedAreaId is null || area.Id == highlightedAreaId
+				? palette.AreaOutline
+				: palette.AreaOutlineDimmed;
+
+			var (offsetCol, offsetRow) = GetEffectiveOffset(area.Id);
+			DrawAreaOutline(canvas, area.Outline, stroke, offsetCol, offsetRow);
 		}
 
-		DrawGhostAreas(canvas);
-	}
-
-	private void DrawAreasEditMode(ICanvas canvas)
-	{
-		foreach (var area in Floor!.Areas)
+		foreach (var outline in _ghostAreas)
 		{
-			float alpha;
-			if (HoveredAreaId is not null)
-				alpha = area.Id == HoveredAreaId ? 1f : 0.3f;
-			else
-				alpha = area.Id == ActiveAreaId ? 1f : 0.3f;
-			var outline = GetEffectiveOutline(area);
-			DrawAreaOutline(canvas, outline, alpha, GetEffectiveOffset(area.Id));
-		}
-
-		DrawGhostAreas(canvas);
-	}
-
-	private void DrawGhostAreas(ICanvas canvas)
-	{
-		foreach (var outline in GhostAreas)
-		{
-			DrawAreaOutline(canvas, outline, 1f);
+			DrawAreaOutline(canvas, outline, palette.AreaOutline);
 		}
 	}
 
-	private IReadOnlyList<PathSegment> GetEffectiveOutline(AreaItem area)
+	/// <summary>
+	///     The total tile offset an area renders at: its committed pending move plus, if it is the
+	///     one being dragged, the live drag delta. (0, 0) when neither applies.
+	/// </summary>
+	private (int Col, int Row) GetEffectiveOffset(Guid areaId)
 	{
-		if (PendingOutlines.TryGetValue(area.Id, out var pending))
-			return pending;
-		return area.Outline;
-	}
-
-	private TilePoint? GetEffectiveOffset(Guid areaId)
-	{
-		PendingMoveOffsets.TryGetValue(areaId, out var pending);
+		_pendingMoveOffsets.TryGetValue(areaId, out var pending);
 		var drag = DragPreviewAreaId == areaId ? DragPreviewDelta : null;
 
-		if (pending is null && drag is null)
-			return null;
-
-		return new TilePoint(
+		return (
 			(pending?.Col ?? 0) + (drag?.Col ?? 0),
 			(pending?.Row ?? 0) + (drag?.Row ?? 0));
 	}
 
+	/// <summary>
+	///     The pixel position of a tile point shifted by a whole number of tiles.
+	/// </summary>
+	/// <remarks>
+	///     This is <see cref="TileCoordinateHelper.ToPixel"/> with the shift folded in, and
+	///     <c>FloorMapDrawableGeometryTests.OffsetPixelPositionMatchesTileCoordinateHelper</c> pins
+	///     the two together. It exists because the helper takes a <see cref="TilePoint"/>, which is
+	///     a record and therefore a heap allocation: building the shifted point cost one allocation
+	///     per segment and two more per curve, on every frame (MASTER-097 / UIKIT-009). The
+	///     addition stays INSIDE the multiplication, exactly where the old code put it, so the
+	///     float result is bit-for-bit what it was.
+	/// </remarks>
+	private (float X, float Y) ToPixel(TilePoint tile, int offsetCol, int offsetRow) =>
+		((tile.Col + offsetCol) * TileSize, (tile.Row + offsetRow) * TileSize);
+
 	private void DrawAreaOutline(
 		ICanvas canvas,
 		IReadOnlyList<PathSegment> outline,
-		float alpha,
-		TilePoint? offset = null)
+		Color stroke,
+		int offsetCol = 0,
+		int offsetRow = 0)
 	{
 		if (outline.Count == 0)
 			return;
 
-		canvas.StrokeColor = DmTheme.MapAreaStroke.WithAlpha(alpha);
+		canvas.StrokeColor = stroke;
 		canvas.StrokeSize = 1.5f;
 
 		// The polygon is closed, so the final segment's end point is also its start point.
-		var start = outline[^1].End;
-		var visualStart = offset is null
-			? start
-			: new TilePoint(start.Col + offset.Col, start.Row + offset.Row);
-		var (ox, oy) = TileCoordinateHelper.ToPixel(visualStart, TileSize);
+		var (ox, oy) = ToPixel(outline[^1].End, offsetCol, offsetRow);
+
+		// NOT pooled across frames, deliberately: PathF exposes no reset — no Clear, no
+		// truncate-to-empty — and it caches a per-instance PlatformPath, so a shared instance
+		// cannot be emptied and refilled. UIKIT-009 names this allocation; it is declined here
+		// with that reason rather than addressed.
 		var path = new PathF(ox, oy);
 
 		foreach (var segment in outline)
 		{
-			var end = offset is null
-				? segment.End
-				: new TilePoint(segment.End.Col + offset.Col, segment.End.Row + offset.Row);
-			var (ex, ey) = TileCoordinateHelper.ToPixel(end, TileSize);
+			var (ex, ey) = ToPixel(segment.End, offsetCol, offsetRow);
 
 			if (segment.Kind == PathSegmentKind.Line)
 			{
@@ -319,14 +509,8 @@ public sealed class FloorMapDrawable : IDrawable
 				&& segment.Ctrl1 is not null
 				&& segment.Ctrl2 is not null)
 			{
-				var ctrl1 = offset is null
-					? segment.Ctrl1
-					: new TilePoint(segment.Ctrl1.Col + offset.Col, segment.Ctrl1.Row + offset.Row);
-				var ctrl2 = offset is null
-					? segment.Ctrl2
-					: new TilePoint(segment.Ctrl2.Col + offset.Col, segment.Ctrl2.Row + offset.Row);
-				var (c1x, c1y) = TileCoordinateHelper.ToPixel(ctrl1, TileSize);
-				var (c2x, c2y) = TileCoordinateHelper.ToPixel(ctrl2, TileSize);
+				var (c1x, c1y) = ToPixel(segment.Ctrl1, offsetCol, offsetRow);
+				var (c2x, c2y) = ToPixel(segment.Ctrl2, offsetCol, offsetRow);
 				path.CurveTo(c1x, c1y, c2x, c2y, ex, ey);
 			}
 		}
@@ -352,16 +536,16 @@ public sealed class FloorMapDrawable : IDrawable
 	private Microsoft.Maui.Graphics.IImage? LoadOrGetImage(ObjectKind kind) =>
 		_imageCache.TryGetValue(kind, out var cached) ? cached : null;
 
-	private void DrawPlacedObjects(ICanvas canvas)
+	private void DrawPlacedObjects(ICanvas canvas, in FloorMapPalette palette)
 	{
 		if (Floor is null)
 			return;
 
 		foreach (var obj in Floor.Objects)
-			DrawPlacedObject(canvas, obj);
+			DrawPlacedObject(canvas, obj, in palette);
 	}
 
-	private void DrawPlacedObject(ICanvas canvas, PlacedObjectItem obj)
+	private void DrawPlacedObject(ICanvas canvas, PlacedObjectItem obj, in FloorMapPalette palette)
 	{
 		var isDragging = DraggingObjectId == obj.Id;
 
@@ -416,9 +600,9 @@ public sealed class FloorMapDrawable : IDrawable
 
 		if (!isDragging && HoveredObjectId == obj.Id)
 		{
-			canvas.FillColor = DmTheme.MapAreaFillActive;
+			canvas.FillColor = palette.ObjectHighlightFill;
 			canvas.FillRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
-			canvas.StrokeColor = DmTheme.MapAreaStrokeActive;
+			canvas.StrokeColor = palette.ObjectHighlightStroke;
 			canvas.StrokeSize = 1.5f;
 			canvas.DrawRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);
 		}
@@ -429,7 +613,7 @@ public sealed class FloorMapDrawable : IDrawable
 		}
 		else
 		{
-			DrawMissingObjectFallback(canvas, drawX, drawY, Math.Max(boxW, boxH));
+			DrawMissingObjectFallback(canvas, drawX, drawY, Math.Max(boxW, boxH), palette.ObjectPlaceholder);
 		}
 
 		canvas.RestoreState();
@@ -453,17 +637,17 @@ public sealed class FloorMapDrawable : IDrawable
 		}
 	}
 
-	private static void DrawMissingObjectFallback(ICanvas canvas, float x, float y, float size)
+	private static void DrawMissingObjectFallback(ICanvas canvas, float x, float y, float size, Color placeholder)
 	{
-		canvas.StrokeColor = DmTheme.MapObjectPlaceholder;
+		canvas.StrokeColor = placeholder;
 		canvas.StrokeSize = 1.5f;
 		canvas.DrawRectangle(x, y, size, size);
-		canvas.FontColor = DmTheme.MapObjectPlaceholder;
+		canvas.FontColor = placeholder;
 		canvas.FontSize = size * 0.4f;
 		canvas.DrawString("?", x, y, size, size, HorizontalAlignment.Center, VerticalAlignment.Center);
 	}
 
-	private void DrawGhostObject(ICanvas canvas)
+	private void DrawGhostObject(ICanvas canvas, Color placeholder)
 	{
 		if (GhostObjectKind is not ObjectKind kind || GhostCanvasPosition is not PointF pos)
 			return;
@@ -495,7 +679,7 @@ public sealed class FloorMapDrawable : IDrawable
 		}
 		else
 		{
-			canvas.StrokeColor = DmTheme.MapObjectPlaceholder;
+			canvas.StrokeColor = placeholder;
 			canvas.StrokeDashPattern = [4f, 3f];
 			canvas.StrokeSize = 1.5f;
 			canvas.DrawRectangle(drawX, drawY, boxW, boxH);
@@ -504,32 +688,35 @@ public sealed class FloorMapDrawable : IDrawable
 		canvas.RestoreState();
 	}
 
-	private void DrawInProgressOverlay(ICanvas canvas)
+	private void DrawInProgressOverlay(ICanvas canvas, in FloorMapPalette palette)
 	{
-		if (InProgressVertices.Count == 0)
+		if (_inProgressVertices.Count == 0)
 			return;
 
-		if (InProgressVertices.Count >= 2)
+		if (_inProgressVertices.Count >= 2)
 		{
-			canvas.StrokeColor = DmTheme.MapVertex.WithAlpha(0.85f);
+			canvas.StrokeColor = palette.VertexPath;
 			canvas.StrokeSize = 1.5f;
 			canvas.StrokeDashPattern = null;
 
-			var (sx, sy) = TileCoordinateHelper.ToPixel(InProgressVertices[0], TileSize);
+			var (sx, sy) = TileCoordinateHelper.ToPixel(_inProgressVertices[0], TileSize);
+
+			// Not pooled across frames, for the same reason as the area outline path above:
+			// PathF has no reset.
 			var inProgressPath = new PathF(sx, sy);
 
-			for (var i = 1; i < InProgressVertices.Count; i++)
+			for (var i = 1; i < _inProgressVertices.Count; i++)
 			{
-				var (ex, ey) = TileCoordinateHelper.ToPixel(InProgressVertices[i], TileSize);
+				var (ex, ey) = TileCoordinateHelper.ToPixel(_inProgressVertices[i], TileSize);
 				inProgressPath.LineTo(ex, ey);
 			}
 
 			canvas.DrawPath(inProgressPath);
 		}
 
-		canvas.FillColor = DmTheme.MapVertex;
+		canvas.FillColor = palette.Vertex;
 
-		foreach (var vertex in InProgressVertices)
+		foreach (var vertex in _inProgressVertices)
 		{
 			var (vx, vy) = TileCoordinateHelper.ToPixel(vertex, TileSize);
 			canvas.FillCircle(vx, vy, 4f);
@@ -537,13 +724,13 @@ public sealed class FloorMapDrawable : IDrawable
 
 		if (PhantomEnd is not null)
 		{
-			var lastVert = InProgressVertices[^1];
+			var lastVert = _inProgressVertices[^1];
 			var (lastX, lastY) = TileCoordinateHelper.ToPixel(lastVert, TileSize);
 
 			// Snap phantom end to nearest grid corner — same logic as actual vertex placement.
 			var snapped = TileCoordinateHelper.SnapToGrid(PhantomEnd.Value.X, PhantomEnd.Value.Y, TileSize);
 
-			canvas.StrokeColor = DmTheme.MapVertex.WithAlpha(0.5f);
+			canvas.StrokeColor = palette.PhantomSegment;
 			canvas.StrokeSize = 1f;
 			canvas.StrokeDashPattern = [4f, 4f];
 			canvas.DrawLine(lastX, lastY, PhantomEnd.Value.X, PhantomEnd.Value.Y);
@@ -557,20 +744,33 @@ public sealed class FloorMapDrawable : IDrawable
 			// unchecked int arithmetic — at |dx| >= 46341 it can overflow to a negative value (MathF.Sqrt
 			// then returns NaN, so the old `> 0f` guard was false) or to exactly 0 (where
 			// `snapped != lastVert` is true). That is unreachable today: TileSize is declared
-			// `public float TileSize { get; set; } = 40f;` in this file (line 144 as written), and zoom is
-			// a separate value clamped to [0.25, 4.0], so a 46,000-tile separation cannot reach a
-			// rendered frame.
+			// `public float TileSize { get; set; } = 40f;` in this file, and zoom is a separate value
+			// clamped to [0.25, 4.0], so a 46,000-tile separation cannot reach a rendered frame.
 			// Distance label: integer feet to the snapped position, matching what clicking now would produce.
 			if (snapped != lastVert)
 			{
 				var distFeet = TileDistance.InFeet(lastVert, snapped, TileSizeInFeet);
 				var midX = (lastX + PhantomEnd.Value.X) / 2f;
 				var midY = (lastY + PhantomEnd.Value.Y) / 2f;
-				canvas.FontColor = DmTheme.MapVertex.WithAlpha(0.9f);
-				canvas.FontSize = (float)DmTheme.FontSizeMicro;
-				canvas.DrawString($"{distFeet}'", midX + 4f, midY - 14f, 48f, 14f,
+				canvas.FontColor = palette.DistanceLabel;
+				canvas.FontSize = palette.DistanceLabelFontSize;
+				canvas.DrawString(DistanceLabelFor(distFeet), midX + 4f, midY - 14f, 48f, 14f,
 					HorizontalAlignment.Left, VerticalAlignment.Center);
 			}
 		}
+	}
+
+	/// <summary>
+	///     The distance label for a whole number of feet, formatted only when the number changes.
+	/// </summary>
+	private string DistanceLabelFor(int feet)
+	{
+		if (feet != _distanceLabelFeet)
+		{
+			_distanceLabelFeet = feet;
+			_distanceLabelText = $"{feet}'";
+		}
+
+		return _distanceLabelText;
 	}
 }

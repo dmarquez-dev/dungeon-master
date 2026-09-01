@@ -62,6 +62,14 @@ public partial class DungeonDetailPage : ContentPage
 
 		MapCanvas.Drawable = _drawable;
 
+		// The drawable owns its draw state after MASTER-059, so it is the only thing that knows a
+		// mutation happened. One subscription here is what UIKIT-008 asked for: a forgotten
+		// Invalidate() after a Set.../Add.../Clear... call can no longer leave a stale frame. The
+		// handler is never detached because the drawable is this page's alone and dies with it,
+		// so it cannot outlive the page it captures.
+		_drawable.RedrawRequested += (_, _) =>
+			MapCanvas.Invalidate();
+
 		// Wire object palette events
 		ObjectPalette.ActiveObjectChanged += OnPaletteObjectChanged;
 
@@ -1020,7 +1028,7 @@ public partial class DungeonDetailPage : ContentPage
 	private void ClearInProgressDraw()
 	{
 		_viewModel.Canvas.DrawingSession.Reset();
-		_drawable.InProgressVertices = [];
+		_drawable.ClearInProgressVertices();
 		_drawable.PhantomEnd = null;
 		_drawable.ActiveAreaId = _editor.FocusedAreaId;
 	}
@@ -1235,7 +1243,7 @@ public partial class DungeonDetailPage : ContentPage
 				_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 			}
 
-			_drawable.InProgressVertices = [.. _viewModel.Canvas.DrawingSession.Vertices];
+			_drawable.SetInProgressVertices(_viewModel.Canvas.DrawingSession.Vertices);
 			var hasVertices = _viewModel.Canvas.DrawingSession.Vertices.Count > 0;
 			UndoButton.IsEnabled = hasVertices;
 			UndoButton.Opacity = hasVertices ? 1.0 : 0.35;
@@ -1264,11 +1272,10 @@ public partial class DungeonDetailPage : ContentPage
 		// transitions; the page computes neither value.
 		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 
-		_drawable.InProgressVertices = [];
+		_drawable.ClearInProgressVertices();
 		_drawable.PhantomEnd = null;
-		_drawable.PendingMoveOffsets.Clear();
-		_drawable.PendingOutlines.Clear();
-		_drawable.GhostAreas.Clear();
+		_drawable.ClearPendingMoveOffsets();
+		_drawable.ClearGhostAreas();
 		_drawable.DragPreviewAreaId = null;
 		_drawable.DragPreviewDelta = null;
 	}
@@ -1425,7 +1432,7 @@ public partial class DungeonDetailPage : ContentPage
 					_editor.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 				}
 
-				_drawable.InProgressVertices = [.. _viewModel.Canvas.DrawingSession.Vertices];
+				_drawable.SetInProgressVertices(_viewModel.Canvas.DrawingSession.Vertices);
 				UpdateToolbarButtonState();
 				MapCanvas.Invalidate();
 			}
@@ -1679,7 +1686,7 @@ public partial class DungeonDetailPage : ContentPage
 				if (area is not null && (drag.Col != 0 || drag.Row != 0))
 				{
 					// Keep visual preview via pending offset while the DB write completes
-					_drawable.PendingMoveOffsets[areaId] = drag;
+					_drawable.SetPendingMoveOffset(areaId, drag);
 					MapCanvas.Invalidate();
 
 					// The offset that gets persisted. Translating an outline is geometry, so it
@@ -1689,7 +1696,7 @@ public partial class DungeonDetailPage : ContentPage
 					await _viewModel.Canvas.MoveAreaOutlineCommand.ExecuteAsync(
 						new MoveAreaOutlineArgs(floorId, areaId, newOutline));
 
-					_drawable.PendingMoveOffsets.Clear();
+					_drawable.ClearPendingMoveOffsets();
 					await RefreshFloorAsync();
 				}
 
@@ -1717,7 +1724,7 @@ public partial class DungeonDetailPage : ContentPage
 		// Show optimistic visual immediately, then auto-save and reload
 		if (_editor.SelectedFloorId is not null)
 		{
-			_drawable.GhostAreas.Add(outline);
+			_drawable.AddGhostArea(outline);
 			MapCanvas.Invalidate();
 			await _viewModel.Canvas.AddAreaWithOutlineCommand.ExecuteAsync(
 				new AddAreaWithOutlineArgs(_editor.SelectedFloorId.Value, outline));
@@ -1728,10 +1735,9 @@ public partial class DungeonDetailPage : ContentPage
 		// A completed outline leaves the Draw tool armed for the next one, which is what
 		// MapEditorState.ResetDrawState reports while a floor is selected.
 		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
-		_drawable.InProgressVertices = [];
+		_drawable.ClearInProgressVertices();
 		_drawable.PhantomEnd = null;
-		_drawable.GhostAreas.Clear();
-		_drawable.PendingOutlines.Clear();
+		_drawable.ClearGhostAreas();
 
 		await RefreshFloorAsync();
 		// Restore the focus dim if an area was focused before the draw
@@ -2100,7 +2106,7 @@ public partial class DungeonDetailPage : ContentPage
 
 		if (_editor.DrawState == DrawState.Idle)
 		{
-			_drawable.InProgressVertices = [];
+			_drawable.ClearInProgressVertices();
 			_drawable.PhantomEnd = null;
 		}
 
