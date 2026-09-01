@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.App.Theme;
 
@@ -9,22 +10,13 @@ namespace DungeonMaster.App.Controls;
 /// </summary>
 public partial class FloorSidebarItem : ContentView
 {
-	// Properties, not static readonly fields: see DmTheme's remarks and the guard test
-	// NoEagerDmThemeRead.
-	private static Color SurfaceNormal =>
-		DmTheme.FloorSurfaceNormal;
-
-	private static Color SurfaceHover =>
-		DmTheme.FloorSurfaceHover;
-
-	private static Color SurfaceActive =>
-		DmTheme.FloorSurfaceActive;
-
-	private static Brush BorderNormal =>
-		DmTheme.FloorBorderNormal;
-
-	private static Brush BorderActive =>
-		DmTheme.FloorBorderActive;
+	// The visual states declared on FloorBorder in FloorSidebarItem.xaml. Named once here so a
+	// rename in the markup breaks the build rather than silently going to a state that does not
+	// exist — VisualStateManager.GoToState returns false for an unknown name and paints nothing.
+	private const string NormalState = "Normal";
+	private const string HoveredState = "Hovered";
+	private const string ExpandedState = "Expanded";
+	private const string DragOverState = "DragOver";
 
 	/// <summary>
 	///		Identifies the <see cref="Floor"/> bindable property.
@@ -37,6 +29,72 @@ public partial class FloorSidebarItem : ContentView
 			null,
 			propertyChanged: (bindable, _, newValue) =>
 				((FloorSidebarItem)bindable).Populate((FloorItem?)newValue));
+
+	/// <summary>
+	///		Identifies the <see cref="IsExpanded"/> bindable property.
+	///		This replaces the private <c>_isExpanded</c> field the appearance used to hang off
+	///		(MASTER-098): a bindable property is a valid binding target, is settable through a style,
+	///		and is monitorable for change, which is what lets the FloorStates group in the XAML own
+	///		the expanded appearance and the three IsVisible bindings own the disclosure.
+	/// </summary>
+	public static readonly BindableProperty IsExpandedProperty =
+		BindableProperty.Create(
+			nameof(IsExpanded),
+			typeof(bool),
+			typeof(FloorSidebarItem),
+			false,
+			propertyChanged: (bindable, _, _) =>
+				((FloorSidebarItem)bindable).ApplyExpanded());
+
+	/// <summary>
+	///		Identifies the <see cref="AreaSelectCommand"/> bindable property.
+	/// </summary>
+	public static readonly BindableProperty AreaSelectCommandProperty =
+		BindableProperty.Create(
+			nameof(AreaSelectCommand),
+			typeof(ICommand),
+			typeof(FloorSidebarItem),
+			null);
+
+	/// <summary>
+	///		Identifies the <see cref="AreaHoverStartedCommand"/> bindable property.
+	/// </summary>
+	public static readonly BindableProperty AreaHoverStartedCommandProperty =
+		BindableProperty.Create(
+			nameof(AreaHoverStartedCommand),
+			typeof(ICommand),
+			typeof(FloorSidebarItem),
+			null);
+
+	/// <summary>
+	///		Identifies the <see cref="AreaHoverEndedCommand"/> bindable property.
+	/// </summary>
+	public static readonly BindableProperty AreaHoverEndedCommandProperty =
+		BindableProperty.Create(
+			nameof(AreaHoverEndedCommand),
+			typeof(ICommand),
+			typeof(FloorSidebarItem),
+			null);
+
+	/// <summary>
+	///		Identifies the <see cref="AreaDeleteCommand"/> bindable property.
+	/// </summary>
+	public static readonly BindableProperty AreaDeleteCommandProperty =
+		BindableProperty.Create(
+			nameof(AreaDeleteCommand),
+			typeof(ICommand),
+			typeof(FloorSidebarItem),
+			null);
+
+	/// <summary>
+	///		Identifies the <see cref="AreaNotebookCommand"/> bindable property.
+	/// </summary>
+	public static readonly BindableProperty AreaNotebookCommandProperty =
+		BindableProperty.Create(
+			nameof(AreaNotebookCommand),
+			typeof(ICommand),
+			typeof(FloorSidebarItem),
+			null);
 
 	/// <summary>
 	///		Raised when the user activates this floor item, signalling the page to deselect all others.
@@ -83,33 +141,9 @@ public partial class FloorSidebarItem : ContentView
 	/// </summary>
 	public event EventHandler? AddAreaRequested;
 
-	/// <summary>
-	///		Raised when the user taps an area item to enter area edit context.
-	/// </summary>
-	public event EventHandler<AreaItem>? AreaSelectRequested;
-
-	/// <summary>
-	///     Raised when the pointer enters an area item in this floor.
-	/// </summary>
-	public event EventHandler<AreaItem>? AreaHoverStarted;
-
-	/// <summary>
-	///     Raised when the pointer exits an area item in this floor.
-	/// </summary>
-	public event EventHandler<AreaItem>? AreaHoverEnded;
-
-	/// <summary>
-	///     Raised when the user requests deletion of an area in this floor.
-	/// </summary>
-	public event EventHandler<AreaItem>? AreaDeleteRequested;
-
-	/// <summary>
-	///     Raised when the user requests the notebook for an area in this floor.
-	/// </summary>
-	public event EventHandler<AreaItem>? AreaNotebookRequested;
-
-	private bool _isExpanded;
 	private bool _suppressCardTap;
+	private bool _isHovered;
+	private bool _isDragOver;
 
 	/// <summary>
 	///		Gets or sets the floor data displayed and edited by this item.
@@ -121,11 +155,77 @@ public partial class FloorSidebarItem : ContentView
 	}
 
 	/// <summary>
+	///		Gets or sets a value indicating whether this floor's area list is shown.
+	///		Expanding is the only route to a floor's areas, so this is also what the page means by
+	///		selecting a floor.
+	/// </summary>
+	public bool IsExpanded
+	{
+		get => (bool)GetValue(IsExpandedProperty);
+		set => SetValue(IsExpandedProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the command each area row invokes with its own area when the user taps it.
+	///		These five commands are what replaced the five Area* events this control used to declare
+	///		(MASTER-099). Each was a pass-through republication of an identically-shaped event on
+	///		<see cref="AreaSidebarItem"/>, re-wired as five closures per child on every
+	///		<see cref="Floor"/> assignment. The area rows now read these straight off this control
+	///		through the item template, so nothing here forwards anything.
+	/// </summary>
+	public ICommand? AreaSelectCommand
+	{
+		get => (ICommand?)GetValue(AreaSelectCommandProperty);
+		set => SetValue(AreaSelectCommandProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the command each area row invokes with its own area when the pointer enters it.
+	/// </summary>
+	public ICommand? AreaHoverStartedCommand
+	{
+		get => (ICommand?)GetValue(AreaHoverStartedCommandProperty);
+		set => SetValue(AreaHoverStartedCommandProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the command each area row invokes with its own area when the pointer exits it.
+	/// </summary>
+	public ICommand? AreaHoverEndedCommand
+	{
+		get => (ICommand?)GetValue(AreaHoverEndedCommandProperty);
+		set => SetValue(AreaHoverEndedCommandProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the command each area row invokes with its own area when the user requests its deletion.
+	/// </summary>
+	public ICommand? AreaDeleteCommand
+	{
+		get => (ICommand?)GetValue(AreaDeleteCommandProperty);
+		set => SetValue(AreaDeleteCommandProperty, value);
+	}
+
+	/// <summary>
+	///		Gets or sets the command each area row invokes with its own area when the user requests its notebook.
+	/// </summary>
+	public ICommand? AreaNotebookCommand
+	{
+		get => (ICommand?)GetValue(AreaNotebookCommandProperty);
+		set => SetValue(AreaNotebookCommandProperty, value);
+	}
+
+	/// <summary>
 	///		Initializes a new instance of <see cref="FloorSidebarItem"/> and loads the XAML component tree.
 	/// </summary>
 	public FloorSidebarItem()
 	{
 		InitializeComponent();
+
+		// Enter the resting state explicitly. The attributes on FloorBorder already paint it, but
+		// entering Normal here is what gives the group a state to leave, so the first transition
+		// out of it restores these values rather than whatever it last saw.
+		ApplyExpanded();
 	}
 
 	private void Populate(FloorItem? floor)
@@ -151,61 +251,24 @@ public partial class FloorSidebarItem : ContentView
 		NotebookAffordance.Apply(
 			NotebookButton,
 			floor.HasNotebookContent);
-
-		RebuildAreas(floor);
-	}
-
-	private void RebuildAreas(FloorItem floor)
-	{
-		AreaContainer.Children.Clear();
-
-		foreach (var area in floor.Areas)
-		{
-			var item = new AreaSidebarItem { Area = area };
-			item.SelectRequested += (_, selectedArea) =>
-				AreaSelectRequested?.Invoke(this, selectedArea);
-			item.HoverStarted += (_, hoveredArea) =>
-				AreaHoverStarted?.Invoke(this, hoveredArea);
-			item.HoverEnded += (_, hoveredArea) =>
-				AreaHoverEnded?.Invoke(this, hoveredArea);
-			item.DeleteRequested += (_, areaToDelete) =>
-				AreaDeleteRequested?.Invoke(this, areaToDelete);
-			item.NotebookRequested += (_, areaForNotebook) =>
-				AreaNotebookRequested?.Invoke(this, areaForNotebook);
-			AreaContainer.Children.Add(item);
-		}
 	}
 
 	/// <summary>
-	///		Auto-expands this item and fires <see cref="SelectRequested"/>.
+	///		Expands this item and fires <see cref="SelectRequested"/>.
 	///		Called after a new floor is added, so the new row is open and selected; naming it
 	///		happens in the notebook, which the user opens from the row.
 	/// </summary>
 	public void FocusNameEditor()
 	{
-		if (!_isExpanded)
-		{
-			SetExpanded(true);
-		}
-
+		IsExpanded = true;
 		SelectRequested?.Invoke(this, EventArgs.Empty);
 	}
 
 	/// <summary>
-	///		Collapses this item without firing <see cref="SelectRequested"/>.
-	///		Called by the page to enforce single-selection behaviour.
-	/// </summary>
-	public void Deselect() =>
-		SetExpanded(false);
-
-	/// <summary>
-	///		Restores this item to the expanded state after a list rebuild.
-	/// </summary>
-	public void Select() =>
-		SetExpanded(true);
-
-	/// <summary>
-	///		Sets the editing visual state for a child area item by ID.
+	///		Sets the selected visual state for a child area row by ID.
+	///		A thin wrapper over the child's own <see cref="AreaSidebarItem.IsSelected"/>: the rows are
+	///		generated by the area list's item template, so the page has no handle on them and this
+	///		control is the only thing that can reach one by area ID.
 	/// </summary>
 	public void SetAreaEditing(Guid areaId, bool editing)
 	{
@@ -213,32 +276,46 @@ public partial class FloorSidebarItem : ContentView
 		{
 			if (child is AreaSidebarItem item && item.Area?.Id == areaId)
 			{
-				item.SetEditing(editing);
+				item.IsSelected = editing;
 				return;
 			}
 		}
 	}
 
-	private void SetExpanded(bool expanded)
+	// The glyph IS the expanded state, so the description moves with it; both are CONTENT rather
+	// than appearance, which is why they stay here while the colours live in the XAML's
+	// FloorStates group. The three IsVisible toggles this method used to perform are bindings on
+	// IsExpanded now.
+	private void ApplyExpanded()
 	{
-		_isExpanded = expanded;
+		var expanded = IsExpanded;
+
 		ExpandToggle.Text = expanded ? "▾" : "▸";
 
-		// The glyph IS the state, so the description moves with it. Set here rather than in XAML
-		// for the same reason the glyph is.
 		SemanticProperties.SetDescription(
 			ExpandToggle,
 			expanded
 				? "Expanded"
 				: "Collapsed");
 
-		AreaSeparator.IsVisible = expanded;
-		AreaContainer.IsVisible = expanded;
-		AddAreaButton.IsVisible = expanded;
-
-		FloorBorder.BackgroundColor = expanded ? SurfaceActive : SurfaceNormal;
-		FloorBorder.Stroke = expanded ? BorderActive : BorderNormal;
+		UpdateVisualState();
 	}
+
+	/// <summary>
+	///		Selects the visual state that the current expanded, drag-over and hover flags together
+	///		mean. This method is the ONE owner of that decision: the states themselves say what each
+	///		looks like, and nothing else in this control writes a colour.
+	/// </summary>
+	private void UpdateVisualState() =>
+		VisualStateManager.GoToState(
+			FloorBorder,
+			IsExpanded
+				? ExpandedState
+				: _isDragOver
+					? DragOverState
+					: _isHovered
+						? HoveredState
+						: NormalState);
 
 	// Card tap expands when collapsed, or fires SelectRequested when already expanded.
 	// The page uses SelectRequested to exit area context when the floor card is re-tapped.
@@ -251,10 +328,7 @@ public partial class FloorSidebarItem : ContentView
 			return;
 		}
 
-		if (!_isExpanded)
-		{
-			SetExpanded(true);
-		}
+		IsExpanded = true;
 		SelectRequested?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -263,18 +337,14 @@ public partial class FloorSidebarItem : ContentView
 
 	private void OnPointerEntered(object? sender, PointerEventArgs e)
 	{
-		if (!_isExpanded)
-		{
-			FloorBorder.BackgroundColor = SurfaceHover;
-		}
+		_isHovered = true;
+		UpdateVisualState();
 	}
 
 	private void OnPointerExited(object? sender, PointerEventArgs e)
 	{
-		if (!_isExpanded)
-		{
-			FloorBorder.BackgroundColor = SurfaceNormal;
-		}
+		_isHovered = false;
+		UpdateVisualState();
 	}
 
 	private void OnDeleteClicked(object? sender, EventArgs e)
@@ -316,21 +386,26 @@ public partial class FloorSidebarItem : ContentView
 	{
 		e.AcceptedOperation = DataPackageOperation.Copy;
 		PlaceholderRequested?.Invoke(this, EventArgs.Empty);
-		FloorBorder.Stroke = BorderActive;
+
+		_isDragOver = true;
+		UpdateVisualState();
 	}
 
 	private void OnDragLeave(object? sender, DragEventArgs e)
 	{
 		// Do NOT clear the placeholder here. Removing it while the cursor moves
-		// into the adjacent placeholder triggers DragOver → DragLeave oscillation = stutter.
+		// into the adjacent placeholder triggers DragOver then DragLeave oscillation = stutter.
 		// The placeholder is cleared when the drag ends (DropCompleted).
-		FloorBorder.Stroke = _isExpanded ? BorderActive : BorderNormal;
+		_isDragOver = false;
+		UpdateVisualState();
 	}
 
 	private void OnDrop(object? sender, DropEventArgs e)
 	{
 		PlaceholderCleared?.Invoke(this, EventArgs.Empty);
-		FloorBorder.Stroke = _isExpanded ? BorderActive : BorderNormal;
+
+		_isDragOver = false;
+		UpdateVisualState();
 
 		if (Floor is null)
 		{

@@ -305,26 +305,31 @@ public class GeometryScaleTests
 	///		was defined by spec §3 and then guarded by nothing at all in either language, so every
 	///		literal below came through the whole migration unexamined.
 	///		<para>
-	///		THREE entries, of which TWO are C#. The comment this replaces said "the four C#
-	///		entries" of a list that has never had four C# entries: it had four ENTRIES, three of
-	///		them C#, and the XAML one was described in the very sentence before. Counted from the
-	///		initialiser below as it stands.
+	///		TWO entries, of which ONE is C#. This comment has been wrong about that number twice
+	///		already. It said "the four C# entries" of a list that had four ENTRIES, three of them
+	///		C#; it was corrected to "THREE entries, of which TWO are C#"; and that went stale in
+	///		turn when <c>AreaSidebarItem.xaml.cs</c> left. Counted from the initialiser below as it
+	///		stands rather than carried over from the last version of this sentence: two
+	///		<c>Relative(</c> calls, of which one names a <c>.cs</c> file. Recount it here on the
+	///		way past whenever an entry leaves.
 	///		</para>
 	///		<para>
 	///		The XAML entry is <c>DungeonDetailPage.xaml</c>, whose map-object glyphs are stroked at
 	///		<c>1.25</c> and <c>1.45</c> — values off the 1 / 1.5 / 2 ladder entirely, and the two
-	///		that most need a human decision rather than a mechanical snap. The two C# entries are
-	///		hairlines built imperatively, which the ladder already expresses; they are conversions
-	///		still to do rather than exemptions. <c>PaletteThumb.cs</c> was the third and was
-	///		converted when <c>DmTheme.StrokeHairline</c> was added, which is why it is gone from
-	///		here: <see cref="EveryGeometryAllowListEntryStillOffends"/> requires the entry and the
-	///		literal to leave in the same change.
+	///		that most need a human decision rather than a mechanical snap. The one C# entry is
+	///		<c>DungeonDetailPage.xaml.cs</c>, a hairline built imperatively, which the ladder
+	///		already expresses; it is a conversion still to do rather than an exemption.
+	///		<c>PaletteThumb.cs</c> and <c>AreaSidebarItem.xaml.cs</c> both left this list the same
+	///		way, and had to: <see cref="EveryGeometryAllowListEntryStillOffends"/> requires the
+	///		entry and the literal to leave in the same change. PaletteThumb went when
+	///		<c>DmTheme.StrokeHairline</c> was added; AreaSidebarItem went when its selected-border
+	///		stroke moved out of <c>SetEditing</c> and into a VisualStateManager setter reading
+	///		<c>DmStrokeHairline</c>, which left the file with no non-zero stroke literal at all.
 	///		</para>
 	/// </summary>
 	private static readonly HashSet<string> StrokePendingMigration =
 		new(StringComparer.OrdinalIgnoreCase)
 		{
-			Relative("Controls", "AreaSidebarItem", "AreaSidebarItem.xaml.cs"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
 		};

@@ -6,6 +6,9 @@
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     x:Class="DungeonMaster.App.Controls.AreaSidebarItem">
 
+    <!-- BackgroundColor, Stroke and StrokeThickness are stated as attributes because they are the
+         FIRST FRAME, before any visual state has been entered. From the first GoToState on, the
+         SelectionStates group below owns all three. -->
     <Border
         x:Name="ItemBorder"
         AutomationId="AreaRow"
@@ -14,6 +17,52 @@
         StrokeThickness="0"
         StrokeShape="Rectangle"
         Padding="{StaticResource DmPaddingTight}">
+
+        <!-- THE SELECTED AND HOVER APPEARANCE LIVES HERE AND NOWHERE ELSE (MASTER-098). It used to
+             be six code-behind assignments in SetEditing and the two hover handlers, driven by a
+             private bool that no theme dictionary could see, let alone reach.
+
+             The group is named SelectionStates rather than CommonStates on purpose: MAUI drives
+             CommonStates itself, and its automatic PointerOver would outrank Selected whenever the
+             pointer rested on the focused row. UpdateVisualState in the code-behind is the single
+             owner of the transition and states the precedence once: Selected, then Hovered, then
+             Normal. That is what the two "if (!_isSelected)" guards used to say twice.
+
+             Stroke takes DmAreaSelectedBorder, which is a Color rather than a Brush.
+             BindableProperty.TryConvert widens Color to Brush (measured and recorded in
+             TokenTypeMatchesTargetPropertyTests), which is why the old "new SolidColorBrush(...)"
+             wrapper is gone rather than moved.
+
+             Every state sets all three properties. A state that named only some of them would let
+             MAUI restore the rest to the attributes above on entry, which is the class of bug the
+             two mechanisms driving one property used to produce. -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="SelectionStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="Transparent" />
+                            <Setter Property="Stroke" Value="Transparent" />
+                            <Setter Property="StrokeThickness" Value="0" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Hovered">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmGoldHoverTint}" />
+                            <Setter Property="Stroke" Value="Transparent" />
+                            <Setter Property="StrokeThickness" Value="0" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Selected">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmAreaSelectedTint}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmAreaSelectedBorder}" />
+                            <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
 
         <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 

@@ -793,7 +793,7 @@ public partial class DungeonDetailPage : ContentPage
 				if (_editor.SelectedFloorId == floor.Id)
 				{
 					_editor.SelectedFloorId = null;
-					item.Deselect();
+					item.IsExpanded = false;
 					ResetDrawState();
 					RefreshMap();
 
@@ -863,7 +863,10 @@ public partial class DungeonDetailPage : ContentPage
 				}
 			};
 
-			item.AreaSelectRequested += (_, area) =>
+			// The five area commands are set on the floor item and read straight off it by each
+			// area row's template binding (MASTER-099). They used to be five subscriptions to
+			// five FloorSidebarItem events that existed only to re-raise the area row's own.
+			item.AreaSelectCommand = new Command<AreaItem>(area =>
 			{
 				if (_editor.FocusedAreaId == area.Id)
 				{
@@ -872,23 +875,23 @@ public partial class DungeonDetailPage : ContentPage
 				}
 
 				FocusArea(floor.Id, area);
-			};
+			});
 
-			item.AreaHoverStarted += (_, area) =>
+			item.AreaHoverStartedCommand = new Command<AreaItem>(area =>
 			{
 				_drawable.HoveredAreaId = area.Id;
 				MapCanvas.Invalidate();
-			};
+			});
 
-			item.AreaHoverEnded += (_, _) =>
+			item.AreaHoverEndedCommand = new Command<AreaItem>(_ =>
 			{
 				_drawable.HoveredAreaId = null;
 				MapCanvas.Invalidate();
-			};
+			});
 
 			// Sidebar delete is the only way to remove an area with an empty outline —
 			// the Erase tool needs outline geometry to hit-test against.
-			item.AreaDeleteRequested += async (_, areaToDelete) =>
+			item.AreaDeleteCommand = new Command<AreaItem>(async areaToDelete =>
 			{
 				// async void lambda: the try opens before the first await so nothing escapes.
 				try
@@ -899,7 +902,7 @@ public partial class DungeonDetailPage : ContentPage
 				{
 					_viewModel.ErrorMessage = $"Could not delete that area: {exception.Message}";
 				}
-			};
+			});
 
 			item.NotebookRequested += (_, floorForNotebook) =>
 				Notebook.Open(new NotebookTarget(
@@ -910,20 +913,20 @@ public partial class DungeonDetailPage : ContentPage
 					floorForNotebook.Description,
 					floorForNotebook.Notes));
 
-			item.AreaNotebookRequested += (_, areaForNotebook) =>
+			item.AreaNotebookCommand = new Command<AreaItem>(areaForNotebook =>
 				Notebook.Open(new NotebookTarget(
 					areaForNotebook.Id,
 					floor.Id,
 					NotebookKind.Area,
 					areaForNotebook.Name,
 					areaForNotebook.Description,
-					areaForNotebook.Notes));
+					areaForNotebook.Notes)));
 
 			FloorListContainer.Children.Add(item);
 
 			if (floor.Id == _editor.SelectedFloorId)
 			{
-				item.Select();
+				item.IsExpanded = true;
 			}
 		}
 
@@ -2157,7 +2160,7 @@ public partial class DungeonDetailPage : ContentPage
 		{
 			if (child is FloorSidebarItem other && !ReferenceEquals(other, except))
 			{
-				other.Deselect();
+				other.IsExpanded = false;
 			}
 		}
 	}
