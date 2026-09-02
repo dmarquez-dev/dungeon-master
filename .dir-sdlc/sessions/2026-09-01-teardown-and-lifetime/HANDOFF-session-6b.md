@@ -1,12 +1,12 @@
 # Handoff — Session 6b, "Rebuild the App sub-suite and de-duplicate the fixtures"
 
-Written 2026-09-02, after Session 6a merged into `chore/repo-audit`. **Every figure below was measured on 2026-09-02 with the command shown, in the main checkout at `45bab59`.** Where something is inherited rather than measured, it says so.
+Written 2026-09-02, after Session 6a merged into `chore/repo-audit`. **Every figure below was measured on 2026-09-02 with the command shown, in the main checkout at `8167b84`.** Where something is inherited rather than measured, it says so.
 
 > **Read this first.** Session 6a found **five defects in its own acceptance criteria** and **three tests that could pass while asserting nothing**. Not one was caught by reading or reasoning — every single one was caught by an agent running the check and looking at what came back. Treat this document the same way. It is a starting point for measurement, not a substitute for it.
 
 ## Where things stand
 
-`chore/repo-audit` at **`45bab59`** (the 6a merge commit). **Not pushed** — the user was asked separately and that decision is recorded in `.dir-sdlc/log.md`. Main checkout clean and verified there, not only in the worktree:
+`chore/repo-audit` at **`8167b84`** — the 6a merge is `45bab59`, and `8167b84` is the artifact commit on top of it. **Pushed** to `origin` on 2026-09-02: `origin/chore/repo-audit` is at `8167b84`, range `e31d9f1..8167b84`, nine commits. The session worktree was removed; branch `dir/2026-09-01-teardown-and-lifetime` was kept, since the review files cite it. There is **no project-level `.dir-sdlc/log.md`** in this repository — the session log is `.dir-sdlc/sessions/2026-09-01-teardown-and-lifetime/log.md`, and it records every gate, dispatch and escalation. Main checkout clean and verified there, not only in the worktree:
 
 ```
 dotnet build src/DungeonMaster.sln        Build succeeded.   0 Warning(s)   0 Error(s)
@@ -32,9 +32,9 @@ dotnet test src/DungeonMaster.sln --no-build
 
 **The construction boundary, corrected.** The previous handoff attributed the no-host failure to `ContentView`. It is one level lower: **`Microsoft.Maui.Controls.Element`'s static constructor**. `BoxView` and even `Element.AutomationIdProperty` fail identically without a started WinUI `Application`. Full record: `spike-host-report.md` in this directory.
 
-## Your scope — 25 entries
+## Your scope — 26 entries
 
-From `docs/audit/00-master-index.md`, the Session 6b section. Session 6's original 29 minus the five 6a closed, plus `MASTER-167` assigned here at Session 6's Gate 1.
+From `docs/audit/00-master-index.md`, the Session 6b section. **Count it yourself before quoting it** — the first draft of this handoff said 25, and was wrong. The arithmetic: Session 6's declared list held **29**; 6a closed five entries but only **four of them were on that list** (`MASTER-006`, `013`, `055`, `062`), because `MASTER-160` was never in it — it came in at Gate 1 as an accepted addition. So 29 − 4 = 25, plus `MASTER-167` assigned here at Session 6's Gate 1 = **26**, confirmed by extracting every `MASTER-\d+` from the Entries line and counting: 26 ids, no duplicates.
 
 `MASTER-008`, `014`, `020`, `028`, `040`, `041`, `042`, `063`, `064`, `065`, `066`, `067`, `068`, `069`, `070`, `085`, `086`, `100`, `101`, `102`, `109`, `127`, `138`, `149`, `155`, `167`.
 
@@ -66,7 +66,7 @@ All the same trap: **an enumeration-based assertion over an empty collection**. 
 
 ## What 6b inherits in the backlog
 
-`.dir-sdlc/backlog.md` carries **four items dated 2026-09-02** from 6a, all four carried at Gate 3 by the user's decision, plus twelve older ones. The four:
+`.dir-sdlc/backlog.md` carries **four items dated 2026-09-02** from 6a, all four carried at Gate 3 by the user's decision (`grep -c '^- 2026-09-02' .dir-sdlc/backlog.md` → 4). Twelve older items sit in the two other `### For a later session` sections — five carried from 5b and re-deferred by 5c, seven from 5c. The file holds **45 dated items in total** across all its sections, most of them repository work and audit-document corrections rather than deferred session work, so do not quote 45 as "the backlog" without saying which section you mean. The four from 6a:
 
 - **`MauiHostFixture.InvokeAsync` has an implementer and no caller** — both overloads. Kept at Gate 2 as surface provisioned for a task that turned out not to need them. **6b either gives them a caller or removes them.**
 - **The enumeration-assertion trap**, with its three sites and the general rule.
@@ -104,7 +104,7 @@ All the same trap: **an enumeration-based assertion over an empty collection**. 
 
 ## Suggested shape
 
-25 entries is close to the size at which both Session 5 and Session 6 were split. **Take the split decision at Gate 1, before decomposition, not after.** A natural seam is the `MASTER-014` + `MASTER-065` fixture/schema unit against the broader `App/` sub-suite rebuild, with `MASTER-167` — an inverted `GreaterThanZeroConverter` sentinel, a plain class, host-free and directly testable — as its own small piece.
+26 entries is close to the size at which both Session 5 and Session 6 were split. **Take the split decision at Gate 1, before decomposition, not after.** A natural seam is the `MASTER-014` + `MASTER-065` fixture/schema unit against the broader `App/` sub-suite rebuild, with `MASTER-167` — an inverted `GreaterThanZeroConverter` sentinel, a plain class, host-free and directly testable — as its own small piece.
 
 Sequence the xunit-parallelism question early, the way 6a sequenced the host question: **whether two host-requiring test classes can coexist under one assembly-wide fixture determines how much of 6b's suite can use the host at all**, and 6a did not measure it.
 
