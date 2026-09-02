@@ -10,6 +10,16 @@
 		<EnableMsixTooling>false</EnableMsixTooling>
 		<DisableResizetizer>true</DisableResizetizer>
 		<AppxGeneratePriEnabled>false</AppxGeneratePriEnabled>
+		<!--
+			Required by the in-process WinUI application host in Hosting/MauiHostFixture.cs.
+			The Windows App SDK injects its bootstrap initializer only for OutputType=Exe, so a
+			test library loaded by testhost.exe has to opt in explicitly. Without it the SDK
+			runtime is never loaded, DispatcherQueue.GetForCurrentThread throws
+			"ClassFactory cannot supply requested class", and VSTest reports only
+			"Test host process crashed".
+			https://learn.microsoft.com/windows/apps/windows-app-sdk/use-windows-app-sdk-run-time#behind-the-scenes,-and-opting-out-of-auto-initializers
+		-->
+		<WindowsAppSdkBootstrapInitialize>true</WindowsAppSdkBootstrapInitialize>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -28,5 +38,38 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DungeonMaster.App\DungeonMaster.App.csproj" />
 	</ItemGroup>
+
+	<!--
+		WinUI resolves the application's PRI by the PROCESS executable name, and under `dotnet test`
+		the process is testhost.exe. Without a testhost.pri beside it, MauiWinUIApplication.OnLaunched
+		fails inside `new XamlControlsResources()` with "Cannot find a resource with the given key:
+		AcrylicBackgroundFillColorDefaultBrush" and the test host process crashes.
+
+		This copy is a build step on purpose: the spike that established the host recipe did it by
+		hand on every run, which makes nothing resting on the host checkable twice.
+
+		Brittleness worth knowing: the destination name tracks the runner's executable. A different
+		runner (Microsoft.Testing.Platform, for instance) would need a different name. Microsoft
+		documents a different supported shape - an OutputType=Exe self-hosted WinUI test app under
+		MTP - and states that "VSTest doesn't support this unpackaged WinUI configuration"
+		(https://learn.microsoft.com/dotnet/core/testing/unit-testing-mstest-winui#configure-an-unpackaged-test-app).
+		It was measured to work here under VSTest regardless; this is off the documented path.
+	-->
+	<Target Name="CopyAppPriForTestHost" AfterTargets="Build">
+		<Copy
+			SourceFiles="$(OutDir)DungeonMaster.App.pri"
+			DestinationFiles="$(OutDir)testhost.pri"
+			SkipUnchangedFiles="true" />
+	</Target>
+
+	<!--
+		The copy above runs after IncrementalClean has already written its file list, so recording
+		it as a FileWrites output does not get it removed (measured: it survived `dotnet clean`).
+		Deleting it explicitly keeps a stale copy from making a later build's success look like
+		this target's work when it is not.
+	-->
+	<Target Name="RemoveTestHostPriOnClean" AfterTargets="Clean">
+		<Delete Files="$(OutDir)testhost.pri" />
+	</Target>
 
 </Project>
