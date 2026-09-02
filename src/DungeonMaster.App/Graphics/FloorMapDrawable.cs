@@ -95,12 +95,20 @@ public readonly record struct FloorMapPalette(
 ///     <c>Dictionary</c> is invisible to the drawable, so a caller that forgot to call
 ///     <c>Invalidate()</c> afterwards left a stale frame with nothing to catch it.
 /// </remarks>
-public sealed class FloorMapDrawable : IDrawable
+public sealed class FloorMapDrawable : IDrawable, IDisposable
 {
 	// Colours are read from DmTheme at draw time, never cached in a static field: see DmTheme's
 	// remarks and the guard test NoEagerDmThemeRead. _paletteSource holds FloorMapPalette.FromTheme
 	// as a METHOD GROUP — building the delegate reads nothing; the read happens when Draw invokes it.
 	private readonly Func<FloorMapPalette> _paletteSource;
+
+	// The two halves of the asset load, declared once here rather than called directly from
+	// PreloadObjectImagesAsync, so a test can hand in a stream it controls and an IImage whose
+	// Dispose() it can observe. Production passes the platform calls this file used to make inline,
+	// so there is exactly one load path and the tests exercise it.
+	private readonly Func<string, Task<Stream>> _streamSource;
+
+	private readonly Func<Stream, Microsoft.Maui.Graphics.IImage> _imageFactory;
 
 	private readonly Dictionary<ObjectKind, Microsoft.Maui.Graphics.IImage?> _imageCache = new();
 
@@ -127,8 +135,8 @@ public sealed class FloorMapDrawable : IDrawable
 	}
 
 	/// <summary>
-	///     Initializes a new instance that reads its colours from <paramref name="paletteSource"/>.
-	///     The source is invoked once per <see cref="Draw"/> call.
+	///     Initializes a new instance that reads its colours from <paramref name="paletteSource"/> and
+	///     loads its object images from the app package.
 	/// </summary>
 	/// <param name="paletteSource">
 	///     Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
@@ -137,8 +145,75 @@ public sealed class FloorMapDrawable : IDrawable
 	///     host, cannot create.
 	/// </param>
 	/// <exception cref="ArgumentNullException"><paramref name="paletteSource"/> is null.</exception>
-	public FloorMapDrawable(Func<FloorMapPalette> paletteSource) =>
+	public FloorMapDrawable(Func<FloorMapPalette> paletteSource)
+		: this(paletteSource, FileSystem.OpenAppPackageFileAsync, stream => PlatformImage.FromStream(stream))
+	{
+	}
+
+	/// <summary>
+	///     Initializes a new instance from all three of its seams. The palette source is invoked once
+	///     per <see cref="Draw"/> call; the other two are invoked once per kind by
+	///     <see cref="PreloadObjectImagesAsync"/>.
+	/// </summary>
+	/// <param name="paletteSource">
+	///     Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
+	///     resolve a theme at a call site. Tests pass a fixed palette because <see cref="DmTheme"/>
+	///     needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
+	///     host, cannot create.
+	/// </param>
+	/// <param name="streamSource">
+	///     Takes an app-package-relative asset path and yields the stream to decode. Defaults to
+	///     <c>FileSystem.OpenAppPackageFileAsync</c>.
+	/// </param>
+	/// <param name="imageFactory">
+	///     Decodes an open stream into an image the drawable then owns. Defaults to
+	///     <c>PlatformImage.FromStream</c>. Together with <paramref name="streamSource"/> this is what
+	///     makes disposal observable without a MAUI host: a real <c>PlatformImage</c> cannot be asked
+	///     whether it was disposed, and it cannot be decoded at all outside a host.
+	/// </param>
+	/// <exception cref="ArgumentNullException">Any argument is null.</exception>
+	public FloorMapDrawable(
+		Func<FloorMapPalette> paletteSource,
+		Func<string, Task<Stream>> streamSource,
+		Func<Stream, Microsoft.Maui.Graphics.IImage> imageFactory)
+	{
 		_paletteSource = paletteSource ?? throw new ArgumentNullException(nameof(paletteSource));
+		_streamSource = streamSource ?? throw new ArgumentNullException(nameof(streamSource));
+		_imageFactory = imageFactory ?? throw new ArgumentNullException(nameof(imageFactory));
+	}
+
+	/// <summary>
+	///     True once <see cref="Dispose"/> has run. Never returns to false.
+	/// </summary>
+	/// <remarks>
+	///     Public, rather than a private field, because the owner that disposes this drawable is not
+	///     the type that can observe it: the page teardown path (UIKIT-001 / MASTER-013) needs a
+	///     disposal signal it can assert on from outside.
+	/// </remarks>
+	public bool IsDisposed { get; private set; }
+
+	/// <summary>
+	///     Releases every cached object image. This is the teardown half of UIKIT-001 / MASTER-013:
+	///     the handles this drawable decoded are owned by it, and nothing else releases them.
+	/// </summary>
+	/// <remarks>
+	///     Idempotent, and never throws. After it runs the drawable stays usable in the degraded sense
+	///     the framework needs: <see cref="Draw"/> paints the missing-object placeholder and
+	///     <see cref="PreloadObjectImagesAsync"/> loads nothing. Neither raises
+	///     <see cref="ObjectDisposedException"/> — the framework can drive a drawable after the page
+	///     that owned it is gone, and turning that into an exception would convert a leak into a crash.
+	/// </remarks>
+	public void Dispose()
+	{
+		if (IsDisposed)
+			return;
+
+		IsDisposed = true;
+
+		// Same per-entry swallow as ClearObjectImageCache, and for the same reason: one failing
+		// native release must not strand the remaining handles.
+		ClearObjectImageCache();
+	}
 
 	/// <summary>
 	///     Raised when a change to this drawable's state means the painted frame is now out of
@@ -158,11 +233,9 @@ public sealed class FloorMapDrawable : IDrawable
 	///     Disposes every cached object image and clears the cache so assets reload from the active pack.
 	/// </summary>
 	/// <remarks>
-	///     Disposal here is not the fix for the cached-image lifetime defect (UIKIT-001 / MASTER-013),
-	///     which is still open: nothing releases these handles when the owning page is torn down.
-	///     It is here only so that PreloadObjectImagesAsync, which fills an entry for every kind the
-	///     active pack declares rather than only the kinds actually drawn, does not make that open
-	///     defect worse on every pack change.
+	///     This is the pack-change release; <see cref="Dispose"/> is the teardown release. It does not
+	///     set <see cref="IsDisposed"/>: the cache may be refilled afterwards, which is the whole point
+	///     of calling it on a pack change. Calling it after <see cref="Dispose"/> is a no-op.
 	/// </remarks>
 	public void ClearObjectImageCache()
 	{
@@ -195,6 +268,10 @@ public sealed class FloorMapDrawable : IDrawable
 	/// </remarks>
 	public async Task PreloadObjectImagesAsync()
 	{
+		// Not an ObjectDisposedException: see the remarks on Dispose.
+		if (IsDisposed)
+			return;
+
 		foreach (var (kind, path) in ObjectAssetCatalogue.Paths)
 		{
 			// A cached non-null image is already decoded. A cached null is a previous failed attempt
@@ -202,10 +279,29 @@ public sealed class FloorMapDrawable : IDrawable
 			if (_imageCache.TryGetValue(kind, out var cached) && cached is not null)
 				continue;
 
+			// MASTER-160: decoded into a LOCAL, and only assigned into the cache once the stream is
+			// closed. The old shape was `using var stream = ...; cache[kind] = factory(stream);`,
+			// where a stream that threw on close after a successful decode left the catch below
+			// overwriting a live, undisposed handle with null. Holding the image here means the catch
+			// still owns it and can release it. `decoded` is nulled the instant the cache takes
+			// ownership, so the catch never disposes an image the cache is still holding.
+			Microsoft.Maui.Graphics.IImage? decoded = null;
+
 			try
 			{
-				using var stream = await FileSystem.OpenAppPackageFileAsync(path);
-				_imageCache[kind] = PlatformImage.FromStream(stream);
+				var stream = await _streamSource(path);
+
+				try
+				{
+					decoded = _imageFactory(stream);
+				}
+				finally
+				{
+					stream.Dispose();
+				}
+
+				_imageCache[kind] = decoded;
+				decoded = null;
 			}
 			catch
 			{
@@ -213,6 +309,16 @@ public sealed class FloorMapDrawable : IDrawable
 				// kind renders as the existing missing-object placeholder ("?") until a later call
 				// succeeds. On Windows this also catches the Win2D "No resource creator" exception
 				// raised when the GraphicsView handler is not yet ready.
+				try
+				{
+					decoded?.Dispose();
+				}
+				catch
+				{
+					// Per entry, as everywhere else in this file: a failing native release must not
+					// abort the remaining kinds.
+				}
+
 				_imageCache[kind] = null;
 			}
 		}
