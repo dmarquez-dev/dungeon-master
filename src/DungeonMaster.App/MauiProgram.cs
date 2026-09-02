@@ -16,6 +16,21 @@ namespace DungeonMaster.App;
 public static class MauiProgram
 {
 	/// <summary>
+	///		Overrides the SQLite file the application migrates and opens. Set before the WinUI
+	///		application starts; read once, inside <see cref="CreateMauiApp"/>. Null, empty or
+	///		whitespace leaves the default location under
+	///		<see cref="Environment.SpecialFolder.LocalApplicationData"/> untouched.
+	/// </summary>
+	/// <remarks>
+	///		A process-wide static rather than a parameter because the only call site is
+	///		<c>MauiWinUIApplication.CreateMauiApp()</c>, which takes none. Single-writer: the test
+	///		host fixture sets it before <c>Application.Start</c> and nothing writes it afterwards.
+	///		It is a declared configuration value, not one inferred from an environment name or an
+	///		environment variable.
+	/// </remarks>
+	public static string? DatabasePathOverride { get; set; }
+
+	/// <summary>
 	///		Creates and configures the <see cref="MauiApp"/> instance with all required services.
 	/// </summary>
 	/// <returns>
@@ -113,11 +128,18 @@ public static class MauiProgram
 #endif
 			});
 
-		var dbFolder = Path.Combine(
-			Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			"DungeonMaster");
+		// DatabasePathOverride is read exactly once, here, where the connection string is built.
+		// Setting it after CreateMauiApp has returned has no effect.
+		var databasePathOverride = DatabasePathOverride;
 
-		var dbPath = Path.Combine(dbFolder, "dungeon-master.db");
+		var dbPath = string.IsNullOrWhiteSpace(databasePathOverride)
+			? Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+				"DungeonMaster",
+				"dungeon-master.db")
+			: databasePathOverride;
+
+		var dbFolder = Path.GetDirectoryName(dbPath);
 		var connectionString = $"Data Source={dbPath}";
 
 		builder.Services.AddApplicationServices();
@@ -152,7 +174,12 @@ public static class MauiProgram
 
 		try
 		{
-			Directory.CreateDirectory(dbFolder);
+			// Null or empty only when the database path is a filesystem root, which the default
+			// path never is; there is then no folder to create.
+			if (!string.IsNullOrEmpty(dbFolder))
+			{
+				Directory.CreateDirectory(dbFolder);
+			}
 
 			startupStep = "applying database migrations";
 

@@ -42,7 +42,9 @@ public partial class DungeonDetailPage : ContentPage
 	private FloorSidebarItem? _currentPlaceholderTarget;
 	private bool _placeholderAfterTarget;
 
-	private readonly CanvasLongPressDetector _longPressDetector = new();
+	// Constructed in the page constructor rather than initialized here: its timer is built on this
+	// page's Dispatcher, which is an instance member (UIKIT-017 / MASTER-062).
+	private readonly CanvasLongPressDetector _longPressDetector;
 
 	private KeyboardBehavior? _keyboardBehavior;
 
@@ -58,6 +60,11 @@ public partial class DungeonDetailPage : ContentPage
 		InitializeComponent();
 		_viewModel = viewModel;
 		_drawable = new FloorMapDrawable();
+
+		// The tick arrives on this page's dispatcher thread, so the detector's press flag is
+		// written and read on one thread and no MainThread hop is needed inside the handler.
+		_longPressDetector = new CanvasLongPressDetector(new DispatcherLongPressTimer(Dispatcher));
+
 		BindingContext = viewModel;
 
 		MapCanvas.Drawable = _drawable;
@@ -307,6 +314,13 @@ public partial class DungeonDetailPage : ContentPage
 		{
 			DetachRuntimeHandlers();
 			_longPressDetector.Dispose();
+
+			// UIKIT-001 / MASTER-013: the drawable owns every decoded object image, each of which
+			// wraps a native bitmap. The page created it and nothing else holds it, so this is
+			// where the handles are released. Dispose() is idempotent and never throws, and the
+			// drawable stays drawable afterwards - it paints placeholders rather than failing if
+			// the framework drives it again.
+			_drawable.Dispose();
 		}
 	}
 
@@ -505,8 +519,16 @@ public partial class DungeonDetailPage : ContentPage
 	private void AttachScrollZoom()
 	{
 #if WINDOWS
-		if (MapCanvas.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement el)
-			el.PointerWheelChanged += OnMapScrollWheel;
+		// UI-018 / MASTER-055: the native element is captured at subscribe time so the unsubscribe
+		// below cannot depend on MapCanvas.Handler still resolving. Nothing orders the canvas
+		// handler's disconnect against the page's own, and a re-resolve that comes back null
+		// unsubscribes nothing while the element goes on holding the delegate.
+		_scrollZoomSubscription ??= new DungeonMaster.App.Core.Interop.CapturedSubscription<Microsoft.UI.Xaml.FrameworkElement>(
+			() => MapCanvas.Handler?.PlatformView as Microsoft.UI.Xaml.FrameworkElement,
+			element => element.PointerWheelChanged += OnMapScrollWheel,
+			element => element.PointerWheelChanged -= OnMapScrollWheel);
+
+		_scrollZoomSubscription.Attach();
 #elif MACCATALYST
 		// On macCatalyst the MAUI PinchGestureRecognizer is mapped to a UIPinchGestureRecognizer
 		// and fires on both trackpad pinch and mouse scroll-wheel zoom (treated as pinch by UIKit).
@@ -526,8 +548,9 @@ public partial class DungeonDetailPage : ContentPage
 	private void DetachScrollZoom()
 	{
 #if WINDOWS
-		if (MapCanvas.Handler?.PlatformView is Microsoft.UI.Xaml.FrameworkElement el)
-			el.PointerWheelChanged -= OnMapScrollWheel;
+		// Unsubscribes from the captured element and clears it. Deliberately does NOT read
+		// MapCanvas.Handler?.PlatformView: that re-resolve is the defect UI-018 records.
+		_scrollZoomSubscription?.Detach();
 #elif MACCATALYST
 		if (_pinchGesture is not null)
 		{
@@ -539,6 +562,10 @@ public partial class DungeonDetailPage : ContentPage
 	}
 
 #if WINDOWS
+	// The one scroll-zoom subscription, created on first attach and reused across the
+	// detach/attach pairs the page runs whenever the canvas handler changes.
+	private DungeonMaster.App.Core.Interop.CapturedSubscription<Microsoft.UI.Xaml.FrameworkElement>? _scrollZoomSubscription;
+
 	private void OnMapScrollWheel(object sender,
 		Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
 	{
