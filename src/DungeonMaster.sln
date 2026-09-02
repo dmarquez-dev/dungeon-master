@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMaster.App.Core", "D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMaster.App.Tests", "DungeonMaster.App.Tests\DungeonMaster.App.Tests.csproj", "{2B731BBC-9A39-46AB-9C2C-6EE27148B579}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonMaster.App.UnitTests", "DungeonMaster.App.UnitTests\DungeonMaster.App.UnitTests.csproj", "{B4B23A77-4818-48A8-BBDF-B5DCA537B019}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{2B731BBC-9A39-46AB-9C2C-6EE27148B579}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B731BBC-9A39-46AB-9C2C-6EE27148B579}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B731BBC-9A39-46AB-9C2C-6EE27148B579}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4B23A77-4818-48A8-BBDF-B5DCA537B019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4B23A77-4818-48A8-BBDF-B5DCA537B019}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4B23A77-4818-48A8-BBDF-B5DCA537B019}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4B23A77-4818-48A8-BBDF-B5DCA537B019}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

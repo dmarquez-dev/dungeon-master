@@ -1,7 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-windows10.0.19041.0;net10.0-maccatalyst</TargetFrameworks>
+		<!-- The plain net10.0 TFM carries no platform. It exists so a platform-less test project
+		     (src/DungeonMaster.App.UnitTests) can reference this project and construct MAUI types
+		     without a WinUI host: on a platform-less TFM the WinUI handler assembly is not in play
+		     and the Element static constructor that walls off net10.0-windows never fires. It is
+		     never shipped and never run — see the conditional OutputType below. -->
+		<TargetFrameworks>net10.0;net10.0-windows10.0.19041.0;net10.0-maccatalyst</TargetFrameworks>
 
 		<!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -10,7 +15,23 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
-		<OutputType>Exe</OutputType>
+		<!-- The two platform TFMs still emit DungeonMaster.App.exe. The plain net10.0 TFM emits a
+		     library only: it has no platform entry point to be an executable for, and asking for
+		     one produces an app host that nothing can run. -->
+		<OutputType Condition="'$(TargetFramework)' != 'net10.0'">Exe</OutputType>
+
+		<!-- CA1416 on the plain net10.0 TFM only. CommunityToolkit.Maui ships a net10.0 lib, but
+		     its members carry SupportedOSPlatform attributes, so the single unguarded
+		     UseMauiCommunityToolkit() call in MauiProgram.cs is CA1416 from a platform-neutral
+		     TFM — and TreatWarningsAsErrors makes that an error.
+
+		     COST, stated because it is real: this suppresses CA1416 project-wide for the plain
+		     TFM, so a future unguarded platform call will not be reported on it. The two shipping
+		     TFMs keep the rule at full strength, which is where a real platform mistake matters.
+		     A narrower alternative — an #if / SupportedOSPlatform guard at that one MauiProgram.cs
+		     call site — exists and was not taken; it would put platform conditionals into the app
+		     entry point to serve a TFM that only tests use. -->
+		<NoWarn Condition="'$(TargetFramework)' == 'net10.0'">$(NoWarn);CA1416</NoWarn>
 		<RootNamespace>DungeonMaster.App</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>

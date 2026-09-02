@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- Plain net10.0, and deliberately NO UseMaui. This project resolves DungeonMaster.App to
+		     that project's plain net10.0 TFM, which is what lets Element-derived types construct
+		     here with no WinUI host: the Element static constructor that walls off
+		     net10.0-windows never fires on a platform-less TFM.
+
+		     This project exists so that DungeonMaster.Tests does not have to reference
+		     DungeonMaster.App. That reference imports 18 MAUI global usings transitively and
+		     leaves Application, Element, Color, Page and View ambient in a 640-test project. See
+		     contracts/build-file-ownership.md section 4. -->
+		<TargetFramework>net10.0</TargetFramework>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Every one of these already carries a PackageVersion in the root
+		     Directory.Packages.props. This project adds none, and does not edit that file. -->
+		<PackageReference Include="coverlet.collector" />
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DungeonMaster.App\DungeonMaster.App.csproj" />
+	</ItemGroup>
+
+</Project>
