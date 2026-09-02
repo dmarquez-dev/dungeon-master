@@ -64,12 +64,27 @@ public sealed class MauiHostFixtureTests(MauiHostFixture host, ITestOutputHelper
 
 	/// <summary>
 	///		The host survives startup only because unhandled exceptions on the WinUI dispatcher are
-	///		marked handled. This test is the guard against that becoming a blanket mask: every one
-	///		is recorded, carries a type and a message, and is written to the test output so a later
-	///		startup regression is diagnosable instead of silent.
+	///		marked handled. Whatever the recorder holds is written to the test output, with its type
+	///		and its message, so a later startup regression is diagnosable instead of silent.
 	/// </summary>
-	[Fact]
-	public void EveryExceptionTheHostMarksHandledIsRecordedWithATypeAndAMessage()
+	/// <remarks>
+	///		<para>
+	///			The old name - <c>EveryExceptionTheHostMarksHandledIsRecordedWithATypeAndAMessage</c> -
+	///			promised a guarantee this test does not give. Its assertions sit inside a loop over
+	///			<c>HandledExceptions</c>, which is empty in a healthy run, so it executes no assertion
+	///			at all. The name now states only the conditional claim it can establish.
+	///		</para>
+	///		<para>
+	///			It deliberately does NOT assert the recorder is non-empty. The parallelism spike
+	///			measured (Q5, 3 of 3 runs) that an exception raised from a dispatcher callback
+	///			fail-fasts the whole test host process and never reaches the recorder, so a non-empty
+	///			guard here would be a test that cannot pass. contracts/anti-vacuity.md section 4.2.
+	///		</para>
+	/// </remarks>
+	[Fact(DisplayName =
+		"Any exception the host recorded as handled carries a type and a message "
+		+ "(inert while the recorder is empty, which is the healthy state)")]
+	public void AnyExceptionTheHostRecordedAsHandledCarriesATypeAndAMessage()
 	{
 		var handled = host.HandledExceptions;
 

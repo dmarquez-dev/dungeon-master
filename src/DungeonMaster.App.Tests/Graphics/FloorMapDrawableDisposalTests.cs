@@ -141,6 +141,7 @@ public class FloorMapDrawableDisposalTests
 		using var harness = new Harness();
 		await harness.Drawable.PreloadObjectImagesAsync();
 
+		Assert.NotEmpty(harness.Assets.Decoded);
 		Assert.Equal(ObjectCatalogueScope.ShippedPackKinds.Count, harness.Assets.Decoded.Count);
 		Assert.All(harness.Assets.Decoded, image =>
 			Assert.Equal(0, image.DisposeCount));
@@ -163,6 +164,8 @@ public class FloorMapDrawableDisposalTests
 		await harness.Drawable.PreloadObjectImagesAsync();
 		harness.Drawable.Dispose();
 
+		Assert.NotEmpty(harness.Assets.Decoded);
+
 		harness.Drawable.Dispose();
 
 		Assert.All(harness.Assets.Decoded, image =>
@@ -179,6 +182,9 @@ public class FloorMapDrawableDisposalTests
 	{
 		using var harness = new Harness();
 		await harness.Drawable.PreloadObjectImagesAsync();
+
+		Assert.NotEmpty(harness.Assets.Decoded);
+
 		var failing = harness.Assets.Decoded[0];
 		failing.ThrowOnDispose = true;
 
@@ -197,6 +203,8 @@ public class FloorMapDrawableDisposalTests
 	{
 		using var harness = new Harness();
 		await harness.Drawable.PreloadObjectImagesAsync();
+
+		Assert.NotEmpty(harness.Assets.Decoded);
 
 		harness.Drawable.ClearObjectImageCache();
 
@@ -218,11 +226,18 @@ public class FloorMapDrawableDisposalTests
 
 		await harness.Drawable.PreloadObjectImagesAsync();
 
+		Assert.NotEmpty(harness.Assets.Decoded);
 		Assert.Equal(
 			ObjectCatalogueScope.ShippedPackKinds.Count * 2,
 			harness.Assets.Decoded.Count);
+
+		var refilled = harness.Assets.Decoded
+			.Skip(ObjectCatalogueScope.ShippedPackKinds.Count)
+			.ToList();
+
+		Assert.NotEmpty(refilled);
 		Assert.All(
-			harness.Assets.Decoded.Skip(ObjectCatalogueScope.ShippedPackKinds.Count),
+			refilled,
 			image => Assert.Equal(0, image.DisposeCount));
 	}
 

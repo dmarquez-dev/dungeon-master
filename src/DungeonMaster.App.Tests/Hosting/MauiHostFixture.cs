@@ -67,9 +67,8 @@ public sealed class MauiHostFixture : IDisposable
 	/// <summary>
 	///		Starts the host and blocks until <c>Microsoft.Maui.Controls.Application.Current</c> is
 	///		available or <see cref="StartupTimeout"/> elapses. A startup that does not complete is
-	///		reported from <see cref="Invoke(Action)"/>, <see cref="InvokeAsync(Func{Task})"/> and
-	///		<see cref="Resolve{TService}"/> rather than from here, so the failure reaches the test
-	///		that needed the host.
+	///		reported from <see cref="Invoke(Action)"/> and <see cref="Resolve{TService}"/> rather
+	///		than from here, so the failure reaches the test that needed the host.
 	/// </summary>
 	/// <exception cref="InvalidOperationException">
 	///		A second fixture is constructed in the same process.
@@ -203,56 +202,6 @@ public sealed class MauiHostFixture : IDisposable
 			failure?.Throw();
 
 			return result;
-		}
-		finally
-		{
-			_dispatchGate.Release();
-		}
-	}
-
-	/// <summary>Runs an asynchronous <paramref name="work"/> on the host's UI dispatcher.</summary>
-	public async Task InvokeAsync(Func<Task> work)
-	{
-		ArgumentNullException.ThrowIfNull(work);
-
-		await InvokeAsync(async () =>
-		{
-			await work().ConfigureAwait(true);
-
-			return true;
-		}).ConfigureAwait(false);
-	}
-
-	/// <summary>Runs an asynchronous <paramref name="work"/> on the host's UI dispatcher.</summary>
-	[SuppressMessage(
-		"Design",
-		"CA1031:Do not catch general exception types",
-		Justification = "The exception is handed to the awaiting caller through the completion source.")]
-	public async Task<T> InvokeAsync<T>(Func<Task<T>> work)
-	{
-		ArgumentNullException.ThrowIfNull(work);
-
-		var application = EnsureUp();
-
-		await _dispatchGate.WaitAsync().ConfigureAwait(false);
-
-		try
-		{
-			var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-
-			application.Dispatcher.Dispatch(async () =>
-			{
-				try
-				{
-					completion.SetResult(await work().ConfigureAwait(true));
-				}
-				catch (Exception exception)
-				{
-					completion.SetException(exception);
-				}
-			});
-
-			return await completion.Task.WaitAsync(WorkTimeout).ConfigureAwait(false);
 		}
 		finally
 		{
