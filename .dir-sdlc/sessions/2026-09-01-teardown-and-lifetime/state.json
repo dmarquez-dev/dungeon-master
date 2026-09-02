@@ -1,0 +1,217 @@
+{
+  "session": "2026-09-01-teardown-and-lifetime",
+  "updatedAt": "2026-09-02T02:15:00Z",
+  "phase": "merged",
+  "worktree": "C:\\dm-wt\\2026-09-01-teardown-and-lifetime",
+  "branch": "dir/2026-09-01-teardown-and-lifetime",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "55fc7da7af79096a1f8e74325f449ecc505540a5",
+      "commit": "b5742e1"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "55fc7da7af79096a1f8e74325f449ecc505540a5",
+      "commit": "7bb1858"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "b5742e1",
+      "commit": "c10502f"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c10502f",
+      "commit": "807c1a8"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "807c1a8",
+      "commit": "7c0f987"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "7c0f987",
+      "commit": "ff45a45"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "Which evidence strategy does 6a adopt, given the spike proved an in-process MAUI application host is reachable but off Microsoft's documented path for VSTest?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Hybrid: constructor seams for the entries that reach tier 1, one assembly-wide host fixture only for the three entries that cannot be reached any other way.",
+          "rationale": "MASTER-013's drawable half and MASTER-160 share one seam in a file that already carries the identical precedent, and a seam gives a stronger assertion than the host does for those two because a real PlatformImage's Dispose() is not observable. MASTER-006, MASTER-013's page-teardown half and MASTER-055 have no seam-only route. This buys the host's reach while limiting how many criteria depend on a recipe the vendor documents as unsupported.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spike report sections 3 and 4",
+              "src/DungeonMaster.App/Graphics/FloorMapDrawable.cs Func<FloorMapPalette> constructor pair"
+            ]
+          }
+        },
+        {
+          "summary": "Host-first: stand up the fixture and drive every entry through the real application, using seams only where the host cannot observe the effect.",
+          "rationale": "Highest fidelity — every demonstration runs the code the app runs, which is exactly the objection that got these four entries rescheduled out of Session 4. Costs more of the session on fixture infrastructure and puts more criteria behind the testhost.pri build step.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spike report section 2c, probe P22"
+            ]
+          }
+        },
+        {
+          "summary": "Seams only: no host fixture this sub-session; MASTER-006, MASTER-013's page half and MASTER-055 carry structural evidence or get rescheduled again.",
+          "rationale": "Avoids the undocumented recipe entirely. Rejected on its face unless the user wants it: structural assertion is the evidence class already refused in Session 4, and rescheduling a third time is not progress.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md Session 4 outcome"
+            ]
+          }
+        }
+      ],
+      "answer": "Hybrid. Constructor seams for MASTER-013's drawable half and MASTER-160; the assembly-wide MAUI host fixture only for MASTER-006, MASTER-013's page-teardown half, and MASTER-055."
+    },
+    {
+      "id": "E2",
+      "question": "The MAUI host fixture boots the real application entry point, which runs the EF migration against the user's real database at %LOCALAPPDATA%\\DungeonMaster\\dungeon-master.db. The spike already did this today. How should the session isolate it?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Add a database-location seam to MauiProgram so the fixture points at a temporary file, and treat that edit as in-scope for this sub-session.",
+          "rationale": "MauiProgram currently offers no seam for the connection string, so nothing else can redirect it. The edit is small and it is the only route that keeps full app fidelity while leaving the real database untouched. It is new scope: MauiProgram is not named by any of the five entries.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spike report section 5"
+            ]
+          }
+        },
+        {
+          "summary": "Build the fixture's MauiApp without MauiProgram — register only what the host-requiring tests need, so no migration runs at all.",
+          "rationale": "Touches no production file. Unmeasured: the spike's working host started the real application entry point, and a hand-built MauiApp on a started WinUI Application was only proven as far as a bare Application with missing app resources. Would need its own probe before any criterion rests on it.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spike report probes P19, P20, P21"
+            ]
+          }
+        },
+        {
+          "summary": "Accept it: let the fixture migrate the real database as the spike did.",
+          "rationale": "Zero implementation cost and the migration is idempotent, but it makes running the test suite a write to the user's live data, and a future destructive migration would land there without warning.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Add a database-location seam to MauiProgram so the fixture points at a temporary file. Accepted as new scope for this sub-session."
+    },
+    {
+      "id": "E3",
+      "taskId": "T5",
+      "question": "MASTER-055's evidence route: E1 assigned it to the host fixture, but the spike never measured whether MapCanvas acquires a real handler under that host, which is the exact behaviour the entry is about.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Seam route, as drafted. CapturedSubscription<T> in App.Core with host-free tests and an injected defect; no criterion rests on handler acquisition.",
+      "options": [
+        {
+          "summary": "Seam route as drafted: CapturedSubscription<T> in App.Core, host-free tests with a fake target, defect injected to show the test fails.",
+          "rationale": "Certain evidence and cheapest. The spike names it as this entry's tier-1 alternative, and UI-018's own suggested direction asks for exactly a captured field. Cost: it changes DungeonDetailPage's attach/detach shape, which is the code under audit.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spike-host-report.md section 4, MASTER-055 row",
+              "docs/audit/03-app-shell-and-views.md UI-018 suggested direction"
+            ]
+          }
+        },
+        {
+          "summary": "Run one more probe first: navigate the Shell to the detail route, read MapCanvas.Handler?.PlatformView, then take the host route if a handler materializes.",
+          "rationale": "Honours E1 exactly. Costs a probe before Gate 2 and a re-decomposition of T5 after it.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spike-host-report.md section 5, first bullet"
+            ]
+          }
+        },
+        {
+          "summary": "Host route as drafted by E1, with no probe: write the criterion and let T5 discover whether it is reachable.",
+          "rationale": "Rejected on its face. If the handler never materializes the fallback is a source-text assertion, which is the evidence class the user refused in Session 4 and the reason this entry is in this session.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md Session 4 outcome"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "taskId": "T2",
+      "question": "Should DungeonMaster.App grant InternalsVisibleTo(\"DungeonMaster.App.Tests\") so ObjectAssetCatalogue.SetPaths can be arranged by a direct call instead of by reflection? T2 found the catalogue is empty in the test process and nothing public fills it, so four of its criteria would otherwise have passed vacuously.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Add src/DungeonMaster.App/AssemblyInfo.cs with [assembly: InternalsVisibleTo(\"DungeonMaster.App.Tests\")] and drop the reflection.",
+          "rationale": "App.Core, Application and Domain each already do exactly this for DungeonMaster.Tests; App is the only project that does not. The file is outside every task's owns globs, so it needs an assignment.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App.Core/AssemblyInfo.cs",
+              "src/DungeonMaster.Application/AssemblyInfo.cs",
+              "src/DungeonMaster.Domain/AssemblyInfo.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Keep the reflection in ObjectCatalogueScope.",
+          "rationale": "Costs nothing now and is confined to one test helper that throws a named error if the member is renamed. It is arrangement rather than assertion, so it is not the evidence class rejected in Session 4 - but a reviewer may reasonably read it as reaching into a private surface.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Add a catalogue delegate to the drawable's constructor.",
+          "rationale": "Cleanest for testability, but it changes the frozen floor-map-drawable-lifetime.md public surface and would desync T5. Not recommended.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Grant InternalsVisibleTo. Add src/DungeonMaster.App/AssemblyInfo.cs with [assembly: InternalsVisibleTo(\"DungeonMaster.App.Tests\")] and drop the reflection from ObjectCatalogueScope. Implemented as follow-up task T6 at Gate 3."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 2,
+    "escalationsRaised": 4,
+    "reviewRounds": 0
+  }
+}
