@@ -6,7 +6,7 @@ Written 2026-09-02, after Session 6a merged into `chore/repo-audit`. **Every fig
 
 ## Where things stand
 
-`chore/repo-audit` at **`8167b84`** — the 6a merge is `45bab59`, and `8167b84` is the artifact commit on top of it. **Pushed** to `origin` on 2026-09-02: `origin/chore/repo-audit` is at `8167b84`, range `e31d9f1..8167b84`, nine commits. The session worktree was removed; branch `dir/2026-09-01-teardown-and-lifetime` was kept, since the review files cite it. There is **no project-level `.dir-sdlc/log.md`** in this repository — the session log is `.dir-sdlc/sessions/2026-09-01-teardown-and-lifetime/log.md`, and it records every gate, dispatch and escalation. Main checkout clean and verified there, not only in the worktree:
+Session 6a is **merged and pushed** to `origin/chore/repo-audit`. Its fixed points: the merge commit is `45bab59`, and the session-artifact commit on top of it is `8167b84`. **The branch tip is deliberately not quoted here** — this document has already been corrected once by a commit that invalidated its own HEAD line, and any further edit would do it again. Run `git log --oneline -1` and `git rev-parse --short origin/chore/repo-audit`; they should agree, and the tip should be a descendant of `8167b84`. The session worktree was removed; branch `dir/2026-09-01-teardown-and-lifetime` was kept, since the review files cite it. There is **no project-level `.dir-sdlc/log.md`** in this repository — the session log is `.dir-sdlc/sessions/2026-09-01-teardown-and-lifetime/log.md`, and it records every gate, dispatch and escalation. Main checkout clean and verified there, not only in the worktree:
 
 ```
 dotnet build src/DungeonMaster.sln        Build succeeded.   0 Warning(s)   0 Error(s)
