@@ -1,4 +1,3 @@
-using System.Reflection;
 using DungeonMaster.App.Assets.ObjectAssets;
 using DungeonMaster.Domain.Entities.Floor;
 using IImage = Microsoft.Maui.Graphics.IImage;
@@ -107,12 +106,11 @@ internal sealed class FakeAssetSource
 ///		The catalogue is a static that only <c>ObjectPaletteView</c> fills, through an
 ///		<c>internal</c> setter, after loading a pack under a MAUI host. Outside a host it is EMPTY,
 ///		so <c>PreloadObjectImagesAsync</c> would iterate nothing and every disposal fact would pass
-///		vacuously. Reaching the setter by reflection is what makes the load path reachable at all
-///		from a host-free fact; it arranges state and asserts nothing, so it is not the
-///		assertion-over-source evidence class this session exists to replace. If the App assembly
-///		later grants <c>InternalsVisibleTo("DungeonMaster.App.Tests")</c> — the three other projects
-///		already do that for <c>DungeonMaster.Tests</c> — the reflection here becomes a direct call
-///		and nothing else changes.
+///		vacuously. Calling the setter is what makes the load path reachable at all from a host-free
+///		fact; it arranges state and asserts nothing, so it is not the assertion-over-source evidence
+///		class this session exists to replace. The setter is reachable because the App assembly grants
+///		<c>InternalsVisibleTo("DungeonMaster.App.Tests")</c>, as the three other projects already do
+///		for <c>DungeonMaster.Tests</c>.
 ///		</para>
 ///		<para>
 ///		The catalogue is process-wide state, so every fact that uses this scope must live in ONE
@@ -122,15 +120,10 @@ internal sealed class FakeAssetSource
 /// </remarks>
 internal sealed class ObjectCatalogueScope : IDisposable
 {
-	private static readonly MethodInfo SetPathsMethod =
-		typeof(ObjectAssetCatalogue).GetMethod("SetPaths", BindingFlags.Static | BindingFlags.NonPublic)
-		?? throw new InvalidOperationException(
-			"ObjectAssetCatalogue.SetPaths was not found. The catalogue can no longer be arranged for a test.");
-
 	private readonly IReadOnlyDictionary<ObjectKind, string> _previous = ObjectAssetCatalogue.Paths;
 
 	public ObjectCatalogueScope(IReadOnlyList<ObjectKind> kinds) =>
-		SetPaths(kinds.ToDictionary(kind => kind, FakeAssetSource.PathFor));
+		ObjectAssetCatalogue.SetPaths(kinds.ToDictionary(kind => kind, FakeAssetSource.PathFor));
 
 	/// <summary>
 	///		The kinds the shipped pack declares, which is what the catalogue holds in the running app.
@@ -176,8 +169,5 @@ internal sealed class ObjectCatalogueScope : IDisposable
 	];
 
 	public void Dispose() =>
-		SetPaths(_previous);
-
-	private static void SetPaths(IReadOnlyDictionary<ObjectKind, string> paths) =>
-		SetPathsMethod.Invoke(null, [paths]);
+		ObjectAssetCatalogue.SetPaths(_previous);
 }
