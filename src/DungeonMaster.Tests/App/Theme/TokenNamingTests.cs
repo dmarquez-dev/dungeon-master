@@ -31,6 +31,11 @@ namespace DungeonMaster.Tests.App.Theme;
 public class TokenNamingTests
 {
 	/// <summary>
+	///		The dictionary the colour-token scan reads.
+	/// </summary>
+	private const string TokensDictionaryName = "Tokens.xaml";
+
+	/// <summary>
 	///		Matches a keyed colour token. <c>SolidColorBrush</c> is included because a brush alias
 	///		is a colour token by another element name and obeys the same rule; the <c>Brush</c>
 	///		suffix is stripped before the name is parsed.
@@ -177,6 +182,33 @@ public class TokenNamingTests
 		};
 
 	/// <summary>
+	///		Asserts that the file scan this class is built on reaches at least one dictionary.
+	///		<para>
+	///		Until T3 landed, the only thing standing between this class and passing while examining
+	///		nothing was an assertion inside <c>ThemeSource.ThemeFiles()</c> — an Arrange helper,
+	///		which reports a broken scan against whichever fact called it first and names the wrong
+	///		test. That assertion is gone, and contracts/anti-vacuity.md section 2 says the
+	///		protection MOVES to a named fact in the consuming file rather than disappearing. This
+	///		is that fact.
+	///		</para>
+	///		<para>
+	///		It asserts on <see cref="ScannedThemeFiles"/>, this class's own scan source, rather than
+	///		on <c>ThemeSource.ThemeFiles()</c> directly, so that redirecting the scan is a one-line
+	///		edit inside this file and the guard can be demonstrated red without touching a file this
+	///		task does not own.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheTokenNamingScanReachesAtLeastOneThemeDictionary()
+	{
+		ScannedThemeFiles()
+			.Should()
+			.NotBeEmpty(
+				"every fact in this class reads the theme dictionaries, and each one of them "
+				+ "examines nothing if this scan reaches nothing");
+	}
+
+	/// <summary>
 	///		Asserts that every colour token in Tokens.xaml parses under exactly one of the two
 	///		families, using only declared vocabulary.
 	///		<para>
@@ -229,6 +261,17 @@ public class TokenNamingTests
 	public void EveryRegisteredExceptionStillExistsAndStillOffends()
 	{
 		var tokens = ColourTokens().ToHashSet(StringComparer.Ordinal);
+
+		// Both registers are non-empty by construction, so an empty scan would fill the complaints
+		// list rather than empty it — but the guard is stated anyway, because "it happens to fail
+		// loudly for another reason" is a property of today's registers, not of this fact. See
+		// contracts/anti-vacuity.md section 5.
+		tokens
+			.Should()
+			.NotBeEmpty(
+				"every entry in both registers is resolved against this scan, so an empty scan "
+				+ "makes the whole fact meaningless");
+
 		var complaints = new List<string>();
 
 		foreach (var entry in StructuralQualifierExceptions)
@@ -301,8 +344,7 @@ public class TokenNamingTests
 	{
 		var colours = ColourTokens().ToHashSet(StringComparer.Ordinal);
 
-		var styleKeys = ThemeSource
-			.ThemeFiles()
+		var styleKeys = ScannedThemeFiles()
 			.SelectMany(path =>
 				StyleKeyPattern.Matches(
 					ThemeSource.XmlCommentPattern.Replace(
@@ -576,14 +618,39 @@ public class TokenNamingTests
 
 	private static IReadOnlyList<string> ColourTokens()
 	{
+		var tokensPath = ScannedThemeFiles()
+			.FirstOrDefault(path =>
+				string.Equals(
+					Path.GetFileName(path),
+					TokensDictionaryName,
+					StringComparison.Ordinal));
+
+		var text = tokensPath is null
+			? string.Empty
+			: File.ReadAllText(tokensPath);
+
 		return ColourTokenPattern
 			.Matches(
 				ThemeSource.XmlCommentPattern.Replace(
-					ThemeSource.ThemeFileText("Tokens.xaml"),
+					text,
 					string.Empty))
 			.Select(match =>
 				match.Groups["key"].Value)
 			.Distinct(StringComparer.Ordinal)
 			.ToList();
+	}
+
+	/// <summary>
+	///		The theme dictionaries this class scans. Every fact in the class reads the markup
+	///		through this ONE member, so the class has a single scan source that
+	///		<see cref="TheTokenNamingScanReachesAtLeastOneThemeDictionary"/> can guard and that a
+	///		one-line edit here can redirect.
+	///		<para>
+	///		Asserts nothing and may return an empty list: helpers return, tests assert.
+	///		</para>
+	/// </summary>
+	private static IReadOnlyList<string> ScannedThemeFiles()
+	{
+		return ThemeSource.ThemeFiles();
 	}
 }

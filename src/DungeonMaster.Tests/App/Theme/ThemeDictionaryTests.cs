@@ -1,26 +1,25 @@
-using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using FluentAssertions;
 
 namespace DungeonMaster.Tests.App.Theme;
 
 /// <summary>
 ///		Guards the layered theme dictionaries under Resources/Theme.
+///		<para>
+///		Every XAML scan in this class reads the parsed documents published by
+///		<see cref="ThemeSource"/> — <see cref="ThemeSource.KeyedElements"/>,
+///		<see cref="ThemeSource.ThemeDocuments"/> and <see cref="ThemeSource.AppDocuments"/> — rather
+///		than matching regular expressions against XAML text. The class declares no regular
+///		expression of its own; the C# half of the orphan scan borrows the one shared matcher in
+///		<see cref="ThemeMarkupReferences"/>, and <c>XDocument</c> cannot parse C#.
+///		</para>
 /// </summary>
 public class ThemeDictionaryTests
 {
-	// Matches a <Style … x:Key="Dm…"> declaration. Anchored on the element name so a keyed
-	// Color, SolidColorBrush, x:Double or Thickness is not read as a style: those are tokens,
-	// and a token with no consumer today is covered by RequiredKeys above, not by
-	// NoOrphanedStyleKeys. [^>]*? rather than .*? so it cannot run past the element it opened.
-	private static readonly Regex StyleKeyPattern =
-		new(
-			@"<Style[^>]*?x:Key=""(?<key>Dm[A-Za-z0-9]*)""",
-			RegexOptions.Compiled);
-
-	private static readonly Regex CSharpLineCommentPattern =
-		new(
-			@"//.*$",
-			RegexOptions.Compiled | RegexOptions.Multiline);
+	/// <summary>
+	///		The one dictionary that is allowed to carry colour literals.
+	/// </summary>
+	private const string TokensDictionaryName = "Tokens.xaml";
 
 	/// <summary>
 	///		Gets the resource keys every theme consumer is entitled to resolve.
@@ -93,6 +92,26 @@ public class ThemeDictionaryTests
 	];
 
 	/// <summary>
+	///		Asserts that the App.xaml merge scan finds at least one theme dictionary.
+	///		<para>
+	///		This is the guard that used to live inside <c>MergedThemeSourcesInAppXaml()</c>, which
+	///		is an Arrange helper and therefore reported a broken scan against whichever fact called
+	///		it first. It is a named fact now, per contracts/anti-vacuity.md section 2. Without it
+	///		<see cref="EveryThemeFileIsMergedInAppXaml"/> compares two sets that a broken scan makes
+	///		equal by both being empty.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheAppXamlMergeScanFindsAtLeastOneThemeDictionary()
+	{
+		MergedThemeSourcesInAppXaml()
+			.Should()
+			.NotBeEmpty(
+				"App.xaml must merge theme dictionaries or the merge facts below compare nothing "
+				+ "against nothing");
+	}
+
+	/// <summary>
 	///		Asserts that a required key is defined somewhere in the theme dictionaries.
 	/// </summary>
 	/// <param name="key">
@@ -120,16 +139,45 @@ public class ThemeDictionaryTests
 	[Fact]
 	public void TokensIsTheOnlyThemeFileContainingColourLiterals()
 	{
-		var offenders = ThemeSource
-			.ThemeFiles()
-			.Where(path =>
-				!path.EndsWith(
-					"Tokens.xaml",
+		var documents = ThemeSource.ThemeDocuments();
+
+		// The offenders list below is empty both when only Tokens.xaml carries literals and when
+		// the scan reached no dictionary at all.
+		documents
+			.Should()
+			.NotBeEmpty(
+				"an empty offenders list proves nothing unless the scan that produced it reached "
+				+ "at least one dictionary");
+
+		var tokensDictionary = documents.FirstOrDefault(document =>
+			string.Equals(
+				Path.GetFileName(document.Path),
+				TokensDictionaryName,
+				StringComparison.Ordinal));
+
+		tokensDictionary
+			.Should()
+			.NotBeNull("Tokens.xaml is the token layer this fact is written about");
+
+		// The positive control. An empty offenders list is equally consistent with a clean tree
+		// and with a reader that finds no literal anywhere, so the reader is shown finding the
+		// literals in the ONE file that is supposed to carry them.
+		ScannedText(tokensDictionary!.Document)
+			.Any(ThemeSource.HexLiteralPattern.IsMatch)
+			.Should()
+			.BeTrue(
+				"Tokens.xaml carries every colour literal in the theme, so a reader that finds "
+				+ "none there is broken and its empty offenders list proves nothing");
+
+		var offenders = documents
+			.Where(document =>
+				!document.Path.EndsWith(
+					TokensDictionaryName,
 					StringComparison.Ordinal))
-			.Where(path =>
-				ThemeSource.HexLiteralPattern.IsMatch(File.ReadAllText(path)))
-			.Select(path =>
-				Path.GetFileName(path))
+			.Where(document =>
+				ScannedText(document.Document).Any(ThemeSource.HexLiteralPattern.IsMatch))
+			.Select(document =>
+				Path.GetFileName(document.Path))
 			.ToList();
 
 		offenders.Should().BeEmpty();
@@ -149,6 +197,14 @@ public class ThemeDictionaryTests
 		var themeSources = ThemeSource
 			.ThemeFileSources()
 			.ToHashSet(StringComparer.Ordinal);
+
+		// Two empty sets are equivalent, so the comparison below says nothing at all unless the
+		// file scan reached something.
+		themeSources
+			.Should()
+			.NotBeEmpty(
+				"the theme file scan must reach at least one dictionary or this comparison holds "
+				+ "vacuously");
 
 		var mergedSources = MergedThemeSourcesInAppXaml()
 			.ToHashSet(StringComparer.Ordinal);
@@ -255,8 +311,17 @@ public class ThemeDictionaryTests
 	///		A consumer is a <c>{StaticResource Key}</c> reference in any application markup —
 	///		including a <c>BasedOn</c>, which is how a base style earns its keep — or a
 	///		<c>"Key"</c> string literal in application code, which is how <c>DmTheme</c> resolves
-	///		the two button styles <c>DmConfirmPopup</c> swaps between. Comments are stripped from
-	///		both before anything is counted.
+	///		the two button styles <c>DmConfirmPopup</c> swaps between. Comments are excluded from
+	///		both before anything is counted: a comment is an XML comment NODE in the parsed markup
+	///		and is never read, and the C# text is blanked by
+	///		<see cref="ThemeSource.BlankCSharpComments"/>.
+	///		</para>
+	///		<para>
+	///		Every reference is collected ONCE, into a set, and each style key is then tested for
+	///		membership. The two per-style compiled regular expressions this replaces were built
+	///		inside the loop, which is the exact inversion of what <c>RegexOptions.Compiled</c> is
+	///		for: it raises construction cost to lower match cost, so paying it per iteration loses
+	///		on both.
 	///		</para>
 	///		<para>
 	///		A style consumed only by another style that is itself orphaned is reported one layer at
@@ -269,59 +334,43 @@ public class ThemeDictionaryTests
 	public void NoOrphanedStyleKeys()
 	{
 		var styleKeys = ThemeSource
-			.ThemeFiles()
-			.SelectMany(path =>
-				StyleKeyPattern
-					.Matches(StripComments(File.ReadAllText(path)))
-					.Select(match =>
-						new
-						{
-							Key = match.Groups["key"].Value,
-							File = Path.GetFileName(path),
-						}))
+			.KeyedElements()
+			.Where(keyed =>
+				keyed.QualifiedElementName == "Style"
+				&& ThemeMarkupReferences.IsCurrentKey(keyed.Key))
+			.Select(keyed =>
+				new
+				{
+					keyed.Key,
+					File = Path.GetFileName(keyed.RelativePath),
+				})
 			.ToList();
 
 		styleKeys
 			.Should()
 			.NotBeEmpty("the theme dictionaries must declare keyed styles or this fact is vacuous");
 
-		var markup = RepoPaths
-			.AppSourceFiles("*.xaml")
-			.Select(path =>
-				StripComments(File.ReadAllText(path)))
-			.ToList();
+		var referencedInMarkup = ThemeMarkupReferences
+			.References()
+			.Select(reference =>
+				reference.Key)
+			.ToHashSet(StringComparer.Ordinal);
 
-		var code = RepoPaths
+		var referencedInCode = RepoPaths
 			.AppSourceFiles("*.cs")
-			.Select(path =>
-				StripCSharpComments(File.ReadAllText(path)))
+			.SelectMany(path =>
+				ThemeMarkupReferences.CodeKeyLiterals(
+					ThemeSource.BlankCSharpComments(File.ReadAllText(path))))
+			.ToHashSet(StringComparer.Ordinal);
+
+		var orphans = styleKeys
+			.Where(style =>
+				!referencedInMarkup.Contains(style.Key)
+				&& !referencedInCode.Contains(style.Key))
+			.Select(style =>
+				$"{style.File} -> {style.Key} is declared as a Style but nothing outside a "
+				+ "comment consumes it; adopt it at a call site or delete it")
 			.ToList();
-
-		var orphans = new List<string>();
-
-		foreach (var style in styleKeys)
-		{
-			var markupReference = new Regex(
-				$@"\{{StaticResource\s+{Regex.Escape(style.Key)}\s*\}}",
-				RegexOptions.Compiled);
-
-			var codeReference = new Regex(
-				$@"""{Regex.Escape(style.Key)}""",
-				RegexOptions.Compiled);
-
-			var consumed =
-				markup.Any(text =>
-					markupReference.IsMatch(text))
-				|| code.Any(text =>
-					codeReference.IsMatch(text));
-
-			if (!consumed)
-			{
-				orphans.Add(
-					$"{style.File} -> {style.Key} is declared as a Style but nothing outside a "
-					+ "comment consumes it; adopt it at a call site or delete it");
-			}
-		}
 
 		orphans
 			.Should()
@@ -330,56 +379,96 @@ public class ThemeDictionaryTests
 				+ "launches clean and is invisible until somebody counts");
 	}
 
-	private static string StripComments(string text)
-	{
-		return ThemeSource.XmlCommentPattern.Replace(
-			text,
-			string.Empty);
-	}
-
-	private static string StripCSharpComments(string text)
-	{
-		// Line comments only. A theme key inside a /* */ block would be missed, and the
-		// application has none; a block-comment stripper that does not understand string
-		// literals would corrupt more than it cleaned.
-		return CSharpLineCommentPattern.Replace(
-			text,
-			string.Empty);
-	}
-
+	/// <summary>
+	///		Returns the theme dictionaries merged from Resources/Theme by App.xaml, in the order
+	///		App.xaml merges them. Asserts nothing and returns an empty list when App.xaml is not
+	///		reached; <see cref="TheAppXamlMergeScanFindsAtLeastOneThemeDictionary"/> is the guard.
+	/// </summary>
 	private static IReadOnlyList<string> MergedThemeSourcesInAppXaml()
 	{
-		var appXamlPath = Path.Combine(
-			RepoPaths.AppRoot,
-			"App.xaml");
+		var appXaml = ThemeSource
+			.AppDocuments()
+			.FirstOrDefault(document =>
+				string.Equals(
+					document.RelativePath,
+					"App.xaml",
+					StringComparison.Ordinal));
 
-		// [A-Za-z0-9./] rather than [A-Za-z0-9.]: a dictionary in a subdirectory of
-		// Resources/Theme was invisible to this scan, so merging it or not made no difference.
-		var sourcePattern = new Regex(
-			@"Source=""(Resources/Theme/[A-Za-z0-9./]+\.xaml)""",
-			RegexOptions.Compiled);
+		if (appXaml is null)
+		{
+			return [];
+		}
 
-		var sources = sourcePattern
-			.Matches(File.ReadAllText(appXamlPath))
-			.Select(match =>
-				match.Groups[1].Value)
+		// Document order is the merge order, and the merge order is load-bearing markup.
+		return appXaml
+			.Document
+			.Descendants()
+			.Where(element =>
+				ThemeSource.QualifiedElementName(element.Name) == "ResourceDictionary")
+			.Select(element =>
+				element.Attribute("Source")?.Value)
+			.Where(source =>
+				source is not null
+				&& source.StartsWith(
+					"Resources/Theme/",
+					StringComparison.Ordinal)
+				&& source.EndsWith(
+					".xaml",
+					StringComparison.Ordinal))
+			.Select(source =>
+				source!)
 			.ToList();
-
-		sources
-			.Should()
-			.NotBeEmpty("App.xaml must merge theme dictionaries or the Source regex is broken");
-
-		return sources;
 	}
 
+	/// <summary>
+	///		Returns every resource key declared under Resources/Theme.
+	/// </summary>
 	private static HashSet<string> DefinedThemeKeys()
 	{
 		return ThemeSource
-			.ThemeFiles()
-			.SelectMany(path =>
-				ThemeSource.KeyDefinitionPattern.Matches(File.ReadAllText(path)))
-			.Select(match =>
-				match.Groups[1].Value)
+			.KeyedElements()
+			.Select(keyed =>
+				keyed.Key)
 			.ToHashSet(StringComparer.Ordinal);
+	}
+
+	/// <summary>
+	///		Returns every attribute value, text node and COMMENT in the supplied document.
+	///		<para>
+	///		Comments are included here, unlike in the reference scan: a colour literal parked in a
+	///		comment in a Controls dictionary is still a colour literal outside the token layer, and
+	///		the raw-text scan this replaces caught it. contracts/theme-source.md section 3.5
+	///		measured the two readers against ten synthetic cases and they disagreed once, in the
+	///		XML model's favour: a literal split by a character entity, which the parser resolves
+	///		and the raw pattern cannot see.
+	///		</para>
+	/// </summary>
+	/// <param name="document">
+	///		The parsed document to read.
+	/// </param>
+	private static IEnumerable<string> ScannedText(XDocument document)
+	{
+		foreach (var node in document.DescendantNodes())
+		{
+			if (node is XElement element)
+			{
+				foreach (var attribute in element.Attributes())
+				{
+					yield return attribute.Value;
+				}
+			}
+			else if (node is XText text)
+			{
+				yield return text.Value;
+			}
+			else if (node is XComment comment)
+			{
+				yield return comment.Value;
+			}
+			else if (node is XProcessingInstruction instruction)
+			{
+				yield return instruction.Data;
+			}
+		}
 	}
 }
