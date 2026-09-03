@@ -5,155 +5,37 @@ using FluentAssertions;
 namespace DungeonMaster.Tests.App.Theme;
 
 /// <summary>
-///		Drift guard for the bindable properties whose C# defaults mirror a typography token.
-///		XAML cannot supply a <c>{StaticResource}</c> as a bindable property's default value, so
-///		the size or family name is duplicated in code-behind; these facts fail if either side of
-///		the pair moves without the other.
+///		Drift guard for the one place a theme token's value is unavoidably duplicated as a literal
+///		in XAML markup: <c>DmBorderBase</c>'s <c>StrokeShape="RoundRectangle 3"</c> setter.
 /// </summary>
+/// <remarks>
+///		<para>
+///		THE BINDABLE-PROPERTY HALF OF THIS CLASS HAS MOVED. Two theories here —
+///		<c>BindableDefault_EqualsTheTokenItMirrors</c> and
+///		<c>BindableFamilyDefault_EqualsTheTokenItMirrors</c> — asserted against the LEXICAL FORM of
+///		application C#: each compiled a regular expression requiring the literal sequence
+///		<c>nameof(X), typeof(double), typeof(Y), &lt;number&gt;</c> to appear in a source file. Every
+///		behaviour-preserving edit that rewrote that sequence — extracting the owner type to an
+///		alias, hoisting the default into a <c>const double</c>, reordering the arguments onto one
+///		line — reddened a change that broke nothing, and a rename of the property would have made
+///		the match fail rather than report a drift. That is MASTER-109.
+///		</para>
+///		<para>
+///		They are now
+///		<c>DungeonMaster.App.UnitTests.Theme.BindablePropertyDefaultTests</c>, which reads the real
+///		<c>BindableProperty</c> by reflection and compares its <c>DefaultValue</c> against the LIVE
+///		merged <c>Application.Current.Resources</c>. Both halves of that comparison are runtime
+///		values, so no spelling of the declaration can affect it. They cannot live in this assembly:
+///		<c>DungeonMaster.Tests</c> may not reference <c>DungeonMaster.App</c> and so can never see a
+///		MAUI type (contracts/app-unit-tests-project.md section 3.1).
+///		</para>
+///		<para>
+///		What stays here is the fact below, which reads XAML rather than C# and has no MAUI type in
+///		it at all.
+///		</para>
+/// </remarks>
 public class BindablePropertyDefaultsMatchTokensTests
 {
-	/// <summary>
-	///		The numeric bindable defaults under guard, as (source file, property, mirrored
-	///		token key).
-	/// </summary>
-	public static TheoryData<string, string, string> Cases =>
-		new()
-		{
-			{
-				Path.Combine(
-					"Controls",
-					"DmDivider",
-					"DmDivider.xaml.cs"),
-				"IconFontSize",
-				"DmIconSizeMedium"
-			},
-			{
-				Path.Combine(
-					"Controls",
-					"DmInlineEditor",
-					"DmInlineEditor.xaml.cs"),
-				"FontSize",
-				"DmFontSizeBody"
-			},
-		};
-
-	/// <summary>
-	///		The font-family bindable defaults under guard, as (source file, property, mirrored
-	///		token key). A family default drifts exactly the way a size default does — the string
-	///		is a second copy of a token's value with nothing tying the two together — so it wants
-	///		the same guard rather than a new mechanism.
-	/// </summary>
-	public static TheoryData<string, string, string> FamilyCases =>
-		new()
-		{
-			{
-				Path.Combine(
-					"Controls",
-					"DmInlineEditor",
-					"DmInlineEditor.xaml.cs"),
-				"FontFamily",
-				"DmFontBody"
-			},
-		};
-
-	/// <summary>
-	///		Asserts that the numeric default declared for a bindable property equals the value
-	///		of the typography token it mirrors.
-	/// </summary>
-	/// <param name="relativePath">
-	///		The declaring source file, relative to the application project root.
-	/// </param>
-	/// <param name="propertyName">
-	///		The name of the bindable property.
-	/// </param>
-	/// <param name="tokenKey">
-	///		The key of the Typography.xaml token the default mirrors.
-	/// </param>
-	[Theory]
-	[MemberData(nameof(Cases))]
-	public void BindableDefault_EqualsTheTokenItMirrors(
-		string relativePath,
-		string propertyName,
-		string tokenKey)
-	{
-		var source = File.ReadAllText(
-			Path.Combine(
-				RepoPaths.AppRoot,
-				relativePath));
-
-		var declaration = new Regex(
-			$@"nameof\({Regex.Escape(propertyName)}\),\s*typeof\(double\),\s*typeof\(\w+\),\s*(?<value>[0-9.]+)",
-			RegexOptions.Compiled);
-
-		var match = declaration.Match(source);
-
-		match
-			.Success
-			.Should()
-			.BeTrue($"'{propertyName}' should declare a numeric double default in {relativePath}");
-
-		var declaredDefault = double.Parse(
-			match.Groups["value"].Value,
-			CultureInfo.InvariantCulture);
-
-		declaredDefault
-			.Should()
-			.Be(TokenValue(tokenKey));
-	}
-
-	/// <summary>
-	///		Asserts that the font-family string declared for a bindable property equals the value
-	///		of the typography token it mirrors.
-	/// </summary>
-	/// <param name="relativePath">
-	///		The declaring source file, relative to the application project root.
-	/// </param>
-	/// <param name="propertyName">
-	///		The name of the bindable property.
-	/// </param>
-	/// <param name="tokenKey">
-	///		The key of the Typography.xaml token the default mirrors.
-	/// </param>
-	[Theory]
-	[MemberData(nameof(FamilyCases))]
-	public void BindableFamilyDefault_EqualsTheTokenItMirrors(
-		string relativePath,
-		string propertyName,
-		string tokenKey)
-	{
-		var source = File.ReadAllText(
-			Path.Combine(
-				RepoPaths.AppRoot,
-				relativePath));
-
-		var declaration = new Regex(
-			$@"nameof\({Regex.Escape(propertyName)}\),\s*typeof\(string\),\s*typeof\(\w+\),\s*""(?<value>[^""]+)""",
-			RegexOptions.Compiled);
-
-		var match = declaration.Match(source);
-
-		match
-			.Success
-			.Should()
-			.BeTrue($"'{propertyName}' should declare a string default in {relativePath}");
-
-		match
-			.Groups["value"]
-			.Value
-			.Should()
-			.Be(FamilyTokenValue(tokenKey));
-	}
-
-	private static double TokenValue(string key) =>
-		ThemeSource.DoubleToken(
-			"Typography.xaml",
-			key);
-
-	private static string FamilyTokenValue(string key) =>
-		ThemeSource.StringToken(
-			"Typography.xaml",
-			key);
-
 	/// <summary>
 	///		Asserts that the numeric radius argument on <c>DmBorderBase</c>'s
 	///		<c>StrokeShape="RoundRectangle 3"</c> setter in Controls.Base.xaml equals
