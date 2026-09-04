@@ -11,7 +11,7 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		<see cref="ThemeSource.ThemeDocuments"/> and <see cref="ThemeSource.AppDocuments"/> — rather
 ///		than matching regular expressions against XAML text. The class declares no regular
 ///		expression of its own; the C# half of the orphan scan borrows the one shared matcher in
-///		<see cref="ThemeMarkupReferences"/>, and <c>XDocument</c> cannot parse C#.
+///		<see cref="ThemeSource"/>, and <c>XDocument</c> cannot parse C#.
 ///		</para>
 /// </summary>
 public class ThemeDictionaryTests
@@ -337,7 +337,7 @@ public class ThemeDictionaryTests
 			.KeyedElements()
 			.Where(keyed =>
 				keyed.QualifiedElementName == "Style"
-				&& ThemeMarkupReferences.IsCurrentKey(keyed.Key))
+				&& ThemeSource.IsCurrentKey(keyed.Key))
 			.Select(keyed =>
 				new
 				{
@@ -350,7 +350,7 @@ public class ThemeDictionaryTests
 			.Should()
 			.NotBeEmpty("the theme dictionaries must declare keyed styles or this fact is vacuous");
 
-		var referencedInMarkup = ThemeMarkupReferences
+		var referencedInMarkup = ThemeSource
 			.References()
 			.Select(reference =>
 				reference.Key)
@@ -359,7 +359,7 @@ public class ThemeDictionaryTests
 		var referencedInCode = RepoPaths
 			.AppSourceFiles("*.cs")
 			.SelectMany(path =>
-				ThemeMarkupReferences.CodeKeyLiterals(
+				ThemeSource.CodeKeyLiterals(
 					ThemeSource.BlankCSharpComments(File.ReadAllText(path))))
 			.ToHashSet(StringComparer.Ordinal);
 
