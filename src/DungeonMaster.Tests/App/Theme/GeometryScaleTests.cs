@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 using FluentAssertions;
 
 namespace DungeonMaster.Tests.App.Theme;
@@ -24,6 +26,19 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		the scale. Excluding the whole directory exempted exactly the files where one bare
 ///		literal reaches the most screens.
 ///		</para>
+///		<para>
+///		THE TWO HALVES OF EVERY FACT READ DIFFERENT MODELS, AND THAT SPLIT IS THE BOUNDARY.
+///		The <c>*.xaml</c> half reads <c>ThemeSource.AppDocuments()</c> — the parsed
+///		<c>XDocument</c> tree — so a geometry literal is found as an ATTRIBUTE with a name and a
+///		value rather than as the characters <c>Padding="</c>. contracts/theme-source.md §3.5
+///		measured the two readers against ten synthetic cases and they disagreed once, in the
+///		object model's favour. Two consequences are worth stating because they replace machinery
+///		this class used to carry: prose in an XML comment is not markup, so nothing has to mask
+///		comments before matching; and an attached-property spelling such as
+///		<c>Grid.Padding</c> is the same property under a prefix rather than a lookbehind case.
+///		The <c>*.cs</c> half stays a raw-text scan, because <c>XDocument</c> cannot parse C#.
+///		That is definitional, not a preference.
+///		</para>
 /// </summary>
 public class GeometryScaleTests
 {
@@ -48,18 +63,31 @@ public class GeometryScaleTests
 	/// </summary>
 	private const string ZeroMeansNone = "0";
 
-	// (?<![A-Za-z]) is what keeps CharacterSpacing out: the engine can only reach the literal
-	// "Spacing" at the 'S', where the preceding character is 'r'. Without it every
-	// CharacterSpacing in the app would be reported as a bare spacing value.
-	private static readonly IReadOnlyList<Regex> SpacingXamlPatterns =
-	[
+	/// <summary>
+	///		The element that carries a property name in a VALUE rather than as an attribute name.
+	/// </summary>
+	private const string SetterElement = "Setter";
+
+	/// <summary>
+	///		<c>Setter</c>'s two attributes: the property it targets and the value it assigns.
+	/// </summary>
+	private const string SetterPropertyAttribute = "Property";
+
+	private const string SetterValueAttribute = "Value";
+
+	// The four spellings of a gap. Matched as attribute NAMES on the parsed tree, which is what
+	// retires the old (?<![A-Za-z]) lookbehind: that existed only to stop the characters
+	// "Spacing" matching inside "CharacterSpacing", and an attribute named CharacterSpacing is
+	// simply not an attribute named Spacing.
+	private static readonly XamlGeometryProbe SpacingXamlProbe =
 		new(
-			@"(?<![A-Za-z])(?:Row|Column|Item)?Spacing=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-		new(
-			@"<Setter\s+Property=""(?:Row|Column|Item)?Spacing""\s+Value=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-	];
+			[
+				"Spacing",
+				"RowSpacing",
+				"ColumnSpacing",
+				"ItemSpacing",
+			],
+			ValuePattern: null);
 
 	private static readonly IReadOnlyList<Regex> SpacingCSharpPatterns =
 	[
@@ -68,15 +96,12 @@ public class GeometryScaleTests
 			RegexOptions.Compiled),
 	];
 
-	private static readonly IReadOnlyList<Regex> PaddingXamlPatterns =
-	[
+	private static readonly XamlGeometryProbe PaddingXamlProbe =
 		new(
-			@"(?<![A-Za-z])Padding=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-		new(
-			@"<Setter\s+Property=""Padding""\s+Value=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-	];
+			[
+				"Padding",
+			],
+			ValuePattern: null);
 
 	// The constructor form is the one C# actually writes. `Padding = 7` was covered from the
 	// start and `Padding = new Thickness(7, 3)` was not, which is the wrong way round: the
@@ -98,15 +123,12 @@ public class GeometryScaleTests
 			RegexOptions.Compiled),
 	];
 
-	private static readonly IReadOnlyList<Regex> MarginXamlPatterns =
-	[
+	private static readonly XamlGeometryProbe MarginXamlProbe =
 		new(
-			@"(?<![A-Za-z])Margin=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-		new(
-			@"<Setter\s+Property=""Margin""\s+Value=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-	];
+			[
+				"Margin",
+			],
+			ValuePattern: null);
 
 	private static readonly IReadOnlyList<Regex> MarginCSharpPatterns =
 	[
@@ -121,18 +143,16 @@ public class GeometryScaleTests
 	// The stroke scale — DmStrokeHairline, DmStrokeEmphasis, DmStrokeMedium — was the one scale
 	// the spec defined and nothing ever guarded, in either language. The two properties that
 	// carry it are Border.StrokeThickness and Button.BorderWidth, and both are double, so the
-	// shapes are the attribute, the Setter and a plain C# assignment. The bare `new Thickness(…)`
-	// form is deliberately NOT here: on MAUI a stroke width is a scalar, and the Thickness
-	// constructor form belongs to padding and margin, which report it already.
-	private static readonly IReadOnlyList<Regex> StrokeXamlPatterns =
-	[
+	// shapes are the attribute and the Setter. The bare `new Thickness(…)` form is deliberately
+	// NOT in the C# list: on MAUI a stroke width is a scalar, and the Thickness constructor form
+	// belongs to padding and margin, which report it already.
+	private static readonly XamlGeometryProbe StrokeXamlProbe =
 		new(
-			@"(?<![A-Za-z])(?:StrokeThickness|BorderWidth)=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-		new(
-			@"<Setter\s+Property=""(?:StrokeThickness|BorderWidth)""\s+Value=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-	];
+			[
+				"StrokeThickness",
+				"BorderWidth",
+			],
+			ValuePattern: null);
 
 	private static readonly IReadOnlyList<Regex> StrokeCSharpPatterns =
 	[
@@ -146,21 +166,18 @@ public class GeometryScaleTests
 	// as a bare literal at twelve sites, ten of them setters in the two highest-fanout
 	// dictionaries. DmTouchTargetMinimum now holds it and this is what stops the thirteenth.
 	//
-	// The lookbehind keeps nothing out that these names could collide with — no MAUI property
-	// ends in "MinimumHeightRequest" — but it is written the same way as its five siblings so
-	// that the whole family reads identically and a later widening starts from a known shape.
 	// HeightRequest and WidthRequest WITHOUT the Minimum prefix are deliberately not scanned:
 	// a fixed size is a measured shape, not a floor on a scale, and reporting one here would
-	// tell the reader to fix it with a touch-target token that is not what it means.
-	private static readonly IReadOnlyList<Regex> MinimumSizeXamlPatterns =
-	[
+	// tell the reader to fix it with a touch-target token that is not what it means. Naming the
+	// two properties exactly is what enforces that; the old pattern needed a lookbehind to say
+	// the same thing less precisely.
+	private static readonly XamlGeometryProbe MinimumSizeXamlProbe =
 		new(
-			@"(?<![A-Za-z])Minimum(?:Height|Width)Request=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-		new(
-			@"<Setter\s+Property=""Minimum(?:Height|Width)Request""\s+Value=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-	];
+			[
+				"MinimumHeightRequest",
+				"MinimumWidthRequest",
+			],
+			ValuePattern: null);
 
 	private static readonly IReadOnlyList<Regex> MinimumSizeCSharpPatterns =
 	[
@@ -169,21 +186,27 @@ public class GeometryScaleTests
 			RegexOptions.Compiled),
 	];
 
-	// Three shapes, because a radius can be written three ways: the CornerRadius attribute (on a
-	// Button, a BoxView or an element-form RoundRectangle), a Style setter, and the STRING form
-	// of StrokeShape, whose converter parses "RoundRectangle 3" out of one string.
-	private static readonly IReadOnlyList<Regex> RadiusXamlPatterns =
-	[
-		new(
-			@"(?<![A-Za-z])CornerRadius=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
-		new(
-			@"<Setter\s+Property=""CornerRadius""\s+Value=""(?<value>[0-9][^""]*)""",
-			RegexOptions.Compiled),
+	/// <summary>
+	///		The string form of <c>StrokeShape</c>, whose converter parses "RoundRectangle 3" out
+	///		of one attribute value. It stays a pattern because it is a pattern over a VALUE rather
+	///		than over markup syntax, and the object model hands it exactly that value — which is
+	///		also why it no longer reads a control's own prose: the "RoundRectangle 4" written in
+	///		the comment above Controls.Base.xaml's setter is a comment, not an attribute.
+	/// </summary>
+	private static readonly Regex RoundRectangleValuePattern =
 		new(
 			@"RoundRectangle\s+(?<value>[0-9][^""]*)",
-			RegexOptions.Compiled),
-	];
+			RegexOptions.Compiled);
+
+	// Two shapes, because a radius can be written two ways in markup: the CornerRadius property
+	// — as an attribute on a Button, a BoxView or an element-form RoundRectangle, or as a Style
+	// setter — and the STRING form of StrokeShape.
+	private static readonly XamlGeometryProbe RadiusXamlProbe =
+		new(
+			[
+				"CornerRadius",
+			],
+			RoundRectangleValuePattern);
 
 	private static readonly IReadOnlyList<Regex> RadiusCSharpPatterns =
 	[
@@ -343,7 +366,7 @@ public class GeometryScaleTests
 	///		matters here more than on the other lists. Every one of the four is a minimum that is
 	///		a LAYOUT DIMENSION rather than a touch target — a popup's minimum width, the notebook
 	///		editors' minimum height, a palette column's minimum width — and none of them is 44.
-	///		A regex cannot tell those two meanings apart from a number, and neither can this list:
+	///		A scan cannot tell those two meanings apart from a number, and neither can this list:
 	///		deciding whether each is a measured shape that should stay a literal, a shape that
 	///		wants a token of its own, or drift, is a human decision that has not been taken. The
 	///		entries record that it has not been taken; they do not pretend it has.
@@ -366,19 +389,57 @@ public class GeometryScaleTests
 			Relative("Views", "DungeonDetailPage", "ObjectPaletteView.xaml"),
 		};
 
+	private static readonly IReadOnlySet<string> TokenDeclarationFiles =
+		new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+		{
+			Relative("Resources", "Theme", "Tokens.xaml"),
+			Relative("Resources", "Theme", "Typography.xaml"),
+		};
+
+	/// <summary>
+	///		Asserts that the markup half of every geometry ratchet reaches application sources at
+	///		all.
+	///		<para>
+	///		This assertion used to live inside <c>Scan(...)</c>, where a scan that had stopped
+	///		reaching anything was reported against whichever fact called the helper first. It is a
+	///		named fact of its own so the failure names its own cause; contracts/anti-vacuity.md
+	///		section 2 is the rule, and it is one fact per search pattern because a guard with two
+	///		reasons to fail is two guards.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheGeometryXamlScanReachesAtLeastOneApplicationSource()
+	{
+		ScannedXamlDocuments()
+			.Should()
+			.NotBeEmpty("the '*.xaml' scan must find application sources or the geometry ratchet "
+				+ "built on it is vacuous");
+	}
+
+	/// <summary>
+	///		Asserts that the code-behind half of every geometry ratchet reaches application
+	///		sources at all. See <see cref="TheGeometryXamlScanReachesAtLeastOneApplicationSource"/>.
+	/// </summary>
+	[Fact]
+	public void TheGeometryCSharpScanReachesAtLeastOneApplicationSource()
+	{
+		ScannedCSharpFiles()
+			.Should()
+			.NotBeEmpty("the '*.cs' scan must find application sources or the geometry ratchet "
+				+ "built on it is vacuous");
+	}
+
 	/// <summary>
 	///		Asserts that no literal spacing survives outside the theme dictionaries.
 	/// </summary>
 	[Fact]
 	public void NoBareSpacingValues()
 	{
-		var offenders = Scan(
-				"*.xaml",
-				SpacingXamlPatterns,
+		var offenders = ScanXaml(
+				SpacingXamlProbe,
 				SpacingPendingMigration)
 			.Concat(
-				Scan(
-					"*.cs",
+				ScanCSharp(
 					SpacingCSharpPatterns,
 					SpacingPendingMigration))
 			.Where(found =>
@@ -407,13 +468,11 @@ public class GeometryScaleTests
 	[Fact]
 	public void NoBarePaddingValues()
 	{
-		var offenders = Scan(
-				"*.xaml",
-				PaddingXamlPatterns,
+		var offenders = ScanXaml(
+				PaddingXamlProbe,
 				PaddingPendingMigration)
 			.Concat(
-				Scan(
-					"*.cs",
+				ScanCSharp(
 					PaddingCSharpPatterns,
 					PaddingPendingMigration))
 			.Where(found =>
@@ -431,10 +490,7 @@ public class GeometryScaleTests
 					: (Found: found, Note: "not on the DmPadding* roles"))
 			.Where(entry =>
 				!IsShapingPadding(entry.Found.Value)
-				|| !HasDocumentingComment(
-					entry.Found.FileText,
-					entry.Found.Index,
-					entry.Found.Value))
+				|| !entry.Found.IsDocumented)
 			.Select(entry =>
 				$"{Describe(entry.Found)} ({entry.Note})")
 			.OrderBy(
@@ -457,13 +513,11 @@ public class GeometryScaleTests
 	[Fact]
 	public void NoBareRadiusValues()
 	{
-		var offenders = Scan(
-				"*.xaml",
-				RadiusXamlPatterns,
+		var offenders = ScanXaml(
+				RadiusXamlProbe,
 				RadiusPendingMigration)
 			.Concat(
-				Scan(
-					"*.cs",
+				ScanCSharp(
 					RadiusCSharpPatterns,
 					RadiusPendingMigration))
 			.Where(found =>
@@ -500,13 +554,11 @@ public class GeometryScaleTests
 	[Fact]
 	public void NoBareMarginValues()
 	{
-		var offenders = Scan(
-				"*.xaml",
-				MarginXamlPatterns,
+		var offenders = ScanXaml(
+				MarginXamlProbe,
 				MarginPendingMigration)
 			.Concat(
-				Scan(
-					"*.cs",
+				ScanCSharp(
 					MarginCSharpPatterns,
 					MarginPendingMigration))
 			.Where(found =>
@@ -538,13 +590,11 @@ public class GeometryScaleTests
 	[Fact]
 	public void NoBareStrokeValues()
 	{
-		var offenders = Scan(
-				"*.xaml",
-				StrokeXamlPatterns,
+		var offenders = ScanXaml(
+				StrokeXamlProbe,
 				StrokePendingMigration)
 			.Concat(
-				Scan(
-					"*.cs",
+				ScanCSharp(
 					StrokeCSharpPatterns,
 					StrokePendingMigration))
 			.Where(found =>
@@ -578,13 +628,11 @@ public class GeometryScaleTests
 	[Fact]
 	public void NoBareMinimumSizeValues()
 	{
-		var offenders = Scan(
-				"*.xaml",
-				MinimumSizeXamlPatterns,
+		var offenders = ScanXaml(
+				MinimumSizeXamlProbe,
 				MinimumSizePendingMigration)
 			.Concat(
-				Scan(
-					"*.cs",
+				ScanCSharp(
 					MinimumSizeCSharpPatterns,
 					MinimumSizePendingMigration))
 			.Where(found =>
@@ -615,37 +663,37 @@ public class GeometryScaleTests
 		var stale = Stale(
 				"Spacing",
 				SpacingPendingMigration,
-				SpacingXamlPatterns,
+				SpacingXamlProbe,
 				SpacingCSharpPatterns)
 			.Concat(
 				Stale(
 					"Padding",
 					PaddingPendingMigration,
-					PaddingXamlPatterns,
+					PaddingXamlProbe,
 					PaddingCSharpPatterns))
 			.Concat(
 				Stale(
 					"Radius",
 					RadiusPendingMigration,
-					RadiusXamlPatterns,
+					RadiusXamlProbe,
 					RadiusCSharpPatterns))
 			.Concat(
 				Stale(
 					"Margin",
 					MarginPendingMigration,
-					MarginXamlPatterns,
+					MarginXamlProbe,
 					MarginCSharpPatterns))
 			.Concat(
 				Stale(
 					"Stroke",
 					StrokePendingMigration,
-					StrokeXamlPatterns,
+					StrokeXamlProbe,
 					StrokeCSharpPatterns))
 			.Concat(
 				Stale(
 					"MinimumSize",
 					MinimumSizePendingMigration,
-					MinimumSizeXamlPatterns,
+					MinimumSizeXamlProbe,
 					MinimumSizeCSharpPatterns))
 			.Concat(StaleValueExceptions())
 			.OrderBy(
@@ -662,6 +710,11 @@ public class GeometryScaleTests
 	///		lists: the file must exist and the exact value must still be present in it. Without
 	///		this an exception outlives the literal it excuses and silently covers the next one
 	///		that happens to share the number.
+	///		<para>
+	///		The value is looked for in the markup's own attribute values and element text rather
+	///		than anywhere in the file's bytes, so an exemption is no longer kept alive by its own
+	///		explanatory comment mentioning the number it exempts.
+	///		</para>
 	/// </summary>
 	private static IEnumerable<string> StaleValueExceptions()
 	{
@@ -685,10 +738,16 @@ public class GeometryScaleTests
 				continue;
 			}
 
-			if (!File.ReadAllText(path)
-				.Contains(
-					value,
-					StringComparison.Ordinal))
+			var document = DocumentFor(relative);
+
+			var present = document is not null
+				&& LiteralText(document.Document)
+					.Any(text =>
+						text.Contains(
+							value,
+							StringComparison.Ordinal));
+
+			if (!present)
 			{
 				yield return $"{listName}: {relative} ({value}) -> the value is gone; remove the exception";
 			}
@@ -698,7 +757,7 @@ public class GeometryScaleTests
 	private static IEnumerable<string> Stale(
 		string listName,
 		IReadOnlyCollection<string> allowList,
-		IReadOnlyList<Regex> xamlPatterns,
+		XamlGeometryProbe probe,
 		IReadOnlyList<Regex> cSharpPatterns)
 	{
 		foreach (var relative in allowList)
@@ -714,19 +773,14 @@ public class GeometryScaleTests
 				continue;
 			}
 
-			var text = File.ReadAllText(path);
-
-			var patterns = relative.EndsWith(
+			// The staleness check reads the same model the ratchet reads, per language. Letting
+			// the two diverge would produce the one failure neither fact can report: a file the
+			// ratchet no longer considers an offender and the allow-list still believes is one.
+			var offends = relative.EndsWith(
 				".cs",
 				StringComparison.OrdinalIgnoreCase)
-				? cSharpPatterns
-				: xamlPatterns;
-
-			var offends = patterns
-				.SelectMany(pattern =>
-					pattern.Matches(text).Cast<Match>())
-				.Any(match =>
-					match.Groups["value"].Value.Trim() != ZeroMeansNone);
+				? StillOffendsInCSharp(path, cSharpPatterns)
+				: StillOffendsInMarkup(relative, probe);
 
 			if (!offends)
 			{
@@ -735,46 +789,115 @@ public class GeometryScaleTests
 		}
 	}
 
-	private static List<GeometryMatch> Scan(
-		string searchPattern,
-		IReadOnlyList<Regex> patterns,
-		IReadOnlyCollection<string> allowList)
+	private static bool StillOffendsInCSharp(
+		string path,
+		IReadOnlyList<Regex> patterns)
 	{
-		var scanned = RepoPaths
-			.AppSourceFiles(searchPattern)
+		var text = File.ReadAllText(path);
+
+		return patterns
+			.SelectMany(pattern =>
+				pattern.Matches(text).Cast<Match>())
+			.Any(match =>
+				match.Groups["value"].Value.Trim() != ZeroMeansNone);
+	}
+
+	private static bool StillOffendsInMarkup(
+		string relative,
+		XamlGeometryProbe probe)
+	{
+		var document = DocumentFor(relative);
+
+		return document is not null
+			&& MarkupMatches(
+					document,
+					probe,
+					relative)
+				.Any(found =>
+					found.Value != ZeroMeansNone);
+	}
+
+	/// <summary>
+	///		The parsed markup this class examines: every application document except the two
+	///		dictionaries that DECLARE the scales.
+	/// </summary>
+	private static IReadOnlyList<ThemeDocument> ScannedXamlDocuments()
+	{
+		return ThemeSource
+			.AppDocuments()
+			.Where(document =>
+				!IsTokenDeclaration(NativeRelativePath(document)))
+			.ToList();
+	}
+
+	/// <summary>
+	///		The code-behind this class examines, as paths relative to the application project
+	///		root. There is no object model to read these with; see the class remarks.
+	/// </summary>
+	private static IReadOnlyList<string> ScannedCSharpFiles()
+	{
+		return RepoPaths
+			.AppSourceFiles("*.cs")
 			.Select(path =>
 				Path.GetRelativePath(
 					RepoPaths.AppRoot,
 					path))
 			.Where(relative =>
 				!IsTokenDeclaration(relative))
-			.Where(relative =>
-				!allowList.Contains(relative))
 			.ToList();
+	}
 
-		// Without this, a directory rename or a widened exclusion turns every geometry fact
-		// green while it scans nothing at all — the failure mode behind the structurally inert
-		// guards the theme migration shipped.
-		scanned
-			.Should()
-			.NotBeEmpty($"the '{searchPattern}' scan must find application sources or the "
-				+ "geometry ratchet built on it is vacuous");
-
+	private static List<GeometryMatch> ScanXaml(
+		XamlGeometryProbe probe,
+		IReadOnlyCollection<string> allowList)
+	{
 		var found = new List<GeometryMatch>();
 
-		foreach (var relative in scanned)
+		foreach (var document in ScannedXamlDocuments())
 		{
+			var relative = NativeRelativePath(document);
+
+			if (allowList.Contains(relative))
+			{
+				continue;
+			}
+
+			found.AddRange(
+				MarkupMatches(
+					document,
+					probe,
+					relative));
+		}
+
+		return found;
+	}
+
+	private static List<GeometryMatch> ScanCSharp(
+		IReadOnlyList<Regex> patterns,
+		IReadOnlyCollection<string> allowList)
+	{
+		var found = new List<GeometryMatch>();
+
+		foreach (var relative in ScannedCSharpFiles())
+		{
+			if (allowList.Contains(relative))
+			{
+				continue;
+			}
+
 			var text = File.ReadAllText(
 				Path.Combine(
 					RepoPaths.AppRoot,
 					relative));
 
-			// Matched against the masked copy, reported against the original. Masking replaces
-			// the INTERIOR of every comment with spaces and leaves the length untouched, so
-			// every index and every line number below still counts against the file as it is on
-			// disk — and prose that merely mentions a shape, as Controls.Base.xaml does with
-			// "RoundRectangle 4", stops being reported as a literal.
-			var searchable = MaskCommentInteriors(text);
+			// Matched against the blanked copy, reported against the original.
+			// ThemeSource.BlankCSharpComments replaces the comment with spaces and leaves the
+			// length untouched, so every index and every line number below still counts against
+			// the file as it is on disk. This class used to declare its own anchored pattern and
+			// its own offset-preserving blanker; both are now the shared helper's, which is
+			// MASTER-138 for this file. The markup half needs no equivalent at all: a comment is
+			// an XComment in the object model, and the scan never looks at one.
+			var searchable = ThemeSource.BlankCSharpComments(text);
 
 			foreach (var pattern in patterns)
 			{
@@ -788,8 +911,12 @@ public class GeometryScaleTests
 								match.Index),
 							match.Value.Trim(),
 							match.Groups["value"].Value.Trim(),
-							text,
-							match.Index));
+							// A C# file carries no XML comment, so no C# literal is ever
+							// documented in the sense NoBarePaddingValues means. Measured:
+							// grep -rn -e '-->' --include=*.cs src/DungeonMaster.App returns
+							// nothing, so the raw-text predicate this replaces returned false
+							// here every time it was called.
+							IsDocumented: false));
 				}
 			}
 		}
@@ -797,8 +924,102 @@ public class GeometryScaleTests
 		return found;
 	}
 
+	/// <summary>
+	///		Every geometry literal the probe describes, read off the parsed tree.
+	/// </summary>
+	/// <param name="document">
+	///		The parsed document to read.
+	/// </param>
+	/// <param name="probe">
+	///		The properties and the optional value pattern that define this ratchet's shape.
+	/// </param>
+	/// <param name="relative">
+	///		The document's path relative to the application project root, in the native separator
+	///		form the allow lists and the reports use.
+	/// </param>
+	private static IEnumerable<GeometryMatch> MarkupMatches(
+		ThemeDocument document,
+		XamlGeometryProbe probe,
+		string relative)
+	{
+		foreach (var element in document.Document.Descendants())
+		{
+			var setterProperty = string.Equals(
+				element.Name.LocalName,
+				SetterElement,
+				StringComparison.Ordinal)
+				? PropertyName(element.Attribute(SetterPropertyAttribute)?.Value)
+				: null;
+
+			foreach (var attribute in element.Attributes())
+			{
+				var isSetterValue = setterProperty is not null
+					&& string.Equals(
+						attribute.Name.LocalName,
+						SetterValueAttribute,
+						StringComparison.Ordinal);
+
+				// <Setter Property="Padding" Value="14,10" /> names the property in a VALUE, so
+				// it is read from the element rather than from the attribute's own name.
+				var property = isSetterValue
+					? setterProperty
+					: PropertyName(attribute.Name.LocalName);
+
+				if (property is not null
+					&& probe.Properties.Contains(property)
+					&& IsLiteral(attribute.Value))
+				{
+					yield return Found(
+						document,
+						relative,
+						attribute,
+						isSetterValue
+							? $"<{SetterElement} {SetterPropertyAttribute}=\"{setterProperty}\" "
+								+ $"{SetterValueAttribute}=\"{attribute.Value}\""
+							: $"{attribute.Name.LocalName}=\"{attribute.Value}\"",
+						attribute.Value.Trim());
+				}
+
+				if (probe.ValuePattern is null)
+				{
+					continue;
+				}
+
+				foreach (Match match in probe.ValuePattern.Matches(attribute.Value))
+				{
+					yield return Found(
+						document,
+						relative,
+						attribute,
+						match.Value.Trim(),
+						match.Groups["value"].Value.Trim());
+				}
+			}
+		}
+	}
+
+	private static GeometryMatch Found(
+		ThemeDocument document,
+		string relative,
+		XAttribute attribute,
+		string matched,
+		string value)
+	{
+		var line = LineOf(attribute);
+
+		return new GeometryMatch(
+			relative,
+			line,
+			matched,
+			value,
+			HasDocumentingComment(
+				document.Document,
+				line,
+				value));
+	}
+
 	// Reported with the line number AND the matched text: a bare relative path leaves a
-	// 700-line XAML file to be searched by hand for whatever tripped the pattern.
+	// 700-line XAML file to be searched by hand for whatever tripped the ratchet.
 	private static string Describe(GeometryMatch found)
 	{
 		return $"{found.Relative}:{found.Line} -> {found.Matched}";
@@ -828,143 +1049,65 @@ public class GeometryScaleTests
 		return TokenDeclarationFiles.Contains(relative);
 	}
 
-	private static readonly IReadOnlySet<string> TokenDeclarationFiles =
-		new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-		{
-			Relative("Resources", "Theme", "Tokens.xaml"),
-			Relative("Resources", "Theme", "Typography.xaml"),
-		};
-
-	private static readonly Regex XmlCommentPattern =
-		new(
-			@"<!--(?<body>.*?)-->",
-			RegexOptions.Singleline | RegexOptions.Compiled);
-
-	// Anchored at the start of the line on purpose. An unanchored //.*$ strips from the "//"
-	// inside "ms-appx:///…" and every other URL, erasing the rest of a real line of code.
-	private static readonly Regex WholeLineCommentPattern =
-		new(
-			@"^[ \t]*//(?<body>[^\r\n]*)",
-			RegexOptions.Multiline | RegexOptions.Compiled);
-
-	/// <summary>
-	///		Replaces the body of every comment with spaces, preserving newlines and total length so
-	///		that every index into the result is still an index into the original.
-	/// </summary>
-	private static string MaskCommentInteriors(string text)
-	{
-		return WholeLineCommentPattern.Replace(
-			XmlCommentPattern.Replace(
-				text,
-				match =>
-					Blank(match)),
-			match =>
-				Blank(match));
-	}
-
-	private static string Blank(Match match)
-	{
-		var body = match.Groups["body"];
-
-		return string.Concat(
-			match.Value[..(body.Index - match.Index)],
-			new string(
-				body
-					.Value
-					.Select(character =>
-						character is '\n' or '\r'
-							? character
-							: ' ')
-					.ToArray()),
-			match.Value[((body.Index - match.Index) + body.Length)..]);
-	}
-
 	/// <summary>
 	///		Whether a comment closing within <see cref="DocumentationWindowLines"/> lines above the
-	///		match actually documents THIS padding.
+	///		match actually documents THIS literal.
 	/// </summary>
 	/// <remarks>
 	///		The original test was only whether the string <c>--&gt;</c> appeared in the window,
 	///		which in a tree this densely commented exempts almost every asymmetric padding: a
 	///		comment about <c>MinimumHeightRequest</c> excused a <c>Padding="7,3,9,5"</c> four lines
 	///		below it, proved by construction. A comment that documents a padding says so — it uses
-	///		the word, or it quotes the value — so that is what is required, and the check now reads
-	///		the comment's own text rather than the fact that one exists.
+	///		the word, or it quotes the value — so that is what is required, and the check reads the
+	///		comment's own text rather than the fact that one exists.
+	///		<para>
+	///		The window is bounded by the comment's CLOSING line, not its opening one. A one-line
+	///		comment carries both, so nothing is lost; but the prose blocks this project writes run
+	///		to six or eight lines, and keying on the opener made a fully documented padding fail
+	///		because its comment STARTED thirteen lines up while ending five lines up. What the
+	///		window should ask is "does a comment finish immediately above this attribute", and only
+	///		the closer answers that.
+	///		</para>
 	/// </remarks>
+	/// <param name="document">
+	///		The document the match was found in.
+	/// </param>
+	/// <param name="line">
+	///		The 1-based line the match falls on.
+	/// </param>
+	/// <param name="value">
+	///		The matched value, which a documenting comment may quote instead of using the word.
+	/// </param>
 	private static bool HasDocumentingComment(
-		string text,
-		int index,
+		XDocument document,
+		int line,
 		string value)
 	{
-		var windowStart = index;
-
-		for (var line = 0; line <= DocumentationWindowLines; line++)
+		foreach (var comment in document.DescendantNodes().OfType<XComment>())
 		{
-			var previous = text.LastIndexOf(
-				'\n',
-				Math.Max(
-					windowStart - 1,
-					0));
+			var start = LineOf(comment);
 
-			if (previous <= 0)
-			{
-				windowStart = 0;
-
-				break;
-			}
-
-			windowStart = previous;
-		}
-
-		var lineEnd = text.IndexOf(
-			'\n',
-			index);
-
-		if (lineEnd < 0)
-		{
-			lineEnd = text.Length;
-		}
-
-		// The window is bounded by the CLOSING "-->", not the opening "<!--". A one-line comment
-		// carries both, so nothing is lost; but the prose blocks this project writes run to six
-		// or eight lines, and keying on the opener made a fully documented padding fail because
-		// its comment STARTED thirteen lines up while ending five lines up. What the window
-		// should ask is "does a comment finish immediately above this attribute", and only the
-		// closer answers that. Its BODY is then read, which is the part that was missing.
-		var window = text[windowStart..lineEnd];
-		var scanned = 0;
-
-		while (true)
-		{
-			var offset = window.IndexOf(
-				"-->",
-				scanned,
-				StringComparison.Ordinal);
-
-			if (offset < 0)
-			{
-				break;
-			}
-
-			var closer = windowStart + offset;
-			scanned = offset + 3;
-
-			var opener = text.LastIndexOf(
-				"<!--",
-				closer,
-				StringComparison.Ordinal);
-
-			if (opener < 0)
+			if (start == 0)
 			{
 				continue;
 			}
 
-			var body = text[opener..closer];
+			var closing = start
+				+ comment
+					.Value
+					.Count(character =>
+						character == '\n');
 
-			if (body.Contains(
+			if (closing > line
+				|| line - closing > DocumentationWindowLines)
+			{
+				continue;
+			}
+
+			if (comment.Value.Contains(
 					"padding",
 					StringComparison.OrdinalIgnoreCase)
-				|| body.Contains(
+				|| comment.Value.Contains(
 					value,
 					StringComparison.Ordinal))
 			{
@@ -975,16 +1118,116 @@ public class GeometryScaleTests
 		return false;
 	}
 
+	/// <summary>
+	///		The text a XAML file's own markup carries — attribute values and element text. It
+	///		deliberately excludes comments: prose is not markup, and that is the whole reason this
+	///		class no longer masks anything before matching.
+	/// </summary>
+	/// <param name="document">
+	///		The parsed document to read.
+	/// </param>
+	private static IEnumerable<string> LiteralText(XDocument document)
+	{
+		foreach (var node in document.DescendantNodes())
+		{
+			if (node is XElement element)
+			{
+				foreach (var attribute in element.Attributes())
+				{
+					yield return attribute.Value;
+				}
+			}
+			else if (node is XText text)
+			{
+				yield return text.Value;
+			}
+		}
+	}
+
+	private static ThemeDocument? DocumentFor(string relative)
+	{
+		return ThemeSource
+			.AppDocuments()
+			.FirstOrDefault(document =>
+				string.Equals(
+					NativeRelativePath(document),
+					relative,
+					StringComparison.OrdinalIgnoreCase));
+	}
+
+	/// <summary>
+	///		The property a XAML name denotes, with any attached-property prefix removed, so that
+	///		<c>Grid.Padding</c> is a Padding. Null in, null out.
+	/// </summary>
+	/// <param name="name">
+	///		The attribute name, or a <c>Setter</c>'s <c>Property</c> value.
+	/// </param>
+	private static string? PropertyName(string? name)
+	{
+		if (name is null)
+		{
+			return null;
+		}
+
+		var dot = name.LastIndexOf('.');
+
+		return dot < 0
+			? name
+			: name[(dot + 1)..];
+	}
+
+	/// <summary>
+	///		Whether an attribute value is a literal geometry rather than a token reference. A
+	///		<c>{StaticResource DmSpaceTight}</c> starts with a brace, not a digit.
+	/// </summary>
+	private static bool IsLiteral(string value)
+	{
+		return value.Length > 0
+			&& char.IsAsciiDigit(value[0]);
+	}
+
+	private static string NativeRelativePath(ThemeDocument document)
+	{
+		return document
+			.RelativePath
+			.Replace(
+				'/',
+				Path.DirectorySeparatorChar);
+	}
+
+	private static int LineOf(IXmlLineInfo info)
+	{
+		return info.HasLineInfo()
+			? info.LineNumber
+			: 0;
+	}
+
 	private static string Relative(params string[] segments)
 	{
 		return Path.Combine(segments);
 	}
+
+	/// <summary>
+	///		One ratchet's markup shape: the properties whose bare value it forbids, and an
+	///		optional pattern applied to attribute VALUES for the one literal that is spelled
+	///		inside a value rather than assigned to a property.
+	/// </summary>
+	/// <param name="Properties">
+	///		The property names, compared after any attached-property prefix, in both the attribute
+	///		and the <c>Setter</c> form.
+	/// </param>
+	/// <param name="ValuePattern">
+	///		The value pattern, or null when the ratchet has no such shape. It must capture a
+	///		<c>value</c> group.
+	/// </param>
+	private sealed record XamlGeometryProbe(
+		IReadOnlyList<string> Properties,
+		Regex? ValuePattern);
 
 	private sealed record GeometryMatch(
 		string Relative,
 		int Line,
 		string Matched,
 		string Value,
-		string FileText,
-		int Index);
+		bool IsDocumented);
 }
