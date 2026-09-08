@@ -45,7 +45,13 @@ public class GetDungeonsQueryHandlerTests
 			CancellationToken.None);
 
 		// Assert
-		result.Should().HaveCount(2);
+		result.Should().HaveCount(summaries.Count);
+
+		for (var i = 0; i < summaries.Count; i++)
+		{
+			result[i].Should().BeSameAs(summaries[i]);
+		}
+
 		result[0].Name.Should().Be("Caverns of Doom");
 		result[1].Name.Should().Be("Crystal Labyrinth");
 		result[1].Description.Should().BeNull();
