@@ -13,21 +13,11 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="RemovePlacedObjectCommandHandler"/>.
 /// </summary>
-public class RemovePlacedObjectCommandHandlerTests
+public sealed class RemovePlacedObjectCommandHandlerTests : DungeonNotFoundHandlerTestBase<RemovePlacedObjectCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly RemovePlacedObjectCommandHandler _handler;
-
-	/// <summary>
-	///		Initializes the test class with a substituted repository and a real handler instance.
-	/// </summary>
-	public RemovePlacedObjectCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new RemovePlacedObjectCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override RemovePlacedObjectCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	/// <summary>
 	///		Verifies that a valid command removes the object from the floor and returns success.
@@ -46,7 +36,7 @@ public class RemovePlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		var objId = floor.Objects[0].Id;
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -58,7 +48,7 @@ public class RemovePlacedObjectCommandHandlerTests
 			objId);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -66,37 +56,27 @@ public class RemovePlacedObjectCommandHandlerTests
 		result.IsSuccess.Should().BeTrue();
 		floor.Objects.Should().BeEmpty();
 
-		_writeRepository
+		WriteRepository
 			.Received(1)
 			.Update(dungeon);
 	}
 
 	/// <summary>
-	///		Verifies that a missing dungeon returns a not-found failure.
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
 	/// </summary>
-	[Fact]
-	public async Task HandleAsync_DungeonNotFound_ReturnsNotFound()
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository
-			.LoadAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<CancellationToken>())
-			.Returns((Dungeon?)null);
-
-		var command = new RemovePlacedObjectCommand(
-			Guid.NewGuid(),
-			Guid.NewGuid(),
-			Guid.NewGuid());
-
-		// Act
-		var result = await _handler.HandleAsync(
-			command,
+		var result = await Handler.HandleAsync(
+			new RemovePlacedObjectCommand(
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				Guid.NewGuid()),
 			CancellationToken.None);
 
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	/// <summary>
@@ -108,7 +88,7 @@ public class RemovePlacedObjectCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("D", null);
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -120,16 +100,20 @@ public class RemovePlacedObjectCommandHandlerTests
 			Guid.NewGuid());
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -142,7 +126,7 @@ public class RemovePlacedObjectCommandHandlerTests
 		var dungeon = new Dungeon("D");
 		var floor = dungeon.AddFloor("F");
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -154,7 +138,7 @@ public class RemovePlacedObjectCommandHandlerTests
 			Guid.NewGuid());
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -162,8 +146,12 @@ public class RemovePlacedObjectCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		floor.Objects.Should().BeEmpty();
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 }

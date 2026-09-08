@@ -10,21 +10,11 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="DeleteDungeonCommandHandler"/>.
 /// </summary>
-public class DeleteDungeonCommandHandlerTests
+public sealed class DeleteDungeonCommandHandlerTests : CommandHandlerTestBase<DeleteDungeonCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly DeleteDungeonCommandHandler _handler;
-
-	/// <summary>
-	///		Initializes the test class with a substituted unit-of-work chain and a real handler instance.
-	/// </summary>
-	public DeleteDungeonCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new DeleteDungeonCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override DeleteDungeonCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	/// <summary>
 	///		Verifies that a valid identifier produces a successful result and that <see cref="IDungeonWriteRepository.RemoveAsync"/> is called exactly once.
@@ -35,7 +25,7 @@ public class DeleteDungeonCommandHandlerTests
 		// Arrange
 		var id = Guid.NewGuid();
 
-		_writeRepository
+		WriteRepository
 			.RemoveAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<CancellationToken>())
@@ -44,14 +34,14 @@ public class DeleteDungeonCommandHandlerTests
 		var command = new DeleteDungeonCommand(id);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 
-		await _writeRepository
+		await WriteRepository
 			.Received(1)
 			.RemoveAsync(
 				Arg.Any<Guid>(),
@@ -67,7 +57,7 @@ public class DeleteDungeonCommandHandlerTests
 		// Arrange
 		var id = Guid.NewGuid();
 
-		_writeRepository
+		WriteRepository
 			.RemoveAsync(
 				Arg.Any<Guid>(),
 				Arg.Any<CancellationToken>())
@@ -76,7 +66,7 @@ public class DeleteDungeonCommandHandlerTests
 		var command = new DeleteDungeonCommand(id);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -85,7 +75,7 @@ public class DeleteDungeonCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		result.Error.Should().Contain(id.ToString());
 
-		await _unitOfWork.UnitOfWork
+		await UnitOfWork
 			.DidNotReceive()
 			.CommitAsync(Arg.Any<CancellationToken>());
 	}
@@ -100,7 +90,7 @@ public class DeleteDungeonCommandHandlerTests
 		var expectedId = Guid.NewGuid();
 		Guid capturedId = Guid.Empty;
 
-		_writeRepository
+		WriteRepository
 			.RemoveAsync(
 				Arg.Do<Guid>(id =>
 					capturedId = id),
@@ -110,7 +100,7 @@ public class DeleteDungeonCommandHandlerTests
 		var command = new DeleteDungeonCommand(expectedId);
 
 		// Act
-		await _handler.HandleAsync(
+		await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 

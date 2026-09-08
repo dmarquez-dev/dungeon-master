@@ -8,18 +8,11 @@ using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class RemoveAreaCommandHandlerTests
+public sealed class RemoveAreaCommandHandlerTests : DungeonNotFoundHandlerTestBase<RemoveAreaCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly RemoveAreaCommandHandler _handler;
-
-	public RemoveAreaCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new RemoveAreaCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override RemoveAreaCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	[Fact]
 	public async Task HandleAsync_WithExistingArea_RemovesAreaAndReturnsSuccess()
@@ -28,36 +21,33 @@ public class RemoveAreaCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Ground");
 		var area = dungeon.AddArea(floor.Id, "Throne Room", null)!;
-		_writeRepository
+		WriteRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new RemoveAreaCommand(dungeon.Id, floor.Id, area.Id);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 		floor.Areas.Should().BeEmpty();
 	}
 
-	[Fact]
-	public async Task HandleAsync_WithNonExistentDungeon_ReturnsNotFoundFailure()
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository
-			.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-			.Returns((Dungeon?)null);
+		var result = await Handler.HandleAsync(
+			new RemoveAreaCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()),
+			CancellationToken.None);
 
-		var command = new RemoveAreaCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
-
-		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	/// <summary>
@@ -70,7 +60,7 @@ public class RemoveAreaCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Ground");
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -82,15 +72,19 @@ public class RemoveAreaCommandHandlerTests
 			Guid.NewGuid());
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 }

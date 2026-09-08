@@ -8,49 +8,42 @@ using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class UpdateDungeonCommandHandlerTests
+public sealed class UpdateDungeonCommandHandlerTests : DungeonNotFoundHandlerTestBase<UpdateDungeonCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly UpdateDungeonCommandHandler _handler;
-
-	public UpdateDungeonCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new UpdateDungeonCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override UpdateDungeonCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	[Fact]
 	public async Task HandleAsync_WithExistingDungeon_UpdatesAndReturnsSuccess()
 	{
 		// Arrange
 		var dungeon = new Dungeon("Old Name", "Old Desc");
-		_writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
+		WriteRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
 		var command = new UpdateDungeonCommand(dungeon.Id, "New Name", "New Desc", "My Notes");
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 		dungeon.Name.Should().Be("New Name");
 		dungeon.Notes.Should().Be("My Notes");
-		_writeRepository.Received(1).Update(dungeon);
+		WriteRepository.Received(1).Update(dungeon);
 	}
 
-	[Fact]
-	public async Task HandleAsync_WithNonExistentId_ReturnsNotFoundFailure()
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
+		var result = await Handler.HandleAsync(
+			new UpdateDungeonCommand(Guid.NewGuid(), "Name", null, null),
+			CancellationToken.None);
 
-		// Act
-		var result = await _handler.HandleAsync(
-			new UpdateDungeonCommand(Guid.NewGuid(), "Name", null, null), CancellationToken.None);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 }
