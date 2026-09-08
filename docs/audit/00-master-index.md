@@ -55,7 +55,7 @@ its per-entry form.
 | 3 -- Settle the data-access lifetime and the persistence contract | 16 | **Complete** 2026-08-18 | `ef0b0b6`, `1453cbd`, `9051eeb` on `chore/repo-audit` |
 | 4 -- Async, disposal and threading discipline | 7 | **Complete** 2026-08-25 | `33da60f`, `706b6da`, `7d00448`, `b461bab`, `5fa398a`, `32a020a` on `chore/repo-audit` |
 | 5 -- Give the editor a seam and the control kit its own contract | 32 | **In progress** -- split into 5a/5b/5c; 5a **Complete** 2026-08-26 (5 of 32 entries) | 5a: `828327a`, `8eded17`, `1678d12`, `36e3b87`, merged `dfa49d7`, artifacts `65b9a8a` on `chore/repo-audit` |
-| 6 -- Rebuild the App sub-suite and de-duplicate the fixtures | 29 | Not started | |
+| 6 -- Rebuild the App sub-suite and de-duplicate the fixtures | 29 | **In progress** -- split into 6a/6b at Gate 1, 6b split again into 6b-i/ii/iii; 6a **Complete** 2026-09-02 (5 of 29), 6b-i **Complete** 2026-09-08 (11 of 29) | 6a merged `45bab59`; 6b-i merged `ce4113d` on `chore/repo-audit` |
 | 7 -- Style, naming and documentation sweep | 31 | Not started | |
 
 **What Session 1 changed for the sessions after it.** Three things the plan was counting on are now
@@ -193,7 +193,7 @@ target frameworks rather than from any decision a test author made.
 | 5 | MASTER-005 | S2 | UI | correctness | XS | low | The object palette swallows every exception from its WinUI theming block | UI-022 | **done** |
 | 6 | MASTER-006 | S2 | UIKIT | disposal | XS | low | HoverOrLongPressBehavior never detaches the pan recogniser it adds | UIKIT-003 | **done** |
 | 7 | MASTER-007 | S2 | UIKIT | correctness | XS | low | NotNullConverter reports an unresolved binding as a non-null value | UIKIT-004 | **done** (5c) |
-| 8 | MASTER-008 | S2 | TEST | correctness | XS | low | RepoPaths accepts any ancestor with a .git entry without checking the App project is beneath it | TEST-003 | |
+| 8 | MASTER-008 | S2 | TEST | correctness | XS | low | RepoPaths accepts any ancestor with a .git entry without checking the App project is beneath it | TEST-003 | **done** (6b-i) |
 | 9 | MASTER-009 | S2 | XCUT | dependency | XS | low | No global.json and no AnalysisLevel pin, so the analyzer set floats under TreatWarningsAsErrors | XCUT-003 | **done** |
 | 10 | MASTER-010 | S2 | CORE | correctness | S | low | AddArea throws InvalidOperationException for a missing floor while siblings return a Result | CORE-002 | **done** |
 | 11 | MASTER-011 | S2 | INFRA | async | S | low | MigrateDatabase applies migrations synchronously on the startup path and takes no cancellation token | INFRA-019 | **done** |
@@ -213,7 +213,7 @@ target frameworks rather than from any decision a test author made.
 | 25 | MASTER-025 | S2 | UIKIT | async | M | medium | Image loading blocks on async file I/O from inside the Draw call path | UIKIT-002 | **done** |
 | 26 | MASTER-026 | S2 | XCUT | boundary | M | medium | Tests targets net10.0 and App targets platform frameworks, so no test can reference App | XCUT-002 | **done** (5a) |
 | 27 | MASTER-027 | S2 | UIKIT | boundary | L | medium | The reusable control kit binds directly to Application query DTOs | UIKIT-005 | **done** (5a) |
-| 28 | MASTER-028 | S2 | TEST | correctness | L | medium | Eleven of the thirteen App files assert over XAML as text; a twelfth parses it as XML | TEST-004 | |
+| 28 | MASTER-028 | S2 | TEST | correctness | L | medium | Eleven of the thirteen App files assert over XAML as text; a twelfth parses it as XML | TEST-004 | **done** (6b-i) -- closes FULLY, not partially: an injection falsified the rationale for leaving the two dual-language ratchets on raw text |
 | 29 | MASTER-029 | S2 | INFRA | performance | L | high | Every timestamp column is DateTimeOffset, a type the SQLite provider does not natively support | INFRA-003 | **done** |
 | 30 | MASTER-030 | S2 | UI, XCUT | correctness | L | high | Resolve the macCatalyst target framework: implement it fully or drop it from the solution | UI-021, UI-036, XCUT-004 | **done** (5a) -- parked, see ADR-001 |
 | 31 | MASTER-031 | S3 | CORE | api-design | XS | low | AddPlacedObject reports a missing floor as a Validation failure with an opaque message | CORE-014 | **done** |
@@ -225,7 +225,7 @@ target frameworks rather than from any decision a test author made.
 | 37 | MASTER-037 | S3 | UIKIT | api-design | XS | low | DmTheme.Gold and DmTheme.ScrollGoldLight resolve the identical token key | UIKIT-015 | **done** (5c) |
 | 38 | MASTER-038 | S3 | UIKIT | async | XS | low | DmConfirmPopup discards the CloseAsync task without observing it | UIKIT-018 | **done** |
 | 39 | MASTER-039 | S3 | UIKIT | performance | XS | low | HandCursorBehavior reflects for ProtectedCursor on every pointer event | UIKIT-020 | **done** |
-| 40 | MASTER-040 | S3 | TEST | correctness | XS | low | The accessibility scan truncates supplementary-plane character entities with a char cast | TEST-006 | |
+| 40 | MASTER-040 | S3 | TEST | correctness | XS | low | The accessibility scan truncates supplementary-plane character entities with a char cast | TEST-006 | **done** (6b-i) -- and this row's mechanism is corrected in the outcome: the control was misreported, not dropped |
 | 41 | MASTER-041 | S3 | TEST | testability | XS | low | Task-returning substitutes are given explicit Returns(Task.CompletedTask) stubs | TEST-011 | |
 | 42 | MASTER-042 | S3 | TEST | dead-code | XS | low | AreaPersistenceDiagnosticTests is a committed debugging session with two subsumed tests | TEST-012 | |
 | 43 | MASTER-043 | S3 | XCUT | dependency | XS | low | EF Core is pinned three patch releases behind a version the pin comment shows was evaluated | XCUT-016 | **done** |
@@ -248,12 +248,12 @@ target frameworks rather than from any decision a test author made.
 | 60 | MASTER-060 | S3 | UIKIT | structure | S | low | DmSearchBar paints its focus state imperatively rather than through visual states | UIKIT-013 | **done** (5c) |
 | 61 | MASTER-061 | S3 | UIKIT | correctness | S | low | NotebookView resolves a theme colour through a raw indexer and a null-forgiving operator | UIKIT-016 | **done** (5c) |
 | 62 | MASTER-062 | S3 | UIKIT | threading | S | low | Long-press state is written on the UI thread and read on a timer thread with no synchronisation | UIKIT-017 | **done** -- fix shape only; the race itself is not demonstrable, see the Session 6a outcome |
-| 63 | MASTER-063 | S3 | TEST | performance | S | low | Compiled Regex objects are constructed inside per-item loops rather than reused | TEST-005 | |
+| 63 | MASTER-063 | S3 | TEST | performance | S | low | Compiled Regex objects are constructed inside per-item loops rather than reused | TEST-005 | **done** (6b-i) -- closes FULLY: the survey found two `new Regex(` sites absent from this row's own locations list |
 | 64 | MASTER-064 | S3 | TEST | duplication | S | low | The four validator test classes are identical except for the command type | TEST-007 | |
 | 65 | MASTER-065 | S3 | TEST | duplication | S | low | The SQLite in-memory fixture is copy-pasted verbatim into four Infrastructure test classes | TEST-009 | |
 | 66 | MASTER-066 | S3 | TEST | testability | S | low | Four tests assert Received(1) on a save that happens on a path where nothing changed | TEST-010 | |
 | 67 | MASTER-067 | S3 | TEST | duplication | S | low | Five geometry facts and five snap-zone facts differ only in their data | TEST-013 | |
-| 68 | MASTER-068 | S3 | TEST | performance | S | low | Every test in the type-matching class recomputes the full disk scan from scratch | TEST-017 | |
+| 68 | MASTER-068 | S3 | TEST | performance | S | low | Every test in the type-matching class recomputes the full disk scan from scratch | TEST-017 | **done** (6b-i) |
 | 69 | MASTER-069 | S3 | TEST | testability | S | low | The two query-handler tests assert only that the stubbed DTO came back | TEST-018 | |
 | 70 | MASTER-070 | S3 | TEST | async | S | low | No test in the suite passes a cancellable or cancelled CancellationToken | TEST-019 | |
 | 71 | MASTER-071 | S3 | XCUT | dependency | S | low | Package versions and the security pin are declared per project with no central management | XCUT-008 | **done** |
@@ -285,16 +285,16 @@ target frameworks rather than from any decision a test author made.
 | 97 | MASTER-097 | S3 | UIKIT | performance | M | medium | Draw allocates per area, per segment and per frame | UIKIT-009 | **done** (5c) |
 | 98 | MASTER-098 | S3 | UIKIT | api-design | M | medium | Sidebar items expose visual state through imperative methods, not bindable properties | UIKIT-011 | part done (5c) -- the DragOver state is unverifiable while the drag handle is unreachable (MASTER-163), deferred to a later session |
 | 99 | MASTER-099 | S3 | UIKIT | structure | M | medium | FloorSidebarItem re-declares and hand-forwards five of AreaSidebarItem's events | UIKIT-012 | **done** (5c) |
-| 100 | MASTER-100 | S3 | TEST | structure | M | medium | MAUI property types and the conversion matrix are hand-transcribed into the test at a fixed date | TEST-014 | |
-| 101 | MASTER-101 | S3 | TEST | structure | M | medium | A TrueType cmap parser lives in a test class and three of its four subtable branches are unexercised | TEST-015 | |
-| 102 | MASTER-102 | S3 | TEST | testability | M | medium | Assertions live inside shared scan helpers, so failures are reported against the helper | TEST-016 | |
+| 100 | MASTER-100 | S3 | TEST | structure | M | medium | MAUI property types and the conversion matrix are hand-transcribed into the test at a fixed date | TEST-014 | **done** (6b-i) |
+| 101 | MASTER-101 | S3 | TEST | structure | M | medium | A TrueType cmap parser lives in a test class and three of its four subtable branches are unexercised | TEST-015 | **done** (6b-i) |
+| 102 | MASTER-102 | S3 | TEST | testability | M | medium | Assertions live inside shared scan helpers, so failures are reported against the helper | TEST-016 | **done** (6b-i) -- 14 helper-assertion sites, not the 7 this row names, and one cited location pointed at the wrong code |
 | 103 | MASTER-103 | S3 | XCUT | boundary | M | medium | Domain CLR type choices set Infrastructure's storage cost with no port between the two | XCUT-007 | **done** |
 | 104 | MASTER-104 | S3 | XCUT | dependency | M | medium | A prerelease package is referenced by the only project that ships | XCUT-011 | **done** |
 | 105 | MASTER-105 | S3 | UIKIT | structure | M | high | DmInlineEditor concentrates five responsibilities and hides a state change in ClearFocusGlow | UIKIT-019 | **done** (5c) |
 | 106 | MASTER-106 | S3 | UI | structure | L | medium | DungeonDetailViewModel carries four unrelated responsibilities in one 397-line type | UI-006 | **done** (5b) |
 | 107 | MASTER-107 | S3 | CORE | structure | L | high | Dungeon is a 453-line delegation facade that re-implements Floor's API rather than exposing it | CORE-015 | |
 | 108 | MASTER-108 | S3 | UI | structure | L | high | The detail page's code-behind is 2,226 lines and owns the editor's entire interaction state machine | UI-016 | part done (5b) -- UI-016's second remedy, converting RebuildFloorList to a templated BindableLayout, deferred to a later session |
-| 109 | MASTER-109 | S3 | TEST | testability | L | high | App facts assert against the lexical form of application C#, not its behaviour | TEST-021 | |
+| 109 | MASTER-109 | S3 | TEST | testability | L | high | App facts assert against the lexical form of application C#, not its behaviour | TEST-021 | **done** (6b-i) |
 | 110 | MASTER-110 | S4 | CORE | structure | XS | low | Floor is split across three partial files where the conventions define a two-file split | CORE-022 | |
 | 111 | MASTER-111 | S4 | CORE | naming | XS | low | RotateDirection.cs declares a type named RotationDirection | CORE-023 | |
 | 112 | MASTER-112 | S4 | CORE | docs | XS | low | Two files indent XML documentation continuation lines with spaces instead of two tabs | CORE-026 | |
@@ -323,7 +323,7 @@ target frameworks rather than from any decision a test author made.
 | 135 | MASTER-135 | S4 | UI | style | S | low | Braces are omitted on single-statement control flow in roughly twenty places | UI-028 | |
 | 136 | MASTER-136 | S4 | UIKIT | docs | S | low | Public types, members and parameters across the behaviors lack XML documentation | UIKIT-024 | |
 | 137 | MASTER-137 | S4 | TEST | style | S | low | Arrange/Act/Assert structure is used in one sub-tree and absent from three | TEST-022 | |
-| 138 | MASTER-138 | S4 | TEST | duplication | S | low | Comment-stripping regexes and a line-number helper are re-declared instead of shared | TEST-028 | |
+| 138 | MASTER-138 | S4 | TEST | duplication | S | low | Comment-stripping regexes and a line-number helper are re-declared instead of shared | TEST-028 | **done** (6b-i) |
 | 139 | MASTER-139 | S4 | TEST | style | S | low | Several tests carry two or more independent reasons to fail | TEST-029 | |
 | 140 | MASTER-140 | S4 | XCUT | structure | S | low | The solution declares x64 and x86 platforms that every project maps back to Any CPU | XCUT-014 | **done** |
 | 141 | MASTER-141 | S4 | UI | style | S | medium | Layout dimensions are written as literals in markup that has tokens for everything else | UI-032 | |
@@ -334,7 +334,7 @@ target frameworks rather than from any decision a test author made.
 | 146 | MASTER-146 | S5 | CORE | boundary | XS | low | The only persistence-shaped concession in the Domain is the private parameterless constructors | CORE-033 | |
 | 147 | MASTER-147 | S5 | INFRA | performance | XS | low | AsNoTracking on the summary query has no effect because the projection contains no entity types | INFRA-009 | |
 | 148 | MASTER-148 | S5 | UIKIT | correctness | XS | low | BookmarkTabShape's notch clamp permits the degenerate case its comment describes | UIKIT-029 | |
-| 149 | MASTER-149 | S5 | TEST | dead-code | XS | low | One theme ratchet is structurally incapable of failing in its current state | TEST-031 | |
+| 149 | MASTER-149 | S5 | TEST | dead-code | XS | low | One theme ratchet is structurally incapable of failing in its current state | TEST-031 | **done** (6b-i) -- kept as a self-arming ratchet and made legible in the report, not made to fail |
 | 150 | MASTER-150 | S5 | XCUT | style | XS | low | Build files disagree on byte-order mark and the repository has no .gitattributes | XCUT-017 | **done** |
 | 151 | MASTER-151 | S5 | UIKIT | duplication | XS | high | DmConfirmButton restates the full visual-state group its base already defines | UIKIT-028 | |
 | 152 | MASTER-152 | S5 | INFRA | correctness | S | low | HasMaxLength is configured on eleven string columns but SQLite enforces none of them | INFRA-002 | |
@@ -468,6 +468,30 @@ the one that gives the persistence port an address.
 - **Combined effort:** ~6.6 days
 - **Highest risk:** high
 - **Rationale:** The whole test suite in one pass, after the code it tests has settled. Sequencing matters more here than anywhere: rebuilding the `App/` sub-suite before Session 5 has decided where App logic lives would rebuild it against a shape that is about to change. `MASTER-065` and `MASTER-014` are taken together because the shared fixture and the `EnsureCreated` schema are the same four files. It also now carries `MASTER-006`, `MASTER-013`, `MASTER-055` and `MASTER-062`, rescheduled here from Session 4 at Gate 2 -- see the Session 4 outcome above for why, and note that half of `MASTER-013` already landed there.
+
+### Session 6b-i -- Rebuild the App sub-suite -- COMPLETE (2026-09-08)
+- **Entries:** MASTER-008, MASTER-028, MASTER-040, MASTER-063, MASTER-068, MASTER-100, MASTER-101, MASTER-102, MASTER-109, MASTER-138, MASTER-149 -- **11 of Session 6b's 26**, chosen at Gate 1 as the ones concerning the `App/` test sub-suite. The remaining 15 belong to 6b-ii (fixtures and de-duplication, 10) and 6b-iii (coverage gaps and tooling, 5).
+- **Outcome:** **Eleven entries closed, plus one accepted addition.** Twelve tasks, twelve commits, **fourteen reviews and fourteen first-round passes, zero blocking findings, zero revision rounds**, one re-dispatch after an API session limit killed a reviewer. 146 acceptance criteria, 146 met. Tests `640 + 77` -> `695 + 77 + 23`, plus a new out-of-solution end-to-end project; solution build clean at `0 Warning(s)` under `TreatWarningsAsErrors`, and **every session-touched `.cs` file confirmed CRLF in the main checkout after the merge**, not only in the worktree. Change surface 45 files, +9,069 / -1,755, range `83ba80c..4133a68`, merged `ce4113d`.
+
+  **The session's foundation was chosen by measurement, not by the audit's suggestion.** Research established that Microsoft documents no supported way to unit-test XAML or views out of process -- the answers are view models, or Appium -- which reframed `MASTER-028` and `MASTER-109`: asserting over the declaration is defensible, and the regex implementation was the defect. A spike then proved Microsoft's documented plain-`net10.0` path works here, so `DungeonMaster.App` gained a third, platform-less target framework and a new `DungeonMaster.App.UnitTests` project reaches real types, real `BindableProperty` metadata and the real merged theme dictionaries **with no MAUI host and no WinUI**. `DungeonMaster.Tests` deliberately keeps no reference to the app, because acquiring one imports 18 MAUI global usings and produced 31 `CS0104` errors when measured.
+
+  **Two entries close FULLY that were expected to close partially, and both upgrades came from running a check.** `MASTER-028`: the rationale for leaving `GeometryScaleTests` and `ThemeHygieneTests` on raw text was that an XML model could not see literals inside attribute values -- an injection over ten synthetic cases found the opposite, that the two forms disagree on exactly one case and it goes the XML model's way (`#FF&#x30;000`, which no byte-level pattern sees). `MASTER-063`: the `RegexOptions.Compiled` survey found **six** method-body construction sites, two of them absent from this entry's own `locations` list.
+
+  **Three of this index's own records were corrected by measurement.** `TEST-004`'s claim that "an attribute value containing `>` truncates the tag" holds only for a **literal** `>`, and only when it precedes the attribute being sought -- an `&gt;` entity contains no `>` character and the old regex handled it. `TEST-016` names 7 helper-assertion sites; there are **14**, and its citation for `GeometryScaleTests.cs` pointed at a `[Fact]`-level assertion that was correct where it stood while the real helper assertion sat 100 lines away. `TEST-015`'s premise is confirmed and quantified: all three of the icon font's encoding records alias one format-4 subtable, so formats 0, 6 and 12 were unreachable from any test.
+
+  **`MASTER-040`'s mechanism is corrected here rather than left standing.** The `char` cast truncated `U+1F6E1` to `U+F6E1`, a **length-1** private-use string, which the old `text.Length != 1` test **accepts** -- so the old scan reached that control and reported it under a codepoint it does not have. It was **misreported, not dropped**. The delivered fix and its injection are sound; the account everyone had of the defect was wrong, including this index's, the criteria's, and the commit message's.
+
+  **`MASTER-149` closes without being made to fail, deliberately.** The ratchet iterates an allow list that is empty and asserts the empty result is empty. That is correct -- it is a self-arming ratchet, needed at the moment somebody adds a first entry, which is the moment nobody would think to write it. An `Assert.NotEmpty` would make a test that cannot *pass*. The remedy is visibility: it now carries a display name stating it is deliberately inert, and a paired experiment demonstrated the ratchet works -- armed with a real offender it passes **in 15 ms against its inert `< 1 ms`**, and with the offender removed it fails naming the stale entry.
+
+  **The strongest single result is about method rather than code.** Across three tasks, blinding a scan left **every fact built on it green** -- ten facts in one case, four in another, and in a third the fact that `continue`s past a missing declaration. Only the newly promoted guards failed. **An assertion inside a helper protects nothing: a scan reaching nothing passes exactly like a scan reaching everything.** That is `MASTER-102` measured rather than argued.
+
+  **One accepted addition, scoped in at Gate 2 by the user's decision:** the repository had **no end-to-end layer**. `src/DungeonMaster.App.UiTests` now launches the real unpackaged executable through Appium, clicks a control by automation id, and asserts a different element's text -- shown able to fail with the click removed while both control facts stay green in the same red run. It is deliberately **not** in `src/DungeonMaster.sln`, because its tests cannot pass without a running Appium server. **It applies pending EF migrations to the user's real database on every run** -- `MauiProgram.DatabasePathOverride` is an in-process static with no out-of-process seam -- which is carried in the backlog.
+
+  **Seventeen defective citations, counts and prescribed commands were found in this session's own frozen artifacts, every one by running a check and none by reading.** Two were the orchestrator's. The recurring one is a leading-tab ERE grep that returns `0` on a fully tab-indented file: it appeared five times, twice inside frozen criteria, and the second occurrence was authored *after* the form had been adjudicated and the measurement sent to its author -- in a task whose criterion 10 forbids the construct that its criterion 2 mandates. A manifest lint is carried in the backlog, because prose has demonstrably not stopped it.
+
+  **Six contract operations shipped with an implementer and no consumer** -- `ThemeFileText` has zero call sites anywhere; `ThemeDirectory` and `StaticResourceKeys` are used only inside their own file; `KeyDefinitionPattern`, `LegacyTolerantKeyDefinitionPattern` and `ThemeTokenNotFoundException` are reached only from their declaring task's own tests. Three were surfaced independently by three different tasks before the Gate 3 search ran. Carried to the backlog as **one** decision, since narrowing any of them is a contract change.
+
+  **The Session 6 summary row above was corrected by this session.** It read "Not started" while Session 6a had already landed five entries on 2026-09-02. Marking another session's *entry rows* is not this session's to do, and none were touched -- but a session-level row asserting "Not started" against sixteen landed entries is a falsehood in the index, so it now reflects 6a and 6b-i together.
 
 ### Session 7 -- Style, naming and documentation sweep
 - **Entries:** MASTER-022, MASTER-110, MASTER-111, MASTER-112, MASTER-113, MASTER-114, MASTER-115, MASTER-116, MASTER-117, MASTER-118, MASTER-119, MASTER-120, MASTER-121, MASTER-122, MASTER-123, MASTER-124, MASTER-125, MASTER-126, MASTER-128, MASTER-130, MASTER-131, MASTER-133, MASTER-134, MASTER-135, MASTER-136, MASTER-137, MASTER-139, MASTER-141, MASTER-142, MASTER-143, MASTER-144
