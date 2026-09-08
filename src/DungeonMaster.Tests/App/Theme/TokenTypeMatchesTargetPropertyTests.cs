@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using FluentAssertions;
 
@@ -24,16 +23,47 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		what decides whether the value lands at all.
 ///		</para>
 /// </summary>
-public class TokenTypeMatchesTargetPropertyTests
+/// <remarks>
+///		<para>
+///		THE MAUI TABLES BELOW ARE A TRANSCRIPTION AND THIS ASSEMBLY CANNOT CHECK THEM. It may not
+///		reference <c>DungeonMaster.App</c> — doing so imports MAUI's global usings into a
+///		640-test project — so no reflection over <c>Microsoft.Maui.Controls</c> is possible here,
+///		and no result computed elsewhere can be handed in. MASTER-100 is therefore closed by TWO
+///		independent alarms, one per assembly, with no data crossing between them.
+///		</para>
+///		<para>
+///		ALARM ONE is
+///		<see cref="TheMauiControlsPackageVersionStillMatchesTheVersionTheTablesWereReadOff"/> in
+///		this file. A MAUI bump fails it and says the tables must be re-read, instead of leaving
+///		them stating the old truth as a false pass.
+///		</para>
+///		<para>
+///		ALARM TWO is <c>DungeonMaster.App.UnitTests.Theme.MauiPropertyTypeTests</c> and
+///		<c>MauiConversionMatrixTests</c>, which restate these same values next to reflection and
+///		live probes against the resolved assembly. That duplication is deliberate and its reason
+///		is recorded at that site.
+///		</para>
+/// </remarks>
+public class TokenTypeMatchesTargetPropertyTests : IClassFixture<TokenBindingFixture>
 {
-	private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2009/xaml";
-
 	/// <summary>
 	///		Marks a property whose type the fact could not determine. Carried as a type name so a
 	///		binding onto it flows through the same pipeline as any other and is reported by
 	///		<see cref="EveryDmTokenBindingTargetsAPropertyOfAKnownType"/> rather than dropped.
 	/// </summary>
-	private const string UnknownType = "?";
+	internal const string UnknownType = "?";
+
+	/// <summary>
+	///		The <c>Microsoft.Maui.Controls</c> version the tables in this file were read off.
+	///		ALARM ONE compares it against the repository's own <c>Directory.Packages.props</c>.
+	/// </summary>
+	private const string MauiControlsVersionTheTablesWereReadOff = "10.0.41";
+
+	/// <summary>
+	///		The date the tables were read off, quoted in ALARM ONE's failure so a reader knows how
+	///		old the transcription is without opening this file.
+	/// </summary>
+	private const string TablesReadOffOn = "2026-08-07";
 
 	/// <summary>
 	///		The CLR type each token-declaring XAML element produces.
@@ -68,6 +98,11 @@ public class TokenTypeMatchesTargetPropertyTests
 	///		rejects a double just as <c>Button</c>'s does — and seeding them costs nothing,
 	///		whereas discovering them the way <c>Button</c> was discovered costs a release.
 	///		</para>
+	///		<para>
+	///		RE-ESTABLISHED BY REFLECTION in
+	///		<c>DungeonMaster.App.UnitTests.Theme.MauiPropertyTypeTests</c>, which is the only
+	///		assembly in this repository that can see these types at all.
+	///		</para>
 	/// </summary>
 	private static readonly Dictionary<string, string> PropertyTypesByElement =
 		new(StringComparer.Ordinal)
@@ -87,6 +122,10 @@ public class TokenTypeMatchesTargetPropertyTests
 	///		for, and it has no element-independent type; leaving it out means a
 	///		<c>CornerRadius</c> binding onto an element nobody has taught this table about fails
 	///		here rather than being guessed at.
+	///		</para>
+	///		<para>
+	///		RE-ESTABLISHED BY REFLECTION in
+	///		<c>DungeonMaster.App.UnitTests.Theme.MauiPropertyTypeTests</c>.
 	///		</para>
 	/// </summary>
 	private static readonly Dictionary<string, string> PropertyTypesByName =
@@ -153,7 +192,7 @@ public class TokenTypeMatchesTargetPropertyTests
 	///		Color → Brush.
 	///		</para>
 	///		<para>
-	///		DROPPED, leaving the property on its default: double → int, double → float,
+	///		DROPPED, leaving the property exactly as it was: double → int, double → float,
 	///		string → int, string → double, string → CornerRadius, string → Thickness.
 	///		</para>
 	///		<para>
@@ -165,6 +204,10 @@ public class TokenTypeMatchesTargetPropertyTests
 	///		and then applies CornerRadius's implicit double operator — and it is exactly the kind
 	///		of thing that is easy to assume in either direction. It is in this table because it
 	///		was measured, not because it was reasoned.
+	///		</para>
+	///		<para>
+	///		RE-MEASURED, both halves, against real MAUI instances in
+	///		<c>DungeonMaster.App.UnitTests.Theme.MauiConversionMatrixTests</c>.
 	///		</para>
 	/// </summary>
 	private static readonly HashSet<string> WideningConversions =
@@ -179,27 +222,64 @@ public class TokenTypeMatchesTargetPropertyTests
 			"Color->Brush",
 		};
 
-	/// <summary>
-	///		Matches a <c>BindableProperty.Create</c> declaration in the application's own
-	///		controls, capturing the property name, its type and its owning type. The app's
-	///		controls carry properties MAUI has never heard of — <c>DmDivider.IconFontSize</c> —
-	///		and reading their real declarations beats a hand-copied table that can go stale.
-	/// </summary>
-	private static readonly Regex AppBindablePropertyPattern =
-		new(
-			@"BindableProperty\.Create(?:AttachedProperty)?\(\s*"
-			+ @"nameof\((?<property>\w+)\)\s*,\s*"
-			+ @"typeof\((?<type>[\w.?<>]+)\)\s*,\s*"
-			+ @"typeof\((?<owner>\w+)\)",
-			RegexOptions.Compiled);
+	private readonly TokenBindingFixture _fixture;
 
 	/// <summary>
-	///		Matches a <c>{StaticResource Dm…}</c> markup extension.
+	///		Initializes a new instance of <see cref="TokenTypeMatchesTargetPropertyTests"/>.
 	/// </summary>
-	private static readonly Regex StaticResourcePattern =
-		new(
-			@"\{StaticResource\s+(?<key>Dm[A-Za-z0-9]*)\}",
-			RegexOptions.Compiled);
+	/// <param name="fixture">
+	///		The disk scan, computed once for this class rather than once per fact.
+	/// </param>
+	public TokenTypeMatchesTargetPropertyTests(TokenBindingFixture fixture)
+	{
+		_fixture = fixture;
+	}
+
+	/// <summary>
+	///		ALARM ONE for MASTER-100. The repository's pinned <c>Microsoft.Maui.Controls</c>
+	///		version still matches the version the tables in this file were transcribed from.
+	///		<para>
+	///		This assembly cannot see a MAUI type, so it cannot check the tables themselves. What
+	///		it can check is whether the framework underneath them has moved. A bump fails here and
+	///		says the tables must be re-read, rather than leaving them stating the old truth as a
+	///		false pass.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheMauiControlsPackageVersionStillMatchesTheVersionTheTablesWereReadOff()
+	{
+		var path = Path.Combine(
+			RepoPaths.Root,
+			"Directory.Packages.props");
+
+		var versions = XDocument
+			.Load(path)
+			.Descendants("PackageVersion")
+			.Where(element =>
+				string.Equals(
+					element.Attribute("Include")?.Value,
+					"Microsoft.Maui.Controls",
+					StringComparison.Ordinal))
+			.Select(element =>
+				element.Attribute("Version")?.Value)
+			.ToList();
+
+		versions
+			.Should()
+			.ContainSingle(
+				"Directory.Packages.props pins Microsoft.Maui.Controls exactly once; finding "
+				+ "none would leave this alarm reading nothing and passing forever");
+
+		versions[0]
+			.Should()
+			.Be(
+				MauiControlsVersionTheTablesWereReadOff,
+				"the MAUI property types and the conversion matrix in this file were read off "
+				+ $"{MauiControlsVersionTheTablesWereReadOff} on {TablesReadOffOn} and nothing in "
+				+ "this assembly can re-read them. Re-measure them against the new version, "
+				+ "update them here and in DungeonMaster.App.UnitTests.Theme.MauiPropertyTypeTests "
+				+ "and MauiConversionMatrixTests, then move this constant");
+	}
 
 	/// <summary>
 	///		Asserts that every <c>Dm*</c> token bound in the application's XAML converts to the
@@ -209,9 +289,16 @@ public class TokenTypeMatchesTargetPropertyTests
 	[Fact]
 	public void EveryDmTokenBindingConvertsToItsTargetPropertyType()
 	{
+		var bindings = Bindings();
 		var tokenTypes = TokenTypesByKey();
 
-		var offenders = Bindings()
+		bindings
+			.Should()
+			.NotBeEmpty(
+				"the offenders list below is empty both when every binding is correct and when "
+				+ "nothing was examined, and those two states must not look the same");
+
+		var offenders = bindings
 			.Where(binding =>
 				binding.PropertyType != UnknownType)
 			.Where(binding =>
@@ -251,7 +338,15 @@ public class TokenTypeMatchesTargetPropertyTests
 	[Fact]
 	public void EveryDmTokenBindingTargetsAPropertyOfAKnownType()
 	{
-		var unknown = Bindings()
+		var bindings = Bindings();
+
+		bindings
+			.Should()
+			.NotBeEmpty(
+				"the unknown list below is empty both when every target is nameable and when "
+				+ "nothing was examined, and those two states must not look the same");
+
+		var unknown = bindings
 			.Where(binding =>
 				binding.PropertyType == UnknownType)
 			.Select(binding =>
@@ -286,13 +381,8 @@ public class TokenTypeMatchesTargetPropertyTests
 	[Fact]
 	public void EveryStaticResourceReferenceInTheXamlIsSeenByTheScan()
 	{
-		var seen = Bindings().Count;
-
-		var total = XamlFiles()
-			.Sum(path =>
-				StaticResourcePattern
-					.Matches(StripComments(File.ReadAllText(path)))
-					.Count);
+		var seen = _fixture.Bindings.Count;
+		var total = _fixture.StaticResourceOccurrences;
 
 		total
 			.Should()
@@ -337,6 +427,131 @@ public class TokenTypeMatchesTargetPropertyTests
 				+ "cannot fire");
 	}
 
+	/// <summary>
+	///		The XAML scan reaches at least one file.
+	///		<para>
+	///		This was an assertion inside the <c>XamlFiles()</c> Arrange helper, so a scan that
+	///		reached nothing was reported against whichever fact happened to call it first.
+	///		<c>contracts/anti-vacuity.md</c> section 2.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheXamlScanReachesAtLeastOneFile()
+	{
+		_fixture
+			.XamlFiles
+			.Should()
+			.NotBeEmpty("the XAML scan must find files or every fact here is vacuous");
+	}
+
+	/// <summary>
+	///		The token declaration scan reaches at least one token.
+	///		<para>
+	///		Retired from inside <c>TokenTypesByKey()</c>. <c>contracts/anti-vacuity.md</c>
+	///		section 2.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheTokenDeclarationScanReachesAtLeastOneToken()
+	{
+		TokenTypesByKey()
+			.Should()
+			.NotBeEmpty("the token declaration scan must find tokens or every fact here is vacuous");
+	}
+
+	/// <summary>
+	///		The application bindable property scan reaches at least one declaration.
+	///		<para>
+	///		Retired from inside <c>AppPropertyTypes()</c>. <c>contracts/anti-vacuity.md</c>
+	///		section 2.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheAppBindablePropertyScanReachesAtLeastOneDeclaration()
+	{
+		_fixture
+			.AppPropertyTypes
+			.Should()
+			.NotBeEmpty(
+				"the application declares bindable properties; finding none means the pattern "
+				+ "has stopped matching and every app-control binding is silently unchecked");
+	}
+
+	/// <summary>
+	///		Every <c>Dm*</c> token is declared as an element this fact knows how to type.
+	///		<para>
+	///		Retired from inside <c>TokenTypesByKey()</c>, where it was reported against whichever
+	///		fact called the helper first.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void EveryDmTokenIsDeclaredAsAnElementThisFactKnows()
+	{
+		var declarations = _fixture.TokenDeclarations;
+
+		declarations
+			.Should()
+			.NotBeEmpty(
+				"the unrecognised list below is empty both when every declaration is known and "
+				+ "when nothing was examined");
+
+		var unrecognised = declarations
+			.Where(declaration =>
+				!TokenElementTypes.ContainsKey(declaration.QualifiedElementName))
+			.Select(declaration =>
+				$"{declaration.Where} declares '{declaration.Key}' as "
+				+ $"<{declaration.QualifiedElementName}>")
+			.OrderBy(
+				entry =>
+					entry,
+				StringComparer.Ordinal)
+			.ToList();
+
+		unrecognised
+			.Should()
+			.BeEmpty(
+				"a token declared as an element this fact does not know cannot be type-checked; "
+				+ "add the element to TokenElementTypes");
+	}
+
+	/// <summary>
+	///		The structured <c>BindableProperty.Create</c> pattern still matches every plain
+	///		occurrence of that call in the application's source.
+	///		<para>
+	///		MASTER-109. <c>TokenBindingFixture.AppBindablePropertyPattern</c> is a regular
+	///		expression over source TEXT, and such a pattern fails OPEN: a reformatting that moves
+	///		an argument onto another line leaves the declaration present and the pattern matching
+	///		nothing, retiring the guard in silence. Comparing the structured match count against
+	///		the plain substring count over the same files is what makes that loud. BOTH NUMBERS
+	///		ARE DERIVED; neither is hard-coded.
+	///		</para>
+	///		<para>
+	///		Comments are blanked before either count, because a doc comment that merely NAMES
+	///		<c>BindableProperty.Create</c> in prose is not a declaration. <c>Theme/DmTheme.cs</c>
+	///		carries exactly one such mention, and counting it made the two numbers differ by one.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheStructuredBindablePropertyPatternMatchesEveryPlainOccurrence()
+	{
+		_fixture
+			.AppBindablePropertyOccurrences
+			.Should()
+			.BeGreaterThan(
+				0,
+				"the application declares bindable properties; finding no plain occurrence means "
+				+ "this comparison is reading nothing and would agree with anything");
+
+		_fixture
+			.AppBindablePropertyDeclarations
+			.Should()
+			.Be(
+				_fixture.AppBindablePropertyOccurrences,
+				"a BindableProperty.Create the structured pattern no longer matches is a control "
+				+ "property this fact has silently stopped type-checking; the substring is still "
+				+ "there, so the difference is the pattern's and not the application's");
+	}
+
 	private static bool Converts(
 		string from,
 		string to)
@@ -348,348 +563,58 @@ public class TokenTypeMatchesTargetPropertyTests
 			|| WideningConversions.Contains($"{from}->{to}");
 	}
 
-	private static IReadOnlyList<string> XamlFiles()
-	{
-		var files = RepoPaths.AppSourceFiles("*.xaml");
-
-		files
-			.Should()
-			.NotBeEmpty("the XAML scan must find files or every fact here is vacuous");
-
-		return files;
-	}
-
-	private static string StripComments(string text)
-	{
-		return ThemeSource.XmlCommentPattern.Replace(
-			text,
-			string.Empty);
-	}
-
 	/// <summary>
-	///		Returns the CLR type of every <c>Dm*</c> token, keyed by resource key.
+	///		Returns the CLR type of every <c>Dm*</c> token, keyed by resource key. Asserts nothing:
+	///		<see cref="TheTokenDeclarationScanReachesAtLeastOneToken"/> and
+	///		<see cref="EveryDmTokenIsDeclaredAsAnElementThisFactKnows"/> carry what used to be
+	///		asserted from inside it.
 	/// </summary>
-	private static Dictionary<string, string> TokenTypesByKey()
+	private Dictionary<string, string> TokenTypesByKey()
 	{
 		var types = new Dictionary<string, string>(StringComparer.Ordinal);
-		var unrecognised = new List<string>();
 
-		foreach (var path in ThemeSource.ThemeFiles())
+		foreach (var declaration in _fixture.TokenDeclarations)
 		{
-			var document = XDocument.Parse(File.ReadAllText(path));
-
-			foreach (var element in document.Descendants())
+			if (TokenElementTypes.TryGetValue(
+				declaration.QualifiedElementName,
+				out var type))
 			{
-				var key = element
-					.Attribute(XName.Get("Key", XamlNamespace))
-					?.Value;
-
-				if (key is null || !key.StartsWith("Dm", StringComparison.Ordinal))
-				{
-					continue;
-				}
-
-				var name = QualifiedName(element.Name);
-
-				if (!TokenElementTypes.TryGetValue(name, out var type))
-				{
-					unrecognised.Add($"{Path.GetFileName(path)} declares '{key}' as <{name}>");
-
-					continue;
-				}
-
 				types.TryAdd(
-					key,
+					declaration.Key,
 					type);
 			}
 		}
 
-		unrecognised
-			.Should()
-			.BeEmpty(
-				"a token declared as an element this fact does not know cannot be type-checked; "
-				+ "add the element to TokenElementTypes");
-
-		types
-			.Should()
-			.NotBeEmpty("the token declaration scan must find tokens or every fact here is vacuous");
-
 		return types;
 	}
 
 	/// <summary>
-	///		Returns the declared type of every <c>BindableProperty</c> the application defines,
-	///		keyed as "Owner.Property".
+	///		Returns every <c>Dm*</c> token binding the fixture found, with the CLR type of its
+	///		target property attributed from the tables in this file.
 	/// </summary>
-	private static Dictionary<string, string> AppPropertyTypes()
+	private IReadOnlyList<Binding> Bindings()
 	{
-		var types = new Dictionary<string, string>(StringComparer.Ordinal);
-
-		foreach (var path in RepoPaths.AppSourceFiles("*.cs"))
-		{
-			foreach (Match match in AppBindablePropertyPattern.Matches(File.ReadAllText(path)))
-			{
-				types.TryAdd(
-					$"{match.Groups["owner"].Value}.{match.Groups["property"].Value}",
-					Normalise(match.Groups["type"].Value));
-			}
-		}
-
-		types
-			.Should()
-			.NotBeEmpty(
-				"the application declares bindable properties; finding none means the pattern "
-				+ "has stopped matching and every app-control binding is silently unchecked");
-
-		return types;
+		return _fixture
+			.Bindings
+			.Select(binding =>
+				new Binding(
+					binding.Where,
+					binding.Element,
+					binding.Property,
+					binding.Key,
+					PropertyType(
+						binding.Element,
+						binding.Property)))
+			.ToList();
 	}
 
-	/// <summary>
-	///		Maps a C# type name as written in source onto this fact's type vocabulary.
-	/// </summary>
-	private static string Normalise(string type)
-	{
-		var bare = type
-			.Split('.')
-			.Last()
-			.TrimEnd('?');
-
-		return bare switch
-		{
-			"Double" => "double",
-			"Int32" => "int",
-			"Single" => "float",
-			"String" => "string",
-			_ => bare,
-		};
-	}
-
-	/// <summary>
-	///		Returns the element name with its XAML prefix restored, so <c>x:Int32</c> is
-	///		distinguishable from a hypothetical <c>Int32</c> in the default namespace.
-	/// </summary>
-	private static string QualifiedName(XName name)
-	{
-		return name.NamespaceName == XamlNamespace
-			? $"x:{name.LocalName}"
-			: name.LocalName;
-	}
-
-	/// <summary>
-	///		Returns every <c>Dm*</c> token binding in the application's XAML, attributed to the
-	///		element and property it targets.
-	/// </summary>
-	private static IReadOnlyList<Binding> Bindings()
-	{
-		var appTypes = AppPropertyTypes();
-		var bindings = new List<Binding>();
-
-		foreach (var path in XamlFiles())
-		{
-			var relative = Path.GetRelativePath(
-				RepoPaths.AppRoot,
-				path);
-
-			var document = XDocument.Parse(
-				File.ReadAllText(path),
-				LoadOptions.SetLineInfo);
-
-			foreach (var element in document.Descendants())
-			{
-				// A <Setter> names its target in Property= rather than carrying it as an
-				// attribute, and the element it applies to is somewhere up the tree.
-				if (element.Name.LocalName == "Setter")
-				{
-					AddSetter(
-						bindings,
-						appTypes,
-						relative,
-						element);
-
-					continue;
-				}
-
-				foreach (var attribute in element.Attributes())
-				{
-					// Every match, not the first: an attribute can carry more than one
-					// reference, and counting one of them would let the accounting fact below
-					// report green over a reference nothing had type-checked.
-					foreach (Match match in StaticResourcePattern.Matches(attribute.Value))
-					{
-						bindings.Add(
-							Describe(
-								appTypes,
-								relative,
-								element,
-								QualifiedName(element.Name),
-								attribute.Name.LocalName,
-								match.Groups["key"].Value));
-					}
-				}
-			}
-		}
-
-		return bindings;
-	}
-
-	private static void AddSetter(
-		List<Binding> bindings,
-		Dictionary<string, string> appTypes,
-		string relative,
-		XElement setter)
-	{
-		var value = setter.Attribute("Value")?.Value;
-		var property = setter.Attribute("Property")?.Value;
-
-		if (value is null || property is null)
-		{
-			return;
-		}
-
-		// The cross-element form qualifies Property with a type. That qualifier names where the
-		// property is DECLARED, not the element it is set on — the element is TargetName — so it
-		// is stripped here and only here. Elsewhere a dotted Property is an attached property
-		// (Shell.BackgroundColor) whose dot is part of the name.
-		if (setter.Attribute("TargetName") is not null)
-		{
-			property = property
-				.Split('.')
-				.Last();
-		}
-
-		foreach (Match match in StaticResourcePattern.Matches(value))
-		{
-			bindings.Add(
-				Describe(
-					appTypes,
-					relative,
-					setter,
-					SetterTarget(setter),
-					property,
-					match.Groups["key"].Value));
-		}
-	}
-
-	/// <summary>
-	///		Returns the name of the element a <c>Setter</c> applies to.
-	///		<para>
-	///		Three shapes reach here. A setter inside a keyed <c>Style</c> applies to that style's
-	///		<c>TargetType</c>. A setter inside a <c>VisualStateManager.VisualStateGroups</c>
-	///		attached directly to an element — DmCard.xaml does this — applies to that element, so
-	///		the walk skips the property-element and state scaffolding to find it.
-	///		</para>
-	///		<para>
-	///		The third is MAUI's documented cross-element form: a setter inside a group on element A
-	///		carrying <c>TargetName="B"</c> and a type-qualified <c>Property</c> such as
-	///		<c>Border.Stroke</c>, meaning "set <c>Stroke</c> on the element named B". THE ANCESTOR
-	///		WALK IS WRONG FOR IT — it would attribute the setter to A and compose the fictitious
-	///		<c>Entry.Border.Stroke</c>, which no table can name, failing
-	///		<see cref="EveryDmTokenBindingTargetsAPropertyOfAKnownType"/> over correct XAML. So
-	///		<c>TargetName</c> is consulted first and resolved against the <c>x:Name</c>s in the
-	///		same file, which is the scope MAUI resolves it in. A <c>TargetName</c> naming no element
-	///		in the file resolves to <see cref="UnknownType"/> rather than to whatever happens to be
-	///		up the tree; the binding is then checked against
-	///		<see cref="PropertyTypesByName"/> alone, exactly as a <c>Style</c> with no
-	///		<c>TargetType</c> is. MEASURED, not assumed: a setter with an unresolvable
-	///		<c>TargetName</c> and <c>Property="Border.Stroke"</c> passes both facts, because
-	///		<c>Stroke</c> is element-independent. This guard checks token types, not name
-	///		resolution — a dangling <c>TargetName</c> is the XAML compiler's to catch.
-	///		</para>
-	/// </summary>
-	private static string SetterTarget(XElement setter)
-	{
-		var targetName = setter
-			.Attribute("TargetName")
-			?.Value;
-
-		if (targetName is not null)
-		{
-			return NamedElement(
-				setter,
-				targetName);
-		}
-
-		foreach (var ancestor in setter.Ancestors())
-		{
-			var name = ancestor.Name.LocalName;
-
-			if (name == "Style")
-			{
-				return ancestor
-					.Attribute("TargetType")
-					?.Value
-					.Split(':')
-					.Last()
-					?? UnknownType;
-			}
-
-			// Scaffolding, not a target: property-element syntax carries a dot, and the visual
-			// state containers are not elements a setter can apply to.
-			if (name.Contains('.', StringComparison.Ordinal)
-				|| name is "VisualStateGroupList" or "VisualStateGroup" or "VisualState" or "Setter")
-			{
-				continue;
-			}
-
-			return QualifiedName(ancestor.Name);
-		}
-
-		return UnknownType;
-	}
-
-	/// <summary>
-	///		Returns the element type of the element carrying <c>x:Name="…"</c> in the same file,
-	///		or <see cref="UnknownType"/> if no element does.
-	/// </summary>
-	private static string NamedElement(
-		XElement setter,
-		string name)
-	{
-		var target = setter
-			.Document
-			?.Descendants()
-			.FirstOrDefault(element =>
-				string.Equals(
-					element
-						.Attribute(XName.Get("Name", XamlNamespace))
-						?.Value,
-					name,
-					StringComparison.Ordinal));
-
-		return target is null
-			? UnknownType
-			: QualifiedName(target.Name);
-	}
-
-	private static Binding Describe(
-		Dictionary<string, string> appTypes,
-		string relative,
-		XElement element,
-		string owner,
-		string property,
-		string key)
-	{
-		var line = ((System.Xml.IXmlLineInfo)element).LineNumber;
-
-		return new Binding(
-			$"{relative}:{line}",
-			owner,
-			property,
-			key,
-			PropertyType(
-				appTypes,
-				owner,
-				property));
-	}
-
-	private static string PropertyType(
-		Dictionary<string, string> appTypes,
+	private string PropertyType(
 		string owner,
 		string property)
 	{
 		// The application's own controls first: DmDivider.IconFontSize is not a MAUI property
-		// and the tables below have no business guessing at it.
-		if (appTypes.TryGetValue(
+		// and the tables above have no business guessing at it.
+		if (_fixture.AppPropertyTypes.TryGetValue(
 			$"{owner}.{property}",
 			out var appType))
 		{

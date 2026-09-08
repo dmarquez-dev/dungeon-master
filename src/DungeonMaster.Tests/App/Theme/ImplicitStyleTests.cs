@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using FluentAssertions;
 
 namespace DungeonMaster.Tests.App.Theme;
@@ -12,18 +12,46 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		search Entry shrinking from 51px to 42px) with all 256 tests green. The file exists BECAUSE
 ///		that regression happened, which is exactly why its contents need a guard rather than a
 ///		comment.
+///		<para>
+///		The scan reads the parsed document from <see cref="ThemeSource.ThemeDocuments"/> rather than
+///		matching regular expressions against XAML text. The pattern it replaces closed a style body
+///		on the FIRST <c>&lt;/Style&gt;</c> with <c>.*?</c>, so a nested style mis-terminated the body
+///		and attributed its setters to the wrong target;
+///		<see cref="NestedStyleSettersAreAttributedToTheDeclaringStyle"/> is the fact that pins the
+///		difference. XML cannot mis-terminate: an element closes where the parser says it closes.
+///		</para>
 /// </summary>
 public class ImplicitStyleTests
 {
-	private static readonly Regex StylePattern =
-		new(
-			@"<Style\b[^>]*TargetType=""(?<target>[A-Za-z0-9]+)""[^>]*>(?<body>.*?)</Style>",
-			RegexOptions.Compiled | RegexOptions.Singleline);
+	/// <summary>
+	///		The dictionary this class scans. Named once so the whole class has ONE scan source, and
+	///		so redirecting that source is a one-line edit inside this file.
+	/// </summary>
+	private const string ImplicitDictionaryName = "Implicit.xaml";
 
-	private static readonly Regex SetterPropertyPattern =
-		new(
-			@"<Setter\s+Property=""(?<property>[A-Za-z0-9.]+)""",
-			RegexOptions.Compiled);
+	/// <summary>
+	///		A resource dictionary containing a style nested inside another style's setter value.
+	///		Written here rather than read from disk so the fact does not depend on the application
+	///		ever growing one.
+	/// </summary>
+	private const string NestedStyleDocument =
+		"""
+		<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+			<Style TargetType="Outer">
+				<Setter Property="OuterBeforeTheNestedStyle" Value="1" />
+				<Setter Property="NestedStyleHolder">
+					<Setter.Value>
+						<Style TargetType="Inner">
+							<Setter Property="InnerOnly" Value="2" />
+						</Style>
+					</Setter.Value>
+				</Setter>
+				<Setter Property="OuterAfterTheNestedStyle" Value="3" />
+			</Style>
+		</ResourceDictionary>
+		""";
 
 	/// <summary>
 	///		The control-level properties Implicit.xaml must NOT set. This is the invariant the file
@@ -36,6 +64,34 @@ public class ImplicitStyleTests
 		"TextColor",
 		"BackgroundColor",
 		"FontSize",
+	];
+
+	/// <summary>
+	///		The two targets <see cref="NestedStyleDocument"/> declares. The regular expression this
+	///		class replaces reported only the first of them.
+	/// </summary>
+	private static readonly string[] NestedDocumentTargets =
+	[
+		"Outer",
+		"Inner",
+	];
+
+	/// <summary>
+	///		The setters the outer style of <see cref="NestedStyleDocument"/> owns.
+	/// </summary>
+	private static readonly string[] OuterStyleSetters =
+	[
+		"OuterBeforeTheNestedStyle",
+		"NestedStyleHolder",
+		"OuterAfterTheNestedStyle",
+	];
+
+	/// <summary>
+	///		The setter the nested style of <see cref="NestedStyleDocument"/> owns.
+	/// </summary>
+	private static readonly string[] InnerStyleSetters =
+	[
+		"InnerOnly",
 	];
 
 	/// <summary>
@@ -72,6 +128,24 @@ public class ImplicitStyleTests
 			{ "Page", ["BackgroundColor"] },
 			{ "Shell", ["Shell.BackgroundColor"] },
 		};
+
+	/// <summary>
+	///		Asserts that the scan this class is built on reaches at least one style.
+	///		<para>
+	///		This is the guard that used to live inside <c>Styles()</c>, which is an Arrange helper
+	///		and therefore reported a broken scan against whichever fact called it first. It is a
+	///		named fact now, per contracts/anti-vacuity.md section 2: every other fact in this class
+	///		examines nothing if this one fails, and this one names the reason.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void TheImplicitStyleScanFindsAtLeastOneStyle()
+	{
+		Styles()
+			.Should()
+			.NotBeEmpty(
+				"Implicit.xaml must declare styles or every fact in this class examines nothing");
+	}
 
 	/// <summary>
 	///		Asserts that Implicit.xaml declares a style for the required target and that the style
@@ -125,9 +199,18 @@ public class ImplicitStyleTests
 	[Fact]
 	public void ImplicitButtonStyle_CarriesItsCommonStates()
 	{
-		var button = Styles()["Button"];
+		var styles = Styles();
 
-		Names(
+		styles
+			.Should()
+			.ContainKey(
+				"Button",
+				"the implicit Button style is the only thing carrying interaction states for the "
+				+ "16 of 20 Button elements that name no Style");
+
+		var button = styles["Button"];
+
+		XamlNames(
 			button,
 			"VisualStateGroup")
 			.Should()
@@ -136,7 +219,7 @@ public class ImplicitStyleTests
 				"without the CommonStates group every Button that carries no Style= has no hover "
 				+ "or press feedback at all");
 
-		var states = Names(
+		var states = XamlNames(
 			button,
 			"VisualState");
 
@@ -160,20 +243,31 @@ public class ImplicitStyleTests
 	[Fact]
 	public void ImplicitControlStyles_SetNoColourOrFontSize()
 	{
-		var offenders = new List<string>();
+		var declared = Styles()
+			.Where(entry =>
+				!ChromeTargets.Contains(entry.Key))
+			.SelectMany(entry =>
+				SetterProperties(entry.Value)
+					.Select(property =>
+						(Target: entry.Key, Property: property)))
+			.ToList();
 
-		foreach (var (target, body) in Styles())
-		{
-			if (ChromeTargets.Contains(target))
-			{
-				continue;
-			}
+		// The offenders list below is empty both when every control style is clean and when the
+		// scan read no setter at all, and those two states must not look the same from outside.
+		// Guarding the STYLE scan alone would not catch the second: a reader that finds the styles
+		// and none of their setters passes this fact while examining nothing.
+		declared
+			.Should()
+			.NotBeEmpty(
+				"an empty offenders list proves nothing unless the scan that produced it read at "
+				+ "least one setter off at least one control-level style");
 
-			foreach (var property in SetterProperties(body).Where(ForbiddenControlProperties.Contains))
-			{
-				offenders.Add($"{target} -> {property}");
-			}
-		}
+		var offenders = declared
+			.Where(entry =>
+				ForbiddenControlProperties.Contains(entry.Property))
+			.Select(entry =>
+				$"{entry.Target} -> {entry.Property}")
+			.ToList();
 
 		offenders
 			.Should()
@@ -183,49 +277,174 @@ public class ImplicitStyleTests
 				+ "app two sources of truth for the same property");
 	}
 
-	private static Dictionary<string, string> Styles()
+	/// <summary>
+	///		Asserts that a setter inside a NESTED style is attributed to the nested style and not to
+	///		the style that encloses it.
+	///		<para>
+	///		This is the fact that pins the defect the regular expression this class used to carry
+	///		could not avoid. That pattern was
+	///		<c>&lt;Style\b[^&gt;]*TargetType="(?&lt;target&gt;[A-Za-z0-9]+)"[^&gt;]*&gt;(?&lt;body&gt;.*?)&lt;/Style&gt;</c>
+	///		with <c>Singleline</c>: the lazy body closed on the FIRST <c>&lt;/Style&gt;</c>, which
+	///		for the document below is the INNER one. The outer style therefore swallowed the inner
+	///		style's setter, lost every setter written after the nested style, and the inner style
+	///		never appeared as a target at all — three wrong answers from one mis-termination.
+	///		</para>
+	///		<para>
+	///		Implicit.xaml carries no nested style today, so this fact is written against a synthetic
+	///		document rather than against the file: the point is that the reader CANNOT produce the
+	///		wrong answer, not that the file happens not to provoke it.
+	///		</para>
+	/// </summary>
+	[Fact]
+	public void NestedStyleSettersAreAttributedToTheDeclaringStyle()
 	{
-		// Comments first: this file's prose names the very properties and elements below, and a
-		// scan that reads the commentary as markup both misses real setters and invents them.
-		var markup = ThemeSource.XmlCommentPattern.Replace(
-			ThemeSource.ThemeFileText("Implicit.xaml"),
-			string.Empty);
-
-		var styles = StylePattern
-			.Matches(markup)
-			.ToDictionary(
-				match =>
-					match.Groups["target"].Value,
-				match =>
-					match.Groups["body"].Value,
-				StringComparer.Ordinal);
+		var styles = StylesIn(XDocument.Parse(NestedStyleDocument));
 
 		styles
+			.Keys
 			.Should()
-			.NotBeEmpty("Implicit.xaml must declare styles or this whole class is vacuous");
+			.BeEquivalentTo(
+				NestedDocumentTargets,
+				"a nested style is a style in its own right; the pattern this reader replaces "
+				+ "consumed the inner element's closing tag as the outer element's, so the inner "
+				+ "target was never reported at all");
 
-		return styles;
+		SetterProperties(styles["Outer"])
+			.Should()
+			.BeEquivalentTo(
+				OuterStyleSetters,
+				"the outer style owns the setters written before AND after the nested style, and "
+				+ "owns none of the nested style's own");
+
+		SetterProperties(styles["Inner"])
+			.Should()
+			.BeEquivalentTo(
+				InnerStyleSetters,
+				"the nested style owns exactly its own setter");
 	}
 
-	private static IReadOnlyList<string> Names(
-		string styleBody,
-		string elementName)
+	/// <summary>
+	///		Returns every style declared by the dictionary this class scans, keyed by
+	///		<c>TargetType</c>. Asserts nothing and returns an empty dictionary when the scan reaches
+	///		no such dictionary; <see cref="TheImplicitStyleScanFindsAtLeastOneStyle"/> is the guard.
+	/// </summary>
+	private static Dictionary<string, XElement> Styles()
 	{
-		return Regex
-			.Matches(
-				styleBody,
-				$@"<{elementName}\s+x:Name=""(?<name>[A-Za-z0-9]+)""")
-			.Select(match =>
-				match.Groups["name"].Value)
+		var dictionary = ThemeSource
+			.ThemeDocuments()
+			.FirstOrDefault(document =>
+				string.Equals(
+					Path.GetFileName(document.Path),
+					ImplicitDictionaryName,
+					StringComparison.Ordinal));
+
+		return dictionary is null
+			? new Dictionary<string, XElement>(StringComparer.Ordinal)
+			: StylesIn(dictionary.Document);
+	}
+
+	/// <summary>
+	///		Returns every style in the supplied document, keyed by <c>TargetType</c>. Separate from
+	///		<see cref="Styles"/> so the same reader can be pointed at a synthetic document.
+	/// </summary>
+	/// <param name="document">
+	///		The parsed resource dictionary to read.
+	/// </param>
+	private static Dictionary<string, XElement> StylesIn(XDocument document)
+	{
+		return document
+			.Descendants()
+			.Where(IsStyle)
+			.Where(element =>
+				element.Attribute("TargetType") is not null)
+			.ToDictionary(
+				element =>
+					element.Attribute("TargetType")!.Value,
+				element =>
+					element,
+				StringComparer.Ordinal);
+	}
+
+	/// <summary>
+	///		Returns the properties the supplied style sets, including those set inside its visual
+	///		states, and EXCLUDING those belonging to a style nested inside it. "Belonging" is
+	///		decided by the nearest enclosing style, which is exactly the thing the regular
+	///		expression this replaces could not determine.
+	/// </summary>
+	/// <param name="style">
+	///		The style element to read.
+	/// </param>
+	private static IReadOnlyList<string> SetterProperties(XElement style)
+	{
+		return style
+			.Descendants()
+			.Where(element =>
+				ThemeSource.QualifiedElementName(element.Name) == "Setter")
+			.Where(element =>
+				NearestStyle(element) == style)
+			.Select(element =>
+				element.Attribute("Property")?.Value)
+			.Where(property =>
+				property is not null)
+			.Select(property =>
+				property!)
 			.ToList();
 	}
 
-	private static IReadOnlyList<string> SetterProperties(string styleBody)
+	/// <summary>
+	///		Returns the <c>x:Name</c> of every descendant of the supplied style whose element name
+	///		matches.
+	/// </summary>
+	/// <param name="style">
+	///		The style element to read.
+	/// </param>
+	/// <param name="qualifiedElementName">
+	///		The element name to match, qualified as
+	///		<see cref="ThemeSource.QualifiedElementName(XName)"/> spells it.
+	/// </param>
+	private static IReadOnlyList<string> XamlNames(
+		XElement style,
+		string qualifiedElementName)
 	{
-		return SetterPropertyPattern
-			.Matches(styleBody)
-			.Select(match =>
-				match.Groups["property"].Value)
+		return style
+			.Descendants()
+			.Where(element =>
+				ThemeSource.QualifiedElementName(element.Name) == qualifiedElementName)
+			.Select(element =>
+				element
+					.Attributes()
+					.FirstOrDefault(attribute =>
+						ThemeSource.QualifiedElementName(attribute.Name) == "x:Name")
+					?.Value)
+			.Where(name =>
+				name is not null)
+			.Select(name =>
+				name!)
 			.ToList();
+	}
+
+	/// <summary>
+	///		Returns the innermost style enclosing the supplied element, or <see langword="null"/>
+	///		when no style encloses it.
+	/// </summary>
+	/// <param name="element">
+	///		The element whose enclosing style is wanted.
+	/// </param>
+	private static XElement? NearestStyle(XElement element)
+	{
+		return element
+			.Ancestors()
+			.FirstOrDefault(IsStyle);
+	}
+
+	/// <summary>
+	///		Returns true when the supplied element is a <c>Style</c>.
+	/// </summary>
+	/// <param name="element">
+	///		The element to test.
+	/// </param>
+	private static bool IsStyle(XElement element)
+	{
+		return ThemeSource.QualifiedElementName(element.Name) == "Style";
 	}
 }

@@ -5,6 +5,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- Consumed only by src/DungeonMaster.App.UiTests, which is deliberately not in
+		     src/DungeonMaster.sln (see that folder's README.md).
+
+		     8.3.2 is PROVEN against Appium server 3.7.0 with driver windows@6.1.1 on 2026-09-04:
+		     a session opened, an element resolved by AccessibilityId, Click() was dispatched and
+		     the resulting popup was observed. The Microsoft MAUI UI-testing page pins 8.0.0, which
+		     is the Appium 2.x-era client; that version was NOT carried here, because a client that
+		     cannot talk to the installed server yields a harness that compiles and never connects.
+		     Re-prove this pin against the server before moving it. -->
+		<PackageVersion Include="Appium.WebDriver" Version="8.3.2" />
 		<PackageVersion Include="CommunityToolkit.Maui" Version="14.1.0" />
 		<PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
 		<PackageVersion Include="coverlet.collector" Version="6.0.4" />

@@ -8,16 +8,58 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		is a string literal, so a typo or a deleted token fails at runtime rather than at build;
 ///		this fact turns that into a test failure instead.
 /// </summary>
+/// <remarks>
+///		<para>
+///		TWO OF THE FACTS HERE ARE SOURCE-TEXT LINTS AND SAY SO AT THEIR OWN SITE. A lint over
+///		application C# is not a behavioural claim: it asserts a SPELLING, so a behaviour-preserving
+///		edit can silence it. Where that limit exists it is written beside the code that carries it,
+///		together with the behavioural guard that compensates. The compensating guard for
+///		<c>DmTheme</c> resolution is
+///		<c>DungeonMaster.App.UnitTests.Theme.DmThemeResolutionTests</c>, which reads every accessor
+///		for real against the live merged resource dictionaries and therefore holds under any
+///		spelling. It cannot live in this assembly: <c>DungeonMaster.Tests</c> may not reference
+///		<c>DungeonMaster.App</c> (contracts/app-unit-tests-project.md section 3.1).
+///		</para>
+///		<para>
+///		THE XAML HALF IS NO LONGER A LINT. The keyed-element scan below reads the parsed XAML object
+///		model through <c>ThemeSource.KeyedElements()</c> and compares
+///		<c>ThemeSource.QualifiedElementName</c> against <see cref="ExpectedDeclaringElement"/>, so a
+///		reformatted attribute, a keyed element split across lines, or an <c>x:Key</c> that is not
+///		the first attribute all read correctly where the previous regular expression would have
+///		missed them silently.
+///		</para>
+/// </remarks>
 public class DmThemeKeysResolveTests
 {
+	/// <summary>
+	///		Matches an inline <c>Resolve&lt;T&gt;("DmKey")</c> call in <c>DmTheme.cs</c>.
+	/// </summary>
+	/// <remarks>
+	///		THIS IS A SOURCE-TEXT LINT AND IT CANNOT BE ANYTHING ELSE. No test can enumerate the keys
+	///		the application WILL ask for at run time without executing every code path that asks, so
+	///		the set of requested keys is only legible from the source. That is why the pattern
+	///		survives MASTER-109 while the bindable-default patterns did not: those had a behavioural
+	///		equivalent and this has none.
+	///		<para>
+	///		ITS LIMIT, STATED PLAINLY: it matches the call as WRITTEN. Wrapping a
+	///		<c>Resolve&lt;T&gt;</c> call in a local helper, passing the key through a <c>const</c>, or
+	///		building the generic argument through an alias all leave the behaviour identical and make
+	///		the call invisible to this scan. The scan then reports fewer keys rather than failing,
+	///		which is a fail-open mode:
+	///		<see cref="TheDmThemeSourceScanReachesAtLeastOneResolveCall"/> catches the total collapse,
+	///		but not a partial one.
+	///		</para>
+	///		<para>
+	///		THE COMPENSATING CONTROL for a call this pattern stops seeing is
+	///		<c>DungeonMaster.App.UnitTests.Theme.DmThemeResolutionTests</c>. It reads every public
+	///		<c>DmTheme</c> accessor for real, so a key that has become invisible here is still
+	///		resolved there — and a resolution that would throw at run time fails there whatever the
+	///		call site looks like.
+	///		</para>
+	/// </remarks>
 	private static readonly Regex ResolveCallPattern =
 		new(
 			@"Resolve<(?<type>[\w.]+)>\(""(?<key>Dm[A-Za-z0-9]*)""\)",
-			RegexOptions.Compiled);
-
-	private static readonly Regex KeyedElementPattern =
-		new(
-			@"<(?<element>[A-Za-z][A-Za-z0-9:.]*)[^>]*?x:Key=""(?<key>Dm[A-Za-z0-9]*)""",
 			RegexOptions.Compiled);
 
 	/// <summary>
@@ -27,6 +69,10 @@ public class DmThemeKeysResolveTests
 	///		read that ran before <c>Application.Current.Resources</c> existed. A token whose element
 	///		is changed under a call site therefore fails at runtime with a message that points away
 	///		from the fault.
+	///		<para>
+	///		The values are the spelling <c>ThemeSource.QualifiedElementName</c> produces, so the
+	///		table is compared against the parsed document with no translation layer.
+	///		</para>
 	/// </summary>
 	private static readonly Dictionary<string, string> ExpectedDeclaringElement =
 		new(StringComparer.Ordinal)
@@ -43,6 +89,34 @@ public class DmThemeKeysResolveTests
 			["Thickness"] = "Thickness",
 			["Style"] = "Style",
 		};
+
+	/// <summary>
+	///		Guards the <c>DmTheme.cs</c> source scan every fact below it depends on. The scan is a
+	///		regular expression over application C#, so an edit that changes how a
+	///		<c>Resolve&lt;T&gt;</c> call is written stops it matching; without this fact, a scan that
+	///		matched nothing would let both key facts pass while examining nothing at all.
+	/// </summary>
+	[Fact]
+	public void TheDmThemeSourceScanReachesAtLeastOneResolveCall()
+	{
+		ResolveCalls()
+			.Should()
+			.NotBeEmpty("DmTheme must resolve at least one key or the regex is broken");
+	}
+
+	/// <summary>
+	///		Guards the theme-dictionary keyed-element scan every fact below it depends on. It is
+	///		strictly downstream of <c>ThemeSource.ThemeDocuments()</c>, which asserts nothing and may
+	///		return an empty list, so an empty scan yields an empty declaration set and every
+	///		comparison against it succeeds vacuously.
+	/// </summary>
+	[Fact]
+	public void TheThemeDictionaryKeyedElementScanReachesAtLeastOneDeclaration()
+	{
+		KeyedElementsInThemeDictionaries()
+			.Should()
+			.NotBeEmpty("the theme dictionary scan must find keyed elements or the scan is broken");
+	}
 
 	/// <summary>
 	///		Asserts that every key <c>DmTheme</c> asks for is defined under Resources/Theme.
@@ -64,11 +138,11 @@ public class DmThemeKeysResolveTests
 
 	/// <summary>
 	///		Asserts that every key <c>DmTheme</c> resolves is declared by the XAML element the
-	///		generic argument requires. The sibling fact above proves only that a key EXISTS; both
-	///		its call pattern and its definition pattern discard the type, so a token converted from
-	///		<c>&lt;Color&gt;</c> to <c>&lt;SolidColorBrush&gt;</c> — or a <c>&lt;x:Double&gt;</c>
-	///		retyped as an <c>&lt;x:String&gt;</c> — leaves the whole suite green and throws on first
-	///		read at runtime, with a message that blames a missing key or a startup ordering fault.
+	///		generic argument requires. The sibling fact above proves only that a key EXISTS; its
+	///		call pattern discards the type, so a token converted from <c>&lt;Color&gt;</c> to
+	///		<c>&lt;SolidColorBrush&gt;</c> — or a <c>&lt;x:Double&gt;</c> retyped as an
+	///		<c>&lt;x:String&gt;</c> — leaves the whole suite green and throws on first read at
+	///		runtime, with a message that blames a missing key or a startup ordering fault.
 	///		This is the fact that reads the type.
 	/// </summary>
 	[Fact]
@@ -101,7 +175,7 @@ public class DmThemeKeysResolveTests
 				StringComparison.Ordinal))
 			{
 				mismatches.Add(
-					$"DmTheme resolves '{call.Key}' as {call.Type} but {declaration.FileName} "
+					$"DmTheme resolves '{call.Key}' as {call.Type} but {declaration.RelativePath} "
 					+ $"declares it as <{declaration.Element}>, so Resolve<{call.Type}> will throw "
 					+ $"at runtime — it expects <{expectedElement}>");
 			}
@@ -126,6 +200,24 @@ public class DmThemeKeysResolveTests
 	///		member, and a lambda such as <c>defaultValueCreator</c> that sits inside a static
 	///		field initialiser but does not run with it.
 	/// </summary>
+	/// <remarks>
+	///		DISPOSITION UNDER MASTER-109: KEPT, AS A DOCUMENTED SOURCE-TEXT LINT. It is a
+	///		PROHIBITION, not a value check — it asserts that a shape does NOT appear — and a
+	///		prohibition has no behavioural equivalent a unit test can express: proving that no static
+	///		initialiser anywhere reads <c>DmTheme</c> would mean running every type initialiser in
+	///		the application before <c>Application.Current</c> exists, which is the very fault being
+	///		prohibited.
+	///		<para>
+	///		IT FAILS OPEN, AND THAT IS THE WHOLE RISK. The pattern below matches declarations by
+	///		their spelling. Introducing an alias, a <c>const</c>, or an attribute between the
+	///		modifiers and the type stops an alternative matching, and the fact then reports NO
+	///		OFFENDERS — indistinguishable from an application that has none. So it is narrowed by a
+	///		guard rather than trusted: the <c>sourceFiles</c> assertion below establishes that the
+	///		C# scan reached files at all, which separates "the scan found nothing to complain about"
+	///		from "the scan read nothing". It does NOT separate a partially-stopped pattern from a
+	///		clean application, and no source-text lint can.
+	///		</para>
+	/// </remarks>
 	[Fact]
 	public void NoEagerDmThemeRead()
 	{
@@ -175,6 +267,11 @@ public class DmThemeKeysResolveTests
 				+ "first use");
 	}
 
+	/// <summary>
+	///		Returns every inline <c>Resolve&lt;T&gt;("DmKey")</c> call in <c>DmTheme.cs</c>,
+	///		asserting nothing — including when it finds none.
+	///		<see cref="TheDmThemeSourceScanReachesAtLeastOneResolveCall"/> is the guard.
+	/// </summary>
 	private static IReadOnlyList<ResolveCall> ResolveCalls()
 	{
 		var source = File.ReadAllText(
@@ -183,44 +280,40 @@ public class DmThemeKeysResolveTests
 				"Theme",
 				"DmTheme.cs"));
 
-		var calls = ResolveCallPattern
+		return ResolveCallPattern
 			.Matches(source)
 			.Select(match =>
 				new ResolveCall(
 					match.Groups["key"].Value,
 					match.Groups["type"].Value))
 			.ToList();
-
-		calls
-			.Should()
-			.NotBeEmpty("DmTheme must resolve at least one key or the regex is broken");
-
-		return calls;
 	}
 
+	/// <summary>
+	///		Returns the first declaration of each <c>x:Key</c> in the theme dictionaries, read from
+	///		the parsed XAML object model rather than from a regular expression over the file text,
+	///		asserting nothing — including when it finds none.
+	///		<see cref="TheThemeDictionaryKeyedElementScanReachesAtLeastOneDeclaration"/> is the
+	///		guard.
+	///		<para>
+	///		<c>ThemeSource.KeyedElements()</c> returns EVERY declaration so that a consumer can
+	///		report a duplicate key; this fact's question is "what element declares this key", for
+	///		which the first declaration is the answer the resolver would find, so the later ones are
+	///		dropped here rather than in the shared scan.
+	///		</para>
+	/// </summary>
 	private static Dictionary<string, KeyDeclaration> KeyedElementsInThemeDictionaries()
 	{
 		var declarations = new Dictionary<string, KeyDeclaration>(StringComparer.Ordinal);
 
-		foreach (var path in ThemeSource.ThemeFiles())
+		foreach (var keyed in ThemeSource.KeyedElements())
 		{
-			var text = ThemeSource.XmlCommentPattern.Replace(
-				File.ReadAllText(path),
-				string.Empty);
-
-			foreach (Match match in KeyedElementPattern.Matches(text))
-			{
-				declarations.TryAdd(
-					match.Groups["key"].Value,
-					new KeyDeclaration(
-						match.Groups["element"].Value,
-						Path.GetFileName(path)));
-			}
+			declarations.TryAdd(
+				keyed.Key,
+				new KeyDeclaration(
+					keyed.QualifiedElementName,
+					keyed.RelativePath));
 		}
-
-		declarations
-			.Should()
-			.NotBeEmpty("the theme dictionary scan must find keyed elements or the regex is broken");
 
 		return declarations;
 	}
@@ -239,5 +332,5 @@ public class DmThemeKeysResolveTests
 
 	private sealed record KeyDeclaration(
 		string Element,
-		string FileName);
+		string RelativePath);
 }

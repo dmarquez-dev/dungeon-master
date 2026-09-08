@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<IsPackable>false</IsPackable>
+		<!--
+			This project is deliberately NOT in src/DungeonMaster.sln. Its tests cannot pass
+			without a running Appium server and a built DungeonMaster.App.exe, so a solution-wide
+			`dotnet test` would fail by default on every machine. See README.md in this folder for
+			the build and run commands that replace solution membership.
+		-->
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Appium.WebDriver" />
+		<PackageReference Include="FluentAssertions" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="xunit" />
+		<PackageReference Include="xunit.runner.visualstudio" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+</Project>
