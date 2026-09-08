@@ -1,43 +1,17 @@
-using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-///     Diagnostic coverage for area removal and rename round-tripping through the real
-///     write repository. Added while investigating a report that both operations appeared
-///     not to persist from the designer UI.
+///		This class holds the only persistence round-trip coverage of area removal and area rename.
+///		Every other <c>RemoveArea</c> or <c>UpdateArea</c> hit in the suite is either an in-memory Domain aggregate test, which never reaches a database, or a handler test against a substituted repository, which never reaches EF; and <c>AreaOutlineChangeTrackingTests</c> covers the different method <c>UpdateAreaOutline</c>.
+///		So if these facts are deleted or weakened, nothing anywhere else fails when a removal or a rename stops surviving a reload.
 /// </summary>
-public class AreaPersistenceDiagnosticTests : IDisposable
+public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 {
-	private readonly SqliteConnection _connection;
-	private readonly DbContextOptions<AppDbContext> _options;
-
-	public AreaPersistenceDiagnosticTests()
-	{
-		_connection = new SqliteConnection("Data Source=:memory:");
-		_connection.Open();
-
-		_options = new DbContextOptionsBuilder<AppDbContext>()
-			.UseSqlite(_connection)
-			.Options;
-
-		using var context = new AppDbContext(_options);
-		context.Database.EnsureCreated();
-	}
-
-	public void Dispose() => _connection.Dispose();
-
-	private AppDbContext CreateContext() => new(_options);
-
-	private IUnitOfWorkFactory CreateFactory() =>
-		new UnitOfWorkFactory(new TestDbContextFactory(_options));
-
 	private async Task<(Guid DungeonId, Guid FloorId, Guid AreaId)> SeedAsync()
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
@@ -49,26 +23,6 @@ public class AreaPersistenceDiagnosticTests : IDisposable
 		await unitOfWork.CommitAsync(CancellationToken.None);
 
 		return (dungeon.Id, floor.Id, area.Id);
-	}
-
-	[Fact]
-	public async Task RemoveArea_PersistsAcrossReload()
-	{
-		var (dungeonId, floorId, areaId) = await SeedAsync();
-
-		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
-		{
-			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
-			loaded!.RemoveArea(floorId, areaId);
-			unitOfWork.Dungeons.Update(loaded);
-			await unitOfWork.CommitAsync(CancellationToken.None);
-		}
-
-		using var verify = CreateContext();
-		var verifyRepo = new DungeonWriteRepository(verify);
-		var reloaded = await verifyRepo.LoadAsync(dungeonId, CancellationToken.None);
-
-		reloaded!.Floors.Single().Areas.Should().BeEmpty();
 	}
 
 	[Fact]

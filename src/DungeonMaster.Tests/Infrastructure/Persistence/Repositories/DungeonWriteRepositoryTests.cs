@@ -1,40 +1,15 @@
-using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Floor;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 
-public class DungeonWriteRepositoryTests : IDisposable
+public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 {
-	private readonly SqliteConnection _connection;
-	private readonly DbContextOptions<AppDbContext> _options;
-
-	public DungeonWriteRepositoryTests()
-	{
-		_connection = new SqliteConnection("Data Source=:memory:");
-		_connection.Open();
-
-		_options = new DbContextOptionsBuilder<AppDbContext>()
-			.UseSqlite(_connection)
-			.Options;
-
-		using var context = new AppDbContext(_options);
-		context.Database.EnsureCreated();
-	}
-
-	public void Dispose() => _connection.Dispose();
-
-	private AppDbContext CreateContext() => new(_options);
-
-	private IUnitOfWorkFactory CreateFactory() =>
-		new UnitOfWorkFactory(new TestDbContextFactory(_options));
-
 	[Fact]
 	public async Task Add_PersistsDungeon()
 	{
