@@ -17,7 +17,6 @@
 	<ItemGroup>
 		<!-- Every one of these already carries a PackageVersion in the root
 		     Directory.Packages.props. This project adds none, and does not edit that file. -->
-		<PackageReference Include="coverlet.collector" />
 		<PackageReference Include="FluentAssertions" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" />
 		<PackageReference Include="NSubstitute" />
