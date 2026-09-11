@@ -1,4 +1,5 @@
 using DungeonMaster.Application.Common.Interfaces;
+using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Common.Handlers;
 
@@ -41,6 +42,44 @@ public abstract class CommandHandlerTestBase<THandler>
 	/// </summary>
 	protected THandler Handler =>
 		_handler ??= CreateHandler(_substitute.Factory);
+
+	/// <summary>
+	///		Gets the substituted unit-of-work factory the handler was built over, used to assert against the factory boundary.
+	/// </summary>
+	protected IUnitOfWorkFactory UnitOfWorkFactory =>
+		_substitute.Factory;
+
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, so a base-level test can assert which token crossed each port.
+	///		The command's arguments are irrelevant to that question; only the token this method threads through is.
+	/// </summary>
+	/// <param name="ct">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns. The result is discarded.
+	/// </returns>
+	protected abstract Task InvokeWithTokenAsync(CancellationToken ct);
+
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the handler opens its unit of work with.
+	///		Declared on the base, so it runs once for every command handler test class that derives from it.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToUnitOfWorkFactoryCreateAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		// Act
+		await InvokeWithTokenAsync(token);
+
+		// Assert
+		await UnitOfWorkFactory
+			.Received(1)
+			.CreateAsync(token);
+	}
 
 	/// <summary>
 	///		Creates the handler under test.

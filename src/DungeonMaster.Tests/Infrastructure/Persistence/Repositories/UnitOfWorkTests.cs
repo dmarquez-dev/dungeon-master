@@ -108,4 +108,34 @@ public sealed class UnitOfWorkTests : SqliteInMemoryTestBase
 		var persisted = await verify.Dungeons.FindAsync(dungeon.Id);
 		persisted!.Name.Should().Be("Discarded Hold");
 	}
+	/// <summary>
+	///		Verifies that a token already cancelled before the call stops the commit with <see cref="OperationCanceledException"/>, and that the staged aggregate is therefore absent from the store.
+	/// </summary>
+	[Fact]
+	public async Task CommitAsync_WithAnAlreadyCancelledToken_ThrowsOperationCanceledExceptionAndWritesNothing()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Cancelled Commit", null);
+
+		using var cts = new CancellationTokenSource();
+		await cts.CancelAsync();
+
+		// Act
+		Func<Task> act;
+
+		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
+		{
+			unitOfWork.Dungeons.Add(dungeon);
+
+			act = async () =>
+				await unitOfWork.CommitAsync(cts.Token);
+
+			// Assert
+			await act.Should().ThrowAsync<OperationCanceledException>();
+		}
+
+		using var verify = CreateContext();
+		(await verify.Dungeons.FindAsync(dungeon.Id)).Should().BeNull();
+	}
+
 }

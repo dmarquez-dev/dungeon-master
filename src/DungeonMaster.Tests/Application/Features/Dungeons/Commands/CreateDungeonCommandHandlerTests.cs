@@ -101,4 +101,43 @@ public sealed class CreateDungeonCommandHandlerTests : CommandHandlerTestBase<Cr
 		captured.Should().NotBeNull();
 		captured!.Description.Should().BeNull();
 	}
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the commit boundary is crossed with.
+	///		This handler commits without loading, so the commit boundary needs a test here rather than on a shared base.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToUnitOfWorkCommitAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		// Act
+		await Handler.HandleAsync(
+			new CreateDungeonCommand(
+				"Commit Token Probe",
+				null),
+			token);
+
+		// Assert
+		await UnitOfWork
+			.Received(1)
+			.CommitAsync(token);
+	}
+
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="ct">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken ct) =>
+		Handler.HandleAsync(
+			new CreateDungeonCommand(
+				"Token Probe",
+				null),
+			ct);
 }

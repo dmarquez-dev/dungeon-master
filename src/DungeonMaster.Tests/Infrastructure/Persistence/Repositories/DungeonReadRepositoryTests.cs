@@ -65,4 +65,58 @@ public sealed class DungeonReadRepositoryTests : SqliteInMemoryTestBase
 
 		result.Should().BeNull();
 	}
+	/// <summary>
+	///		Verifies that a token already cancelled before the call stops the summaries query with <see cref="OperationCanceledException"/> rather than returning rows.
+	/// </summary>
+	[Fact]
+	public async Task GetSummariesAsync_WithAnAlreadyCancelledToken_ThrowsOperationCanceledException()
+	{
+		// Arrange
+		using (var seedCtx = CreateContext())
+		{
+			await seedCtx.Dungeons.AddAsync(new Dungeon("Cancelled Read", null));
+			await seedCtx.SaveChangesAsync();
+		}
+
+		var repo = new DungeonReadRepository(CreateDbContextFactory());
+
+		using var cts = new CancellationTokenSource();
+		await cts.CancelAsync();
+
+		// Act
+		var act = async () =>
+			await repo.GetSummariesAsync(cts.Token);
+
+		// Assert
+		await act.Should().ThrowAsync<OperationCanceledException>();
+	}
+
+	/// <summary>
+	///		Verifies that a token already cancelled before the call stops the detail query with <see cref="OperationCanceledException"/> rather than returning a projection.
+	/// </summary>
+	[Fact]
+	public async Task GetDetailAsync_WithAnAlreadyCancelledToken_ThrowsOperationCanceledException()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Cancelled Detail", null);
+
+		using (var seedCtx = CreateContext())
+		{
+			await seedCtx.Dungeons.AddAsync(dungeon);
+			await seedCtx.SaveChangesAsync();
+		}
+
+		var repo = new DungeonReadRepository(CreateDbContextFactory());
+
+		using var cts = new CancellationTokenSource();
+		await cts.CancelAsync();
+
+		// Act
+		var act = async () =>
+			await repo.GetDetailAsync(dungeon.Id, cts.Token);
+
+		// Assert
+		await act.Should().ThrowAsync<OperationCanceledException>();
+	}
+
 }

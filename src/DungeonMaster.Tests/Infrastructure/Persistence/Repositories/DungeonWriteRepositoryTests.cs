@@ -224,4 +224,32 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 		loadedObj.Scale.Should().Be(1.5f);
 		loadedObj.FloorId.Should().Be(floor.Id);
 	}
+	/// <summary>
+	///		Verifies that a token already cancelled before the call stops the aggregate load with <see cref="OperationCanceledException"/> rather than returning the aggregate.
+	/// </summary>
+	[Fact]
+	public async Task LoadAsync_WithAnAlreadyCancelledToken_ThrowsOperationCanceledException()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Cancelled Load", null);
+
+		using (var seedCtx = CreateContext())
+		{
+			await seedCtx.Dungeons.AddAsync(dungeon);
+			await seedCtx.SaveChangesAsync();
+		}
+
+		using var cts = new CancellationTokenSource();
+		await cts.CancelAsync();
+
+		await using var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None);
+
+		// Act
+		var act = async () =>
+			await unitOfWork.Dungeons.LoadAsync(dungeon.Id, cts.Token);
+
+		// Assert
+		await act.Should().ThrowAsync<OperationCanceledException>();
+	}
+
 }

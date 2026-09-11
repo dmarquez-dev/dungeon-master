@@ -27,6 +27,28 @@ public abstract class DungeonNotFoundHandlerTestBase<THandler> : CommandHandlerT
 	protected abstract Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync();
 
 	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the write repository is asked to load with.
+	///		Declared on this base, so it runs once for every command handler test class whose handler loads the aggregate.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToWriteRepositoryLoadAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		// Act
+		await InvokeWithTokenAsync(token);
+
+		// Assert
+		await WriteRepository
+			.Received(1)
+			.LoadAsync(
+				Arg.Any<Guid>(),
+				token);
+	}
+
+	/// <summary>
 	///		Verifies that a dungeon the repository cannot load reports not-found, does not write the aggregate back, and does not cross the commit boundary.
 	/// </summary>
 	[Fact]
