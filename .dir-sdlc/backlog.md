@@ -91,6 +91,14 @@ the audit-document corrections all remain open._
 
 - 2026-09-08 -- `2026-09-02-app-sub-suite-rebuild` -- **The `MASTER-138` rationale for `ThemeMarkupReferences` being shared surface was dropped rather than rehomed, and it is the thing a future reader is most likely to undo.** T12 moved the type onto `ThemeSource` under escalation E9; its class-level doc comment -- which recorded that two private copies of the scan is exactly the divergence `MASTER-138` records -- went with the E9 rationale that the move discharged. None of it is among `theme-source.md` section 3.6's three named comments, so this is not a criterion violation, and the `MASTER-138` convention itself survives, cited at four other sites. What is lost is the record of **why these five members are shared surface rather than duplicated**. One sentence on `ThemeSource`'s class summary restores it; fold it into whichever task next writes to that file rather than raising a task for it. Carried at Gate 3.
 
+- 2026-09-11 -- `2026-09-08-fixtures-and-de-duplication` -- **`DungeonDetailDto.Floors` is `IReadOnlyList<FloorDto>`, so a handler that mutated the
+  underlying collection in place would preserve reference identity and escape the `BeSameAs` assertion
+  `MASTER-069` just added.** `src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/DungeonDetailDto.cs:37`.
+  It is the one corruption shape the identity guard does not cover. Unreachable today -- the handler is
+  a pure pass-through, and `T3`'s six measured mutations all fail correctly -- so this is a gap in a new
+  guard rather than a live defect. Raised as an advisory by `T3`'s reviewer and carried at Gate 3.
+
+
 ## Corrections to the audit documents themselves
 
 These fix the audit's own record rather than the code. They are independent of the seven fix sessions
@@ -103,6 +111,13 @@ and can be taken at any time; each is a small documentation edit.
 - 2026-08-17 — `2026-08-17-code-quality-audit` — Narrow the read-and-sound listing for `src/DungeonMaster.App/Platforms/Windows/App.xaml.cs` in `docs/audit/03-app-shell-and-views.md`. The file is listed as read and found sound, but carries two `dm-conventions` `backend/dotnet-format.md` §9 deviations: doc-comment descriptions at lines 14 and 19-20 indented one space rather than two tabs, a sentence broken across two `///` lines (which §9 forbids outright), and an undocumented `CreateMauiApp()` at line 27. It is the only one of that task's 34 files with the pattern. The honest fix is to qualify the listing's wording, not to re-audit the file.
 
 - 2026-08-17 — `2026-08-17-code-quality-audit` — Add one clause to `INFRA-020` in `docs/audit/02-infrastructure.md` naming the nine-versus-six migration-count conflict. The record cites six, which is the only supportable figure (`git log --diff-filter=D` shows `7a4bb2d` is the only commit that ever deleted a migration), and hedges it correctly as "then in the tree" — but it quotes that same commit's message as authority two paragraphs later without noting the message says nine. A reader who opens `7a4bb2d` to check the quote hits the contradiction unassisted.
+
+- 2026-09-11 -- `2026-09-08-fixtures-and-de-duplication` -- **`docs/audit/00-master-index.md:58`'s Progress row lists five commits where sub-session
+  6b-ii has six.** `e55eb85` is named later in the session record but not in the row's commit list, so a
+  reader reconciling the row against `git log` comes up one short. The merge commit `7684c5e` is also
+  absent, because the row was written by `T6` before Gate 3 merged. Deliberately not fixed in-session:
+  the user chose at Gate 3 to track it rather than have the orchestrator edit a committed task's file.
+
 
 ## DIR process artifacts
 
@@ -117,6 +132,42 @@ Not repository work. Relevant only if a session's contracts are reused as a temp
 - 2026-08-26 — `2026-08-26-settle-the-app-boundaries` — **An ownership glob that names a `.csproj` must also name that project's `packages.lock.json`.** `Directory.Build.props:21` sets `RestorePackagesWithLockFile=true`, so adding a `ProjectReference` forces restore to rewrite the sibling lock file. T1's globs covered `src/DungeonMaster.App/DungeonMaster.App.csproj` and `src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` but not their directories, so two files the task was *required* to change belonged to no task in the manifest — and `commit-task` stages only owned globs. Left alone, the branch would have merged with `.csproj` files referencing `App.Core` beside lock files that did not know it existed, failing restore on a fresh clone. Both reviewers independently ruled it not a defect in T1 but a glob drawn one level too narrow. Resolved at escalation E3 by amending the frozen manifest with the user's approval. Deferred as an advisory at Gate 3.
 
 - 2026-08-26 — `2026-08-24-async-disposal-and-threading-discipline` — **Before reusing Session 4's manifest as a template, know that its criteria contained six defects and every one was a number or a string -- not one was a design decision.** The pattern from Sessions 2 and 3 held exactly. They were: a solution path that does not exist (`<worktree>\DungeonMaster.sln`; the real path is `<worktree>\src\DungeonMaster.sln`, wrong in 5 places); two wrong target framework monikers (`net10.0-windows10.0.19041` and `net10.0-maccatalyst26.5`, against the real `net10.0-windows10.0.19041.0` and `net10.0-maccatalyst`, which fail `NETSDK1005` -- wrong in 9 places, and inherited from the audit's own `XCUT-002` record); **T2's criterion 6 requiring a catch in `Dispose()` while criterion 1 forbade adding that member**, with criterion 7 the corrected duplicate; a false claim that no legitimate non-task `_ =` line exists in the layer, which made T3's criterion 5 unsatisfiable until the orchestrator ruled the scanner operative (the contract itself is now corrected in place); a criterion demanding an observation the codebase cannot produce (`MASTER-025`'s pack switch, with one object pack declared); and **T3's guarded-unit count short by four**, because removing the discards forced four more units into `async void` that no criterion enumerated. Every one was caught by an implementer or a reviewer, and none changed what was built. **The instruction that produced this: dispatch implementers with full verbatim criteria plus a standing rule that when a criterion's number disagrees with the tree, the tree wins -- implement what is correct and report the discrepancy with the command that showed it.**
+
+- 2026-09-11 -- `2026-09-08-fixtures-and-de-duplication` -- **A criterion demanding a project-wide test count cannot be asked of a task that runs
+  concurrently with peers, and five tasks proved it independently.** `manifest.json:34/35`, `:65/66`,
+  `:89/90`, `:115/116`, `:139/140` each pair a criterion requiring a full `dotnet test` figure with a
+  sibling forbidding one while `git status --porcelain` names files outside the task's globs. Under
+  parallel dispatch the second is permanently unsatisfiable, so the pair is unmeetable by construction.
+  **All four `not met` verdicts in the session are this defect and nothing else.** The remedy is a split
+  of ownership, not a reword: each task proves its own per-class delta with a `--filter` run, and the
+  orchestrator takes one serial measurement after every task lands. That worked -- the serial run gave
+  `699`, exactly the `695` baseline plus the per-task deltas `+2, +1, 0, 0, +1`, predicted before it was
+  measured. Raised by `T2`, `T3`, `T4` and `T5`'s reviewers as four independent `contradicts` findings.
+
+- 2026-09-11 -- `2026-09-08-fixtures-and-de-duplication` -- **Never require of an implementer something the framework forbids it to do.** Three
+  instances in one manifest. `T1`'s AC10 required `git ls-files` to stop printing a deleted path, but
+  that reads the *index*, and implementers may not write git -- only `dir-git` stages, at commit time.
+  `T1`'s AC5 prescribed an injection in `src/DungeonMaster.Infrastructure/Migrations/`, outside `T1`'s
+  own `owns` globs, in a worktree with five live peers; the reviewer found an in-bounds injection that
+  is strictly sharper, since writing an extra `__EFMigrationsHistory` row leaves `pending` empty and so
+  isolates the cardinality assertion. `T6`'s criterion 5 anchored an expected count to `HEAD`, which
+  returned `33` rather than the stated `28` once six peer commits landed -- **while the same manifest
+  forbade working-tree anchors for `T7` at `manifest.json:172` and the rule was not applied to `T6`.**
+  A criterion stating an expected count must anchor to a fixed commit.
+
+- 2026-09-11 -- `2026-09-08-fixtures-and-de-duplication` -- **A criterion must not pin a textual form that a sibling criterion invalidates.** Four
+  instances. `T2`'s criterion 3 mandates a two-level hierarchy and then demands a grep only a flat one
+  satisfies -- and the flat shape would put a not-found test on `CreateDungeon`, which has no not-found
+  path, so the grep is wrong rather than the shape. `T2`'s criterion 7 pins a receiver expression
+  (`_unitOfWork.UnitOfWork...`) that criterion 3 requires be deleted. `T4`'s criterion 2 states the four
+  validator files differ on six lines; they differ on eight, and the two omitted are the `nameof`
+  assertions that are precisely why the property name had to become an abstract member. `T1`'s criterion
+  3 demands an `EnsureCreated` grep return nothing while the code documents why `EnsureCreated` was
+  abandoned. Quote assertions by member rather than by receiver expression, and count call sites
+  excluding `///` lines. Also recorded: `manifest.json:107`'s clause "every other file at a different
+  length" is false -- two other validator test files are both 82 lines -- though the load-bearing part
+  (55 lines unique to the four in scope) holds.
+
 
 ### For a later session -- carried from sub-session 5b, re-deferred by sub-session 5c
 

@@ -1,0 +1,71 @@
+{
+  "session": "2026-09-08-fixtures-and-de-duplication",
+  "updatedAt": "2026-09-08T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-ii",
+  "branch": "dir/2026-09-08-fixtures-and-de-duplication",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "850a10b6fa0c820a5e6aa73fc0b5859fd0dc3892",
+      "commit": "cf32061"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "850a10b6fa0c820a5e6aa73fc0b5859fd0dc3892",
+      "commit": "8784326"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "850a10b6fa0c820a5e6aa73fc0b5859fd0dc3892",
+      "commit": "a36074d"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "850a10b6fa0c820a5e6aa73fc0b5859fd0dc3892",
+      "commit": "8b74f54"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "850a10b6fa0c820a5e6aa73fc0b5859fd0dc3892",
+      "commit": "71972eb"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "8784326",
+      "commit": "d40d1b1"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "850a10b6fa0c820a5e6aa73fc0b5859fd0dc3892",
+      "commit": "e55eb85"
+    }
+  ],
+  "escalations": [],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 1
+  }
+}
