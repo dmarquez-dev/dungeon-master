@@ -1,9 +1,7 @@
-using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
@@ -13,31 +11,8 @@ namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 ///     and EF mapping. Confirms that a second update supplying the existing
 ///     description and notes preserves those values across a reload.
 /// </summary>
-public class FloorPersistenceTests : IDisposable
+public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 {
-	private readonly SqliteConnection _connection;
-	private readonly DbContextOptions<AppDbContext> _options;
-
-	public FloorPersistenceTests()
-	{
-		_connection = new SqliteConnection("Data Source=:memory:");
-		_connection.Open();
-
-		_options = new DbContextOptionsBuilder<AppDbContext>()
-			.UseSqlite(_connection)
-			.Options;
-
-		using var context = new AppDbContext(_options);
-		context.Database.EnsureCreated();
-	}
-
-	public void Dispose() => _connection.Dispose();
-
-	private AppDbContext CreateContext() => new(_options);
-
-	private IUnitOfWorkFactory CreateFactory() =>
-		new UnitOfWorkFactory(new TestDbContextFactory(_options));
-
 	private async Task<(Guid DungeonId, Guid FloorId)> SeedAsync()
 	{
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");

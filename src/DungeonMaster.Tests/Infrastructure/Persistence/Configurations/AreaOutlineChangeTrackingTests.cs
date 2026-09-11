@@ -1,12 +1,8 @@
-using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Domain.ValueObjects;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
-using DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Configurations;
 
@@ -14,29 +10,8 @@ namespace DungeonMaster.Tests.Infrastructure.Persistence.Configurations;
 ///		Covers the <c>ValueComparer</c> that <c>AreaConfiguration</c> supplies alongside the outline JSON conversion (INFRA-004 / MASTER-015).
 ///		Without it EF compares the converted reference type by reference, and <c>Area.Outline</c> hands back a fresh <c>AsReadOnly</c> wrapper on every read, so the snapshot and the current value are never the same instance and every tracked area is reported as modified.
 /// </summary>
-public class AreaOutlineChangeTrackingTests : IDisposable
+public sealed class AreaOutlineChangeTrackingTests : SqliteInMemoryTestBase
 {
-	private readonly SqliteConnection _connection;
-	private readonly DbContextOptions<AppDbContext> _options;
-
-	public AreaOutlineChangeTrackingTests()
-	{
-		_connection = new SqliteConnection("Data Source=:memory:");
-		_connection.Open();
-
-		_options = new DbContextOptionsBuilder<AppDbContext>()
-			.UseSqlite(_connection)
-			.Options;
-
-		using var context = new AppDbContext(_options);
-		context.Database.EnsureCreated();
-	}
-
-	public void Dispose() => _connection.Dispose();
-
-	private IUnitOfWorkFactory CreateFactory() =>
-		new UnitOfWorkFactory(new TestDbContextFactory(_options));
-
 	private static IReadOnlyList<PathSegment> Outline() =>
 	[
 		new PathSegment(
@@ -159,7 +134,7 @@ public class AreaOutlineChangeTrackingTests : IDisposable
 		}
 
 		// Act
-		using var verify = new AppDbContext(_options);
+		using var verify = new AppDbContext(Options);
 		var reloaded = await new DungeonWriteRepository(verify).LoadAsync(
 			dungeonId,
 			CancellationToken.None);

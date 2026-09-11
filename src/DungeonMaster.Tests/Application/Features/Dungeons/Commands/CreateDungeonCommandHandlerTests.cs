@@ -10,21 +10,11 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="CreateDungeonCommandHandler"/>.
 /// </summary>
-public class CreateDungeonCommandHandlerTests
+public sealed class CreateDungeonCommandHandlerTests : CommandHandlerTestBase<CreateDungeonCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly CreateDungeonCommandHandler _handler;
-
-	/// <summary>
-	///		Initializes the test class with a substituted unit-of-work chain and a real handler instance.
-	/// </summary>
-	public CreateDungeonCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new CreateDungeonCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override CreateDungeonCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	/// <summary>
 	///		Verifies that a valid command produces a successful result containing a non-empty Guid,
@@ -39,7 +29,7 @@ public class CreateDungeonCommandHandlerTests
 			"A flooded ruin beneath the city.");
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -47,11 +37,11 @@ public class CreateDungeonCommandHandlerTests
 		result.IsSuccess.Should().BeTrue();
 		result.Value.Should().NotBeEmpty();
 
-		_writeRepository
+		WriteRepository
 			.Received(1)
 			.Add(Arg.Any<Dungeon>());
 
-		await _unitOfWork.UnitOfWork
+		await UnitOfWork
 			.Received(1)
 			.CommitAsync(Arg.Any<CancellationToken>());
 	}
@@ -65,7 +55,7 @@ public class CreateDungeonCommandHandlerTests
 		// Arrange
 		Dungeon? captured = null;
 
-		_writeRepository.Add(Arg.Do<Dungeon>(dungeon =>
+		WriteRepository.Add(Arg.Do<Dungeon>(dungeon =>
 			captured = dungeon));
 
 		var command = new CreateDungeonCommand(
@@ -73,7 +63,7 @@ public class CreateDungeonCommandHandlerTests
 			"Smouldering catacombs beneath the volcano.");
 
 		// Act
-		await _handler.HandleAsync(
+		await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -93,7 +83,7 @@ public class CreateDungeonCommandHandlerTests
 		// Arrange
 		Dungeon? captured = null;
 
-		_writeRepository.Add(Arg.Do<Dungeon>(dungeon =>
+		WriteRepository.Add(Arg.Do<Dungeon>(dungeon =>
 			captured = dungeon));
 
 		var command = new CreateDungeonCommand(
@@ -101,7 +91,7 @@ public class CreateDungeonCommandHandlerTests
 			null);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 

@@ -13,21 +13,11 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="AddPlacedObjectCommandHandler"/>.
 /// </summary>
-public class AddPlacedObjectCommandHandlerTests
+public sealed class AddPlacedObjectCommandHandlerTests : DungeonNotFoundHandlerTestBase<AddPlacedObjectCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly AddPlacedObjectCommandHandler _handler;
-
-	/// <summary>
-	///		Initializes the test class with a substituted repository and a real handler instance.
-	/// </summary>
-	public AddPlacedObjectCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new AddPlacedObjectCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override AddPlacedObjectCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	private static Dungeon MakeDungeon(out Guid floorId)
 	{
@@ -47,7 +37,7 @@ public class AddPlacedObjectCommandHandlerTests
 	{
 		// Arrange
 		var dungeon = MakeDungeon(out var floorId);
-		_writeRepository
+		WriteRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
@@ -59,13 +49,13 @@ public class AddPlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 		result.Value.Should().NotBeEmpty();
 
-		_writeRepository
+		WriteRepository
 			.Received(1)
 			.Update(dungeon);
 	}
@@ -79,7 +69,7 @@ public class AddPlacedObjectCommandHandlerTests
 		// Arrange
 		var dungeon = MakeDungeon(out var floorId);
 		var floor = dungeon.Floors.First();
-		_writeRepository
+		WriteRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
@@ -91,7 +81,7 @@ public class AddPlacedObjectCommandHandlerTests
 			ObjectRotation.CW90);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
@@ -102,29 +92,23 @@ public class AddPlacedObjectCommandHandlerTests
 	}
 
 	/// <summary>
-	///		Verifies that a missing dungeon returns a not-found failure.
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
 	/// </summary>
-	[Fact]
-	public async Task HandleAsync_DungeonNotFound_ReturnsNotFound()
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository
-			.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-			.Returns((Dungeon?)null);
+		var result = await Handler.HandleAsync(
+			new AddPlacedObjectCommand(
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				ObjectKind.Chair,
+				new CanvasPoint(40f, 40f),
+				ObjectRotation.None),
+			CancellationToken.None);
 
-		var command = new AddPlacedObjectCommand(
-			Guid.NewGuid(),
-			Guid.NewGuid(),
-			ObjectKind.Chair,
-			new CanvasPoint(40f, 40f),
-			ObjectRotation.None);
-
-		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	/// <summary>
@@ -137,7 +121,7 @@ public class AddPlacedObjectCommandHandlerTests
 		var dungeon = MakeDungeon(out _);
 		var floorId = Guid.NewGuid();
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -151,7 +135,7 @@ public class AddPlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -160,9 +144,13 @@ public class AddPlacedObjectCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		result.Error.Should().Contain(floorId.ToString());
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -174,7 +162,7 @@ public class AddPlacedObjectCommandHandlerTests
 		// Arrange
 		var dungeon = MakeDungeon(out var floorId);
 		var floor = dungeon.Floors.First();
-		_writeRepository
+		WriteRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
@@ -187,7 +175,7 @@ public class AddPlacedObjectCommandHandlerTests
 			Scale: 2.0f);
 
 		// Act
-		await _handler.HandleAsync(command, CancellationToken.None);
+		await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		floor.Objects.Should().ContainSingle().Which.Scale.Should().BeApproximately(2.0f, 0.001f);

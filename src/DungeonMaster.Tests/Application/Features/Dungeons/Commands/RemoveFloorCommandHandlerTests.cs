@@ -8,18 +8,11 @@ using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class RemoveFloorCommandHandlerTests
+public sealed class RemoveFloorCommandHandlerTests : DungeonNotFoundHandlerTestBase<RemoveFloorCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly RemoveFloorCommandHandler _handler;
-
-	public RemoveFloorCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new RemoveFloorCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override RemoveFloorCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	[Fact]
 	public async Task HandleAsync_WithExistingFloor_RemovesFloorAndReturnsSuccess()
@@ -27,28 +20,28 @@ public class RemoveFloorCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
-		_writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
+		WriteRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
 		// Act
-		var result = await _handler.HandleAsync(new RemoveFloorCommand(dungeon.Id, floor.Id), CancellationToken.None);
+		var result = await Handler.HandleAsync(new RemoveFloorCommand(dungeon.Id, floor.Id), CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 		dungeon.Floors.Should().BeEmpty();
 	}
 
-	[Fact]
-	public async Task HandleAsync_WithNonExistentDungeon_ReturnsNotFoundFailure()
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
+		var result = await Handler.HandleAsync(
+			new RemoveFloorCommand(Guid.NewGuid(), Guid.NewGuid()),
+			CancellationToken.None);
 
-		// Act
-		var result = await _handler.HandleAsync(
-			new RemoveFloorCommand(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	/// <summary>
@@ -61,7 +54,7 @@ public class RemoveFloorCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -72,15 +65,19 @@ public class RemoveFloorCommandHandlerTests
 			Guid.NewGuid());
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 }

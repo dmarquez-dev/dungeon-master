@@ -8,18 +8,11 @@ using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class AddAreaCommandHandlerTests
+public sealed class AddAreaCommandHandlerTests : DungeonNotFoundHandlerTestBase<AddAreaCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly AddAreaCommandHandler _handler;
-
-	public AddAreaCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new AddAreaCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override AddAreaCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	[Fact]
 	public async Task HandleAsync_WithExistingDungeonAndFloor_AddsAreaAndReturnsId()
@@ -27,14 +20,14 @@ public class AddAreaCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Ground");
-		_writeRepository
+		WriteRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new AddAreaCommand(dungeon.Id, floor.Id, "Throne Room", null);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
@@ -43,22 +36,19 @@ public class AddAreaCommandHandlerTests
 		floor.Areas[0].Name.Should().Be("Throne Room");
 	}
 
-	[Fact]
-	public async Task HandleAsync_WithNonExistentDungeon_ReturnsNotFoundFailure()
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository
-			.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-			.Returns((Dungeon?)null);
+		var result = await Handler.HandleAsync(
+			new AddAreaCommand(Guid.NewGuid(), Guid.NewGuid(), "Any Area", null),
+			CancellationToken.None);
 
-		var command = new AddAreaCommand(Guid.NewGuid(), Guid.NewGuid(), "Any Area", null);
-
-		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	[Fact]
@@ -68,7 +58,7 @@ public class AddAreaCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Ground");
 		var floorId = Guid.NewGuid();
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -81,7 +71,7 @@ public class AddAreaCommandHandlerTests
 			null);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 

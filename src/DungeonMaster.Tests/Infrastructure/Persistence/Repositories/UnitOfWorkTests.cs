@@ -1,8 +1,6 @@
-using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Infrastructure.Persistence;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
@@ -10,35 +8,8 @@ namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 /// <summary>
 ///		Proves the lifetime the session settled on: one <see cref="AppDbContext"/> per unit of work, shared by the load and the commit, and never shared between two units of work.
 /// </summary>
-public class UnitOfWorkTests : IDisposable
+public sealed class UnitOfWorkTests : SqliteInMemoryTestBase
 {
-	private readonly SqliteConnection _connection;
-	private readonly DbContextOptions<AppDbContext> _options;
-
-	/// <summary>
-	///		Initializes the shared in-memory SQLite fixture.
-	/// </summary>
-	public UnitOfWorkTests()
-	{
-		_connection = new SqliteConnection("Data Source=:memory:");
-		_connection.Open();
-
-		_options = new DbContextOptionsBuilder<AppDbContext>()
-			.UseSqlite(_connection)
-			.Options;
-
-		using var context = new AppDbContext(_options);
-		context.Database.EnsureCreated();
-	}
-
-	/// <inheritdoc/>
-	public void Dispose() => _connection.Dispose();
-
-	private AppDbContext CreateContext() => new(_options);
-
-	private IUnitOfWorkFactory CreateFactory() =>
-		new UnitOfWorkFactory(new TestDbContextFactory(_options));
-
 	/// <summary>
 	///		Verifies that two units of work track independently: the same dungeon loaded in each comes back as two distinct instances.
 	///		Under a single process-lifetime context both loads would return the identical tracked instance, which is the accumulation INFRA-018 describes.
@@ -92,7 +63,7 @@ public class UnitOfWorkTests : IDisposable
 			await seedCtx.SaveChangesAsync();
 		}
 
-		var dbContext = new TestDbContextFactory(_options).CreateDbContext();
+		var dbContext = CreateDbContextFactory().CreateDbContext();
 
 		// Act
 		EntityState observedState;

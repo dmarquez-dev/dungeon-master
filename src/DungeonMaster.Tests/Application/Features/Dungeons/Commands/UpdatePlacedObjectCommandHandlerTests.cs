@@ -13,21 +13,11 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="UpdatePlacedObjectCommandHandler"/>.
 /// </summary>
-public class UpdatePlacedObjectCommandHandlerTests
+public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandlerTestBase<UpdatePlacedObjectCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly UpdatePlacedObjectCommandHandler _handler;
-
-	/// <summary>
-	///		Initializes the test class with a substituted repository and a real handler instance.
-	/// </summary>
-	public UpdatePlacedObjectCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new UpdatePlacedObjectCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override UpdatePlacedObjectCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	/// <summary>
 	///		Verifies that a valid command updates the object's position and rotation, then returns success.
@@ -46,7 +36,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		var obj = floor.Objects[0];
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -60,7 +50,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.CW90);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -70,39 +60,29 @@ public class UpdatePlacedObjectCommandHandlerTests
 		obj.Rotation.Should().Be(ObjectRotation.CW90);
 		obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 
-		_writeRepository
+		WriteRepository
 			.Received(1)
 			.Update(dungeon);
 	}
 
 	/// <summary>
-	///		Verifies that a missing dungeon returns a not-found failure.
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
 	/// </summary>
-	[Fact]
-	public async Task HandleAsync_DungeonNotFound_ReturnsNotFound()
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository
-			.LoadAsync(
-				Arg.Any<Guid>(),
-				Arg.Any<CancellationToken>())
-			.Returns((Dungeon?)null);
-
-		var command = new UpdatePlacedObjectCommand(
-			Guid.NewGuid(),
-			Guid.NewGuid(),
-			Guid.NewGuid(),
-			new CanvasPoint(40f, 40f),
-			ObjectRotation.None);
-
-		// Act
-		var result = await _handler.HandleAsync(
-			command,
+		var result = await Handler.HandleAsync(
+			new UpdatePlacedObjectCommand(
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				new CanvasPoint(40f, 40f),
+				ObjectRotation.None),
 			CancellationToken.None);
 
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	/// <summary>
@@ -114,7 +94,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 		// Arrange
 		var dungeon = new Dungeon("D", null);
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -128,16 +108,20 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -158,7 +142,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 
 		var theObj = floor.Objects.Should().ContainSingle().Which;
 		var originalPos = theObj.Position;
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -172,7 +156,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.CW180);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -180,9 +164,13 @@ public class UpdatePlacedObjectCommandHandlerTests
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		theObj.Position.Should().Be(originalPos);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -202,7 +190,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 			ObjectRotation.None);
 
 		var obj = floor.Objects.Should().ContainSingle().Which;
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -217,7 +205,7 @@ public class UpdatePlacedObjectCommandHandlerTests
 			NewScale: 1.5f);
 
 		// Act
-		await _handler.HandleAsync(
+		await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 

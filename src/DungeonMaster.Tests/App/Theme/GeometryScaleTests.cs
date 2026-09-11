@@ -108,11 +108,13 @@ public class GeometryScaleTests
 	// double-to-Thickness conversion is a convenience and the constructor is the idiom. The
 	// bare `new Thickness(...)` pattern deliberately has no property name in front of it, so an
 	// inset built as a local or passed straight into a constructor is caught too. The lookbehind
-	// hands the margin case to NoBareMarginValues rather than reporting it twice, and lets a
+	// hands the margin case to the Margin row of NoBareGeometryValues rather than reporting
+	// it twice, and lets a
 	// Thickness assigned to a BORDER go: BorderThickness and StrokeThickness are a stroke width
 	// on the DmStroke* scale, not an inset on the DmPadding* roles, and reporting them here
-	// would tell the reader to fix them with a padding token. The stroke scale now has a ratchet
-	// of its own, NoBareStrokeValues, and that is where those two properties are reported.
+	// would tell the reader to fix them with a padding token. The stroke scale has a ratchet of
+	// its own, the Stroke row of NoBareGeometryValues, and that is where those two properties
+	// are reported.
 	private static readonly IReadOnlyList<Regex> PaddingCSharpPatterns =
 	[
 		new(
@@ -397,6 +399,114 @@ public class GeometryScaleTests
 		};
 
 	/// <summary>
+	///		The four names <see cref="UniformGeometryRatchets"/> must carry, written out
+	///		INDEPENDENTLY of that list. Deriving them from the list would make the cardinality
+	///		guard agree with whatever the list happens to say, which is the vacuity it exists to
+	///		prevent.
+	/// </summary>
+	private static readonly string[] ExpectedUniformGeometryRatchetNames =
+	[
+		"Spacing",
+		"Margin",
+		"Stroke",
+		"MinimumSize",
+	];
+
+	/// <summary>
+	///		The four geometry ratchets whose pipeline is uniform, as data.
+	///		<para>
+	///		Spacing, Margin, Stroke and MinimumSize ran four copies of one method: scan the
+	///		markup, concatenate the code-behind scan, drop the zero, describe, sort, and require
+	///		the result to be empty. They differ only in what they probe for, what they still
+	///		excuse, and the sentence they fail with, so they are rows.
+	///		</para>
+	///		<para>
+	///		Padding and Radius are deliberately NOT here and stay facts of their own. Padding adds
+	///		a scale-exception filter and a shaping-versus-scale projection; Radius adds a geometry
+	///		exception filter. Neither runs this pipeline, and folding either in would mean putting
+	///		the difference back as a conditional.
+	///		</para>
+	///		<para>
+	///		MARGIN, STROKE AND MINIMUM SIZE CONVERT NOTHING; THEY PIN A CENSUS. Margin is the same
+	///		geometry as padding measured from the other side of the border, and the spec defined
+	///		scales for spacing, padding, radius and stroke and simply did not name it, so an
+	///		entire class of literal came through the migration untouched and unmeasured. Stroke
+	///		was one of the spec's four scales and the one never ratcheted — the gap was recorded
+	///		in a comment beside the padding patterns rather than closed, which is the same shape
+	///		as every other defect that branch found: a note asserting a guard is not a guard. The
+	///		touch target, 44, was the one shared geometry value in this theme with no token at
+	///		all, restated as a bare literal at twelve sites; all twelve now name
+	///		<c>DmTouchTargetMinimum</c>. Each of the three takes the census, pins it, and makes
+	///		the next one a failure.
+	///		</para>
+	///		<para>
+	///		DROPPING A ROW HERE SILENTLY RETIRES A WHOLE RATCHET and every remaining test in this
+	///		class still passes, because xUnit errors only on a COMPLETELY empty theory source and
+	///		never on a short one.
+	///		<see cref="TheUniformGeometryRatchetSetIsExactlyTheFourUniformProperties"/> is what
+	///		makes that a failure. The two scan guards above cannot: they protect the FILE SCAN,
+	///		not the ROW SET.
+	///		</para>
+	/// </summary>
+	private static readonly IReadOnlyList<UniformGeometryRatchet> UniformGeometryRatchets =
+	[
+		new(
+			"Spacing",
+			SpacingXamlProbe,
+			SpacingCSharpPatterns,
+			SpacingPendingMigration,
+			"every gap must come from the DmSpace* scale in Resources/Theme/Tokens.xaml"),
+		new(
+			"Margin",
+			MarginXamlProbe,
+			MarginCSharpPatterns,
+			MarginPendingMigration,
+			"every offset must come from the DmSpace* scale in Resources/Theme/Tokens.xaml, "
+			+ "or be recorded in MarginPendingMigration with the rest of the census"),
+		new(
+			"Stroke",
+			StrokeXamlProbe,
+			StrokeCSharpPatterns,
+			StrokePendingMigration,
+			"every stroke width must come from the DmStroke* scale in "
+			+ "Resources/Theme/Tokens.xaml, or be recorded in StrokePendingMigration "
+			+ "with the rest of the census"),
+		new(
+			"MinimumSize",
+			MinimumSizeXamlProbe,
+			MinimumSizeCSharpPatterns,
+			MinimumSizePendingMigration,
+			"every minimum size must name a token in Resources/Theme/Tokens.xaml — "
+			+ "DmTouchTargetMinimum where it is the platform touch target — or be recorded "
+			+ "in MinimumSizePendingMigration with the rest of the census"),
+	];
+
+	/// <summary>
+	///		Gets the name of each uniform geometry ratchet, one theory row apiece.
+	///		<para>
+	///		The row carries the NAME rather than the ratchet, so the theory's display name says
+	///		which ratchet failed and xUnit has nothing to serialise but a string. The theory looks
+	///		the row up in <see cref="UniformGeometryRatchets"/>, which is the single list the
+	///		cardinality guard also reads, so the guard cannot pass over a set the theory does not
+	///		run.
+	///		</para>
+	/// </summary>
+	public static TheoryData<string> UniformGeometryRatchetNames
+	{
+		get
+		{
+			var data = new TheoryData<string>();
+
+			foreach (var ratchet in UniformGeometryRatchets)
+			{
+				data.Add(ratchet.Name);
+			}
+
+			return data;
+		}
+	}
+
+	/// <summary>
 	///		Asserts that the markup half of every geometry ratchet reaches application sources at
 	///		all.
 	///		<para>
@@ -430,18 +540,58 @@ public class GeometryScaleTests
 	}
 
 	/// <summary>
-	///		Asserts that no literal spacing survives outside the theme dictionaries.
+	///		Asserts that the uniform geometry theory runs over exactly the four ratchets whose
+	///		pipeline is uniform, and no fewer.
+	///		<para>
+	///		This is a CARDINALITY guard, not a non-emptiness one, and the difference is the whole
+	///		point. The two scan guards above protect the file scan; nothing protected the ROW SET.
+	///		Deleting a row from <see cref="UniformGeometryRatchets"/> retires an entire ratchet
+	///		while every other test in this class stays green, because xUnit reports an error only
+	///		for a completely empty theory source and never for a short one. An offenders list is
+	///		empty both when everything is correct and when nothing was examined, and
+	///		contracts/anti-vacuity.md section 5 forbids letting those two states look alike.
+	///		</para>
 	/// </summary>
 	[Fact]
-	public void NoBareSpacingValues()
+	public void TheUniformGeometryRatchetSetIsExactlyTheFourUniformProperties()
 	{
+		UniformGeometryRatchets
+			.Select(ratchet =>
+				ratchet.Name)
+			.Should()
+			.BeEquivalentTo(
+				ExpectedUniformGeometryRatchetNames,
+				"a dropped row silently retires a whole ratchet and leaves every other test in "
+				+ "this class green; xUnit errors only on a completely empty theory source, "
+				+ "never on a short one");
+	}
+
+	/// <summary>
+	///		Asserts that no literal geometry value survives outside the theme dictionaries, for
+	///		each of the four ratchets whose pipeline is uniform.
+	///		<para>
+	///		The row set is guarded by
+	///		<see cref="TheUniformGeometryRatchetSetIsExactlyTheFourUniformProperties"/>; the two
+	///		scans this reads are guarded by the two facts above.
+	///		</para>
+	/// </summary>
+	/// <param name="ratchetName">
+	///		The name of the ratchet to run, from <see cref="UniformGeometryRatchetNames"/>.
+	/// </param>
+	[Theory]
+	[MemberData(nameof(UniformGeometryRatchetNames))]
+	public void NoBareGeometryValues(string ratchetName)
+	{
+		var ratchet = UniformGeometryRatchets.Single(candidate =>
+			candidate.Name == ratchetName);
+
 		var offenders = ScanXaml(
-				SpacingXamlProbe,
-				SpacingPendingMigration)
+				ratchet.XamlProbe,
+				ratchet.PendingMigration)
 			.Concat(
 				ScanCSharp(
-					SpacingCSharpPatterns,
-					SpacingPendingMigration))
+					ratchet.CSharpPatterns,
+					ratchet.PendingMigration))
 			.Where(found =>
 				found.Value != ZeroMeansNone)
 			.Select(Describe)
@@ -453,7 +603,7 @@ public class GeometryScaleTests
 
 		offenders
 			.Should()
-			.BeEmpty("every gap must come from the DmSpace* scale in Resources/Theme/Tokens.xaml");
+			.BeEmpty(ratchet.Because);
 	}
 
 	/// <summary>
@@ -539,116 +689,6 @@ public class GeometryScaleTests
 		offenders
 			.Should()
 			.BeEmpty("every corner must come from the DmRadius* tokens in Resources/Theme/Tokens.xaml");
-	}
-
-	/// <summary>
-	///		Asserts that no literal margin survives outside the token declarations.
-	/// </summary>
-	/// <remarks>
-	///		Margin is the same geometry as padding measured from the other side of the border, and
-	///		it moves the same pixels. The spec defined scales for spacing, padding, radius and
-	///		stroke and simply did not name margin, so an entire class of literal came through the
-	///		migration untouched and unmeasured. This fact does not convert anything; it takes the
-	///		census, pins it, and makes the next one a failure.
-	/// </remarks>
-	[Fact]
-	public void NoBareMarginValues()
-	{
-		var offenders = ScanXaml(
-				MarginXamlProbe,
-				MarginPendingMigration)
-			.Concat(
-				ScanCSharp(
-					MarginCSharpPatterns,
-					MarginPendingMigration))
-			.Where(found =>
-				found.Value != ZeroMeansNone)
-			.Select(Describe)
-			.OrderBy(
-				entry =>
-					entry,
-				StringComparer.Ordinal)
-			.ToList();
-
-		offenders
-			.Should()
-			.BeEmpty("every offset must come from the DmSpace* scale in Resources/Theme/Tokens.xaml, "
-				+ "or be recorded in MarginPendingMigration with the rest of the census");
-	}
-
-	/// <summary>
-	///		Asserts that no literal stroke width survives outside the token declarations.
-	/// </summary>
-	/// <remarks>
-	///		Spec §3 named four scales — spacing, padding, radius and stroke — and only the first
-	///		three were ever ratcheted. The stroke tokens were consumed in markup by hand and the
-	///		gap was recorded in a comment beside the padding patterns rather than closed, which is
-	///		the same shape as every other defect this branch found: a note asserting a guard is not
-	///		a guard. Like <see cref="NoBareMarginValues"/> this fact converts nothing; it takes the
-	///		census, pins it, and makes the next one a failure.
-	/// </remarks>
-	[Fact]
-	public void NoBareStrokeValues()
-	{
-		var offenders = ScanXaml(
-				StrokeXamlProbe,
-				StrokePendingMigration)
-			.Concat(
-				ScanCSharp(
-					StrokeCSharpPatterns,
-					StrokePendingMigration))
-			.Where(found =>
-				found.Value != ZeroMeansNone)
-			.Select(Describe)
-			.OrderBy(
-				entry =>
-					entry,
-				StringComparer.Ordinal)
-			.ToList();
-
-		offenders
-			.Should()
-			.BeEmpty("every stroke width must come from the DmStroke* scale in "
-				+ "Resources/Theme/Tokens.xaml, or be recorded in StrokePendingMigration "
-				+ "with the rest of the census");
-	}
-
-	/// <summary>
-	///		Asserts that no literal minimum size survives outside the token declarations.
-	/// </summary>
-	/// <remarks>
-	///		The touch target — 44 — was the one shared geometry value in this theme that had no
-	///		token at all. It was restated as a bare literal at twelve sites: ten setters across
-	///		<c>Implicit.xaml</c> and <c>Controls.Base.xaml</c>, plus the two call sites that carry
-	///		a <c>Style=</c> and so opt out of the implicit floor and must restate it
-	///		(<c>DmSearchBar.xaml</c> and <c>ControlsPaletteView.xaml</c>). All twelve now name
-	///		<c>DmTouchTargetMinimum</c>; this fact is what makes the thirteenth a failure rather
-	///		than a thirteenth.
-	/// </remarks>
-	[Fact]
-	public void NoBareMinimumSizeValues()
-	{
-		var offenders = ScanXaml(
-				MinimumSizeXamlProbe,
-				MinimumSizePendingMigration)
-			.Concat(
-				ScanCSharp(
-					MinimumSizeCSharpPatterns,
-					MinimumSizePendingMigration))
-			.Where(found =>
-				found.Value != ZeroMeansNone)
-			.Select(Describe)
-			.OrderBy(
-				entry =>
-					entry,
-				StringComparer.Ordinal)
-			.ToList();
-
-		offenders
-			.Should()
-			.BeEmpty("every minimum size must name a token in Resources/Theme/Tokens.xaml — "
-				+ "DmTouchTargetMinimum where it is the platform touch target — or be recorded "
-				+ "in MinimumSizePendingMigration with the rest of the census");
 	}
 
 	/// <summary>
@@ -1223,6 +1263,34 @@ public class GeometryScaleTests
 	private sealed record XamlGeometryProbe(
 		IReadOnlyList<string> Properties,
 		Regex? ValuePattern);
+
+	/// <summary>
+	///		One geometry ratchet whose pipeline is the uniform one, as a row.
+	/// </summary>
+	/// <param name="Name">
+	///		The property family the ratchet guards. It is the theory's row key and what the
+	///		cardinality guard counts.
+	/// </param>
+	/// <param name="XamlProbe">
+	///		The markup shape whose bare value the ratchet forbids.
+	/// </param>
+	/// <param name="CSharpPatterns">
+	///		The code-behind patterns, matched against the comment-blanked text.
+	/// </param>
+	/// <param name="PendingMigration">
+	///		The files this ratchet still excuses, each self-checked by
+	///		<see cref="EveryGeometryAllowListEntryStillOffends"/>.
+	/// </param>
+	/// <param name="Because">
+	///		The sentence the ratchet fails with. The four are not interchangeable: each names a
+	///		distinct failure mode in the words of the person who found it.
+	/// </param>
+	private sealed record UniformGeometryRatchet(
+		string Name,
+		XamlGeometryProbe XamlProbe,
+		IReadOnlyList<Regex> CSharpPatterns,
+		IReadOnlyCollection<string> PendingMigration,
+		string Because);
 
 	private sealed record GeometryMatch(
 		string Relative,

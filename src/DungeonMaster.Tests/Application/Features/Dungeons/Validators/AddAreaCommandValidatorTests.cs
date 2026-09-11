@@ -1,55 +1,22 @@
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
-using FluentAssertions;
+using FluentValidation;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Validators;
 
-public class AddAreaCommandValidatorTests
+/// <summary>
+///		The name-only validator behaviour, run against <see cref="AddAreaCommandValidator"/>.
+/// </summary>
+public sealed class AddAreaCommandValidatorTests
+	: NameOnlyValidatorTestBase<AddAreaCommand>
 {
-	private readonly AddAreaCommandValidator _validator = new();
+	/// <inheritdoc/>
+	protected override IValidator<AddAreaCommand> Validator { get; } = new AddAreaCommandValidator();
 
-	[Fact]
-	public void Validate_WithValidCommand_Passes()
-	{
-		// Arrange
-		var command = new AddAreaCommand(Guid.NewGuid(), Guid.NewGuid(), "Entry Hall", null);
+	/// <inheritdoc/>
+	protected override string NamePropertyName =>
+		nameof(AddAreaCommand.Name);
 
-		// Act
-		var result = _validator.Validate(command);
-
-		// Assert
-		result.IsValid.Should().BeTrue();
-	}
-
-	[Theory]
-	[InlineData("")]
-	[InlineData("   ")]
-	[InlineData(null)]
-	public void Validate_WithEmptyName_Fails(string? name)
-	{
-		// Arrange
-		var command = new AddAreaCommand(Guid.NewGuid(), Guid.NewGuid(), name!, null);
-
-		// Act
-		var result = _validator.Validate(command);
-
-		// Assert
-		result.IsValid.Should().BeFalse();
-		result.Errors.Should().ContainSingle(e =>
-			e.PropertyName == nameof(AddAreaCommand.Name));
-	}
-
-	[Fact]
-	public void Validate_WithNameExceedingMaxLength_Fails()
-	{
-		// Arrange
-		var command = new AddAreaCommand(Guid.NewGuid(), Guid.NewGuid(), new string('A', 101), null);
-
-		// Act
-		var result = _validator.Validate(command);
-
-		// Assert
-		result.IsValid.Should().BeFalse();
-		result.Errors.Should().ContainSingle(e =>
-			e.PropertyName == nameof(AddAreaCommand.Name));
-	}
+	/// <inheritdoc/>
+	protected override AddAreaCommand CreateCommandWithName(string? name) =>
+		new(Guid.NewGuid(), Guid.NewGuid(), name!, null);
 }

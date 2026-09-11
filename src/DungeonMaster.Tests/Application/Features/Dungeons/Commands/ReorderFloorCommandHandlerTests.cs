@@ -8,18 +8,11 @@ using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class ReorderFloorCommandHandlerTests
+public sealed class ReorderFloorCommandHandlerTests : DungeonNotFoundHandlerTestBase<ReorderFloorCommandHandler>
 {
-	private readonly UnitOfWorkSubstitute _unitOfWork;
-	private readonly IDungeonWriteRepository _writeRepository;
-	private readonly ReorderFloorCommandHandler _handler;
-
-	public ReorderFloorCommandHandlerTests()
-	{
-		_unitOfWork = new UnitOfWorkSubstitute();
-		_writeRepository = _unitOfWork.Dungeons;
-		_handler = new ReorderFloorCommandHandler(_unitOfWork.Factory);
-	}
+	/// <inheritdoc />
+	protected override ReorderFloorCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
 	[Fact]
 	public async Task HandleAsync_WithValidReorder_UpdatesFloorNumberAndReturnsSuccess()
@@ -28,36 +21,33 @@ public class ReorderFloorCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Ground");
 		var upper = dungeon.AddFloor("Upper");
-		_writeRepository
+		WriteRepository
 			.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
 			.Returns(dungeon);
 
 		var command = new ReorderFloorCommand(dungeon.Id, upper.Id, 1);
 
 		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 		upper.Number.Should().Be(1);
 	}
 
-	[Fact]
-	public async Task HandleAsync_WithNonExistentDungeon_ReturnsNotFoundFailure()
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
 	{
-		// Arrange
-		_writeRepository
-			.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-			.Returns((Dungeon?)null);
+		var result = await Handler.HandleAsync(
+			new ReorderFloorCommand(Guid.NewGuid(), Guid.NewGuid(), 1),
+			CancellationToken.None);
 
-		var command = new ReorderFloorCommand(Guid.NewGuid(), Guid.NewGuid(), 1);
-
-		// Act
-		var result = await _handler.HandleAsync(command, CancellationToken.None);
-
-		// Assert
-		result.IsSuccess.Should().BeFalse();
-		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		return (result.IsSuccess, result.ErrorCategory);
 	}
 
 	/// <summary>
@@ -70,7 +60,7 @@ public class ReorderFloorCommandHandlerTests
 		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Ground");
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -82,16 +72,20 @@ public class ReorderFloorCommandHandlerTests
 			1);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 
 	/// <summary>
@@ -106,7 +100,7 @@ public class ReorderFloorCommandHandlerTests
 		dungeon.AddFloor("Ground");
 		var upper = dungeon.AddFloor("Upper");
 
-		_writeRepository
+		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
 				Arg.Any<CancellationToken>())
@@ -118,7 +112,7 @@ public class ReorderFloorCommandHandlerTests
 			99);
 
 		// Act
-		var result = await _handler.HandleAsync(
+		var result = await Handler.HandleAsync(
 			command,
 			CancellationToken.None);
 
@@ -127,8 +121,12 @@ public class ReorderFloorCommandHandlerTests
 		result.Error.Should().Contain("99");
 		upper.Number.Should().Be(2);
 
-		_writeRepository
+		WriteRepository
 			.DidNotReceive()
 			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
 	}
 }

@@ -2,33 +2,12 @@ using DungeonMaster.Domain.Entities.Dungeon;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 
-public class DungeonReadRepositoryTests : IDisposable
+public sealed class DungeonReadRepositoryTests : SqliteInMemoryTestBase
 {
-	private readonly SqliteConnection _connection;
-	private readonly DbContextOptions<AppDbContext> _options;
-
-	public DungeonReadRepositoryTests()
-	{
-		_connection = new SqliteConnection("Data Source=:memory:");
-		_connection.Open();
-
-		_options = new DbContextOptionsBuilder<AppDbContext>()
-			.UseSqlite(_connection)
-			.Options;
-
-		using var context = new AppDbContext(_options);
-		context.Database.EnsureCreated();
-	}
-
-	public void Dispose() => _connection.Dispose();
-
-	private AppDbContext CreateContext() => new(_options);
-
 	[Fact]
 	public async Task GetSummariesAsync_ReturnsAllDungeonsWithFloorCount()
 	{
@@ -43,7 +22,7 @@ public class DungeonReadRepositoryTests : IDisposable
 			await ctx.SaveChangesAsync();
 		}
 
-		var repo = new DungeonReadRepository(new TestDbContextFactory(_options));
+		var repo = new DungeonReadRepository(CreateDbContextFactory());
 		var summaries = await repo.GetSummariesAsync(CancellationToken.None);
 
 		summaries.Should().HaveCount(2);
@@ -65,7 +44,7 @@ public class DungeonReadRepositoryTests : IDisposable
 			await ctx.SaveChangesAsync();
 		}
 
-		var repo = new DungeonReadRepository(new TestDbContextFactory(_options));
+		var repo = new DungeonReadRepository(CreateDbContextFactory());
 		var detail = await repo.GetDetailAsync(dungeon.Id, CancellationToken.None);
 
 		detail.Should().NotBeNull();
@@ -80,7 +59,7 @@ public class DungeonReadRepositoryTests : IDisposable
 	[Fact]
 	public async Task GetDetailAsync_WithNonExistentId_ReturnsNull()
 	{
-		var repo = new DungeonReadRepository(new TestDbContextFactory(_options));
+		var repo = new DungeonReadRepository(CreateDbContextFactory());
 
 		var result = await repo.GetDetailAsync(Guid.NewGuid(), CancellationToken.None);
 

@@ -85,6 +85,35 @@ Not audited, with the reason for each:
 
 ## Records
 
+**[AMENDED 6b-ii, 2026-09-08 -- what this pass did and did not establish.** Seven mis-citations were
+corrected in place, across `TEST-002`, `TEST-008`, `TEST-009`, `TEST-012`, `TEST-013` and `TEST-026`,
+plus one cross-reference in `## Layer verdict`. Every figure in those amendments was measured against
+the fixed commit `850a10b` on 2026-09-08 by DIR session `2026-09-08-fixtures-and-de-duplication`
+(6b-ii), and every command is quoted with its anchor so a later reader can paste it and get the stated
+number back.
+
+This document was authored at `2603170` on 2026-08-17
+(`git log --diff-filter=A -- docs/audit/05-tests.md`) and has not been edited since
+(`git log --oneline 2603170..850a10b -- docs/audit/05-tests.md | wc -l` -> `0`), while **28** commits
+have touched the test project in the meantime
+(`git log --oneline bcb49dc^..850a10b -- src/DungeonMaster.Tests | wc -l` -> `28`; the `..HEAD` form
+returns the same 28 when run at `850a10b` but drifts as the branch moves, so the fixed anchor is the
+one recorded).
+Each amendment therefore states whether the claim held **at `2603170`** -- DRIFT if it did,
+MEASUREMENT ERROR if it did not, UNDETERMINED if the evidence does not settle it -- and that
+classification is itself measured, never assumed.
+
+**The outcome of that test: six of the seven corrections are DRIFT, and the repository moved mostly on
+2026-08-18, the day after this document was written.** The exceptions are two genuine errors of
+authorship, recorded as such: `TEST-012`'s subsumption reasoning, which was wrong at `2603170` and
+would have destroyed real coverage if acted on, and `TEST-013`'s title.
+
+**The remaining entries were NOT re-measured.** This document is now correct in seven places that were
+checked; nothing here licenses trusting the rest. `MASTER-020`, `MASTER-070`, `MASTER-086`,
+`MASTER-155` and `MASTER-167` were deliberately left alone -- they are *suspected* stale, which is not
+the same as *measured* stale, and a correction not backed by a command in this pass would be the exact
+defect this pass exists to correct.**]**
+
 ### TEST-001 -- The dispatcher, the validation pipeline and the Result type have no tests at all
 
 ```yaml
@@ -130,21 +159,63 @@ severity: S2
 category: correctness
 authority: microsoft
 citation: https://learn.microsoft.com/en-us/ef/core/managing-schemas/ensure-created
-locations:
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:26-27
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs:24-25
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:29-30
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:29-30
+locations:  # AMENDED 6b-ii -- seven, not four; line anchors re-resolved at 850a10b
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:28
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs:25
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:31
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:31
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/UnitOfWorkTests.cs:31
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/AreaOutlineChangeTrackingTests.cs:32
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs:34
 effort: S
 risk: low
 independent: true
 ```
 
-**What.** All four Infrastructure test classes create their schema with
+**What.** All seven Infrastructure test classes create their schema with
 `context.Database.EnsureCreated()`. Production creates its schema with `db.Database.Migrate()`
 (`src/DungeonMaster.Infrastructure/DependencyInjection.cs:50`). `EnsureCreated` builds the schema
-from the current model, bypassing the two migrations under
+from the current model, bypassing the three migrations under
 `src/DungeonMaster.Infrastructure/Migrations/` entirely.
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 1, the class count. Classification: DRIFT.**
+Previous wording, verbatim: *"All four Infrastructure test classes create their schema with
+`context.Database.EnsureCreated()`"*, over a `locations` list of four files. The measured figure is
+**seven call sites in seven distinct classes**:
+
+```
+git grep -n "EnsureCreated" 850a10b -- src/DungeonMaster.Tests
+```
+
+-> 7 lines, `| wc -l` -> `7`; `git grep -l ... | wc -l` -> `7`. Three of the seven appear in **neither**
+this entry's nor `TEST-009`'s list -- `Repositories/UnitOfWorkTests.cs`,
+`Configurations/AreaOutlineChangeTrackingTests.cs`, `Configurations/PlacedObjectConfigurationTests.cs`
+-- and two of those three live under `Configurations/` rather than `Repositories/`, which is why a
+directory-scoped reading of either entry misses them. All three are added to both lists.
+
+**Classification evidence.** The same command at the authoring commit,
+`git grep -n "EnsureCreated" 2603170 -- src/DungeonMaster.Tests`, returns exactly **four**, and they are
+exactly the four listed. `git log --diff-filter=A --format="%h %ad %s" --date=short -- <file>` on each
+missed file returns `ef0b0b6 2026-08-18` for `UnitOfWorkTests.cs` and `1453cbd 2026-08-18` for both
+`Configurations/` files. **None of the three existed when this entry was written on 2026-08-17.** The
+entry was right on the day; the repository grew under it the following day. This is drift, not a
+counting error, and the same finding applies unchanged to `TEST-009` and `TEST-026`.**]**
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 2, the migration count. Classification: DRIFT.**
+Previous wording, verbatim: *"bypassing the two migrations under
+`src/DungeonMaster.Infrastructure/Migrations/` entirely"*. The measured figure is **three**:
+
+```
+git ls-tree -r --name-only 850a10b -- src/DungeonMaster.Infrastructure/Migrations/   | grep '\.cs$' | grep -v Designer | grep -v Snapshot | wc -l
+```
+
+-> `3`. Named, so the count is checkable rather than merely restated:
+`20260805014736_InitialCreate`, `20260805184106_AddFloorDescription`,
+`20260818232300_UtcDateTimeTimestampsAndScaleWithoutStoreDefault`.
+
+**Classification evidence.** The same command at `2603170` lists **two** -- `InitialCreate` and
+`AddFloorDescription`. The third migration's own timestamp prefix is `20260818`, one day after this
+document was authored. The entry was correct when written.**]**
 
 **Why it matters.** The cited page states plainly that `EnsureCreated` and Migrations "don't work
 well together" and that a project intending to use Migrations should not use `EnsureCreated` to
@@ -360,21 +431,21 @@ severity: S3
 category: duplication
 authority: conventions
 citation: backend/dotnet-format.md#12. Testing in C#
-locations:
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddAreaCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddFloorCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddPlacedObjectCommandHandlerTests.cs:17-27
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/CreateDungeonCommandHandlerTests.cs:14-24
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/DeleteDungeonCommandHandlerTests.cs:13-23
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveAreaCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveFloorCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemovePlacedObjectCommandHandlerTests.cs:17-27
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/ReorderFloorCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateAreaCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateAreaOutlineCommandHandlerTests.cs:13-20
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateDungeonCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateFloorCommandHandlerTests.cs:12-19
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs:17-27
+locations:  # AMENDED 6b-ii -- all sixteen ranges re-resolved at 850a10b; see CORRECTION 4(a)
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddAreaCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddFloorCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddPlacedObjectCommandHandlerTests.cs:18-30
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/CreateDungeonCommandHandlerTests.cs:15-27
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/DeleteDungeonCommandHandlerTests.cs:15-27
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveAreaCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveFloorCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemovePlacedObjectCommandHandlerTests.cs:18-30
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/ReorderFloorCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateAreaCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateAreaOutlineCommandHandlerTests.cs:14-23
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateDungeonCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateFloorCommandHandlerTests.cs:13-22
+  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs:18-30
   - src/DungeonMaster.Tests/Application/Features/Dungeons/Queries/GetDungeonDetailQueryHandlerTests.cs:10-17
   - src/DungeonMaster.Tests/Application/Features/Dungeons/Queries/GetDungeonsQueryHandlerTests.cs:13-23
 effort: M
@@ -382,14 +453,89 @@ risk: low
 independent: true
 ```
 
-**What.** Sixteen handler test classes declare the same two readonly fields and the same
-constructor body -- `Substitute.For<IDungeonWriteRepository>()` (or `IDungeonReadRepository`) and
-`new XHandler(_writeRepository)` -- and twelve of the fourteen command classes then carry a
-not-found test whose body is the same four statements with a different command record. Twelve is
-the count on the behavioural reading used throughout this record: a test that asserts
-`ErrorCategory.NotFound`. Only nine of those twelve are named `HandleAsync_WithNonExistent...`;
-the other three state the same case under a different name. `CreateDungeonCommandHandlerTests` and
-`DeleteDungeonCommandHandlerTests` are the two classes with no not-found test.
+**What.** Sixteen handler test classes declare the same readonly fields and the same constructor
+body. The **fourteen** command classes declare `new UnitOfWorkSubstitute()`,
+`_unitOfWork.Dungeons` and `new XHandler(_unitOfWork.Factory)`; the **two** query classes declare
+`Substitute.For<IDungeonReadRepository>()` and `new XHandler(_readRepository)`. Twelve of the
+fourteen command classes then carry a not-found test whose body is the same four statements with a
+different command record. Twelve is the count on the behavioural reading used throughout this
+record: a test that asserts `ErrorCategory.NotFound`. Only nine of those twelve are named
+`HandleAsync_WithNonExistent...`; the other three state the same case under a different name.
+`CreateDungeonCommandHandlerTests` is the only command class with no not-found test.
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 4(a), the constructor this entry describes no longer
+exists. Classification: DRIFT.** Previous wording, verbatim: *"Sixteen handler test classes declare
+the same two readonly fields and the same constructor body -- `Substitute.For<IDungeonWriteRepository>()`
+(or `IDungeonReadRepository`) and `new XHandler(_writeRepository)`"*, with the sixteen `locations`
+line ranges above. **The fourteen command classes no longer have that constructor.** At `850a10b` all
+fourteen wire through the extracted `Application/Common/Handlers/UnitOfWorkSubstitute.cs` -- *"The one
+place the substituted unit-of-work chain is wired"* -- as `new UnitOfWorkSubstitute()` plus
+`new HANDLER(_unitOfWork.Factory)`:
+
+```
+git grep -c "new UnitOfWorkSubstitute()" 850a10b -- 'src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/*.cs' | wc -l
+git grep -n "_unitOfWork.Factory)" 850a10b -- 'src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/*.cs' | wc -l
+```
+
+-> `14` and `14`. The two `Queries/` classes still use the described shape. The duplication this entry
+records is therefore already partly consolidated -- what remains is the per-class constructor body,
+not the wiring. **The live `**What.**` paragraph above is corrected in place accordingly**, so that a
+reader meeting it before this block is not told something false; its previous wording is preserved
+verbatim at the head of this amendment.
+
+**All sixteen `locations` ranges were stale to match, and all sixteen are re-resolved above.** They
+were measured, not estimated, with
+
+```
+git show 850a10b:<file> | awk '/^\tprivate readonly/ && !s {s=NR} /^\t\}$/ && s {print s"-"NR; exit}'
+```
+
+run over each of the sixteen files, which returns the fields-plus-constructor block bounded by the
+first `private readonly` line and the constructor's closing brace. Twelve of the fourteen command
+ranges moved by one line, the four `PlacedObject`/`CreateDungeon`/`DeleteDungeon` shapes by more, and
+**both `Queries/` ranges were already correct and are unchanged** -- `:10-17` and `:13-23` resolve at
+`850a10b` exactly as cited, which is consistent with 4(a): the two query classes never took the
+`UnitOfWorkSubstitute` rewrite.
+
+**Classification: DRIFT**, on the same evidence as the rest of this block -- the three sampled ranges
+reproduce the described constructor exactly at `2603170`, so they were accurate when written.
+
+**Method note.** This re-resolution was an advisory finding from this task's review, not part of the
+briefed correction set: five of the six corrected entries had their line anchors re-resolved and this
+one did not, which was an inconsistency in how the method was applied rather than a defect the brief
+named. It is recorded here so that the asymmetry is visible rather than silently repaired.
+
+**Classification evidence.** `git show 2603170:<file>` piped to `sed -n '<range>p'` reproduces the
+described constructor exactly at the cited ranges -- checked on `AddAreaCommandHandlerTests.cs:12-19`,
+`AddPlacedObjectCommandHandlerTests.cs:17-27` and `GetDungeonsQueryHandlerTests.cs:13-23`, each
+returning the two readonly fields and the `Substitute.For<...>` / `new XHandler(...)` body. The entry
+was accurate when written. `UnitOfWorkSubstitute.cs` was added by
+`git log --diff-filter=A --format="%h %ad %s" --date=short -- src/DungeonMaster.Tests/Application/Common/Handlers/UnitOfWorkSubstitute.cs`
+-> `ef0b0b6 2026-08-18`, the day after.**]**
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 4(b), the stated exclusions are wrong. Classification:
+DRIFT.** This is a separate defect from 4(a) and is deliberately not folded into that block: a stale
+description and a false exclusion are different kinds of error and a reader needs to see which is
+which. Previous wording, verbatim: *"`CreateDungeonCommandHandlerTests` and
+`DeleteDungeonCommandHandlerTests` are the two classes with no not-found test."* **DeleteDungeon has
+one:**
+
+```
+git grep -n "NotFound" 850a10b -- src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/DeleteDungeonCommandHandlerTests.cs
+```
+
+-> `65: public async Task HandleAsync_WithUnknownId_ReturnsNotFound()` and
+`85: result.ErrorCategory.Should().Be(ErrorCategory.NotFound);`. It is reached through
+`RemoveAsync(...).Returns(false)` rather than a null load, which is why it does not match the
+dungeon-missing shape the rest of the entry counts, and it additionally asserts that the error text
+contains the id and that `CommitAsync` did not happen. **`CreateDungeonCommandHandlerTests` is the
+only command class with no `NotFound` assertion at all.** Both classes are still correctly excluded
+from the twelve-way extraction this entry proposes -- but for two different reasons, not one.
+
+**Classification evidence.** The same command at `2603170` returns **nothing**: that file carried no
+`NotFound` assertion when this document was written. `git log -S"HandleAsync_WithUnknownId_ReturnsNotFound"
+--format="%h %ad %s" --date=short -- <that file>` -> `bcb49dc 2026-08-18`. The exclusion was true on
+the day and became false the following day.**]**
 
 **Why it matters.** `dotnet-format.md` section 12 prescribes exactly this constructor shape, so the
 duplication is convention-compliant and not itself a deviation -- which is why this is recorded once
@@ -402,7 +548,7 @@ missing aggregate is reported means editing twelve files, and a handler that qui
 not-found case into one parameterised test that dispatches each command type through a repository
 stubbed to return `null` and asserts `ErrorCategory.NotFound` once.
 
-### TEST-009 -- The SQLite in-memory fixture is copy-pasted verbatim into four Infrastructure test classes
+### TEST-009 -- The SQLite in-memory fixture is copy-pasted verbatim into seven Infrastructure test classes
 
 ```yaml
 id: TEST-009
@@ -411,11 +557,14 @@ severity: S3
 category: duplication
 authority: practice
 citation: Meszaros, xUnit Test Patterns, ch. 19 "Fixture Setup Patterns"
-locations:
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:17-35
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs:12-30
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:14-32
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:17-35
+locations:  # AMENDED 6b-ii -- seven, not four; ranges re-resolved at 850a10b over the shared block
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:18-34
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs:12-28
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:15-31
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:18-34
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/UnitOfWorkTests.cs:15-35
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/AreaOutlineChangeTrackingTests.cs:19-35
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs:21-37
 effort: S
 risk: low
 independent: false
@@ -423,18 +572,70 @@ blocked-by:
   - TEST-002
 ```
 
-**What.** Each of the four classes declares the same `_connection` and `_options` fields, the same
-constructor opening a `Data Source=:memory:` connection and calling `EnsureCreated`, the same
-one-line `Dispose`, and the same `CreateContext()` helper. Nothing is shared: there is no base
-class, no `IClassFixture`, no `ICollectionFixture`.
+**What.** Each of the seven classes declares the same `_connection` and `_options` fields, the same
+constructor opening a `Data Source=:memory:` connection and calling `EnsureCreated`, and the same
+one-line `Dispose`. Nothing is shared: there is no base class, no `IClassFixture`, no
+`ICollectionFixture`. The `CreateContext()` helper is **not** part of the common block -- see
+CORRECTION 3.
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 1 applies here identically. Classification: DRIFT.**
+Previous wording, verbatim, in the title: *"copy-pasted verbatim into four Infrastructure test
+classes"*, and in the body: *"Each of the four classes declares ... the same `CreateContext()`
+helper"*. The measured figure is **seven**, by
+`git grep -n "EnsureCreated" 850a10b -- src/DungeonMaster.Tests` -> 7 call sites in 7 distinct
+classes. The three files this entry misses are the three `TEST-002` misses, for the same reason, and
+the full evidence and classification are recorded once under `TEST-002`'s CORRECTION 1 rather than
+restated here: all three were added on 2026-08-18, the day after this document was written, so the
+four this entry names were all four that existed.**]**
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 3, the block length. Classification: DRIFT -- and the
+premise this correction was briefed on was itself wrong; see the recorded discrepancy below.**
+Previous wording, verbatim: *"here the same nineteen lines exist four times"*. **Nineteen was correct
+when written.** Each of the four `locations` ranges as cited resolves at `2603170` to exactly 19
+lines, and the four are byte-identical modulo the constructor's own name -- md5
+`e61c65123b15ae41c5de23e362ab41fa` for all four, over
+`git show 2603170:<file> | sed -n '<range>p'` with the constructor name normalised. Those nineteen
+lines included `CreateContext()`, and at `2603170` all four cited classes had it.
+
+What is true at `850a10b`, over the corrected set of **seven** classes, is a smaller block:
+
+```
+git show 850a10b:<file> | sed -n '/private readonly SqliteConnection/,/public void Dispose()/p'
+```
+
+-> **17 lines** in six of the seven, and **21** in `UnitOfWorkTests.cs`, which interleaves four XML
+doc-comment lines the others do not carry. Piping that through
+`| grep -v '^[[:space:]]*///' | grep '[^[:space:]]'` yields **13 lines, byte-identical across all
+seven** (md5 `5be5c19f761758c9211a53a50825f15f`, constructor name normalised). **Thirteen non-blank,
+non-doc lines is the figure that survives the scope correction. Seventeen holds for six of the seven
+and not for the seventh.**
+
+`CreateContext()` cannot be part of the common block at `850a10b`. Measured with
+`git show 850a10b:<file> | grep -c "AppDbContext CreateContext()"` and the same with
+`grep -c "CreateFactory()"`, across the seven: **5 of 7 declare `CreateContext`, 6 of 7 declare
+`CreateFactory`, 4 of 7 declare both** -- `AreaOutlineChangeTrackingTests` and
+`PlacedObjectConfigurationTests` have no `CreateContext`, `DungeonReadRepositoryTests` has no
+`CreateFactory`. A shared base must provide both unconditionally: offering only the intersection
+breaks leaves, and offering only what each leaf already had is not a base.
+
+**Classification evidence.** The claim held at `2603170`, verified by re-running the range extraction
+at that commit as above, so this is drift produced by the same 2026-08-18 growth as CORRECTION 1 and
+not a counting error.
+
+**Recorded discrepancy.** Session 6b-ii's own manifest asserted that nineteen was *"reachable only by
+including `CreateContext()`, which is NOT present in all seven"* and directed a straight 19 -> 17
+swap. That reasoning compares the four files this entry named against the seven that exist now.
+Nineteen was right for four; seventeen is right for six of seven; thirteen is the only figure right
+for all seven. The bare swap would have replaced a true statement with a false one, which is why this
+block states three figures and the scope each belongs to.**]**
 
 **Why it matters.** The fixture-setup guidance is that a fixture shared by several test classes
-belongs in one place; here the same nineteen lines exist four times, so the change proposed in
-`TEST-002` -- moving from `EnsureCreated` to `Migrate` -- has to be made four times and can be made
-inconsistently. It also means the four classes cannot be given a shared seeding vocabulary without
-adding a fifth copy of the plumbing.
+belongs in one place; here the same thirteen non-blank, non-doc lines exist seven times, so the
+change proposed in `TEST-002` -- moving from `EnsureCreated` to `Migrate` -- has to be made seven
+times and can be made inconsistently. It also means the seven classes cannot be given a shared
+seeding vocabulary without adding an eighth copy of the plumbing.
 
-**Suggested direction.** Extract a `SqliteFixture` implementing `IDisposable` and have the four
+**Suggested direction.** Extract a `SqliteFixture` implementing `IDisposable` and have the seven
 classes take it via `IClassFixture<SqliteFixture>`, or a shared abstract base if per-test isolation
 of the database is wanted (it currently is -- see the layer verdict). Land it with `TEST-002` so the
 schema strategy is changed once.
@@ -511,7 +712,7 @@ reader time on every one of them.
 version in use, then either remove the redundant stubs everywhere or add them everywhere, so the
 pattern reads as a decision.
 
-### TEST-012 -- AreaPersistenceDiagnosticTests is a committed debugging session with two subsumed tests
+### TEST-012 -- AreaPersistenceDiagnosticTests is a committed debugging session with one subsumed test
 
 ```yaml
 id: TEST-012
@@ -520,10 +721,12 @@ severity: S3
 category: dead-code
 authority: judgment
 citation: n/a
-locations:
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:10-15
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:50-89
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:91-137
+locations:  # AMENDED 6b-ii -- re-resolved at 850a10b to the four method anchors
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:11-16
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:55
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:75
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:96
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:116
 effort: XS
 risk: low
 independent: true
@@ -534,22 +737,73 @@ while investigating a report that both operations appeared not to persist from t
 `RemoveArea_WithEmptyOutline_PersistsAcrossReload` seeds through the same `SeedAsync` as
 `RemoveArea_PersistsAcrossReload` -- which always produces an area with an empty outline -- and
 differs from it only by an extra assertion at line 79 that the outline is empty. Similarly
+`UpdateArea_SecondRenamePersistsAcrossReload` performs the first rename and then a second -- but it
+does **not** contain `UpdateArea_RenamePersistsAcrossReload`; see CORRECTION 6.
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 6, and this one is a reasoning defect, not a stale
+citation. Classification: MEASUREMENT ERROR.** Previous wording, verbatim: *"Similarly
 `UpdateArea_SecondRenamePersistsAcrossReload` performs the first rename and then a second, so it
-strictly contains `UpdateArea_RenamePersistsAcrossReload`.
+strictly contains `UpdateArea_RenamePersistsAcrossReload`."* -- and, in the Suggested direction,
+*"drop the two subsumed tests"*. **Only one of the two claimed subsumptions holds.**
+
+`RemoveArea_PersistsAcrossReload` (`:55` at `850a10b`) is genuinely subsumed by
+`RemoveArea_WithEmptyOutline_PersistsAcrossReload` (`:75`): the two are line-for-line identical except
+that the wider one adds an assertion that the outline is empty. Deleting the narrow one loses nothing.
+**It is the narrow test that is deletable, not the one carrying the extra assertion** -- the entry's
+prose above names the wider test first and describes it by its extra assertion, which reads as though
+it were the redundant one. It is not.
+
+`UpdateArea_RenamePersistsAcrossReload` (`:96`) is **not** subsumed, and deleting it would destroy
+coverage. `UpdateArea_SecondRenamePersistsAcrossReload` (`:116`) renames and commits, then **reloads
+in a second unit of work** and renames again, asserting only the final name. The second unit of work
+reads the aggregate back from the database and overwrites the name **regardless of whether the first
+commit persisted**, so the first rename's persistence is never observed by that test. Read both
+bodies with
+`git show 850a10b:src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs | sed -n '96,140p'`.
+
+Session 6b-ii demonstrated this by injection with a passing control before acting on it: removing the
+commit from the first rename block leaves the `SecondRename` assertion **passing** and makes the
+`RenamePersists` assertion **fail**. That demonstration was run by the session's test tasks, not by
+this documentation pass; this pass records it and states its own independent static evidence above.
+
+**This class holds the only persistence round-trip coverage of area removal and area rename.** Every
+other `RemoveArea`/`UpdateArea` hit in the suite is either an in-memory Domain aggregate test or a
+handler test against a substituted repository, and `AreaOutlineChangeTrackingTests` covers
+`UpdateAreaOutline`, a different method. **Following this entry as written -- dropping two tests --
+would have removed real coverage. It is one deletion.**
+
+**Classification evidence.** Unlike every other correction in this document, this one is not drift.
+`git grep -n "public async Task" 2603170 -- <that file>` returns the same four tests at `:51`, `:71`,
+`:92` and `:112`, and
+`git show 2603170:<that file> | sed -n '92,137p'` shows `SecondRename` already performing the
+reload-in-a-second-unit-of-work that defeats the subsumption. **The code the entry reasoned about was
+the code that exists now; the reasoning was wrong on the day it was written.
+
+**The `**Why it matters.**` paragraph below is corrected in place by this block**, because it rested
+on the same false premise and sits *after* the amendment, where a reader has no signal that it is
+superseded. Previous wording, verbatim: *"and the two subsumed pairs support that reading"*. It now
+reads *"and the **one** subsumed pair -- plus a second, near-duplicate pair that turns out **not** to
+be one (CORRECTION 6) -- supports that reading"*. **The paragraph's argument survives the correction:**
+one genuine subsumption plus one near-duplicate that is not a subsumption is still the signature of a
+bisecting session committed as it stood, and the paragraph's real point -- that this class holds the
+only round-trip coverage of area removal and rename while wearing a label that invites deletion --
+is unaffected and independently confirmed above.**]**
 
 **Why it matters.** I believe the name and the summary together mark this as investigation scaffold
-that was never converted into permanent coverage, and the two subsumed pairs support that reading:
+that was never converted into permanent coverage, and the **one** subsumed pair -- plus a second,
+near-duplicate pair that turns out **not** to be one (CORRECTION 6) -- supports that reading:
 someone bisecting a persistence bug wrote the narrower case, then the wider one, and committed
 both. The cost is a class whose title tells a future reader it is provisional -- so nobody will
 maintain it -- while it nonetheless holds the only round-trip coverage of area removal and rename
 that exists. That is the worst of both: real coverage wearing a label that invites deletion.
 
 **Suggested direction.** Decide what it is. If the round-trip coverage is wanted, rename to
-`AreaPersistenceTests`, drop the two subsumed tests, and rewrite the summary as a statement of what
-is guaranteed rather than of what was being investigated. If it is not wanted, delete it and check
+`AreaPersistenceTests`, drop the **one** subsumed test -- `RemoveArea_PersistsAcrossReload`, keeping
+`UpdateArea_RenamePersistsAcrossReload` per CORRECTION 6 -- and rewrite the summary as a statement of
+what is guaranteed rather than of what was being investigated. If it is not wanted, delete it and check
 that nothing else covers area removal (nothing does today).
 
-### TEST-013 -- Five geometry facts and five snap-zone facts differ only in their data
+### TEST-013 -- Four geometry facts differ only in their data (the five snap-zone facts are deleted)
 
 ```yaml
 id: TEST-013
@@ -558,24 +812,89 @@ severity: S3
 category: duplication
 authority: microsoft
 citation: https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices
-locations:
-  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:300-324
-  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:428-453
-  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:466-492
-  - src/DungeonMaster.Tests/Application/Common/Map/SnapZoneCalculatorTests.cs:11-69
-  - src/DungeonMaster.Tests/Application/Common/Map/TileCoordinateHelperTests.cs:11-22
+locations:  # AMENDED 6b-ii -- re-resolved at 850a10b; entry 4 deleted in 1678d12, entry 5 moved
+  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:436-457   # NoBareSpacingValues
+  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:555-577   # NoBareMarginValues
+  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:591-614   # NoBareStrokeValues
+  - src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:629-652   # NoBareMinimumSizeValues -- missed by the original entry
+  - src/DungeonMaster.Tests/AppCore/Map/TileCoordinateHelperTests.cs:11-22
 effort: S
 risk: low
 independent: true
 ```
 
-**What.** `NoBareSpacingValues`, `NoBareMarginValues` and `NoBareStrokeValues` in
-`GeometryScaleTests` are structurally identical: `Scan` over XAML, `Scan` over C#, filter out zero,
-`Describe`, order, assert empty. They vary only by pattern list, allow-list and message.
-Separately, `SnapZoneCalculatorTests` states five `[Fact]`s that each call
-`SnapZoneCalculator.ToTile` with a different pair of floats and assert a different `TilePoint`,
-while `TileCoordinateHelperTests` next to it expresses the same shape as two `[Theory]`
-declarations with `[InlineData]`.
+**What.** `NoBareSpacingValues`, `NoBareMarginValues`, `NoBareStrokeValues` **and
+`NoBareMinimumSizeValues`** in `GeometryScaleTests` are structurally identical: `Scan` over XAML,
+`Scan` over C#, filter out zero, `Describe`, order, assert empty. They vary only by pattern list,
+allow-list and message. The `SnapZoneCalculatorTests` half of this entry no longer exists; see
+CORRECTION 5(a).
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 5(a), `locations` entry 4 refers to deleted code.
+Classification: DRIFT.** Previous wording, verbatim, in the title: *"and five snap-zone facts"*, and
+in the body: *"Separately, `SnapZoneCalculatorTests` states five `[Fact]`s that each call
+`SnapZoneCalculator.ToTile` ..."*, with
+`src/DungeonMaster.Tests/Application/Common/Map/SnapZoneCalculatorTests.cs:11-69` as `locations`
+entry 4.
+
+```
+git ls-tree -r --name-only 850a10b | grep -i snapzone
+```
+
+-> **nothing** (exit 1). `SnapZoneCalculator` and its five facts were deleted in `1678d12`
+(*"refactor(app): extract Map types to App.Core layer"*). **Location 4 does not exist and no work
+should be done for it.**
+
+**Classification evidence.** The same command at `2603170` returns
+`src/DungeonMaster.Application/Common/Map/SnapZoneCalculator.cs` and
+`src/DungeonMaster.Tests/Application/Common/Map/SnapZoneCalculatorTests.cs`, and
+`git grep -c "\[Fact\]" 2603170 -- <that test file>` -> `5`. The entry was exactly right when
+written. `git log -1 --format="%h %ad" --date=short 1678d12` -> `1678d12 2026-08-26`, nine days
+after.**]**
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 5(b), `locations` entry 5's path is dead too.
+Classification: DRIFT.** Previous path, verbatim:
+`src/DungeonMaster.Tests/Application/Common/Map/TileCoordinateHelperTests.cs:11-22`. The file moved
+to `src/DungeonMaster.Tests/AppCore/Map/TileCoordinateHelperTests.cs` in the same commit `1678d12`.
+**The path is corrected rather than the location deleted: the cited content survives at the same
+line numbers.** `git show 850a10b:src/DungeonMaster.Tests/AppCore/Map/TileCoordinateHelperTests.cs | sed -n '11,22p'`
+returns the `[Theory]` with five `[InlineData]` rows and `SnapToGrid_ReturnsNearestTilePoint`, which
+is what entry 5 was citing. The comparison the entry draws still stands; only the address changed.**]**
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 5(c), the uniform-fact count is four, not three.
+Classification: DRIFT.** Previous wording, verbatim: *"`NoBareSpacingValues`, `NoBareMarginValues` and
+`NoBareStrokeValues` in `GeometryScaleTests` are structurally identical"*, and in the Suggested
+direction, *"for the three uniform scales"*.
+
+```
+git grep -n "NoBare" 850a10b -- src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs
+```
+
+-> six fact declarations, at `:436` `NoBareSpacingValues`, `:469` `NoBarePaddingValues`, `:514`
+`NoBareRadiusValues`, `:555` `NoBareMarginValues`, `:591` `NoBareStrokeValues`, `:629`
+`NoBareMinimumSizeValues`. **Four share the one pipeline** -- Spacing, Margin, Stroke and MinimumSize.
+Padding and Radius are correctly excluded, and the reason is worth stating because it is what makes
+the other four a set: Padding adds a `PaddingScaleExceptions` filter and an `IsShapingPadding`
+projection, Radius adds a `RadiusGeometryExceptions` filter, and neither shares the pipeline.
+**A `[Theory]` sized for three under-covers by one whole ratchet.**
+
+**Classification evidence.** The same command at `2603170` returns **five** facts and
+`NoBareMinimumSizeValues` is not among them -- it did not exist. The body naming three uniform facts
+was correct when written.
+
+All three cited geometry line ranges (`300-324`, `428-453`, `466-492`) are stale by roughly 130 lines
+and have been re-resolved above; at `2603170` they resolved exactly, `sed -n '300p;324p'` and its two
+siblings returning `[Fact]` and the fact's closing brace. That too is drift.**]**
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 5(d), the title contradicted the entry's own body.
+Classification: MEASUREMENT ERROR.** Previous title, verbatim: *"Five geometry facts and five
+snap-zone facts differ only in their data"*, while the body named **three** geometry facts as
+structurally identical. Five geometry facts existed at `2603170`, but two of them --
+`NoBarePaddingValues` and `NoBareRadiusValues` -- did not "differ only in their data" then either:
+`git grep -n "PaddingScaleExceptions\|RadiusGeometryExceptions\|IsShapingPadding" 2603170 -- src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs`
+returns both exception tables (`:214`, `:233`) and their use inside those two facts (`:350`, `:357`,
+`:361`, `:400`) at the authoring commit. **The title overstated its own body's finding on the day it
+was written, and a reader could have caught it without leaving the document.** Recording that is more
+useful to the next auditor than the corrected number alone.**]**
 
 **Why it matters.** The cited page's "Avoid multiple Act tasks" section recommends parameterised
 tests precisely for this shape, and the .NET guidance on avoiding logic in tests points the same
@@ -587,9 +906,9 @@ set. That the file beside it already
 does this makes the inconsistency the finding.
 
 **Suggested direction.** Give `GeometryScaleTests` a single `[Theory]` over
-`(name, xamlPatterns, cSharpPatterns, allowList, message)` for the three uniform scales, leaving
-padding and radius as facts because they carry extra filtering. Convert `SnapZoneCalculatorTests`
-to a `[Theory]` matching its neighbour.
+`(name, xamlPatterns, cSharpPatterns, allowList, message)` for the **four** uniform scales, leaving
+padding and radius as facts because they carry extra filtering. The `SnapZoneCalculatorTests` half of
+this direction is **struck**: that file was deleted in `1678d12` (CORRECTION 5(a)).
 
 ### TEST-014 -- MAUI property types and the conversion matrix are hand-transcribed into the test at a fixed date
 
@@ -1047,7 +1366,7 @@ the exemption in `dm-conventions` and consider trimming the 21 that have them, s
 documentation is genuinely load-bearing (much of it explains why a fact exists) and should survive
 either way.
 
-### TEST-026 -- Four non-sealed test classes implement IDisposable with no Dispose(bool) overload
+### TEST-026 -- Seven non-sealed test classes implement IDisposable with no Dispose(bool) overload
 
 ```yaml
 id: TEST-026
@@ -1056,12 +1375,14 @@ severity: S4
 category: disposal
 authority: microsoft
 citation: https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-dispose
-locations:
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:15
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:33
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs:28
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:30
-  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:33
+locations:  # AMENDED 6b-ii -- seven classes; each cited at its declaration and its Dispose, at 850a10b
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:16,34
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs:10,28
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:13,31
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:16,34
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/UnitOfWorkTests.cs:13,35
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/AreaOutlineChangeTrackingTests.cs:17,35
+  - src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs:19,37
 effort: XS
 risk: low
 independent: false
@@ -1069,10 +1390,38 @@ blocked-by:
   - TEST-009
 ```
 
-**What.** All four Infrastructure test classes are declared `public class ... : IDisposable` -- not
+**What.** All seven Infrastructure test classes are declared `public class ... : IDisposable` -- not
 `sealed` -- and implement disposal as a single expression-bodied
 `public void Dispose() => _connection.Dispose();`. There is no `Dispose(bool)` overload and no
 guard against a second call.
+
+**[AMENDED 6b-ii, 2026-09-08 -- CORRECTION 7, the class count. Classification: DRIFT.** Previous
+wording, verbatim, in the title: *"Four non-sealed test classes implement IDisposable"*, and in the
+body: *"All four Infrastructure test classes are declared `public class ... : IDisposable`"*. The
+measured figure is **seven**:
+
+```
+git grep -n "class .*: *IDisposable\|class .*, *IDisposable" 850a10b -- src/DungeonMaster.Tests | grep -v sealed | wc -l
+```
+
+-> `7`, and without the `wc` the seven names are exactly the same seven classes that call
+`EnsureCreated` in `TEST-002`. The three this entry misses are the same three `TEST-002` and
+`TEST-009` miss.
+
+**Classification evidence.** The same command at `2603170` -> `4`, listing precisely the four this
+entry names. Per `TEST-002`'s CORRECTION 1, all three additional classes were added on 2026-08-18,
+the day after this document was written. The entry was correct on the day.
+
+**Recorded discrepancy -- a self-inconsistency this entry was accused of and does not have.** Session
+6b-ii's manifest directed that this entry *"under-counts against its own `locations` list"*, on the
+grounds that the list carried five entries across four files while the body said four. Measured at
+`2603170`, the fifth entry is not a fifth class: `AreaPersistenceDiagnosticTests.cs:15` is the class
+declaration and `:33` is its `Dispose`, while the other three files were cited at their `Dispose` line
+only. `git show 2603170:<file> | sed -n '<n>p'` on all five confirms it. **The list was internally
+consistent -- five citations, four classes -- and inconsistent only in how much it cited per file.**
+The list is now regularised to cite both anchors for all seven. This is recorded rather than quietly
+dropped, because an alleged defect that measurement does not support is exactly the kind of claim this
+pass exists to stop propagating.**]**
 
 **Why it matters.** The cited page states that "any non-sealed class should have a `Dispose(bool)`
 overload method" and that "a `Dispose` method should be idempotent, such that it's callable multiple
@@ -1081,9 +1430,9 @@ calls `Dispose` once per instance and `SqliteConnection.Dispose` is itself idemp
 declaration invites a derived fixture that would have no correct way to add its own cleanup, which
 is exactly the direction `TEST-009` proposes.
 
-**Suggested direction.** The simplest fix is `sealed`, which removes the requirement outright and
-is correct for a leaf test class. If the shared base class from `TEST-009` is built instead, that
-base is the one type that needs the full pattern.
+**Suggested direction.** The simplest fix is `sealed` on all seven, which removes the requirement
+outright and is correct for a leaf test class. If the shared base class from `TEST-009` is built
+instead, that base is the one type that needs the full pattern.
 
 ### TEST-027 -- Two incompatible test-naming schemes are in use
 
@@ -1325,7 +1674,23 @@ clearest implementation coupling, and a contained one.
 xUnit usage is correct, and I checked shared state explicitly: the suite is **sound under xUnit's
 default parallelism** -- each test method gets a private database, the only static state is immutable
 after initialisation; the working is in `## Method`. `[Theory]` and `[MemberData]` fit their uses,
-though three geometry and five snap-zone facts should join them (`TEST-013`).
+though four geometry facts should join them (`TEST-013`).
+
+**[AMENDED 6b-ii, 2026-09-08 -- cross-reference corrected, and it was wrong on both halves.
+Classification: DRIFT.** Previous wording, verbatim: *"though three geometry and five snap-zone facts
+should join them (`TEST-013`)."* It is **four** geometry facts, not three -- `NoBareMinimumSizeValues`
+is the fourth, per `TEST-013` CORRECTION 5(c) -- and the five snap-zone facts **no longer exist**, per
+CORRECTION 5(a). Left uncorrected, this sentence would have contradicted the corrected entry it cites.
+Both halves were accurate at `2603170`; the evidence and dating are recorded once under `TEST-013`
+rather than repeated here.
+
+The full sweep for cross-references outside the seven records was
+`git grep -n "snap-zone\|snap zone\|nineteen\|four Infrastructure" 850a10b -- docs/audit/05-tests.md`,
+which returned six hits: `:143` and `:1072` (the `TEST-002` and `TEST-026` bodies, corrected in
+place), `:405` (the `TEST-009` title, corrected), `:432` (the `TEST-009` body, corrected), `:552` (the
+`TEST-013` title, corrected) and `:1328` (this sentence). **No hit was left alone.** The `## Summary`
+severity counts are deliberately **not** changed: this pass corrected entries and added none, removed
+none and re-severitied none.**]**
 
 My verdict on `App/`: **reading source files off disk is a defensible way to enforce theme and
 accessibility hygiene, and these are not tests -- they are a linter wearing a test's clothes, and

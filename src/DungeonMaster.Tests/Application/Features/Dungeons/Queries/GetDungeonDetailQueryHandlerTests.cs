@@ -33,6 +33,7 @@ public class GetDungeonDetailQueryHandlerTests
 
 		// Assert
 		result.Should().NotBeNull();
+		result.Should().BeSameAs(dto);
 		result!.Id.Should().Be(id);
 		result.Name.Should().Be("The Vault");
 	}
