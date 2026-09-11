@@ -107,4 +107,49 @@ public sealed class DeleteDungeonCommandHandlerTests : CommandHandlerTestBase<De
 		// Assert
 		capturedId.Should().Be(expectedId);
 	}
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the write repository is asked to remove with.
+	///		This is the only handler that reaches <see cref="IDungeonWriteRepository.RemoveAsync"/>, so the removal boundary needs a test here rather than on a shared base.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToWriteRepositoryRemoveAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		var id = Guid.NewGuid();
+
+		WriteRepository
+			.RemoveAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		// Act
+		await Handler.HandleAsync(
+			new DeleteDungeonCommand(id),
+			token);
+
+		// Assert
+		await WriteRepository
+			.Received(1)
+			.RemoveAsync(
+				id,
+				token);
+	}
+
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="ct">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken ct) =>
+		Handler.HandleAsync(
+			new DeleteDungeonCommand(Guid.NewGuid()),
+			ct);
 }

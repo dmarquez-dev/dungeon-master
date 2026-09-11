@@ -54,4 +54,35 @@ public class GetDungeonDetailQueryHandlerTests
 		// Assert
 		result.Should().BeNull();
 	}
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the read repository is asked for the detail projection with.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToGetDetailAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		var id = Guid.NewGuid();
+
+		_readRepository
+			.GetDetailAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
+			.Returns((DungeonDetailDto?)null);
+
+		// Act
+		await _handler.HandleAsync(
+			new GetDungeonDetailQuery(id),
+			token);
+
+		// Assert
+		await _readRepository
+			.Received(1)
+			.GetDetailAsync(
+				id,
+				token);
+	}
+
 }

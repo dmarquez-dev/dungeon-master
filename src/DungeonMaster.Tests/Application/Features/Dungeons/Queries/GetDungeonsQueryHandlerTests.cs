@@ -76,4 +76,29 @@ public class GetDungeonsQueryHandlerTests
 		// Assert
 		result.Should().BeEmpty();
 	}
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the read repository is asked for summaries with.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToGetSummariesAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		_readRepository
+			.GetSummariesAsync(Arg.Any<CancellationToken>())
+			.Returns(new List<DungeonSummaryDto>());
+
+		// Act
+		await _handler.HandleAsync(
+			new GetDungeonsQuery(),
+			token);
+
+		// Assert
+		await _readRepository
+			.Received(1)
+			.GetSummariesAsync(token);
+	}
+
 }
