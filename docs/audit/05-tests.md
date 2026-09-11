@@ -114,7 +114,53 @@ checked; nothing here licenses trusting the rest. `MASTER-020`, `MASTER-070`, `M
 the same as *measured* stale, and a correction not backed by a command in this pass would be the exact
 defect this pass exists to correct.**]**
 
-### TEST-001 -- The dispatcher, the validation pipeline and the Result type have no tests at all
+**[AMENDED 6b-iii, 2026-09-11 -- what THIS pass re-measured, and what it still did not.** The block
+above is 6b-ii's and is left exactly as it stood. DIR session
+`2026-09-11-measure-then-close-the-test-gaps` (6b-iii) took the five entries 6b-ii deliberately left
+alone and re-measured them, each by an independent read-only agent against a single fixed commit,
+`1407090`, before any decomposition. **Four records in this document were re-measured and corrected
+in place: `TEST-001`, `TEST-019`, `TEST-020` and `TEST-032`.** (`MASTER-167`, the fifth, has no
+source record here; its correction is written into its narrative entry in
+`docs/audit/00-master-index.md`.)
+
+**The remaining 28 of this document's 32 records were NOT re-measured by this pass either.** Between
+6b-ii and 6b-iii, ten records here have now been checked -- `TEST-001`, `TEST-002`, `TEST-008`,
+`TEST-009`, `TEST-012`, `TEST-013`, `TEST-019`, `TEST-020`, `TEST-026` and `TEST-032`. Nothing about
+the other 22 has been confirmed; they are unchecked, which is not the same as correct. This is the
+same distinction 6b-ii drew about itself, and the one the master index's own inheritance note --
+*"What 6b-iii must do before it decomposes anything"* -- demands before any of these entries is acted
+on. That note is at `docs/audit/00-master-index.md:536` after this session's appends; it stood at
+`:522` at `1407090`, which is the number the 6b-ii block above still cites.
+
+**The outcome of this pass, and it differs from 6b-ii's.** 6b-ii found six of seven corrections were
+DRIFT. Here too most corrections are DRIFT, but **three clauses were wrong when written**: `TEST-020`'s
+`AddFloor`-boundary clause (refuted by the entry's own first cited location), `TEST-020`'s
+"`PlacedObjectTests` is the exception" clause (refuted by tests predating the audit by three months),
+and `TEST-032`'s cited line number. A further correction has no drift-or-error verdict at all and
+says so: `TEST-032`'s suggested `[assembly: CollectionBehavior]` remedy is a **measured regression**
+today (~27% nondeterministic), which was not measurable on the audit date.
+
+**Where this pass could not settle a classification it wrote `UNDETERMINED` rather than guessing, and
+five such classifications were then measured rather than guessed.** Round 1 left five clauses
+unsettled -- three in `TEST-001` (the `Common/Map/` directory inventory, the four-validator-class
+count and the `AddAreaCommandValidatorTests.cs:17` anchor) and two in `TEST-032` (the singular *"the
+test project"*, left unstated inside CORRECTION 1, and the unpinned-parallelism claim of CORRECTION
+3) -- because a DIR task may not invoke git and the evidence it held established nothing about
+2026-08-17. Round 2 settled all five against the audit commit `413be78`, by read-only commands run by
+this session's orchestrator, which is not so barred: **every one of the five is DRIFT** -- accurate
+when written, overtaken since. Each command and its output is quoted at the correction it settles and
+recorded in
+`.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover-addendum.md`. One
+classification still carries no drift-or-error verdict and says why -- `TEST-032` CORRECTION 2, whose
+subject could not exist on the audit date. An unmeasured classification asserted confidently would be
+the exact defect these passes exist to correct, and this session produced **four** such citation
+errors in its own working artifacts before catching them, each caught by someone downstream of
+whoever wrote the number -- the four enumerated at
+`.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover.md:200-203`, the artifact
+that figure is counted from. A **fifth** was caught in this document's own review: the `8bb2d79`
+mis-citation, corrected at `TEST-032` CORRECTION 1 below.**]**
+
+### TEST-001 -- The dispatcher, the validation pipeline and the Result type have no tests at all (FALSIFIED -- all three were tested on 2026-08-18; see CORRECTION 1)
 
 ```yaml
 id: TEST-001
@@ -123,7 +169,7 @@ severity: S2
 category: testability
 authority: microsoft
 citation: https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices
-locations:
+locations:  # AMENDED 6b-iii -- the AddAreaCommandValidatorTests.cs:17 anchor is dead; see CORRECTION 6
   - src/DungeonMaster.Application/Common/Dispatch/Dispatcher.cs:1
   - src/DungeonMaster.Application/Common/Behaviors/ValidationBehavior.cs:1
   - src/DungeonMaster.Application/Common/Results/Result.cs:1
@@ -139,6 +185,104 @@ and nothing else: there is no test anywhere in the project for `Dispatcher`, for
 `_validator.Validate(command)` directly, so they prove a rule object's rules and never that the
 rule object is reached by the pipeline that is supposed to run it.
 
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 1, the title and the headline claim. Classification: DRIFT.**
+Previous wording, verbatim, as the record's title: *"The dispatcher, the validation pipeline and the
+Result type have no tests at all"*. All three types have behaviour-level tests, counted from this
+session's `measurement.md` at the fixed commit `1407090`: `DispatcherTests.cs` (**6** facts, over a
+real `ServiceCollection`, asserting behaviour ordering -- `first:enter, second:enter, handler,
+second:exit, first:exit` -- and invoker-cache identity), `ValidationBehaviorTests.cs` (**11** facts),
+`ResultTests.cs` (**5**), `ResultOfTTests.cs` (**8**), `ResultMessageTests.cs` (**9**).
+
+**Classification evidence.** They were added on **2026-08-18** -- the day after this document was
+written -- by `09f4360`, `f9a665b` and `3b44d91`, and `3b44d91` also moved `Result<T>` to its own
+file `Common/Results/ResultOfT.cs`. The entry was right on the day and the repository moved under it
+the following day. This is the same one-day staleness pattern 6b-ii recorded for `TEST-002`.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 2, the directory inventory. Classification: DRIFT.**
+Previous wording, verbatim: *"`src/DungeonMaster.Tests/Application/` contains `Common/Map/` and
+`Features/Dungeons/` and nothing else"*. At `1407090` there is **no `Common/Map/` under that path at
+all**, and the directory is not the two-entry inventory the sentence describes -- `Common/Dispatch/`,
+`Common/Behaviors/`, `Common/Results/` and `Common/Handlers/` are all present, which is precisely why
+CORRECTION 1 holds.
+
+**Classification evidence.** *Measured at the audit commit.* The two-entry inventory was **correct
+when written**: at `413be78` (2026-08-17, the audit commit, the same day this document was authored
+at `2603170`), `Common/` held `Map` and nothing else and `Features/` held `Dungeons` and nothing
+else --
+
+```
+$ git ls-tree -r --name-only 413be78 -- src/DungeonMaster.Tests/Application/Common/ | sed 's|.*/Common/||' | cut -d/ -f1 | sort -u
+Map
+$ git ls-tree -r --name-only 413be78 -- src/DungeonMaster.Tests/Application/Features/ | sed 's|.*/Features/||' | cut -d/ -f1 | sort -u
+Dungeons
+```
+
+-- so the sentence is overtaken, not mistaken. `MASTER-027` / `MASTER-087` / `MASTER-082` moved that
+surface afterwards. These commands were run read-only by this session's orchestrator, which is not
+barred from git as its tasks are, and are recorded verbatim in
+`.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover-addendum.md`; the round-1
+pass held no evidence at the authoring commit and wrote `UNDETERMINED` rather than guess.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 3, "no test anywhere". Classification: DRIFT.**
+Previous wording, verbatim: *"there is no test anywhere in the project for `Dispatcher`, for
+`ValidationBehavior`, or for `Result`"*. Falsified by the five files named in CORRECTION 1, including
+`ValidationBehaviorTests.HandleAsync_WithOneFailure_ReturnsValidationFailureAndDoesNotCallNext`,
+which asserts `nextCalled == false` -- the short-circuit the "Why it matters" paragraph below says
+nothing would catch.
+
+**Classification evidence.** Same three commits, same date: `09f4360`, `f9a665b`, `3b44d91`,
+2026-08-18.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 4, the validator test class count. Classification: DRIFT.**
+Previous wording, verbatim: *"The four validator test classes"*. At `1407090` there are **14**,
+counted from this session's `measurement.md`.
+
+**Classification evidence.** *Measured at the audit commit.* Four was **correct when written**:
+
+```
+$ git ls-tree -r --name-only 413be78 -- src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/ | wc -l
+4
+```
+
+-- `AddAreaCommandValidatorTests.cs`, `CreateDungeonCommandValidatorTests.cs`,
+`UpdateAreaCommandValidatorTests.cs`, `UpdateDungeonCommandValidatorTests.cs`, at `413be78`
+(2026-08-17). The ten further classes arrived afterwards; the count is overtaken, not an authorship
+undercount. Command run read-only by this session's orchestrator and recorded in
+`.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover-addendum.md`.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 5, "never that the rule object is reached by the pipeline". Classification: DRIFT.**
+Previous wording, verbatim: *"they prove a rule object's rules and never that the rule object is
+reached by the pipeline that is supposed to run it"*. **Three `SendAsync_...IsRejectedBy...` facts
+prove exactly that** -- counted from this session's `measurement.md` at `1407090` -- dispatch through
+`IDispatcher` end to end against a deliberately failing validator -- which is the "Suggested direction" paragraph below, already implemented.
+
+**Classification evidence.** Those facts live in the files added on 2026-08-18 by `09f4360` /
+`f9a665b`; see CORRECTION 1.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 6, the dead location anchor. Classification: DRIFT.**
+Previous wording, verbatim, as the fourth entry of `locations`:
+*`src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/AddAreaCommandValidatorTests.cs:17`*.
+At `1407090` that line lands on `protected override string NamePropertyName` -- a member of an
+extracted shared validator test base, not the direct `_validator.Validate(command)` call the entry
+cites it for. The anchor is dead as a citation.
+
+**Classification evidence.** *Measured at the audit commit.* The anchor was **live when written** --
+line 17 of that file at `413be78` (2026-08-17) was exactly the `_validator.Validate(command)` call
+the entry cites it for:
+
+```
+$ git show 413be78:src/.../Validators/AddAreaCommandValidatorTests.cs | sed -n '15,19p'
+
+		// Act
+		var result = _validator.Validate(command);
+
+		// Assert
+```
+
+The anchor died afterwards, when `8784326` (6b-ii) reshaped the file by base-class extraction. Drift,
+not a mis-cited line. Command run read-only by this session's orchestrator and recorded in
+`.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover-addendum.md`.**]**
+
 **Why it matters.** The Microsoft guidance is that tests exist to protect against regression in the
 code most likely to change, and the dispatcher is the highest-risk code in the Application layer: it
 resolves handlers by reflection over closed generic types and composes behaviours through `dynamic`,
@@ -146,9 +290,33 @@ so a mistake there is invisible to the compiler in a way none of the tested hand
 validator could be deleted from dependency injection, or `ValidationBehavior` could stop short-
 circuiting on failure, and all 292 tests would still pass.
 
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 7, the 292-test premise, which is the premise of the S2 rating. Classification: DRIFT.**
+Previous wording, verbatim: *"Today a validator could be deleted from dependency injection, or
+`ValidationBehavior` could stop short-circuiting on failure, and all 292 tests would still pass."*
+Both halves are false at `1407090`. The short-circuit is asserted directly by
+`ValidationBehaviorTests.HandleAsync_WithOneFailure_ReturnsValidationFailureAndDoesNotCallNext`
+(`nextCalled == false`), and a validator removed from dependency injection is caught by the three
+`SendAsync_...IsRejectedBy...` dispatch facts. This sentence is not incidental: it **is** the
+argument for the `S2` severity, so the rating rests on a premise that stopped holding on 2026-08-18
+(`09f4360`, `f9a665b`, `3b44d91`). The severity is left at `S2` as the historical record; a reader
+re-rating this entry today should know the premise is gone.**]**
+
 **Suggested direction.** Add a small set of tests that construct a real `ServiceProvider` with one
 fake command, one handler and one deliberately failing validator, and dispatch through
 `IDispatcher` end to end, asserting both the success path and the validation-failure `Result`.
+
+**[AMENDED 6b-iii, 2026-09-11 -- STATUS: `MASTER-020` is CLOSED BY EVIDENCE, with NO code work.**
+This entry's "Suggested direction" was implemented on 2026-08-18 and nobody noticed, which is the
+whole finding. 6b-iii wrote **no test and changed no production code** for it; the close is a record
+correction and the evidence is the five files named in CORRECTION 1, counted from this session's
+`measurement.md` at `1407090`.
+
+**Two residuals were found while establishing this, and they are NOT part of this entry.** They were
+recorded as explicitly not to be folded into it, because a close that quietly absorbs adjacent gaps
+is how a gap stops being tracked: `Dispatcher`'s own `CancellationToken` propagation is unasserted,
+and `Dispatcher`'s missing-handler failure mode is untested. They are filed as **`MASTER-172`** and
+**`MASTER-173`** in `docs/audit/00-master-index.md`. `MASTER-020`'s closure does not claim either,
+and neither does `MASTER-070`'s -- see `TEST-019`.**]**
 
 ### TEST-002 -- Every persistence test builds its schema with EnsureCreated, so no test exercises a migration
 
@@ -1093,7 +1261,7 @@ unchanged (`result.Should().BeSameAs(dto)` for the detail case), or, if the hand
 grow projection logic, test that logic when it arrives rather than pinning the current identity
 mapping in four places.
 
-### TEST-019 -- No test in the suite passes a cancellable or cancelled CancellationToken
+### TEST-019 -- No test in the suite passes a cancellable or cancelled CancellationToken (FALSIFIED -- two do, from 2026-08-18; the real gap is restated in CORRECTION 2)
 
 ```yaml
 id: TEST-019
@@ -1102,9 +1270,10 @@ severity: S3
 category: async
 authority: judgment
 citation: n/a
-locations:
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddAreaCommandHandlerTests.cs:37
-  - src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateFloorCommandHandlerTests.cs:37
+locations:  # AMENDED 6b-iii -- the two :37 anchors were dead and are replaced; see CORRECTION 4
+  - src/DungeonMaster.Tests/Application/Common/Handlers/CommandHandlerTestBase.cs:62   # AMENDED 6b-iii -- replaces AddAreaCommandHandlerTests.cs:37 (dead)
+  - src/DungeonMaster.Tests/Application/Common/Handlers/CommandHandlerTestBase.cs:69   # AMENDED 6b-iii -- replaces UpdateFloorCommandHandlerTests.cs:37 (dead)
+  - src/DungeonMaster.Tests/Application/Common/Handlers/DungeonNotFoundHandlerTestBase.cs:34   # AMENDED 6b-iii
   - src/DungeonMaster.Tests/Application/Features/Dungeons/Queries/GetDungeonDetailQueryHandlerTests.cs:32
   - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonWriteRepositoryTests.cs:42
   - src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs:44
@@ -1117,16 +1286,111 @@ independent: true
 NSubstitute setup matches the token with `Arg.Any<CancellationToken>()`. No test constructs a
 `CancellationTokenSource`, cancels one, or asserts that a token reaches the repository.
 
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 1, the headline claim is FALSIFIED, not merely stale. Classification: DRIFT.**
+Previous wording, verbatim, as the record's title and its first paragraph: *"No test in the suite
+passes a cancellable or cancelled CancellationToken"* / *"No test constructs a
+`CancellationTokenSource`, cancels one, or asserts that a token reaches the repository."*
+**Counterexamples, measured at `1407090`:** `ValidationBehaviorTests.cs:222` and `:366` each
+construct a `CancellationTokenSource`, pass the token into production code, and capture the exact
+instance that arrived -- `Arg.Do<CancellationToken>` captures at `:233`, `:242`, `:377` and `:386`.
+So a test did construct one, and did assert the identity of the token that reached the code under
+test.
+
+**Classification evidence.** Those two facts were added by `f9a665b` / `09f4360` on **2026-08-18**,
+one day after this document was written. Drift, not an authorship error.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 2, the narrower gap that WAS real, stated correctly. Classification: not a correction -- the surviving finding, re-measured.**
+Falsifying the headline does not empty the entry. Measured at `1407090`: **0 of 16 handlers** (14
+command + 2 query) and **0 of 6 repository/unit-of-work async methods** were proven to forward their
+token, against **1 of 1 pipeline behavior** proven. Also still true at `1407090`: no test cancelled a
+token, no test asserted `OperationCanceledException`, and `Arg.Is<CancellationToken>` appeared
+nowhere. Those figures are counted from this session's `measurement.md`. That -- and not the title --
+is what `MASTER-070` was closed against.**]**
+
 **Why it matters.** I believe this leaves an entire dimension of the async contract unstated. Every
 handler and repository method takes a `CancellationToken`; nothing proves any of them forwards it.
 A handler that dropped the token and called `LoadAsync(id, default)` would pass all 292 tests, and
 the symptom in the running application -- work continuing after a page is navigated away from --
 is exactly the kind of thing a suite is supposed to catch and a manual pass is not.
 
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 3, this was a COVERAGE GAP AND NOT A DEFECT. Classification: not a correction -- a qualification the entry does not make.**
+Previous wording, verbatim: *"A handler that dropped the token and called `LoadAsync(id, default)`
+would pass all 292 tests, and the symptom in the running application -- work continuing after a page
+is navigated away from -- is exactly the kind of thing a suite is supposed to catch and a manual pass
+is not."* The hypothetical was accurate about the *suite* and is now false (see the closure below:
+that exact defect, injected, fails a named test). But the sentence reads as though the symptom were
+live. It was not. The re-measurement checked the production side across the handlers, the
+`DungeonMutationExtensions` overloads and Infrastructure, and found the **token threaded correctly
+throughout**. Nothing was dropping a token; nothing proved it was not. Recorded so a later reader
+does not treat this entry as a shipped bug report.**]**
+
 **Suggested direction.** Add one test per repository-facing handler shape that stubs with
 `Arg.Is<CancellationToken>(token => token == expected)` and asserts the call was received, plus one
 Infrastructure test that cancels a token before a repository call and asserts
 `OperationCanceledException`.
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 4, two dead per-file anchors replaced, and the closure. Classification: DRIFT (anchors).**
+Previous wording, verbatim, as the first two entries of `locations`:
+*`.../Commands/AddAreaCommandHandlerTests.cs:37`* and *`.../Commands/UpdateFloorCommandHandlerTests.cs:37`*.
+Both are dead: `8784326` (6b-ii) extracted `CommandHandlerTestBase` and
+`DungeonNotFoundHandlerTestBase`, and all **14** command-handler test classes now derive from one of
+them -- the 14 counted from this session's `measurement.md` at `1407090`, and confirmed by T1's own
+`--filter "FullyQualifiedName~PassesThatSameToken"` run, in which the base-level fact executes
+exactly 14 times -- and `UnitOfWorkSubstitute.cs:24` is the single `Arg.Any<CancellationToken>()` chokepoint the
+entry's second sentence was describing per-file. They are replaced above by live anchors handed over
+by 6b-iii's T1.
+
+**Closure -- `MASTER-070`, T1, commit `6871900`.** One new seam,
+`CommandHandlerTestBase<THandler>.InvokeWithTokenAsync`, signature
+`protected abstract Task InvokeWithTokenAsync(CancellationToken ct)`, at
+`src/DungeonMaster.Tests/Application/Common/Handlers/CommandHandlerTestBase.cs:62`, and six new
+facts, one per async port method. No assertion uses `Arg.Any<CancellationToken>()`; each names the
+token value.
+
+| Port method | Fact | Declared at | Executions |
+|---|---|---|---|
+| `IUnitOfWorkFactory.CreateAsync` | `CommandHandlerTestBase<THandler>.HandleAsync_WithACancellationToken_PassesThatSameTokenToUnitOfWorkFactoryCreateAsync` | `CommandHandlerTestBase.cs:69` | 14 |
+| `IDungeonWriteRepository.LoadAsync` | `DungeonNotFoundHandlerTestBase<THandler>.HandleAsync_WithACancellationToken_PassesThatSameTokenToWriteRepositoryLoadAsync` | `DungeonNotFoundHandlerTestBase.cs:34` | 12 |
+| `IUnitOfWork.CommitAsync` | `CreateDungeonCommandHandlerTests.HandleAsync_WithACancellationToken_PassesThatSameTokenToUnitOfWorkCommitAsync` | `CreateDungeonCommandHandlerTests.cs:109` | 1 |
+| `IDungeonWriteRepository.RemoveAsync` | `DeleteDungeonCommandHandlerTests.HandleAsync_WithACancellationToken_PassesThatSameTokenToWriteRepositoryRemoveAsync` | `DeleteDungeonCommandHandlerTests.cs:115` | 1 |
+| `IDungeonReadRepository.GetSummariesAsync` | `GetDungeonsQueryHandlerTests.HandleAsync_WithACancellationToken_PassesThatSameTokenToGetSummariesAsync` | `GetDungeonsQueryHandlerTests.cs:83` | 1 |
+| `IDungeonReadRepository.GetDetailAsync` | `GetDungeonDetailQueryHandlerTests.HandleAsync_WithACancellationToken_PassesThatSameTokenToGetDetailAsync` | `GetDungeonDetailQueryHandlerTests.cs:61` | 1 |
+
+**30 executions** (14 + 12 + 1 + 1 + 1 + 1), by
+`dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter "FullyQualifiedName~PassesThatSameToken"`
+-> `Passed: 30, Failed: 0, Total: 30`.
+
+The entry's second suggested direction is also implemented: **four** Infrastructure tests over
+`SqliteInMemoryTestBase`, each seeding its row first, then `await cts.CancelAsync()` before the call,
+each asserting `OperationCanceledException` --
+`DungeonReadRepositoryTests.GetSummariesAsync_WithAnAlreadyCancelledToken_ThrowsOperationCanceledException`
+(`:72`), `...GetDetailAsync_...` (`:98`),
+`DungeonWriteRepositoryTests.LoadAsync_...` (`:231`), and
+`UnitOfWorkTests.CommitAsync_WithAnAlreadyCancelledToken_ThrowsOperationCanceledExceptionAndWritesNothing`
+(`:115`). Seeding first is what makes the cancellation, rather than a missing row, the discriminator.
+
+**Shown able to fail.** `CreateDungeonCommandHandler.cs:20`, `CreateAsync(ct)` changed to
+`CreateAsync(CancellationToken.None)` -- the precise defect the "Why it matters" paragraph
+hypothesises. `dotnet test ... --filter "FullyQualifiedName~...Features.Dungeons.Commands"` ->
+`Failed: 1, Passed: 74, Total: 75`, the sole failure being
+`CreateDungeonCommandHandlerTests.HandleAsync_WithACancellationToken_PassesThatSameTokenToUnitOfWorkFactoryCreateAsync`,
+with two named controls green in the same run
+(`CreateDungeonCommandHandlerTests...PassesThatSameTokenToUnitOfWorkCommitAsync` and
+`AddAreaCommandHandlerTests...PassesThatSameTokenToUnitOfWorkFactoryCreateAsync`). Reverted;
+production byte-identical. The reviewer reproduced the injection independently: `Failed: 1,
+Passed: 29`, then `Failed: 0, Passed: 30`.
+
+**Post-revert filter totals**, all `Failed: 0`, by
+`dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter "FullyQualifiedName~<X>"`:
+`...Application.Common.Handlers` **14**, `...Features.Dungeons.Commands` **75**,
+`...Features.Dungeons.Queries` **6**, `...Infrastructure.Persistence.Repositories` **23**. Full leaf
+override proven by `dotnet build src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` ->
+`0 Warning(s), 0 Error(s)`, a missed abstract override being CS0534.
+
+**What this does NOT cover.** The `Dispatcher` itself. T1 proves forwarding at the **handler and
+repository** boundaries only; the dispatcher's token propagation is unasserted and is filed
+separately as **`MASTER-172`**. `MASTER-070`'s closure does not claim it, and a later reader must not
+take one for the other.**]**
 
 ### TEST-020 -- Domain coverage is happy paths and unknown-id no-ops, with no constructor or boundary cases
 
@@ -1155,15 +1419,109 @@ is no test for `new Dungeon(null!)` or an empty name, no test of `ReorderFloor` 
 zero, a negative index or one past the end, no test of `AddFloor` on an aggregate at any boundary,
 and no test that `UpdateAreaOutline` rejects or accepts a degenerate one- or two-segment outline.
 
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 1, "the five Domain classes". Classification: DRIFT.**
+Previous wording, verbatim: *"The five Domain classes cover the success path of each operation"*,
+over a `locations` list of five files. There are **six** Domain test files at `1407090` --
+counted from this session's `measurement.md`, which measured them at that commit --
+`FloorMethodsTests.cs` being the sixth, added by `781f73b`.
+
+**Classification evidence.** `781f73b` is dated **2026-08-18** ("report mutation outcomes instead of
+silently no-opping"), the day after this document was written. The entry was right on the day.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 2, "no test of `AddFloor` on an aggregate at any boundary". Classification: MEASUREMENT ERROR.**
+Previous wording, verbatim: *"no test of `AddFloor` on an aggregate at any boundary"*. **This was
+never true.** `DungeonAggregateTests.cs:12` and `:24` were **both present at the audit commit
+`413be78`** (2026-08-17), and `:12` falls inside this entry's **own first cited location**,
+`src/DungeonMaster.Tests/Domain/Entities/Dungeon/DungeonAggregateTests.cs:8-18`. The entry cited the
+tests that refute its own clause.
+
+**Classification evidence.** Presence at `413be78` is what settles it: the clause did not become
+false, it was false when written. This is a different failure from drift, and re-measurement is the
+only thing that catches it -- which is the reason this pass exists.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 3, "`PlacedObjectTests` is the exception". Classification: MEASUREMENT ERROR.**
+Previous wording, verbatim: *"`PlacedObjectTests` is the exception: it has two `[Theory]` blocks
+covering `NaN`, both infinities, and values below and above the scale range. No equivalent exists
+elsewhere"*. **Never true.** `ObjectScaleTests.cs:8` and `:16` are boundary `[Theory]` blocks that
+**predate the audit by three months**, so `PlacedObjectTests` was not the only one and not the
+exception.
+
+**Classification evidence.** The three-month lead means no post-audit commit can account for it; the
+clause was false on 2026-08-17. Authorship error, not drift. Note that this clause and CORRECTION 2
+together carry the entry's rhetorical argument -- "the author knows how to write these, which makes
+the absence elsewhere look like an omission" -- and both halves of that argument were wrong when
+made.**]**
+
 **Why it matters.** I believe `PlacedObjectTests` shows the author knows how to write these -- its
 invalid-scale theories are the best boundary coverage in the project -- which makes the absence
 elsewhere look like an omission rather than a decision. The floor renumbering in `RemoveFloor` and
 `ReorderFloor` is arithmetic over an ordered collection, which is the classic home of off-by-one
 defects, and it is currently covered by exactly one three-floor happy-path case each.
 
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 4, "exactly one three-floor happy-path case each". Classification: DRIFT.**
+Previous wording, verbatim: *"The floor renumbering in `RemoveFloor` and `ReorderFloor` ... is
+currently covered by exactly one three-floor happy-path case each."* At `1407090` **`RemoveFloor` has
+4 tests and `ReorderFloor` has 6**, counted from this session's `measurement.md`.
+
+**Classification evidence.** `781f73b` (2026-08-18) grew
+`src/DungeonMaster.Tests/Domain/Entities/Dungeon/DungeonAggregateTests.cs` **from 104 to 336 lines
+and from 8 to 21 tests** -- precisely the boundary coverage this entry asked for, landing the day
+after it was written. The entry was accurate on the day and obsolete the next.**]**
+
 **Suggested direction.** Extend `DungeonAggregateTests` with `[Theory]` blocks over out-of-range
 reorder targets and over the empty and single-element floor collections, and state explicitly (in a
 test, not a comment) what the aggregate does with a null or blank name.
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 5, clause by clause, and the closure. Classification: mixed, stated per clause.**
+The entry is a list of clauses with different fates, and a single verdict on it would be wrong. As
+re-measured at `1407090`:
+
+| Clause, as written | Status at `1407090` |
+|---|---|
+| *"no test for `new Dungeon(null!)` or an empty name"* | **was open; closed by this session** -- T2, below |
+| *"no test of `ReorderFloor` with an index of zero"* | **closed before this session** -- `DungeonAggregateTests.cs:161` |
+| *"... or one past the end"* | **closed before this session** -- `:179` |
+| *"... a negative index"* | open at the Domain level; covered at the Application level, and closed at Domain by T2 below |
+| *"no test of `AddFloor` on an aggregate at any boundary"* | **never true** -- CORRECTION 2 |
+| *"no test that `UpdateAreaOutline` rejects or accepts a degenerate one- or two-segment outline"* | open, but as a **missing production invariant**, not a missing test -- filed as `MASTER-168` |
+| *"`PlacedObjectTests` is the exception"* | **never true** -- CORRECTION 3 |
+
+**Closure -- `MASTER-086`, T2, commit `aeac7b7`.** Four `[Theory]`, three `InlineData` each (`null`,
+`""`, `"   "`), each asserting `ArgumentException`, one per name guard:
+`Constructor_WithNullOrWhitespaceName_ThrowsArgumentException` (`DungeonAggregateTests.cs:341`,
+proving `Dungeon.cs:25`), `Update_WithNullOrWhitespaceName_...` (`:354`, proving
+`DungeonMethods.cs:24`), `AddArea_WithNullOrWhitespaceNameOnExistingFloor_...` (`:373`, proving
+`Area.cs:31`), `UpdateArea_WithNullOrWhitespaceNameOnExistingArea_...` (`:393`, proving
+`AreaMethods.cs:24`). The last two pass a **real** `floor.Id` and a **real** `area.Id`, because
+`DungeonMethods.AddArea` returns `null` at its floor lookup (`:208-214`) and `UpdateArea` returns
+`NotFound` at its floor lookup *before* the name guard is reached -- so the guard is what throws.
+
+Plus five `[Fact]`: `ReorderFloor_WithNegativeNumber_ReturnsOutOfRangeAndLeavesNumberUnchanged`
+(`:413`); `AddPlacedObject_WithoutScale_ReturnsObjectWithDefaultScaleAndGivenKindPositionAndRotation`
+(`:431`); `AddPlacedObject_WithoutScaleOnUnknownFloorId_ReturnsNull` (`:455`);
+`UpdateObject_WithoutScaleOnExistingObject_ReturnsSuccessAndAppliesPositionAndRotation`
+(`FloorObjectMethodsTests.cs:129`); `UpdateObject_WithoutScaleOnUnknownId_ReturnsNotFound` (`:152`).
+These reach the previously untested **overloads**, not the ones already covered at
+`FloorObjectMethodsTests.cs:76`/`:98`: binding is by arity with no optional parameters --
+`DungeonMethods.cs:371` (4-arg) against `:404`, and `FloorObjectMethods.cs:96` (3-arg) against
+`:134`.
+
+**Shown able to fail.** `ArgumentException.ThrowIfNullOrWhiteSpace(name);` removed from
+`Area.cs:31`; `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter
+"FullyQualifiedName~DungeonMaster.Tests.Domain"` -> `Failed: 3, Passed: 66, Total: 69`, the three
+failures being the three cases of `AddArea_WithNullOrWhitespaceNameOnExistingFloor_...` with
+*"Expected a <System.ArgumentException> to be thrown, but no exception was thrown."* Named green
+control in the same run: `UpdateArea_WithNullOrWhitespaceNameOnExistingArea_...`, which routes
+through a **different** guard (`AreaMethods.cs:24`) and so legitimately stays green. Restored; the
+reviewer verified `Area.cs` byte-identical to base. Post-restore total, reproduced by the reviewer:
+`Failed: 0, Passed: 69, Skipped: 0, Total: 69`.
+
+**Three things were deliberately NOT tested, per escalation E2 -- record this as a decision, not an
+omission.** A test cannot assert behaviour that does not exist, and deciding where a missing
+invariant should live is a design decision outside a coverage session. They are filed instead:
+**`MASTER-168`** (`Area.SetOutline` stores a degenerate or null outline -- this entry's clause (d)),
+**`MASTER-169`** (`Floor` accepts a zero or negative floor number), **`MASTER-170`** (`PathSegment`
+permits a `CubicBezier` with null control points).**]**
 
 ### TEST-021 -- App facts assert against the lexical form of application C#, not its behaviour
 
@@ -1658,6 +2016,121 @@ states. The project-file record itself belongs to T6.
 **Suggested direction.** Either remove `coverlet.collector` or add the `.runsettings` and the CI
 step that uses it. Separately, consider an explicit `[assembly: CollectionBehavior]` declaration so
 the parallelism the fixtures depend on is written down rather than inherited.
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 1, the scope is triple today, and the cited line was wrong when written. Classification: MEASUREMENT ERROR (the cited line); DRIFT (the singular scope).**
+Previous wording, verbatim: *"`coverlet.collector` 6.0.4 is referenced by the test project"*, over a
+`locations` list of one entry, `src/DungeonMaster.Tests/DungeonMaster.Tests.csproj:11`. **Three test
+projects referenced it, not one**, with the version held centrally. Measured at `1407090` by this
+session's T4, which confirmed every line below before editing it:
+`src/DungeonMaster.Tests/DungeonMaster.Tests.csproj:9`,
+`src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj:26`,
+`src/DungeonMaster.App.UnitTests/DungeonMaster.App.UnitTests.csproj:20`, and
+`Directory.Packages.props:20`.
+
+**Classification evidence, the cited line: MEASUREMENT ERROR.** `:11` was **wrong when written**
+rather than overtaken. At the audit commit `413be78` (2026-08-17):
+
+```
+$ git show 413be78:src/DungeonMaster.Tests/DungeonMaster.Tests.csproj | grep -n "PackageReference"
+9:    <PackageReference Include="coverlet.collector" />
+10:    <PackageReference Include="FluentAssertions" />
+11:    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+12:    <PackageReference Include="NSubstitute" />
+13:    <PackageReference Include="xunit" />
+14:    <PackageReference Include="xunit.runner.visualstudio" />
+```
+
+coverlet stood at line **9** on the audit date -- line 11 was `Microsoft.NET.Test.Sdk` -- and 9 is the
+same line it still stood at when T4 removed it, so it did not move in between. Authorship error, not
+drift.
+
+**Classification evidence, the singular scope: DRIFT.** The entry's *"the test project"*, singular,
+was **correct when written**. Neither App-side test project existed at `413be78`:
+
+```
+$ git ls-tree -r --name-only 413be78 -- src/DungeonMaster.App.Tests      | wc -l
+0
+$ git ls-tree -r --name-only 413be78 -- src/DungeonMaster.App.UnitTests  | wc -l
+0
+```
+
+`DungeonMaster.Tests` was the only test project there was. The scope tripled afterwards, when later
+sessions added the two App-side projects: the record did not under-count, it was overtaken.
+
+Both commands were run read-only by this session's orchestrator, which is not barred from git as its
+tasks are, and are recorded verbatim in
+`.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover-addendum.md`. Round 1 of this
+pass cited `8bb2d79` for the line; that commit is dated **2026-08-18**, one day *after* the audit, and
+so cannot establish what was true when the record was written. The citation is replaced above; the
+verdict it supported is unchanged.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 2, the suggested remedy is a MEASURED REGRESSION. DO NOT IMPLEMENT IT. Classification: UNDETERMINED as to the audit date; measured harmful today.**
+Previous wording, verbatim: *"Separately, consider an explicit `[assembly: CollectionBehavior]`
+declaration so the parallelism the fixtures depend on is written down rather than inherited."*
+Session 6a measured exactly this: `DisableTestParallelization` serialises collections **without
+ordering them**, and the spike recorded **3 crashes in 11 runs, ~27% nondeterministic**
+(`.dir-sdlc/sessions/2026-09-02-app-sub-suite-rebuild/spike-parallelism-report.md:204-205` and
+`:407` -- the artifact those two figures are counted from), and `manifest.json:293` of that session
+states it **must not be adopted as a mitigation**.
+
+**This correction is the non-optional part of this entry's closure.** Left uncorrected, the entry
+reads as a standing recommendation and a future reader implements it in good faith, buying a ~27%
+flaky suite in exchange for writing down a property the repository already states (CORRECTION 3).
+This session's T4 added **no** such attribute anywhere.
+
+**Classification evidence.** *Not settled for the audit date.* The spike ran on 2026-09-02 against
+the App sub-suite that sessions 6a and 6b-i built, which did not exist on 2026-08-17, so this pass
+cannot say the suggestion was harmful when it was made. What is measured is that it is harmful
+now.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 3, the parallelism the entry calls unpinned IS pinned today. Classification: DRIFT.**
+Previous wording, verbatim: *"that safety is a property of how the fixtures happen to be written, not
+something the repository states."* The repository does state it, in the form that works --
+collection declarations rather than an assembly-level behaviour switch: `MauiHostCollection.cs:7-8`
+and `AppTestCollection.cs:27-28`, with **nine classes declaring membership**, plus a runtime latch at
+`MauiHostFixture.cs:78-84` that **throws, naming the required collection**, if a test runs outside
+it. Counted from this session's `measurement.md` at `1407090`. The claim is falsified twice over: by
+the declarations, and by the latch that enforces them at run time rather than by convention.
+
+**Classification evidence.** *Measured at the audit commit.* The entry was **right when it was
+written**: none of the three files that pin the parallelism today existed at `413be78` (2026-08-17).
+
+```
+$ git ls-tree -r --name-only 413be78 | grep -ci "MauiHostCollection\|AppTestCollection\|MauiHostFixture"
+0
+```
+
+Nothing pinned the parallelism on the audit date, so the claim was accurate and the repository moved
+underneath it -- the pinning arrived later, with the App sub-suite rebuilt by sessions 6a and 6b-i,
+and in the form the 6a spike settled on (`[CollectionDefinition]` plus explicit membership) rather
+than the `[assembly: CollectionBehavior]` this entry suggested, which is why that suggestion was never
+the thing that fixed it (CORRECTION 2). Command run read-only by this session's orchestrator and
+recorded in `.dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/handover-addendum.md`.**]**
+
+**[AMENDED 6b-iii, 2026-09-11 -- CORRECTION 4, what the entry got right, and the closure. Classification: not a correction -- confirmation.**
+All four absences the entry lists were **still literally true** at `1407090`: coverlet present and
+unused, no `.runsettings`, no `xunit.runner.json`, no `[assembly: CollectionBehavior]`, and no CI --
+the last **verified rather than assumed** (zero tracked `.yml`/`.yaml` files; no `.github/`
+directory -- recorded in this session's `measurement.md` at `1407090`). The entry's own reasoning about coverage percentages is also left standing.
+
+**Closure -- `MASTER-155`, T4, commit `5347813`, per escalation E1: the package is removed rather
+than configured.** The four lines in CORRECTION 1 were deleted.
+`dotnet restore src/DungeonMaster.sln --force-evaluate` regenerated the lock files **by tooling** --
+no lock file was hand-edited or deleted, and no mismatch was reported. Of nine `packages.lock.json`,
+**3 content-changed** (`DungeonMaster.Tests`, `App.Tests`, `App.UnitTests`) and **6 unchanged**; each
+changed file lost exactly one six-line `coverlet.collector` `Direct` block and nothing else, with **no
+other `resolved` version moving**. `App.UiTests` never referenced coverlet and is excluded from the
+solution, so it needed no separate restore. The reviewer re-ran with `--locked-mode
+--force-evaluate`, which fails if the committed locks disagree with the tooling: it restored clean.
+`dotnet build src/DungeonMaster.sln` -> `Build succeeded. 0 Warning(s), 0 Error(s)` across all eight
+projects. Execution unaffected:
+`dotnet test src/DungeonMaster.App.UnitTests/DungeonMaster.App.UnitTests.csproj` -> `Failed: 0,
+Passed: 23, Total: 23`, and `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter
+"FullyQualifiedName~DungeonMaster.Tests.Application.Common.Results"` -> `Failed: 0, Passed: 22,
+Total: 22`. Central Package Management intact:
+`grep -rn 'PackageReference[^>]*Version=' --include=*.csproj --include=*.props --include=*.targets`
+returns no hits, and `Directory.Packages.props` now holds **15** `PackageVersion` entries, down from
+16 -- T4's own count at `5347813`.**]**
 
 ## Layer verdict
 
