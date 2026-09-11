@@ -12,9 +12,16 @@ public sealed class GreaterThanZeroConverter : IValueConverter
 	/// <summary>
 	///		Converts an integer value to <see langword="true"/> if it is greater than zero; otherwise <see langword="false"/>.
 	///		When <paramref name="parameter"/> is <c>"Invert"</c> the result is negated.
+	///		Any value that is not an <see cref="int"/> — including <see langword="null"/>, a
+	///		<see cref="double"/>, a <see cref="long"/>, a <see cref="string"/> and
+	///		<c>BindableProperty.UnsetValue</c>, the sentinel the binding engine supplies for a path
+	///		that did not resolve — returns <see langword="false"/> before the <c>Invert</c>
+	///		negation is considered, so an inverted binding on an unresolved path hides its element
+	///		rather than showing it (MASTER-167).
 	/// </summary>
 	/// <param name="value">
-	///		The value produced by the binding source. Expected to be an <see cref="int"/>.
+	///		The value produced by the binding source. Expected to be an <see cref="int"/>; anything
+	///		else converts to <see langword="false"/> regardless of <paramref name="parameter"/>.
 	/// </param>
 	/// <param name="targetType">
 	///		The type of the binding target property.
@@ -27,7 +34,8 @@ public sealed class GreaterThanZeroConverter : IValueConverter
 	/// </param>
 	/// <returns>
 	///		<see langword="true"/> if <paramref name="value"/> is an integer greater than zero; otherwise <see langword="false"/>.
-	///		The result is negated when <paramref name="parameter"/> is <c>"Invert"</c>.
+	///		The result is negated when <paramref name="parameter"/> is <c>"Invert"</c>, but only for
+	///		an <see cref="int"/>; a non-<see cref="int"/> always returns <see langword="false"/>.
 	/// </returns>
 	public object Convert(
 		object? value,
@@ -35,7 +43,12 @@ public sealed class GreaterThanZeroConverter : IValueConverter
 		object? parameter,
 		CultureInfo culture)
 	{
-		bool result = value is int n && n > 0;
+		if (value is not int n)
+		{
+			return false;
+		}
+
+		bool result = n > 0;
 
 		if (parameter is string s && s.Equals("Invert", StringComparison.OrdinalIgnoreCase))
 		{
