@@ -118,6 +118,44 @@ and can be taken at any time; each is a small documentation edit.
   absent, because the row was written by `T6` before Gate 3 merged. Deliberately not fixed in-session:
   the user chose at Gate 3 to track it rather than have the orchestrator edit a committed task's file.
 
+- 2026-09-11 -- `2026-09-11-measure-then-close-the-test-gaps` -- **Sweep the repository for stale
+  `docs/audit/00-master-index.md:NNN` citations.** Session 6b-iii appended six new entries and amended two
+  rows, shifting that file from 568 to 590 lines: **any citation written before 6b-iii and pointing at line
+  355 or later is now low by 14, or by 22 if it pointed at 558 or later.** A known instance is this session's
+  own `measurement.md:3`, which cites the inheritance note at `:522`; it is now at `:536`. The cheapest fix is
+  a sweep of `docs/audit/` and `.dir-sdlc/sessions/` for that citation form. T5 correctly did not touch files
+  it does not own, and handled the one in-file instance by citing both numbers. Verified by the T5 reviewer:
+  `sed -n '536p'` returns the inheritance note, and `git show 5347813:docs/audit/00-master-index.md | sed -n
+  '522p'` returns the same line. **This matters to 6b-iv directly** -- its inheritance is read from that note.
+
+- 2026-09-11 -- `2026-09-11-measure-then-close-the-test-gaps` -- **Make the quoted command at
+  `docs/audit/05-tests.md:273` pasteable.** It reads `git show 413be78:src/.../Validators/AddAreaCommandValidatorTests.cs
+  | sed -n '15,19p'` -- an elided path, carried verbatim from the session's own `handover-addendum.md`, so it
+  is faithful rather than wrong. But the document's stated standard, restated in its 6b-ii block at `:88-92`,
+  is that every command is quoted so a later reader can paste it and get the stated number back, and this one
+  cannot. The full path appears four lines above in the same correction; substituting
+  `src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/AddAreaCommandValidatorTests.cs`
+  reproduces the quoted output exactly -- the reviewer ran it. Every other command in the round-2 additions is
+  fully qualified; this is the lone exception. Deferred as an advisory at Gate 3.
+
+- 2026-09-11 -- `2026-09-11-measure-then-close-the-test-gaps` -- **Narrow one clause at
+  `docs/audit/05-tests.md:2040-2041` that states an inference as a measurement.** It reads "9 is the same line
+  it still stood at when T4 removed it, so it did not move in between". Two measured endpoints do not
+  establish the intervening path. The verdict it supports is unaffected -- that rests only on the audit-date
+  observation at `413be78` -- but the clause asserts more than was observed, inside a document whose subject is
+  records that asserted more than was observed. Deferred as an advisory at Gate 3.
+
+- 2026-09-11 -- `2026-09-11-measure-then-close-the-test-gaps` -- **File a new master-index entry for
+  `IUnitOfWorkFactory.CreateAsync`'s documented but unproven cancellation contract.**
+  `src/DungeonMaster.Application/Common/Interfaces/IUnitOfWorkFactory.cs:17` documents
+  `<exception cref="OperationCanceledException">Thrown when ct is cancelled before the session is created.`
+  No test proves it. `UnitOfWorkFactory.cs:16` forwards the token to `CreateDbContextAsync`, but whether that
+  observes the token was not measured, and a pooled-less factory may not. Raised by T1's implementer and
+  confirmed by its reviewer, correctly left unacted -- `CreateAsync` is outside T1's criterion 6, which named
+  `LoadAsync`, `CommitAsync`, `GetSummariesAsync` and `GetDetailAsync`. **This should become a numbered entry
+  rather than stay a backlog line**, alongside `MASTER-172`/`173`, since it is a coverage gap of the same
+  shape as the dispatcher residuals this session filed. Deferred as an advisory at Gate 3.
+
 
 ## DIR process artifacts
 
