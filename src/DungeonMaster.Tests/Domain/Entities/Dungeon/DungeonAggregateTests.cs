@@ -333,4 +333,139 @@ public class DungeonAggregateTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
 	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("   ")]
+	public void Constructor_WithNullOrWhitespaceName_ThrowsArgumentException(string? name)
+	{
+		// Act
+		var act = () => new DomainDungeon(name!);
+
+		// Assert
+		act.Should().Throw<ArgumentException>();
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("   ")]
+	public void Update_WithNullOrWhitespaceName_ThrowsArgumentException(string? name)
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+
+		// Act
+		var act = () => dungeon.Update(
+			name!,
+			null,
+			null);
+
+		// Assert
+		act.Should().Throw<ArgumentException>();
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("   ")]
+	public void AddArea_WithNullOrWhitespaceNameOnExistingFloor_ThrowsArgumentException(string? name)
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+
+		// Act
+		var act = () => dungeon.AddArea(
+			floor.Id,
+			name!,
+			null);
+
+		// Assert
+		act.Should().Throw<ArgumentException>();
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("   ")]
+	public void UpdateArea_WithNullOrWhitespaceNameOnExistingArea_ThrowsArgumentException(string? name)
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
+
+		// Act
+		var act = () => dungeon.UpdateArea(
+			floor.Id,
+			area.Id,
+			name!,
+			null,
+			null);
+
+		// Assert
+		act.Should().Throw<ArgumentException>();
+	}
+
+	[Fact]
+	public void ReorderFloor_WithNegativeNumber_ReturnsOutOfRangeAndLeavesNumberUnchanged()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var first = dungeon.AddFloor("Entry");
+		dungeon.AddFloor("Cellar");
+
+		// Act
+		var outcome = dungeon.ReorderFloor(
+			first.Id,
+			-1);
+
+		// Assert
+		outcome.Should().Be(MutationOutcome.OutOfRange);
+		first.Number.Should().Be(1);
+	}
+
+	[Fact]
+	public void AddPlacedObject_WithoutScale_ReturnsObjectWithDefaultScaleAndGivenKindPositionAndRotation()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var position = new CanvasPoint(64f, 96f);
+
+		// Act
+		var placed = dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.Chair,
+			position,
+			ObjectRotation.CW90);
+
+		// Assert
+		placed.Should().NotBeNull();
+		placed!.Kind.Should().Be(ObjectKind.Chair);
+		placed.Position.Should().Be(position);
+		placed.Rotation.Should().Be(ObjectRotation.CW90);
+		placed.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
+		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == placed.Id);
+	}
+
+	[Fact]
+	public void AddPlacedObject_WithoutScaleOnUnknownFloorId_ReturnsNull()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		dungeon.AddFloor("Entry");
+
+		// Act
+		var placed = dungeon.AddPlacedObject(
+			Guid.NewGuid(),
+			ObjectKind.Barrel,
+			new CanvasPoint(10f, 10f),
+			ObjectRotation.None);
+
+		// Assert
+		placed.Should().BeNull();
+	}
 }

@@ -124,4 +124,43 @@ public class FloorObjectMethodsTests
 		floor.Areas.Should().BeEmpty();
 		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
 	}
+
+	[Fact]
+	public void UpdateObject_WithoutScaleOnExistingObject_ReturnsSuccessAndAppliesPositionAndRotation()
+	{
+		// Arrange
+		var floor = CreateFloor();
+		var obj = floor.AddObject(
+			ObjectKind.Chair,
+			new CanvasPoint(0f, 0f),
+			ObjectRotation.None);
+		var newPosition = new CanvasPoint(120f, 45f);
+
+		// Act
+		var updated = floor.UpdateObject(
+			obj.Id,
+			newPosition,
+			ObjectRotation.CW180);
+
+		// Assert
+		updated.Should().Be(MutationOutcome.Success);
+		obj.Position.Should().Be(newPosition);
+		obj.Rotation.Should().Be(ObjectRotation.CW180);
+	}
+
+	[Fact]
+	public void UpdateObject_WithoutScaleOnUnknownId_ReturnsNotFound()
+	{
+		// Arrange
+		var floor = CreateFloor();
+
+		// Act
+		var updated = floor.UpdateObject(
+			Guid.NewGuid(),
+			new CanvasPoint(1f, 1f),
+			ObjectRotation.None);
+
+		// Assert
+		updated.Should().Be(MutationOutcome.NotFound);
+	}
 }
