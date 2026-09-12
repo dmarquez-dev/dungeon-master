@@ -2266,29 +2266,22 @@ public partial class DungeonDetailPage : ContentPage
 			{
 				ClearDragPlaceholder();
 
-				if (capturedTarget.Floor is null)
+				// The same decision the floor card's own drop target makes, from the same owner, so
+				// the two targets cannot drift apart. dropArgs.Data is null-conditional because
+				// MAUI hands these args a nullable package; see FloorReorderDrop's remarks.
+				var decision = FloorReorderDrop.Decide(
+					dropArgs.Data?.Properties,
+					capturedTarget.Floor?.Id,
+					capturedTarget.Floor?.Number ?? 0);
+
+				if (!decision.ShouldReorder)
 				{
 					return;
 				}
 
-				if (!dropArgs.Data.Properties.TryGetValue("FloorId", out var obj))
-				{
-					return;
-				}
-
-				if (obj is not string idStr || !Guid.TryParse(idStr, out var draggedId))
-				{
-					return;
-				}
-
-				if (draggedId == capturedTarget.Floor.Id)
-				{
-					return;
-				}
-
-				_editor.SelectedFloorId = draggedId;
+				_editor.SelectedFloorId = decision.DraggedFloorId;
 				await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
-					new ReorderFloorArgs(draggedId, capturedTarget.Floor.Number));
+					new ReorderFloorArgs(decision.DraggedFloorId, decision.TargetFloorNumber));
 			}
 			catch (Exception exception)
 			{

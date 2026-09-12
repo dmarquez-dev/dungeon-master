@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.App.Theme;
 
@@ -407,26 +408,24 @@ public partial class FloorSidebarItem : ContentView
 		_isDragOver = false;
 		UpdateVisualState();
 
-		if (Floor is null)
+		// The four silent returns of contract C1 section 1 live in FloorReorderDrop.Decide, which
+		// the page's placeholder drop target calls too, so the two drop targets cannot disagree.
+		//
+		// e.Data is reached through a null-conditional because MAUI's Windows gesture manager
+		// builds these args from a NULLABLE package (GesturePlatformManager.Windows.cs, HandleDrop,
+		// `datapackage?.View`). At Microsoft.Maui.Controls 10.0.41 DropEventArgs' internal
+		// constructor substitutes `new DataPackageView(new DataPackage())` for a null, so the guard
+		// is defence against a contract, not against a path reachable today - and the substitution
+		// is worth knowing about for its own sake: when the platform cannot recover the source
+		// package it hands this handler an EMPTY one, which is indistinguishable here from a drop
+		// that carried no FloorId, and is therefore a silent return by design.
+		var decision = FloorReorderDrop.Decide(e.Data?.Properties, Floor?.Id, Floor?.Number ?? 0);
+
+		if (!decision.ShouldReorder)
 		{
 			return;
 		}
 
-		if (!e.Data.Properties.TryGetValue("FloorId", out var obj))
-		{
-			return;
-		}
-
-		if (obj is not string idStr || !Guid.TryParse(idStr, out var draggedId))
-		{
-			return;
-		}
-
-		if (draggedId == Floor.Id)
-		{
-			return;
-		}
-
-		ReorderRequested?.Invoke(this, (draggedId, Floor.Number));
+		ReorderRequested?.Invoke(this, (decision.DraggedFloorId, decision.TargetFloorNumber));
 	}
 }
