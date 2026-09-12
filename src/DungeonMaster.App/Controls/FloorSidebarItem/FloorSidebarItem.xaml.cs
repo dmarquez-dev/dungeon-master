@@ -291,10 +291,19 @@ public partial class FloorSidebarItem : ContentView
 	{
 		var expanded = IsExpanded;
 
-		ExpandToggle.Text = expanded ? "▾" : "▸";
+		// THE TYPE ANNOTATION IS A GUARD, not a style choice. ExpandToggle must stay a Button:
+		// as a Label it takes no keyboard focus on WinUI, and expanding is the only route to a
+		// floor's areas, so the entire area list went keyboard-unreachable (MASTER-164). Nothing
+		// about a Label would fail to compile against the two statements below, so reverting the
+		// markup would be a silent regression — exactly the way this defect arrived. Written out
+		// as a Button, the revert is CS0029 and the build stops. Same reason the four *State
+		// constants at the top of this file are named rather than inlined.
+		Button toggle = ExpandToggle;
+
+		toggle.Text = expanded ? "▾" : "▸";
 
 		SemanticProperties.SetDescription(
-			ExpandToggle,
+			toggle,
 			expanded
 				? "Expanded"
 				: "Collapsed");
@@ -329,6 +338,24 @@ public partial class FloorSidebarItem : ContentView
 			return;
 		}
 
+		IsExpanded = true;
+		SelectRequested?.Invoke(this, EventArgs.Empty);
+	}
+
+	// The chevron does exactly what a card tap does, and that is the point: it is the KEYBOARD
+	// route to the same behaviour, not a second behaviour. It deliberately does not decide the
+	// expanded state for itself — the page owns that decision, collapsing an already-selected
+	// floor in its SelectRequested handler — so toggling here would be two mechanisms driving one
+	// fact, which is the exact defect MASTER-098 took out of this file.
+	//
+	// IT ALSO DOES NOT SET _suppressCardTap, and that is measured rather than reasoned. A Clicked
+	// on this Button does NOT reach the card's VerticalStackLayout TapGestureRecognizer, so the
+	// flag had nothing to suppress and stayed set — and the next card-body tap was swallowed by
+	// it. Observed 2026-09-11 against the built app driven through UIA: chevron expand, chevron
+	// collapse, then a card-body click that did nothing, where the same card-body click expanded
+	// the floor in a control run with no chevron click before it.
+	private void OnExpandToggleClicked(object? sender, EventArgs e)
+	{
 		IsExpanded = true;
 		SelectRequested?.Invoke(this, EventArgs.Empty);
 	}

@@ -66,12 +66,18 @@
             </VisualStateGroupList>
         </VisualStateManager.VisualStateGroups>
 
-        <!-- This layout, not the toggle glyph, is the tap target that expands and collapses the
-             floor — and expanding is the only route to a floor's areas. ExpandToggle below tells
-             the user to "tap the floor card", so the card has to be in the accessibility tree
-             and has to say what it is; without a description it was an unlabelled target that
-             another control pointed at. The description is static because the toggle beside it
-             already carries the expanded/collapsed state, rewritten in ApplyExpanded.
+        <!-- This layout is the LARGE tap target that expands and collapses the floor, and
+             expanding is the only route to a floor's areas. Since MASTER-164 it is no longer the
+             ONLY such target — ExpandToggle below is a real Button and does the same job from the
+             keyboard — but IT MUST NOT BE REMOVED (contract C3 section 4). The chevron's visual
+             is allowed to sit under Microsoft's 23x23 touch minimum only by their redundancy
+             carve-out, and THIS gesture is the redundancy that earns it. Delete this recognizer
+             and the carve-out no longer applies.
+
+             The card has to be in the accessibility tree and has to say what it is; without a
+             description it was an unlabelled target that another control pointed at. The
+             description is static because the toggle beside it already carries the
+             expanded/collapsed state, rewritten in ApplyExpanded.
 
              MASTER-161: the behavior gives the pointer the hand cursor over the card body. The
              three Buttons in this file already carried one; the largest clickable surface in the
@@ -91,10 +97,30 @@
             <!-- Header row -->
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
-                <!-- Expand toggle (visual indicator only — card tap handles expand). The glyph
-                     flips between ▸ and ▾ in ApplyExpanded, so the description is rewritten there
-                     alongside it; the value here is the collapsed state the glyph starts in. -->
-                <Label
+                <!-- Expand toggle. THIS IS A Button AND NOT A Label, AND THAT IS THE WHOLE POINT
+                     (MASTER-164). As a Label it took no keyboard focus on WinUI — only
+                     Control-derived classes do — and the card body it pointed at is a
+                     VerticalStackLayout, which takes no focus either and cannot be made to:
+                     IsTabStop/TabIndex/ITabStopElement are absent from .NET MAUI 10's public API
+                     and MAUI 9 removed layout focus deliberately. Expanding is the ONLY route to
+                     a floor's areas, so the whole sidebar below this row was keyboard-unreachable.
+                     A real Button is what Microsoft's keyboard-accessibility guidance prescribes
+                     for exactly this shape, and it is what WinUI's own Expander uses.
+
+                     THE FOOTPRINT IS PINNED — contract C3. The user declined this remedy once, at
+                     sub-session 5c's escalation E5, because a Button grows the header row. So the
+                     glyph keeps the Label's FontFamily and FontSize and the visible chevron is
+                     unchanged; the hit area comes from Padding, not from a bigger glyph;
+                     Transparent + BorderWidth 0 leave nothing of the button drawn; and Margin is
+                     0 because padding is the mechanism and margin is not. Measured at 1920x1080
+                     with 11 floors, the rendered button matches the notebook and delete Buttons
+                     beside it, so the header row's height is unchanged.
+
+                     The glyph flips between ▸ and ▾ in ApplyExpanded, so the description is
+                     rewritten there alongside it; the value here is the collapsed state the glyph
+                     starts in. The Hint no longer sends the user to the card — the chevron itself
+                     does the job now. -->
+                <Button
                     x:Name="ExpandToggle"
                     Grid.Column="0"
                     AutomationId="FloorExpandToggle"
@@ -102,9 +128,20 @@
                     FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeSmall}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    BackgroundColor="Transparent"
+                    BorderWidth="0"
+                    Margin="0"
+                    Padding="{StaticResource DmPaddingCompact}"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     SemanticProperties.Description="Collapsed"
-                    SemanticProperties.Hint="Tap the floor card to expand or collapse its areas."
-                    VerticalOptions="Center" />
+                    SemanticProperties.Hint="Expands or collapses this floor's areas."
+                    Clicked="OnExpandToggleClicked"
+                    VerticalOptions="Center"
+                    ToolTipProperties.Text="Expand or collapse floor">
+                    <Button.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Button.Behaviors>
+                </Button>
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
                      name clear of the action buttons now that the row is on the tightest spacing step. -->
