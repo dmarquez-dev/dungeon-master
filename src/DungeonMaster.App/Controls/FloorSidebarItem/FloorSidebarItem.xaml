@@ -144,7 +144,20 @@
                 </Button>
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
-                     name clear of the action buttons now that the row is on the tightest spacing step. -->
+                     name clear of the action buttons now that the row is on the tightest spacing step.
+
+                     TailTruncation IS WHAT KEEPS CONTRACT C3 SECTION 2 TRUE FOR EVERY NAME, and it
+                     was added because MASTER-163's remedy made the column narrower. A MAUI Label
+                     defaults to WordWrap, so this column's height is a function of the name's
+                     length: measured at 900x640 with 11 floors, reserving the 14-DIU scrollbar
+                     gutter and widening the drag handle to the 23-DIU touch minimum took this
+                     column from 129 to 99, and "Main Tavern" — which needs 107 — went from one
+                     22-DIU line to two. Two lines still measure 44 and the row is 44 because of
+                     its three sibling Buttons, so the card did NOT grow; but a name needing three
+                     lines would have measured 66 and the row would have followed it. Pinning the
+                     label to one line makes the invariant hold for any name rather than for the
+                     eleven that happen to be in the database. The cost is stated rather than
+                     hidden: a name longer than the column is now truncated instead of wrapped. -->
                 <Label
                     x:Name="FloorNameLabel"
                     Grid.Column="1"
@@ -152,6 +165,8 @@
                     FontSize="{StaticResource DmFontSizeSubheading}"
                     TextColor="{StaticResource DmAccentGoldLight}"
                     Margin="0,0,6,0"
+                    LineBreakMode="TailTruncation"
+                    MaxLines="1"
                     VerticalOptions="Center" />
 
                 <!-- Always-visible notebook button — colour reflects whether this floor has
@@ -198,17 +213,41 @@
                     </Button.Behaviors>
                 </Button>
 
-                <!-- Drag handle -->
+                <!-- Drag handle. MASTER-163, AND THE THREE ATTRIBUTES BELOW ARE THE REMEDY, all
+                     of them width or hit-area only: contract C3 section 5 permits a width change
+                     and forbids a height one, so nothing here adds a row or wraps the handle.
+
+                     MEASURED at 900x640 with 11 floors, the sidebar scrolling and the WinUI
+                     overlay scrollbar rendered: the bar's host Grid in the ScrollViewer template
+                     is 14 DIU wide (the ScrollBar inside it is 12) and it paints OVER the
+                     content, because ScrollContentPresenter stays the ScrollViewer's full 300.
+                     The glyph Label was 7 DIU wide at x 284-291 of a 300-wide viewport, so the
+                     overlay covered five of its seven units. The gutter is now reserved once, on
+                     FloorListContainer in DungeonDetailPage.xaml, which moves the whole card in.
+
+                     What is left here is the target itself, which at 7x24 was too small to hit
+                     reliably even with the bar gone. The padding widens the GRAB AREA without
+                     touching the glyph, Fill takes the row's full height instead of 24 of its 44,
+                     and the transparent background is load-bearing rather than cosmetic: WinUI
+                     does not hit-test a null Background, so without it the padding would be
+                     inert and only the glyph itself would take the press.
+
+                     The DragGestureRecognizer stays on THIS Label and its two handler names are
+                     unchanged — contract C1 section 3 freezes both. -->
                 <Label
                     Grid.Column="4"
+                    Padding="8,0"
+                    BackgroundColor="Transparent"
                     AutomationId="FloorDragHandle"
                     Text="&#x22EE;"
                     FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeLarge}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    HorizontalTextAlignment="Center"
+                    VerticalTextAlignment="Center"
                     SemanticProperties.Description="Reorder floor"
                     SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order."
-                    VerticalOptions="Center">
+                    VerticalOptions="Fill">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnDragHandleTapped" />
                         <DragGestureRecognizer DragStarting="OnDragStarting" DropCompleted="OnDropCompleted" />

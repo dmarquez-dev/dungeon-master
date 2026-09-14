@@ -663,9 +663,63 @@
                     </Button>
                 </Grid>
 
-                <!-- Floor list (built in code-behind) -->
+                <!-- Floor list (built in code-behind).
+
+                     THE RIGHT PADDING RESERVES THE WinUI OVERLAY SCROLLBAR GUTTER — MASTER-163.
+                     The bar is an OVERLAY: measured in the running application at 900x640 with
+                     11 floors and the list scrolling, ScrollContentPresenter is the ScrollViewer's
+                     full 300 DIU, and the Grid hosting VerticalScrollBar sits on top of it at 14
+                     DIU wide (the ScrollBar inside that Grid measures 12). So the bar takes no
+                     width from the content and every card ran underneath it. The floor drag
+                     handle, the rightmost thing in a card, occupied x 284-291 of that 300 and the
+                     overlay covered five of its seven units, which is what made it so hard to
+                     grab. Platforms/Windows/App.xaml.cs overrides scrollbar COLOUR only and
+                     reserves nothing, so this is the only reservation there is.
+
+                     14 rather than 12: the reservation clears the whole overlay band the template
+                     lays out, not just the bar drawn inside it. It is a padding on the CONTENT
+                     rather than a margin on the card so the drag placeholder the code-behind
+                     inserts into this same container is inset by it too. This is a width change
+                     and only a width change — contract C3 section 2's height invariant is
+                     untouched, and it was re-measured with the same instrument. -->
                 <ScrollView Grid.Row="2">
-                    <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
+                    <VerticalStackLayout
+                        x:Name="FloorListContainer"
+                        Spacing="0"
+                        Padding="0,0,14,0"
+                        BackgroundColor="Transparent">
+
+                        <!-- THE THIRD DROP TARGET, AND IT EXISTS TO END A SILENT FAILURE
+                             (escalation E6; contract C1 section 4, amended from two targets to
+                             three). Before this, the only two were a floor card's root Border and
+                             the transient placeholder — so a release on the 4-DIU seam between two
+                             cards, on the reserved scrollbar strip, or on any space no handler
+                             owned, was discarded with NO handler, NO error and NO trace. The
+                             reorder works end to end once the drop lands on a card; what failed
+                             was reaching one, and it failed silently, which is why the feature
+                             read as broken.
+
+                             This target does not decide what a drop MEANS. It asks
+                             FloorReorderNearest which card the release meant, then goes through
+                             the SAME FloorReorderDrop.Decide the other two targets use, so all
+                             three share one copy of contract C1 section 1's five rows. A drop
+                             landing INSIDE a card or the placeholder resolves to ExistingTarget
+                             and this handler declines it, so the reorder runs exactly once
+                             whether or not the platform bubbles the drop up to here.
+
+                             THE TRANSPARENT BACKGROUND ABOVE IS PART OF THIS TARGET, not styling.
+                             WinUI does not hit-test an element whose Background is null, and a
+                             layout panel has none by default — so without it this recogniser would
+                             be attached to a surface the pointer passes straight through, and the
+                             fix would be inert while looking applied. Transparent is a real brush
+                             and paints nothing, so it costs no pixels and no layout. This is the
+                             same trap the drag handle has in FloorSidebarItem.xaml. -->
+                        <VerticalStackLayout.GestureRecognizers>
+                            <DropGestureRecognizer
+                                DragOver="OnFloorListDragOver"
+                                Drop="OnFloorListDrop" />
+                        </VerticalStackLayout.GestureRecognizers>
+                    </VerticalStackLayout>
                 </ScrollView>
 
             </Grid>
