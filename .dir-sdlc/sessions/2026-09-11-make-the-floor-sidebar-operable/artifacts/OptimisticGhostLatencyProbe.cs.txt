@@ -1,0 +1,247 @@
+PRESERVED INSTRUMENT — NOT COMPILED CODE
+========================================
+
+This is the measurement probe behind `MASTER-166`'s latency numbers in session 6b-iv. It is stored as
+`.txt` deliberately: it must not be picked up by a build, and it is not part of the shipped tree.
+
+WHAT THIS IS, PRECISELY
+-----------------------
+
+**Transcribed from the authoring command, NOT recovered from the artifact.** T4 wrote the file from a
+heredoc in one shot, made no edits to it afterwards, and deleted it; the file was untracked, so no copy
+survives on disk or in git. T4 disclosed this unprompted when asked for it verbatim. The only
+transformation applied to the on-disk file after this text was LF -> CRLF conversion; content was
+otherwise identical.
+
+Treat this as a faithful transcription with one named gap: nobody re-read the deleted file to confirm
+it byte-for-byte. That distinction is the point — a preserved instrument that overstated its own
+provenance would be the same defect this session spent itself correcting.
+
+**There were TWO versions of this probe. Only this one produced the cited numbers.** An earlier
+50-sample version lacked the per-iteration cleanup, let the aggregate grow, and drifted 9.25 ms ->
+40.03 ms across its run. T4 discarded it and its numbers. Do not reconstruct that version.
+
+WHY IT WAS PRESERVED
+--------------------
+
+T4's reviewer raised it: the probe was deleted, so the measurement rested on a report alone, and T6
+was about to write those numbers into `docs/audit/00-master-index.md` — a permanent record this
+session exists to make trustworthy. A number in that index whose instrument exists nowhere is a claim
+nobody can re-derive. Six such claims were caught and corrected during this session; committing a
+seventh while correcting the other six would have been perverse.
+
+THE NUMBERS IT PRODUCED
+-----------------------
+
+n = 100 (110 iterations, first 10 discarded as warm-up), frame interval 16.7 ms assuming 60 Hz:
+
+  file-backed   min 7.26   median 8.93   p90 11.50   max 16.62   over 16.7 ms: 0 / 100
+  in-memory     min 3.86   median 4.15   p90  5.63   max  7.27   over 16.7 ms: 0 / 100
+
+CAVEATS THAT MUST TRAVEL WITH THE NUMBERS
+-----------------------------------------
+
+1. **`max = 16.62 ms` sat 0.08 ms under the threshold** — 0.5%, well inside run-to-run noise. A re-run
+   on the same machine could plausibly report a non-zero count, and that would NOT contradict the
+   finding; it would confirm the distribution's tail touches the frame boundary. **If `0/100` is
+   cited, this caveat must be cited with it**, not the bare count.
+2. **The 16.7 threshold is hardcoded** in the `over_16.7ms` line and encodes a 60 Hz assumption. On a
+   120 Hz display it becomes 8.3 ms, and a meaningful fraction of these samples would cross it. The
+   `0/100` result is specific to 60 Hz and does not survive the change.
+3. **Handlers are exercised directly, not through `CommandDispatcher`**, so validation and pipeline
+   overhead are excluded. The number is a FLOOR on real wall-clock latency, not a ceiling.
+4. **Steady state is one dungeon, one floor, zero areas.** A real floor carrying many areas makes the
+   `GetDungeonDetailQuery` reload leg more expensive, so this is the cheap end of the realistic range.
+5. **The file-to-memory ratio (~2.2x at the median) is the more portable finding** than either absolute
+   number, and it is what justifies the criterion's insistence on a file-backed harness.
+
+HOW TO RE-RUN IT
+----------------
+
+Place at: `src/DungeonMaster.Tests/AppCore/OptimisticGhostLatencyProbe.cs`
+
+That location matters. `DungeonMaster.Tests` already references Domain, Application and Infrastructure
+and already supplies the global usings for `Fact`, `System.IO`, `System.Linq` and `System.Threading`.
+Any other test project would need those added.
+
+From the worktree root:
+
+    GHOST_PROBE_DIR=<dir> dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj \
+      --filter "FullyQualifiedName~OptimisticGhostLatencyProbe"
+
+  - **Without `--no-build`** — the probe must be compiled in.
+  - `<dir>` must be an EXISTING, writable directory OUTSIDE the repository, on a local fixed disk. The
+    probe does not create it. It writes `ghost-probe-<guid>.db` and `ghost-latency.txt` there and
+    cleans up neither. A `.db` left in the worktree is exactly the hygiene problem deleting the probe
+    avoided.
+  - `GHOST_PROBE_DIR` is read with a null-forgiving `!`. Unset, it fails with a `NullReferenceException`
+    inside `Path.Combine`, not a clear message.
+  - Results are in `ghost-latency.txt`, NOT stdout — a passing xunit test's output is not shown by
+    default.
+  - **`CultureInfo.InvariantCulture` in `Format` is load-bearing, not decorative.** Omit it and
+    `dotnet build src/DungeonMaster.sln` fails with `error CA1305`.
+  - **Indentation is TABS throughout** (252 tab bytes, 0 leading-space lines). Preserve them, and
+    convert to CRLF, or `IDE0055` will fail the build.
+
+RUN CONDITIONS BEHIND THE NUMBERS
+---------------------------------
+
+Windows 11 Pro 10.0.26200 x64; .NET SDK per the repo's `global.json`; target `net10.0`. **Debug
+configuration** — the `dotnet test` default, unoptimised; Release would likely be faster. Scratch
+directory on the system drive, NTFS; disk hardware and real-time antivirus scanning of that path are
+the largest influences on the file-backed numbers and neither was controlled for. SQLite at production
+defaults — `Data Source={path}`, **default journal mode (delete, not WAL)**, no pooling or `PRAGMA`
+overrides, matching `Infrastructure/Persistence/AppDbContextFactory.cs:36`. Switching to WAL would
+change the numbers substantially and would no longer answer the same question. The machine was not
+quiesced; other processes were running.
+
+The in-memory control uses the SAME code path — `MeasureAsync` is called twice from one test with
+identical parameters except the `DbContextOptions`, distinguished only by the `label` string. Both runs
+happen in one invocation, file first, so the in-memory run inherits a warmed EF model — which biases it
+FASTER, the conservative direction for the claim being made.
+
+========================================================================
+SOURCE
+========================================================================
+
+using System.Diagnostics;
+using System.Globalization;
+using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
+using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
+using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Infrastructure.Persistence;
+using DungeonMaster.Infrastructure.Persistence.Repositories;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+
+namespace DungeonMaster.Tests.AppCore;
+
+public sealed class OptimisticGhostLatencyProbe
+{
+	private sealed class ProbeFactory(DbContextOptions<AppDbContext> options)
+		: IDbContextFactory<AppDbContext>
+	{
+		public AppDbContext CreateDbContext() =>
+			new(options);
+	}
+
+	private static async Task<string> MeasureAsync(
+		string label,
+		DbContextOptions<AppDbContext> options)
+	{
+		await using (var migrate = new AppDbContext(options))
+		{
+			await migrate.Database.MigrateAsync();
+		}
+
+		var factory = new ProbeFactory(options);
+		var unitOfWorkFactory = new UnitOfWorkFactory(factory);
+		var readRepository = new DungeonReadRepository(factory);
+
+		var dungeon = new Dungeon("Probe Dungeon", "Latency probe.");
+		var floor = dungeon.AddFloor(null);
+
+		await using (var unitOfWork = await unitOfWorkFactory.CreateAsync(CancellationToken.None))
+		{
+			unitOfWork.Dungeons.Add(dungeon);
+			await unitOfWork.CommitAsync(CancellationToken.None);
+		}
+
+		var addHandler = new AddAreaCommandHandler(unitOfWorkFactory);
+		var outlineHandler = new UpdateAreaOutlineCommandHandler(unitOfWorkFactory);
+		var detailHandler = new GetDungeonDetailQueryHandler(readRepository);
+
+		var outline = new List<PathSegment>
+		{
+			new(PathSegmentKind.Line, new TilePoint(4, 0), null, null),
+			new(PathSegmentKind.Line, new TilePoint(4, 3), null, null),
+			new(PathSegmentKind.Line, new TilePoint(0, 3), null, null),
+			new(PathSegmentKind.Line, new TilePoint(0, 0), null, null),
+		};
+
+		var samples = new List<double>();
+		const int Warmup = 10;
+		const int Total = 110;
+
+		for (var i = 0; i < Total; i++)
+		{
+			var watch = Stopwatch.StartNew();
+
+			var added = await addHandler.HandleAsync(
+				new AddAreaCommand(dungeon.Id, floor.Id, "New Area", null),
+				CancellationToken.None);
+
+			await outlineHandler.HandleAsync(
+				new UpdateAreaOutlineCommand(dungeon.Id, floor.Id, added.Value, outline),
+				CancellationToken.None);
+
+			await detailHandler.HandleAsync(
+				new GetDungeonDetailQuery(dungeon.Id),
+				CancellationToken.None);
+
+			watch.Stop();
+
+			if (i >= Warmup)
+			{
+				samples.Add(watch.Elapsed.TotalMilliseconds);
+			}
+
+			// Untimed: keep the aggregate the same size every iteration, so a growing
+			// reload cannot masquerade as rising write latency.
+			await using var cleanup = await unitOfWorkFactory.CreateAsync(CancellationToken.None);
+			var loaded = await cleanup.Dungeons.LoadAsync(dungeon.Id, CancellationToken.None);
+			loaded!.RemoveArea(floor.Id, added.Value);
+			cleanup.Dungeons.Update(loaded);
+			await cleanup.CommitAsync(CancellationToken.None);
+		}
+
+		var ordered = samples.OrderBy(value => value).ToList();
+		var overFrame = ordered.Count(value => value > 16.7);
+
+		string Format(double value) =>
+			value.ToString("F2", CultureInfo.InvariantCulture);
+
+		return string.Join(
+			Environment.NewLine,
+			$"[{label}] n={ordered.Count}",
+			$"[{label}] min={Format(ordered[0])}",
+			$"[{label}] median={Format(ordered[ordered.Count / 2])}",
+			$"[{label}] p90={Format(ordered[(int)(ordered.Count * 0.9)])}",
+			$"[{label}] max={Format(ordered[^1])}",
+			$"[{label}] over_16.7ms={overFrame}",
+			$"[{label}] chronological=" + string.Join(",", samples.Select(Format)));
+	}
+
+	[Fact]
+	public async Task Probe()
+	{
+		var dbDirectory = Environment.GetEnvironmentVariable("GHOST_PROBE_DIR")!;
+		var dbPath = Path.Combine(dbDirectory, $"ghost-probe-{Guid.NewGuid():N}.db");
+
+		var fileOptions = new DbContextOptionsBuilder<AppDbContext>()
+			.UseSqlite($"Data Source={dbPath}")
+			.Options;
+
+		var fileResult = await MeasureAsync("file", fileOptions);
+
+		using var memoryConnection = new SqliteConnection("Data Source=:memory:");
+		memoryConnection.Open();
+
+		var memoryOptions = new DbContextOptionsBuilder<AppDbContext>()
+			.UseSqlite(memoryConnection)
+			.Options;
+
+		var memoryResult = await MeasureAsync("memory", memoryOptions);
+
+		await File.WriteAllTextAsync(
+			Path.Combine(dbDirectory, "ghost-latency.txt"),
+			string.Join(
+				Environment.NewLine,
+				$"db={dbPath}",
+				$"exists={File.Exists(dbPath)} bytes={new FileInfo(dbPath).Length}",
+				fileResult,
+				memoryResult));
+	}
+}
