@@ -138,10 +138,20 @@
             <TapGestureRecognizer Tapped="OnItemTapped" />
         </Border.GestureRecognizers>
 
+        <!-- MASTER-175. The row body carries a TapGestureRecognizer above, so it is a clickable
+             surface, and it is the largest one in an expanded floor — but it had no
+             HandCursorBehavior at all while the two Buttons inside it did, so the pointer went
+             from hand to arrow to hand as it crossed the row. This is ABSENCE being closed, not
+             the inertness MASTER-165 alleges: measurement.md section 2 observed the hand cursor
+             working on all three floor-card configurations, including the as-shipped one, so the
+             behavior itself is sound. The attachment matches FloorSidebarItem.xaml:88, the same
+             fix on the floor card body. It is a behavior and nothing else — no size, no padding,
+             no margin, no gesture and no visual state changes here. -->
         <Border.Behaviors>
             <behaviors:HoverOrLongPressBehavior
                 HoverEntered="OnHoverEntered"
                 HoverExited="OnHoverExited" />
+            <behaviors:HandCursorBehavior />
         </Border.Behaviors>
     </Border>
 </ContentView>

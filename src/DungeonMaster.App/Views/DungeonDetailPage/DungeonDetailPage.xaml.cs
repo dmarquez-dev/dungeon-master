@@ -4,6 +4,7 @@ using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Controls;
 using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Core.Map;
+using DungeonMaster.App.Core.Timing;
 using DungeonMaster.App.Extensions;
 using DungeonMaster.App.Graphics;
 using DungeonMaster.App.Services.Platform;
@@ -1723,8 +1724,11 @@ public partial class DungeonDetailPage : ContentPage
 					await _viewModel.Canvas.MoveAreaOutlineCommand.ExecuteAsync(
 						new MoveAreaOutlineArgs(floorId, areaId, newOutline));
 
-					_drawable.ClearPendingMoveOffsets();
-					await RefreshFloorAsync();
+					// MASTER-166, same shape as FinishDrawing: the pending offset is the
+					// optimistic visual here, so it survives until the reload has replaced it.
+					await OptimisticGhostSequence.RefreshThenClearAsync(
+						RefreshFloorAsync,
+						_drawable.ClearPendingMoveOffsets);
 				}
 
 				UpdateToolbarButtonState();
@@ -1764,9 +1768,13 @@ public partial class DungeonDetailPage : ContentPage
 		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 		_drawable.ClearInProgressVertices();
 		_drawable.PhantomEnd = null;
-		_drawable.ClearGhostAreas();
 
-		await RefreshFloorAsync();
+		// MASTER-166: the ghost is cleared only AFTER the reload that replaces it, so no
+		// frame can show neither the ghost nor the persisted area.
+		await OptimisticGhostSequence.RefreshThenClearAsync(
+			RefreshFloorAsync,
+			_drawable.ClearGhostAreas);
+
 		// Restore the focus dim if an area was focused before the draw
 		if (_editor.FocusedAreaId is not null)
 		{
@@ -2198,6 +2206,141 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
+	// ─── The floor list as a drop target ────────────────────────────────────────
+
+	/// <summary>
+	///		Accepts a floor drag anywhere over the floor list, including the gaps between cards.
+	/// </summary>
+	/// <remarks>
+	///		<c>Copy</c> is the only non-<c>None</c> member MAUI's <c>DataPackageOperation</c> has —
+	///		<c>Move</c> does not exist there — and it is what both of the other two drop targets
+	///		accept. Contract C1 section 4 records this as a refuted candidate: a task must not
+	///		"fix" the reorder by reaching for <c>.Move</c>.
+	/// </remarks>
+	private void OnFloorListDragOver(object? sender, DragEventArgs e) =>
+		e.AcceptedOperation = DataPackageOperation.Copy;
+
+	/// <summary>
+	///		Resolves a drop that missed every floor card to the card it meant, and reorders.
+	/// </summary>
+	/// <remarks>
+	///		<para>
+	///		ESCALATION E6. This is the end of the silent discard. <c>FloorListContainer</c> carried
+	///		no drop target at all, so a release on the 4-DIU seam between two cards, or on any space
+	///		no handler owned, was discarded with no handler, no error and no trace — and because the
+	///		reorder itself works once the drop lands on a card, that silence is what made the whole
+	///		feature read as broken.
+	///		</para>
+	///		<para>
+	///		THE BANDS ARE BUILT BEFORE <see cref="ClearDragPlaceholder"/> RUNS, and the order is
+	///		load-bearing: the placeholder is itself a drop target occupying a band, so a list built
+	///		after clearing it would report the placeholder's strip as unowned space and resolve a
+	///		drop the placeholder had already handled.
+	///		</para>
+	///		<para>
+	///		async void: an escaping exception is UNOBSERVED and is rethrown on the synchronisation
+	///		context, which takes the process down. The try opens before the first await for that
+	///		reason, not as defensive style — the same shape as the other two drop handlers.
+	///		</para>
+	/// </remarks>
+	private async void OnFloorListDrop(object? sender, DropEventArgs e)
+	{
+		try
+		{
+			var position = e.GetPosition(FloorListContainer);
+
+			if (position is not Point point)
+			{
+				return;
+			}
+
+			var bands = new List<FloorListBand>();
+			var cards = new List<FloorSidebarItem?>();
+
+			foreach (var child in FloorListContainer.Children)
+			{
+				if (child is not View view)
+				{
+					continue;
+				}
+
+				var item = view as FloorSidebarItem;
+				var target = DropTargetWithin(view);
+
+				bands.Add(new FloorListBand(
+					item is null ? FloorListBandKind.TransientDropTarget : FloorListBandKind.FloorCard,
+					view.Y + (ReferenceEquals(target, view) ? 0 : target.Y),
+					target.Height));
+
+				cards.Add(item);
+			}
+
+			var resolution = FloorReorderNearest.Resolve(bands, point.Y);
+
+			// ExistingTarget means the release landed inside a card or the placeholder, both of
+			// which carry a handler of their own. Declining here is what keeps the reorder running
+			// exactly once regardless of whether the platform bubbles the drop up to this handler.
+			if (resolution.Owner != FloorDropOwner.FloorList)
+			{
+				return;
+			}
+
+			var nearest = cards[resolution.BandIndex];
+
+			ClearDragPlaceholder();
+
+			// The same decision the other two drop targets make, from the same owner, so the three
+			// cannot drift apart. e.Data is null-conditional because MAUI hands these args a
+			// nullable package; see FloorReorderDrop's remarks.
+			var decision = FloorReorderDrop.Decide(
+				e.Data?.Properties,
+				nearest?.Floor?.Id,
+				nearest?.Floor?.Number ?? 0);
+
+			if (!decision.ShouldReorder)
+			{
+				return;
+			}
+
+			_editor.SelectedFloorId = decision.DraggedFloorId;
+			await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
+				new ReorderFloorArgs(decision.DraggedFloorId, decision.TargetFloorNumber));
+		}
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not reorder the floors: {exception.Message}";
+		}
+	}
+
+	/// <summary>
+	///		The element inside <paramref name="child"/> that actually carries a drop target, or
+	///		<paramref name="child"/> itself when none does.
+	/// </summary>
+	/// <remarks>
+	///		A floor card is a <c>ContentView</c> 58 DIU tall whose root <c>Border</c> — the element
+	///		carrying the <c>DropGestureRecognizer</c> — is 54, the remaining 4 being that border's
+	///		bottom margin. THOSE 4 DIU ARE THE SEAM THIS WHOLE FIX IS ABOUT, so measuring the band
+	///		from the child's 58 would swallow the gap and report it as a hit on the card. Reading
+	///		the recogniser's own host rather than subtracting a hard-coded 4 keeps the two facts
+	///		from drifting if the card's margin ever changes.
+	/// </remarks>
+	private static View DropTargetWithin(View child)
+	{
+		if (child.GestureRecognizers.OfType<DropGestureRecognizer>().Any())
+		{
+			return child;
+		}
+
+		if (child is ContentView content
+			&& content.Content is View inner
+			&& inner.GestureRecognizers.OfType<DropGestureRecognizer>().Any())
+		{
+			return inner;
+		}
+
+		return child;
+	}
+
 	// ─── Drag-and-drop placeholder ──────────────────────────────────────────────
 
 	private void ShowDragPlaceholder(FloorSidebarItem target)
@@ -2266,29 +2409,22 @@ public partial class DungeonDetailPage : ContentPage
 			{
 				ClearDragPlaceholder();
 
-				if (capturedTarget.Floor is null)
+				// The same decision the floor card's own drop target makes, from the same owner, so
+				// the two targets cannot drift apart. dropArgs.Data is null-conditional because
+				// MAUI hands these args a nullable package; see FloorReorderDrop's remarks.
+				var decision = FloorReorderDrop.Decide(
+					dropArgs.Data?.Properties,
+					capturedTarget.Floor?.Id,
+					capturedTarget.Floor?.Number ?? 0);
+
+				if (!decision.ShouldReorder)
 				{
 					return;
 				}
 
-				if (!dropArgs.Data.Properties.TryGetValue("FloorId", out var obj))
-				{
-					return;
-				}
-
-				if (obj is not string idStr || !Guid.TryParse(idStr, out var draggedId))
-				{
-					return;
-				}
-
-				if (draggedId == capturedTarget.Floor.Id)
-				{
-					return;
-				}
-
-				_editor.SelectedFloorId = draggedId;
+				_editor.SelectedFloorId = decision.DraggedFloorId;
 				await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
-					new ReorderFloorArgs(draggedId, capturedTarget.Floor.Number));
+					new ReorderFloorArgs(decision.DraggedFloorId, decision.TargetFloorNumber));
 			}
 			catch (Exception exception)
 			{

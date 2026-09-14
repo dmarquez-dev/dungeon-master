@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using System.Threading;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.Windows;
@@ -94,6 +97,111 @@ internal sealed class AppSession : IDisposable
 		{
 			_driver.Manage().Timeouts().ImplicitWait = ElementTimeout;
 		}
+	}
+
+	/// <summary>
+	/// How long a condition wait keeps re-reading before it gives up.
+	/// </summary>
+	internal static readonly TimeSpan ConditionTimeout = TimeSpan.FromSeconds(10);
+
+	/// <summary>
+	/// Every element carrying <paramref name="automationId"/>, in tree order, waiting for the
+	/// first one to appear.
+	/// </summary>
+	/// <remarks>
+	/// RebuildFloorList adds one FloorSidebarItem per floor, so every id contract C2 section 1
+	/// tables appears ONCE PER FLOOR in the UIA tree. Nothing in this project may assume a
+	/// unique match; a card's own controls are reached positionally within the card's index.
+	/// </remarks>
+	internal IReadOnlyList<AppiumElement> FindAllElements(string automationId)
+	{
+		_ = WaitForElement(automationId);
+		return _driver.FindElements(MobileBy.AccessibilityId(automationId)).Cast<AppiumElement>().ToArray();
+	}
+
+	/// <summary>Finds one element by XPath over the UIA tree.</summary>
+	/// <remarks>
+	/// Used for the sidebar's scroll viewport, which declares no AutomationId. It is NOT given
+	/// one: contract C2 section 1 freezes the id table and this project adds none, so the
+	/// viewport is reached as the floor card's parent and its ClassName is asserted at the point
+	/// of use rather than trusted.
+	/// </remarks>
+	internal AppiumElement FindByXPath(string xpath) =>
+		(AppiumElement)_driver.FindElement(By.XPath(xpath));
+
+	/// <summary>
+	/// The current UIA page source, re-read on a transient server failure until
+	/// <see cref="ConditionTimeout"/> elapses.
+	/// </summary>
+	/// <remarks>
+	/// The retry is not a wait for the UI to settle. A source read was MEASURED failing once
+	/// mid-transition on 2026-09-14 while every read either side of it succeeded, so a single
+	/// failed read must not be reported as a failed assertion.
+	/// </remarks>
+	internal string PageSource
+	{
+		get
+		{
+			var deadline = Stopwatch.StartNew();
+			WebDriverException? last = null;
+			do
+			{
+				try
+				{
+					return _driver.PageSource;
+				}
+				catch (WebDriverException exception)
+				{
+					last = exception;
+					Thread.Sleep(TimeSpan.FromMilliseconds(250));
+				}
+			}
+			while (deadline.Elapsed < ConditionTimeout);
+
+			throw new InvalidOperationException(
+				$"The driver would not return a page source within {ConditionTimeout}.", last);
+		}
+	}
+
+	/// <summary>The AutomationId of the element that currently holds the keyboard focus.</summary>
+	internal string FocusedAutomationId() => UiaFocus.FocusedAutomationId(PageSource);
+
+	/// <summary>
+	/// Presses Tab once, by sending the key to the application window element.
+	/// </summary>
+	/// <remarks>
+	/// The key goes to an ELEMENT rather than through a W3C action chain because this
+	/// server/driver pair rejects a key input source outright — measured 2026-09-14, see
+	/// <see cref="UiaFocus"/>. The window element is the recipient because the key is meant for
+	/// whatever holds focus, not for a particular control.
+	/// </remarks>
+	internal void PressTab() => FindByXPath("/*").SendKeys(Keys.Tab);
+
+	/// <summary>
+	/// Re-evaluates <paramref name="condition"/> until it holds or
+	/// <see cref="ConditionTimeout"/> elapses; returns whether it came to hold.
+	/// </summary>
+	/// <remarks>
+	/// This is what the no-sleeping rule asks for: the test waits on the condition it cares
+	/// about with a bounded timeout, instead of guessing a duration the UI will have settled in.
+	/// </remarks>
+	internal static bool WaitUntil(Func<bool> condition)
+	{
+		ArgumentNullException.ThrowIfNull(condition);
+
+		var deadline = Stopwatch.StartNew();
+		do
+		{
+			if (condition())
+			{
+				return true;
+			}
+
+			Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		}
+		while (deadline.Elapsed < ConditionTimeout);
+
+		return condition();
 	}
 
 	/// <summary>A one-line description of this session, for console evidence.</summary>

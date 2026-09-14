@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.App.Theme;
 
@@ -290,10 +291,19 @@ public partial class FloorSidebarItem : ContentView
 	{
 		var expanded = IsExpanded;
 
-		ExpandToggle.Text = expanded ? "▾" : "▸";
+		// THE TYPE ANNOTATION IS A GUARD, not a style choice. ExpandToggle must stay a Button:
+		// as a Label it takes no keyboard focus on WinUI, and expanding is the only route to a
+		// floor's areas, so the entire area list went keyboard-unreachable (MASTER-164). Nothing
+		// about a Label would fail to compile against the two statements below, so reverting the
+		// markup would be a silent regression — exactly the way this defect arrived. Written out
+		// as a Button, the revert is CS0029 and the build stops. Same reason the four *State
+		// constants at the top of this file are named rather than inlined.
+		Button toggle = ExpandToggle;
+
+		toggle.Text = expanded ? "▾" : "▸";
 
 		SemanticProperties.SetDescription(
-			ExpandToggle,
+			toggle,
 			expanded
 				? "Expanded"
 				: "Collapsed");
@@ -328,6 +338,24 @@ public partial class FloorSidebarItem : ContentView
 			return;
 		}
 
+		IsExpanded = true;
+		SelectRequested?.Invoke(this, EventArgs.Empty);
+	}
+
+	// The chevron does exactly what a card tap does, and that is the point: it is the KEYBOARD
+	// route to the same behaviour, not a second behaviour. It deliberately does not decide the
+	// expanded state for itself — the page owns that decision, collapsing an already-selected
+	// floor in its SelectRequested handler — so toggling here would be two mechanisms driving one
+	// fact, which is the exact defect MASTER-098 took out of this file.
+	//
+	// IT ALSO DOES NOT SET _suppressCardTap, and that is measured rather than reasoned. A Clicked
+	// on this Button does NOT reach the card's VerticalStackLayout TapGestureRecognizer, so the
+	// flag had nothing to suppress and stayed set — and the next card-body tap was swallowed by
+	// it. Observed 2026-09-11 against the built app driven through UIA: chevron expand, chevron
+	// collapse, then a card-body click that did nothing, where the same card-body click expanded
+	// the floor in a control run with no chevron click before it.
+	private void OnExpandToggleClicked(object? sender, EventArgs e)
+	{
 		IsExpanded = true;
 		SelectRequested?.Invoke(this, EventArgs.Empty);
 	}
@@ -407,26 +435,24 @@ public partial class FloorSidebarItem : ContentView
 		_isDragOver = false;
 		UpdateVisualState();
 
-		if (Floor is null)
+		// The four silent returns of contract C1 section 1 live in FloorReorderDrop.Decide, which
+		// the page's placeholder drop target calls too, so the two drop targets cannot disagree.
+		//
+		// e.Data is reached through a null-conditional because MAUI's Windows gesture manager
+		// builds these args from a NULLABLE package (GesturePlatformManager.Windows.cs, HandleDrop,
+		// `datapackage?.View`). At Microsoft.Maui.Controls 10.0.41 DropEventArgs' internal
+		// constructor substitutes `new DataPackageView(new DataPackage())` for a null, so the guard
+		// is defence against a contract, not against a path reachable today - and the substitution
+		// is worth knowing about for its own sake: when the platform cannot recover the source
+		// package it hands this handler an EMPTY one, which is indistinguishable here from a drop
+		// that carried no FloorId, and is therefore a silent return by design.
+		var decision = FloorReorderDrop.Decide(e.Data?.Properties, Floor?.Id, Floor?.Number ?? 0);
+
+		if (!decision.ShouldReorder)
 		{
 			return;
 		}
 
-		if (!e.Data.Properties.TryGetValue("FloorId", out var obj))
-		{
-			return;
-		}
-
-		if (obj is not string idStr || !Guid.TryParse(idStr, out var draggedId))
-		{
-			return;
-		}
-
-		if (draggedId == Floor.Id)
-		{
-			return;
-		}
-
-		ReorderRequested?.Invoke(this, (draggedId, Floor.Number));
+		ReorderRequested?.Invoke(this, (decision.DraggedFloorId, decision.TargetFloorNumber));
 	}
 }
