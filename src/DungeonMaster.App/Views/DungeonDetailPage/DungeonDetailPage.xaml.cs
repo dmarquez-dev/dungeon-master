@@ -4,6 +4,7 @@ using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Controls;
 using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Core.Map;
+using DungeonMaster.App.Core.Timing;
 using DungeonMaster.App.Extensions;
 using DungeonMaster.App.Graphics;
 using DungeonMaster.App.Services.Platform;
@@ -1723,8 +1724,11 @@ public partial class DungeonDetailPage : ContentPage
 					await _viewModel.Canvas.MoveAreaOutlineCommand.ExecuteAsync(
 						new MoveAreaOutlineArgs(floorId, areaId, newOutline));
 
-					_drawable.ClearPendingMoveOffsets();
-					await RefreshFloorAsync();
+					// MASTER-166, same shape as FinishDrawing: the pending offset is the
+					// optimistic visual here, so it survives until the reload has replaced it.
+					await OptimisticGhostSequence.RefreshThenClearAsync(
+						RefreshFloorAsync,
+						_drawable.ClearPendingMoveOffsets);
 				}
 
 				UpdateToolbarButtonState();
@@ -1764,9 +1768,13 @@ public partial class DungeonDetailPage : ContentPage
 		_editor.ResetDrawState(_editor.SelectedFloorId is not null);
 		_drawable.ClearInProgressVertices();
 		_drawable.PhantomEnd = null;
-		_drawable.ClearGhostAreas();
 
-		await RefreshFloorAsync();
+		// MASTER-166: the ghost is cleared only AFTER the reload that replaces it, so no
+		// frame can show neither the ghost nor the persisted area.
+		await OptimisticGhostSequence.RefreshThenClearAsync(
+			RefreshFloorAsync,
+			_drawable.ClearGhostAreas);
+
 		// Restore the focus dim if an area was focused before the draw
 		if (_editor.FocusedAreaId is not null)
 		{
