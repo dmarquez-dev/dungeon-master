@@ -232,8 +232,41 @@
                      does not hit-test a null Background, so without it the padding would be
                      inert and only the glyph itself would take the press.
 
-                     The DragGestureRecognizer stays on THIS Label and its two handler names are
-                     unchanged — contract C1 section 3 freezes both. -->
+                     THIS IS A Label, AND A Button WAS TRIED HERE AND REVERTED. Do not convert it
+                     again without reading this paragraph. Sub-session 6b-vi made it a Button so
+                     it could take keyboard focus for the Ctrl+Up / Ctrl+Down reorder route
+                     (MASTER-176), exactly as ExpandToggle above is a Button for MASTER-164. The
+                     human observation pass O1, run against that build on 2026-09-16, found that
+                     it BROKE THE POINTER DRAG: a WinUI Button consumes the press, so MAUI's drag
+                     gesture recogniser never started a drag from it, and clicking and holding the
+                     handle produced no behaviour at all. Microsoft's own drag-and-drop guidance
+                     attaches that recogniser only to non-interactive elements — Image, Rectangle,
+                     Path — and exposes no property that makes a Button a drag source, so there is
+                     no documented fix that keeps the Button. The same pass
+                     also found the Button's wider footprint squeezing the floor name beside it
+                     (MAIN TAV… became MAIN TA…). Contract C1 amendment A1 reverted this element
+                     to the Label below, which is the exact element 6b-iv observed starting a drag
+                     on 2026-09-11.
+
+                     THE KEYBOARD ROUTE DID NOT GO WITH IT. It now gates on focus being anywhere
+                     WITHIN the floor card rather than on this handle — FloorSidebarItem's
+                     ContainsKeyboardFocus, read by DungeonDetailPage.OnKeyDown — because
+                     MASTER-164 already made every card keyboard-reachable through ExpandToggle.
+                     The cost is disclosed in A1: this handle is no longer its own tab stop, so a
+                     screen-reader user meets its Hint as static text, and the Hint below is
+                     worded accordingly.
+
+                     THE DRAG GESTURE IS ON THIS Label, with both handler names unchanged, and
+                     this file declares exactly ONE drag source: OnDragStarting is the payload
+                     contract's only writer, so a second one would start a reorder from somewhere
+                     that payload was never written for.
+
+                     THE TAP RECOGNISER THAT SAT HERE STAYS GONE. Its handler set _suppressCardTap
+                     to stop the card expanding when the handle was pressed; it was removed with
+                     the Button conversion because a Button press does not reach the card's
+                     VerticalStackLayout tap recogniser, and it is NOT restored, because its only
+                     purpose was compensating for that Button. _suppressCardTap itself stays:
+                     OnDeleteClicked and OnNotebookClicked still set it. -->
                 <Label
                     Grid.Column="4"
                     Padding="8,0"
@@ -246,10 +279,10 @@
                     HorizontalTextAlignment="Center"
                     VerticalTextAlignment="Center"
                     SemanticProperties.Description="Reorder floor"
-                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order."
+                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order. With a floor card focused, press Control plus Up Arrow or Control plus Down Arrow to move it."
+                    ToolTipProperties.Text="Reorder floor (Ctrl+Up / Ctrl+Down)"
                     VerticalOptions="Fill">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnDragHandleTapped" />
                         <DragGestureRecognizer DragStarting="OnDragStarting" DropCompleted="OnDropCompleted" />
                     </Label.GestureRecognizers>
                 </Label>
