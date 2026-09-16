@@ -156,14 +156,26 @@ public partial class FloorSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		Gets a value indicating whether this floor's reorder handle currently holds keyboard focus.
-	///		Computed on every read off the Button's own IsFocused, so it cannot go stale against it.
-	///		A stored copy would be two owners of one fact — the defect MASTER-098 took out of this
-	///		file — and the frontend discipline requires derived values to be computed, never stored.
-	///		<c>DungeonDetailPage</c> reads this to gate its Ctrl+Up / Ctrl+Down reorder route,
-	///		which fires only while exactly one floor's handle is focused.
+	///		Gets a value indicating whether any focusable descendant of this floor card currently
+	///		holds keyboard focus — the chevron, the notebook and delete buttons, the name entry, or
+	///		anything in the area list below them.
+	///		<para>
+	///		Walked on every read off each descendant's own IsFocused, so it cannot go stale against
+	///		them. A stored copy would be two owners of one fact — the defect MASTER-098 took out of
+	///		this file — and the frontend discipline requires derived values to be computed, never
+	///		stored. DmCard tracks the same fact with a counter fed by Focused/Unfocused events; that
+	///		shape is deliberately NOT copied here, because the counter is the stored copy this
+	///		control must not have.
+	///		</para>
+	///		<para>
+	///		<c>DungeonDetailPage</c> reads this to gate its Ctrl+Up / Ctrl+Down reorder route, which
+	///		fires only while exactly one floor card reports focus. The gate is the CARD and not the
+	///		drag handle because the handle is a Label again (contract C1 amendment A1) and a Label
+	///		takes no keyboard focus on WinUI; MASTER-164 already made every card reachable by Tab
+	///		through ExpandToggle, which is what the route rests on now.
+	///		</para>
 	/// </summary>
-	public bool IsDragHandleFocused => DragHandle.IsFocused;
+	public bool ContainsKeyboardFocus => HasFocusedDescendant(this);
 
 	/// <summary>
 	///		Gets or sets a value indicating whether this floor's area list is shown.
@@ -294,28 +306,65 @@ public partial class FloorSidebarItem : ContentView
 	}
 
 	/// <summary>
-	///		Moves keyboard focus to this floor's reorder handle.
+	///		Moves keyboard focus to this floor card's reorder affordance — the expand chevron, which
+	///		is the element on this card that reliably takes keyboard focus on WinUI.
 	///		Focus is an ACTION, not appearance state, so it is a method and not a bindable property —
-	///		and the Button lives inside this control's template, so the page has no other handle on
+	///		and the chevron lives inside this control's template, so the page has no other handle on
 	///		it. This is the same justified shape as <see cref="SetAreaEditing"/> and does not reopen
 	///		MASTER-098, whose direction is that APPEARANCE state be bindable rather than driven by
 	///		imperative setters.
 	///		<para>
 	///		The page calls this after a keyboard reorder completes, because RebuildFloorList clears
-	///		FloorListContainer.Children and the Button that held focus is destroyed by the very
-	///		reorder the user just performed; without it the route would work exactly once.
+	///		FloorListContainer.Children and the element that held focus is destroyed by the very
+	///		reorder the user just performed; without it the route would work exactly once. It worked
+	///		on repeat in observation pass O1 and must not regress.
+	///		</para>
+	///		<para>
+	///		It targets the chevron and NOT the drag handle, which contract C1 amendment A1 reverted
+	///		to a Label. A1 discloses the behaviour change this carries: a user who pressed Ctrl+arrow
+	///		with focus on the delete button lands on the chevron afterwards rather than back on
+	///		delete. Predictable and announced beats focus lost to the top of the page.
 	///		</para>
 	/// </summary>
-	public void FocusDragHandle()
+	public void FocusReorderAffordance()
 	{
 		// THE TYPE ANNOTATION IS A GUARD, not a style choice, and it is the same guard
-		// ApplyExpanded puts on ExpandToggle. DragHandle must stay a Button: as a Label it takes
-		// no keyboard focus on WinUI, so the Ctrl+Up / Ctrl+Down reorder route dies silently and
-		// nothing about a Label would fail to compile against the call below. Written out as a
-		// Button, reverting the markup is CS0029 and the build stops.
-		Button handle = DragHandle;
+		// ApplyExpanded puts on ExpandToggle for the same reason. ExpandToggle must stay a Button:
+		// as a Label it takes no keyboard focus on WinUI (MASTER-164), so this restoration would
+		// silently do nothing and the keyboard reorder route would work exactly once — and nothing
+		// about a Label would fail to compile against the call below. Written out as a Button,
+		// reverting the markup is CS0029 and the build stops.
+		Button toggle = ExpandToggle;
 
-		handle.Focus();
+		toggle.Focus();
+	}
+
+	// The walk behind ContainsKeyboardFocus. It is recursive and unmemoised on purpose: the result
+	// is derived from the descendants' own IsFocused and is never stored, so there is nothing to go
+	// stale. The visual-tree walk is the shape DmCard.ForEachVisualElement already uses in this
+	// project. The root itself is skipped because a ContentView takes no focus and the question is
+	// about DESCENDANTS.
+	private static bool HasFocusedDescendant(Element root)
+	{
+		foreach (var child in ((IVisualTreeElement)root).GetVisualChildren())
+		{
+			if (child is not Element childElement)
+			{
+				continue;
+			}
+
+			if (childElement is VisualElement { IsFocused: true })
+			{
+				return true;
+			}
+
+			if (HasFocusedDescendant(childElement))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	// The glyph IS the expanded state, so the description moves with it; both are CONTENT rather
@@ -396,11 +445,13 @@ public partial class FloorSidebarItem : ContentView
 	}
 
 	// THE DRAG HANDLE'S TAP HANDLER IS DELIBERATELY GONE, along with the tap recogniser that named
-	// it. It set _suppressCardTap, and once the handle became a Button its press stopped reaching
-	// the card's VerticalStackLayout tap recogniser — the same measured behaviour
-	// OnExpandToggleClicked's comment above records — so the flag had nothing to suppress, stayed
-	// set, and swallowed the next card-body tap. _suppressCardTap itself stays: OnDeleteClicked
-	// and OnNotebookClicked still set it.
+	// it, and it is NOT coming back now that the handle is a Label again. It set _suppressCardTap,
+	// and when the handle was briefly a Button its press stopped reaching the card's
+	// VerticalStackLayout tap recogniser — the same measured behaviour OnExpandToggleClicked's
+	// comment above records — so the flag had nothing to suppress, stayed set, and swallowed the
+	// next card-body tap. Restoring it would be restoring a compensation for an element this file
+	// no longer has: contract C1 amendment A1 keeps it deleted. _suppressCardTap itself stays:
+	// OnDeleteClicked and OnNotebookClicked still set it.
 
 	private void OnPointerEntered(object? sender, PointerEventArgs e)
 	{

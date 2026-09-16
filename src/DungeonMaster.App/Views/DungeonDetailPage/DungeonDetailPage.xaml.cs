@@ -372,7 +372,7 @@ public partial class DungeonDetailPage : ContentPage
 		// first await for that reason, not as defensive style.
 		try
 		{
-			// Ctrl+Up / Ctrl+Down reorder the floor whose drag handle holds keyboard focus.
+			// Ctrl+Up / Ctrl+Down reorder the floor whose CARD holds keyboard focus, not its drag handle.
 			//
 			// IT SITS BEFORE THE SWITCH BELOW because an arrow key carries no meaningful KeyChar,
 			// so char.ToLower(e.KeyChar) cannot see one. Key and Modifiers are the properties
@@ -381,11 +381,11 @@ public partial class DungeonDetailPage : ContentPage
 			//
 			// THE FOCUS GATE IS THE WHOLE SCOPING MECHANISM, and there is no alternative to it.
 			// Plugin.Maui.KeyListener's KeyboardBehavior subscribes to XamlRoot.Content, so it is
-			// GLOBAL to the window however it is attached: a second one on the drag handle would
+			// GLOBAL to the window however it is attached: a second one on a card would
 			// double-fire rather than scope anything. So this page keeps its single behaviour,
-			// attached once above, and asks the sidebar which handle has focus instead.
+			// attached once above, and asks the sidebar which card has focus instead.
 			//
-			// A Ctrl+arrow with no handle focused, or on the top or bottom floor, does nothing
+			// A Ctrl+arrow with no card focused, or on the top or bottom floor, does nothing
 			// and sets NO error message. It is a keystroke that means nothing here, not a failure.
 			if (e.Modifiers.HasFlag(KeyboardModifiers.Control)
 				&& (e.Key == KeyboardKeys.UpArrow || e.Key == KeyboardKeys.DownArrow))
@@ -2218,15 +2218,20 @@ public partial class DungeonDetailPage : ContentPage
 	}
 
 	/// <summary>
-	///		Moves the floor whose reorder handle holds keyboard focus one position up or down.
+	///		Moves the floor card that holds keyboard focus one position up or down.
 	/// </summary>
 	/// <remarks>
-	///		Every rejected case returns silently and sets no error message: no handle focused, more
+	///		The gate is the CARD and not its drag handle: contract C1 amendment A1 reverted the handle
+	///		to a Label, which takes no keyboard focus on WinUI, and MASTER-164 already made every card
+	///		reachable by Tab through its chevron.
+	///		<para>
+	///		Every rejected case returns silently and sets no error message: no card focused, more
 	///		than one reporting focus, a card with no floor, and the four cases
 	///		<see cref="FloorReorderKeys.Decide"/> rejects (fewer than two floors, a floor number
 	///		outside the list, the top floor moving up, the bottom floor moving down). The decision
 	///		itself lives in App.Core so it is testable without a MAUI host; this method is only the
 	///		focus gate, the call, and the focus restoration.
+	///		</para>
 	/// </remarks>
 	private async Task ReorderFocusedFloorAsync(bool moveUp)
 	{
@@ -2234,12 +2239,12 @@ public partial class DungeonDetailPage : ContentPage
 
 		foreach (var child in FloorListContainer.Children)
 		{
-			if (child is not FloorSidebarItem item || !item.IsDragHandleFocused)
+			if (child is not FloorSidebarItem item || !item.ContainsKeyboardFocus)
 			{
 				continue;
 			}
 
-			// Two handles reporting focus at once would make "the focused floor" ambiguous, and
+			// Two cards reporting focus at once would make "the focused floor" ambiguous, and
 			// guessing between them would reorder a floor the user was not on. Do nothing.
 			if (focused is not null)
 			{
@@ -2272,24 +2277,25 @@ public partial class DungeonDetailPage : ContentPage
 			new ReorderFloorArgs(movedFloorId, decision.TargetFloorNumber));
 
 		// REQUIRED, not a nicety. The reorder refills Items, which rebuilds the floor list, which
-		// clears FloorListContainer.Children — so the Button that held focus was destroyed by the
+		// clears FloorListContainer.Children — so the element that held focus was destroyed by the
 		// very keystroke the user just pressed. Without this the route works exactly once and then
-		// throws focus to the top of the page. The moved floor's card is a NEW instance, so it is
+		// throws focus to the top of the page; observation pass O1 confirmed the repeat case
+		// working and it must not regress. The moved floor's card is a NEW instance, so it is
 		// re-found by floor ID rather than by holding the old reference.
-		RestoreDragHandleFocus(movedFloorId);
+		RestoreFloorCardFocus(movedFloorId);
 	}
 
 	/// <summary>
-	///		Moves keyboard focus to the reorder handle of the floor card carrying
+	///		Moves keyboard focus to the reorder affordance of the floor card carrying
 	///		<paramref name="floorId"/>, or does nothing if no card carries it.
 	/// </summary>
-	private void RestoreDragHandleFocus(Guid floorId)
+	private void RestoreFloorCardFocus(Guid floorId)
 	{
 		foreach (var child in FloorListContainer.Children)
 		{
 			if (child is FloorSidebarItem item && item.Floor?.Id == floorId)
 			{
-				item.FocusDragHandle();
+				item.FocusReorderAffordance();
 				return;
 			}
 		}
