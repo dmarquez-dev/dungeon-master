@@ -1,7 +1,7 @@
 using DungeonMaster.App.Assets.ObjectAssets;
 using DungeonMaster.App.Behaviors;
 using DungeonMaster.App.Theme;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
 

@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
 
