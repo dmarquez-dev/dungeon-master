@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.Entities;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeon.Dungeon;
+using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
 
 namespace DungeonMaster.Tests.Domain.Entities.Floor;
 

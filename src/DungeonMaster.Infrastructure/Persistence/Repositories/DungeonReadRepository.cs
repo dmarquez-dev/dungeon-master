@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DungeonMaster.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-///		Provides read-side data access operations for <see cref="DungeonMaster.Domain.Entities.Dungeon.Dungeon"/> aggregates.
+///		Provides read-side data access operations for <see cref="DungeonMaster.Domain.Entities.Dungeons.Dungeon"/> aggregates.
 ///		Each query is its own unit of work: it creates a context, projects, and disposes.
 /// </summary>
 public sealed class DungeonReadRepository(

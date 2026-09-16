@@ -1,5 +1,5 @@
-using DungeonMaster.Domain.Entities.Dungeon;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using DungeonMaster.Infrastructure.Persistence;
 using DungeonMaster.Infrastructure.Persistence.Repositories;

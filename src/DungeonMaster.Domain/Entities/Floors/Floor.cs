@@ -1,13 +1,13 @@
-using DungeonMaster.Domain.Entities.Area;
+using DungeonMaster.Domain.Entities.Areas;
 
-namespace DungeonMaster.Domain.Entities.Floor;
+namespace DungeonMaster.Domain.Entities.Floors;
 
 /// <summary>
 ///		Represents a floor within a dungeon, containing a collection of areas.
 /// </summary>
 public sealed partial class Floor : Entity
 {
-	private readonly List<Area.Area> _areas = [];
+	private readonly List<Areas.Area> _areas = [];
 	private readonly List<PlacedObject> _objects = [];
 
 	private Floor() { }
@@ -62,7 +62,7 @@ public sealed partial class Floor : Entity
 	/// <summary>
 	///		Gets the read-only list of areas belonging to this floor.
 	/// </summary>
-	public IReadOnlyList<Area.Area> Areas =>
+	public IReadOnlyList<Areas.Area> Areas =>
 		_areas.AsReadOnly();
 
 	/// <summary>

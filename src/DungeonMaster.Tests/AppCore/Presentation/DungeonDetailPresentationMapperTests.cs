@@ -1,6 +1,6 @@
 using DungeonMaster.App.Core.Presentation;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
 

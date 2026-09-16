@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using FluentValidation;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;

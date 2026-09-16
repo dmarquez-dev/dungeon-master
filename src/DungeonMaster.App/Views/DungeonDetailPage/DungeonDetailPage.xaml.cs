@@ -12,7 +12,7 @@ using DungeonMaster.App.Theme;
 using DungeonMaster.App.ViewModels;
 using DungeonMaster.App.Views.DungeonDetail;
 using DungeonMaster.App.Core.Presentation;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;

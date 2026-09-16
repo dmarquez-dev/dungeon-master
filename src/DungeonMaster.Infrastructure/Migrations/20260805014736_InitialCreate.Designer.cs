@@ -20,7 +20,7 @@ namespace DungeonMaster.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.7");
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.Area", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Areas.Area", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -58,7 +58,7 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.ToTable("Areas", (string)null);
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeon.Dungeon", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeons.Dungeon", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -87,7 +87,7 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.ToTable("Dungeons", (string)null);
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.Floor", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floors.Floor", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -119,7 +119,7 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.ToTable("Floors", (string)null);
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.PlacedObject", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floors.PlacedObject", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -153,27 +153,27 @@ namespace DungeonMaster.Infrastructure.Migrations
                     b.ToTable("PlacedObjects", (string)null);
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Area.Area", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Areas.Area", b =>
                 {
-                    b.HasOne("DungeonMaster.Domain.Entities.Floor.Floor", null)
+                    b.HasOne("DungeonMaster.Domain.Entities.Floors.Floor", null)
                         .WithMany("Areas")
                         .HasForeignKey("FloorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.Floor", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floors.Floor", b =>
                 {
-                    b.HasOne("DungeonMaster.Domain.Entities.Dungeon.Dungeon", null)
+                    b.HasOne("DungeonMaster.Domain.Entities.Dungeons.Dungeon", null)
                         .WithMany("Floors")
                         .HasForeignKey("DungeonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.PlacedObject", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floors.PlacedObject", b =>
                 {
-                    b.HasOne("DungeonMaster.Domain.Entities.Floor.Floor", null)
+                    b.HasOne("DungeonMaster.Domain.Entities.Floors.Floor", null)
                         .WithMany("Objects")
                         .HasForeignKey("FloorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -204,12 +204,12 @@ namespace DungeonMaster.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeon.Dungeon", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Dungeons.Dungeon", b =>
                 {
                     b.Navigation("Floors");
                 });
 
-            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floor.Floor", b =>
+            modelBuilder.Entity("DungeonMaster.Domain.Entities.Floors.Floor", b =>
                 {
                     b.Navigation("Areas");
 

@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Area;
+namespace DungeonMaster.Domain.Entities.Areas;
 
 public sealed partial class Area
 {

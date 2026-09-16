@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,5 +1,5 @@
 using DungeonMaster.App.Assets.ObjectAssets;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using IImage = Microsoft.Maui.Graphics.IImage;
 
 namespace DungeonMaster.App.Tests.Graphics;

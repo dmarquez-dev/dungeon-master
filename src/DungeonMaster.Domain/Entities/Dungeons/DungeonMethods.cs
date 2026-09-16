@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Dungeon;
+namespace DungeonMaster.Domain.Entities.Dungeons;
 
 public sealed partial class Dungeon
 {
@@ -37,11 +37,11 @@ public sealed partial class Dungeon
 	///		The optional display name for the new floor.
 	/// </param>
 	/// <returns>
-	///		The newly created <see cref="Floor.Floor"/> instance.
+	///		The newly created <see cref="Floors.Floor"/> instance.
 	/// </returns>
-	public Floor.Floor AddFloor(string? name)
+	public Floors.Floor AddFloor(string? name)
 	{
-		var floor = new Floor.Floor(
+		var floor = new Floors.Floor(
 			Id,
 			_floors.Count + 1,
 			name);
@@ -198,9 +198,9 @@ public sealed partial class Dungeon
 	///		The optional description of the new area.
 	/// </param>
 	/// <returns>
-	///		The newly created <see cref="Area.Area"/> instance, or <see langword="null"/> when no floor with the given identifier exists.
+	///		The newly created <see cref="Areas.Area"/> instance, or <see langword="null"/> when no floor with the given identifier exists.
 	/// </returns>
-	public Area.Area? AddArea(
+	public Areas.Area? AddArea(
 		Guid floorId,
 		string name,
 		string? description)
@@ -366,19 +366,19 @@ public sealed partial class Dungeon
 	///		The rotation to apply to the object.
 	/// </param>
 	/// <returns>
-	///		The newly created <see cref="Floor.PlacedObject"/> instance, or <see langword="null"/> if the floor is not found.
+	///		The newly created <see cref="Floors.PlacedObject"/> instance, or <see langword="null"/> if the floor is not found.
 	/// </returns>
-	public Floor.PlacedObject? AddPlacedObject(
+	public Floors.PlacedObject? AddPlacedObject(
 		Guid floorId,
-		Floor.ObjectKind kind,
+		Floors.ObjectKind kind,
 		CanvasPoint position,
-		Floor.ObjectRotation rotation)
+		Floors.ObjectRotation rotation)
 		=> AddPlacedObject(
 			floorId,
 			kind,
 			position,
 			rotation,
-			Floor.ObjectScale.Default);
+			DungeonMaster.Domain.Entities.Floors.ObjectScale.Default);
 
 	/// <summary>
 	///		Adds a new placed object to the given floor.
@@ -399,13 +399,13 @@ public sealed partial class Dungeon
 	///		The scale multiplier to apply to the object.
 	/// </param>
 	/// <returns>
-	///		The newly created <see cref="Floor.PlacedObject"/> instance, or <see langword="null"/> if the floor is not found.
+	///		The newly created <see cref="Floors.PlacedObject"/> instance, or <see langword="null"/> if the floor is not found.
 	/// </returns>
-	public Floor.PlacedObject? AddPlacedObject(
+	public Floors.PlacedObject? AddPlacedObject(
 		Guid floorId,
-		Floor.ObjectKind kind,
+		Floors.ObjectKind kind,
 		CanvasPoint position,
-		Floor.ObjectRotation rotation,
+		Floors.ObjectRotation rotation,
 		float scale)
 	{
 		var floor = _floors.FirstOrDefault(floor =>
@@ -490,7 +490,7 @@ public sealed partial class Dungeon
 		Guid floorId,
 		Guid objectId,
 		CanvasPoint newPosition,
-		Floor.ObjectRotation newRotation,
+		Floors.ObjectRotation newRotation,
 		float newScale)
 	{
 		var floor = _floors.FirstOrDefault(floor =>

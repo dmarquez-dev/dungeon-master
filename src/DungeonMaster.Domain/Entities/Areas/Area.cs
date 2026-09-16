@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Area;
+namespace DungeonMaster.Domain.Entities.Areas;
 
 /// <summary>
 ///		Represents a discrete area within a floor, defined by an optional outline path in floor-absolute tile coordinates.

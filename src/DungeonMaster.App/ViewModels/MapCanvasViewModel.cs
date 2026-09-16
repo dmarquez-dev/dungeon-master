@@ -8,7 +8,7 @@ using DungeonMaster.Application.Features.Dungeons.Commands.RemovePlacedObject;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateAreaOutline;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 
