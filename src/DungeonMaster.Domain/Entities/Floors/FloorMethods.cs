@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Floor;
+namespace DungeonMaster.Domain.Entities.Floors;
 
 public sealed partial class Floor
 {
@@ -50,13 +50,13 @@ public sealed partial class Floor
 	///		The optional description of the new area.
 	/// </param>
 	/// <returns>
-	///		The newly created <see cref="Area.Area"/> instance.
+	///		The newly created <see cref="Areas.Area"/> instance.
 	/// </returns>
-	internal Area.Area AddArea(
+	internal Areas.Area AddArea(
 		string name,
 		string? description)
 	{
-		var area = new Area.Area(
+		var area = new Areas.Area(
 			Id,
 			name,
 			description);

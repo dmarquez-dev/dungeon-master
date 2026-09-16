@@ -1,11 +1,11 @@
-namespace DungeonMaster.Domain.Entities.Dungeon;
+namespace DungeonMaster.Domain.Entities.Dungeons;
 
 /// <summary>
 ///		Represents a dungeon in the campaign world, containing floors and their areas.
 /// </summary>
 public sealed partial class Dungeon : Entity
 {
-	private readonly List<Floor.Floor> _floors = [];
+	private readonly List<Floors.Floor> _floors = [];
 
 	private Dungeon() { }
 
@@ -45,6 +45,6 @@ public sealed partial class Dungeon : Entity
 	/// <summary>
 	///		Gets the read-only list of floors belonging to this dungeon.
 	/// </summary>
-	public IReadOnlyList<Floor.Floor> Floors =>
+	public IReadOnlyList<Floors.Floor> Floors =>
 		_floors.AsReadOnly();
 }

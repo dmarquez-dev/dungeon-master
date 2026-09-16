@@ -1,4 +1,4 @@
-namespace DungeonMaster.Domain.Entities.Floor;
+namespace DungeonMaster.Domain.Entities.Floors;
 
 public enum ObjectRotation
 {

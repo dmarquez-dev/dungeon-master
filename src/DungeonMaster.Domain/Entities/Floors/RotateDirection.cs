@@ -1,3 +1,3 @@
-namespace DungeonMaster.Domain.Entities.Floor;
+namespace DungeonMaster.Domain.Entities.Floors;
 
 public enum RotationDirection { Clockwise, CounterClockwise }

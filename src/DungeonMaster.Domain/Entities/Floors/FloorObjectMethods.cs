@@ -1,6 +1,6 @@
 using DungeonMaster.Domain.ValueObjects;
 
-namespace DungeonMaster.Domain.Entities.Floor;
+namespace DungeonMaster.Domain.Entities.Floors;
 
 public sealed partial class Floor
 {
