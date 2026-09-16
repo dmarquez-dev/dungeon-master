@@ -51,14 +51,28 @@ public class FloorDragHandleTests
 	private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2009/xaml";
 
 	/// <summary>
-	///		The drag handle is still the <c>Label</c> that hosts the reorder gesture, under the
+	///		The drag handle is the <c>Button</c> that hosts the reorder gesture, under the
 	///		identifier the out-of-process harness addresses it by.
 	/// </summary>
 	/// <remarks>
-	///		Contract C1 section 3 and contract C2 section 1. This task moved the handle's position
-	///		in the row and nothing else about the reorder path: re-hosting the
-	///		<c>DragGestureRecognizer</c> or renaming either handler is a contract change, and both
-	///		are invisible in a diff that also moves layout.
+	///		<para>
+	///		This session's contract C1 section 1. The element was a <c>Label</c> and is now a
+	///		<c>Button</c>, and the type is the whole point rather than a detail: only
+	///		<c>Control</c>-derived classes take WinUI keyboard focus, so as a <c>Label</c> the
+	///		handle could not be tabbed to and the <c>Ctrl</c>+arrow route in
+	///		<c>DungeonDetailPage.OnKeyDown</c> — which fires only while THIS element holds focus —
+	///		could never fire at all. A revert to <c>Label</c> leaves markup that still reads correct
+	///		and a keyboard route that is silently dead, which is what this assertion is here to
+	///		catch. The 6b-iv contract that froze the element as a <c>Label</c> expired with that
+	///		sub-session and binds nothing now.
+	///		</para>
+	///		<para>
+	///		The reorder path itself is unchanged in every other respect: contract C1 section 1.1
+	///		rehosts the <c>DragGestureRecognizer</c> onto the <c>Button</c> deliberately but freezes
+	///		both handler names and freezes that this file declares exactly ONE drag source.
+	///		Renaming either handler, or adding a second source, is a contract change and both are
+	///		invisible in a diff that also converts an element.
+	///		</para>
 	/// </remarks>
 	[Fact]
 	public void TheDragHandleStillHostsTheReorderGestureAndNothingElseDoes()
@@ -70,9 +84,10 @@ public class FloorDragHandleTests
 			.QualifiedElementName(handle.Name)
 			.Should()
 			.Be(
-				"Label",
-				"contract C2 section 1 freezes this element as a Label hosting the drag gesture; "
-				+ "the harness is written against that table rather than against what it finds");
+				"Button",
+				"this session's contract C1 section 1 freezes this element as a Button: only "
+				+ "Control-derived types take WinUI keyboard focus, so as a Label the handle "
+				+ "cannot be tabbed to and the Ctrl+arrow reorder route is dead on arrival");
 
 		var gestures = handle
 			.Elements()
@@ -86,9 +101,10 @@ public class FloorDragHandleTests
 		gestures
 			.Should()
 			.ContainSingle(
-				"the handle is the only reorder affordance in the source — OnKeyDown has no "
-				+ "reorder key — so a drag gesture that is not on THIS element is a reorder the "
-				+ "user cannot start");
+				"the handle is the only POINTER reorder affordance in the source — OnKeyDown now "
+				+ "carries the Ctrl+arrow route alongside it, and that route is reached from this "
+				+ "same element by focus — so a drag gesture that is not on THIS element is a "
+				+ "reorder the user cannot start with the pointer");
 
 		((string?)gestures[0].Attribute("DragStarting"))
 			.Should()
@@ -168,6 +184,41 @@ public class FloorDragHandleTests
 			.Should()
 			.BeNull(
 				"a minimum height raises the row exactly as a height does, and is easier to miss");
+	}
+
+	/// <summary>
+	///		The handle announces the keyboard reorder route, verbatim, in the one string a screen
+	///		reader user can learn it from.
+	/// </summary>
+	/// <remarks>
+	///		<para>
+	///		Contract C1 section 5 freezes this string word for word. It is asserted whole rather
+	///		than by a <c>Contain("Control")</c>, because a hint that has drifted into naming only
+	///		one of the two directions, or into "Ctrl+Up", is still a passing substring match and
+	///		still a defective announcement — the contract spells the keys out precisely because a
+	///		screen reader reads the string as written, not as a keyboard shortcut.
+	///		</para>
+	///		<para>
+	///		Nothing else in the repository guards it. The route has no visible affordance at all:
+	///		the handle looks exactly like the drag handle it already was, so a sighted user learns
+	///		the keys from the tooltip and a screen-reader user learns them from HERE or nowhere.
+	///		Silently losing this attribute would leave the feature shipped and undiscoverable,
+	///		which is the failure this test exists for. It does NOT establish that the keystroke
+	///		works — contract C1 section 6 observation 1 is the only thing that can.
+	///		</para>
+	/// </remarks>
+	[Fact]
+	public void TheHandleAnnouncesTheKeyboardReorderRouteInItsHint()
+	{
+		var handle = WithAutomationId(ControlDocument(), HandleAutomationId);
+
+		Attribute(handle, "SemanticProperties.Hint")
+			.Should()
+			.Be(
+				"Drag this handle onto another floor card, or press Control plus Up Arrow or "
+				+ "Control plus Down Arrow, to change the floor order.",
+				"contract C1 section 5 freezes this hint verbatim, and it is the only place a "
+				+ "screen reader user is told the Ctrl+Up / Ctrl+Down route exists at all");
 	}
 
 	/// <summary>
