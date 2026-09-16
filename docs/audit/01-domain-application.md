@@ -6,9 +6,9 @@
 |---|---|---|
 | `src/DungeonMaster.Domain/*.cs` (root) | 1 | 3 |
 | `src/DungeonMaster.Domain/Entities/Entity.cs` | 1 | 28 |
-| `src/DungeonMaster.Domain/Entities/Area/**` | 2 | 107 |
-| `src/DungeonMaster.Domain/Entities/Dungeon/**` | 2 | 503 |
-| `src/DungeonMaster.Domain/Entities/Floor/**` | 10 | 559 |
+| `src/DungeonMaster.Domain/Entities/Areas/**` | 2 | 107 |
+| `src/DungeonMaster.Domain/Entities/Dungeons/**` | 2 | 503 |
+| `src/DungeonMaster.Domain/Entities/Floors/**` | 10 | 559 |
 | `src/DungeonMaster.Domain/ValueObjects/**` | 4 | 60 |
 | `src/DungeonMaster.Application/Common/Behaviors/**` | 1 | 48 |
 | `src/DungeonMaster.Application/Common/Dispatch/**` | 7 | 233 |
@@ -95,16 +95,16 @@ category: correctness
 authority: conventions
 citation: backend/backend-conventions.md#2. CQRS Patterns
 locations:
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:61-84
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:95-138
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:155-171
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:215-229
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:249-271
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:286-303
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:392-408
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:429-452
-  - src/DungeonMaster.Domain/Entities/Floor/FloorMethods.cs:72-84
-  - src/DungeonMaster.Domain/Entities/Floor/FloorMethods.cs:101-120
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:61-84
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:95-138
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:155-171
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:215-229
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:249-271
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:286-303
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:392-408
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:429-452
+  - src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs:72-84
+  - src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs:101-120
 effort: M
 risk: medium
 independent: true
@@ -142,7 +142,7 @@ category: correctness
 authority: conventions
 citation: backend/dotnet-guidelines.md#6.1 Do Not Use Exceptions for Normal Control Flow
 locations:
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:196-198
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:196-198
   - src/DungeonMaster.Application/Features/Dungeons/Commands/AddArea/AddAreaCommandHandler.cs:31-34
 effort: S
 risk: low
@@ -231,6 +231,35 @@ entity when it is a sibling static class.
 folders but not the per-entity namespace, which the `dm-conventions` folder layout does not require),
 or pluralise the namespace leaf (`Entities.Floors`) so that folder structure and namespace can both
 survive. Either change touches the Application and App layers' `using` lists, hence the medium risk.
+
+**[AMENDED 6b-v, 2026-09-14 -- the flattening option's parenthetical is false; the `dm-conventions`
+folder layout does require the namespace to match it. Classification: MEASUREMENT ERROR.** Previous
+wording, verbatim: *"(keeping the per-entity folders but not the per-entity namespace, which the
+`dm-conventions` folder layout does not require)"*. Two rules contradict it.
+`dm-conventions/backend/dotnet-format.md:30` gives the convention for a namespace as *"PascalCase,
+matches folder structure"*, and `dm-conventions/backend/dotnet-format.md:58` states *"Folder
+structure mirrors the namespace hierarchy."* Flattening every type into
+`DungeonMaster.Domain.Entities` while keeping the per-entity folders breaks both at once: the
+per-entity folder would correspond to no namespace segment, so the namespace would not match the
+folder structure and the folder structure would not mirror the namespace hierarchy.
+
+**Classification evidence: MEASUREMENT ERROR, not DRIFT.** The claim was false when written rather
+than overtaken by a later change to the conventions. Both rules sit in section 2, *File
+Organization*, which spans `dotnet-format.md:54-61` (`## 2. File Organization` at `:54`, `## 3.
+Parameter Formatting` at `:62`), and this document was written against that section: `CORE-023`
+below cites `backend/dotnet-format.md#2. File Organization` and quotes its bullet at `:57`, the line
+immediately above the folder-mirroring rule at `:58`. The Method block at `:57` of this document
+also records `backend/dotnet-format.md` as *"794 lines, **read in full**"*, and the file is 794
+lines today (`wc -l` -> `794`). The section whose requirement the parenthetical denies was therefore
+both present and read at authorship.
+
+**Outcome.** The flattening option is **REJECTED**, at this session's Gate 1 (sub-session 6b-v,
+`2026-09-14-pluralise-entity-namespaces`), for breaking those two rules. The second alternative this
+same paragraph offers -- **pluralise the namespace leaf** -- was taken: the three entity namespace
+leaves and their three folders were pluralised together, so that both rules continue to hold. The
+record's severity, category, effort and risk are unchanged, and its `locations:` block above
+deliberately keeps its singular paths: it records where the defect was found when the audit observed
+it, and the "What." and "Why it matters." paragraphs likewise describe the code as it then stood.**]**
 
 ### CORE-005 -- Result<T>.Value is T? on an unconstrained T, so null on failure is unreachable for value types
 
@@ -580,7 +609,7 @@ citation: backend/backend-conventions.md#2. CQRS Patterns
 locations:
   - src/DungeonMaster.Application/Features/Dungeons/Commands/AddPlacedObject/AddPlacedObjectCommandHandler.cs:6-10
   - src/DungeonMaster.Application/Features/Dungeons/Commands/AddPlacedObject/AddPlacedObjectCommandHandler.cs:38-43
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:363-369
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:363-369
 effort: XS
 risk: low
 independent: false
@@ -611,14 +640,14 @@ category: structure
 authority: practice
 citation: Fowler, Refactoring 2e, ch. 3 "Middle Man"
 locations:
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:155-171
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:191-204
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:215-229
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:249-271
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:286-303
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:356-380
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:392-408
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:429-452
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:155-171
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:191-204
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:215-229
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:249-271
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:286-303
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:356-380
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:392-408
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:429-452
 effort: L
 risk: high
 independent: true
@@ -652,9 +681,9 @@ category: structure
 authority: conventions
 citation: backend/backend-conventions.md#5. Policy Conventions
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectScale.cs:3-12
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:28-34
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:80-86
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectScale.cs:3-12
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:28-34
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:80-86
   - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:9
   - src/DungeonMaster.Domain/ValueObjects/TilePoint.cs:12
   - src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:18-22
@@ -692,7 +721,7 @@ category: api-design
 authority: microsoft
 citation: https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/enum
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectKind.cs:3-51
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs:3-51
 effort: S
 risk: medium
 independent: true
@@ -756,11 +785,11 @@ category: dead-code
 authority: practice
 citation: Fowler, Refactoring 2e, ch. 3 "Dead Code"
 locations:
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:323-333
-  - src/DungeonMaster.Domain/Entities/Floor/FloorObjectMethods.cs:10-14
-  - src/DungeonMaster.Domain/Entities/Floor/FloorObjectMethods.cs:96-113
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:13-18
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:62-63
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:323-333
+  - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:10-14
+  - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:96-113
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:13-18
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:62-63
   - src/DungeonMaster.Domain/AssemblyInfo.cs:3
 effort: S
 risk: low
@@ -837,8 +866,8 @@ category: structure
 authority: conventions
 citation: backend/backend-conventions.md#3. Entity Conventions
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/FloorMethods.cs:13-14
-  - src/DungeonMaster.Domain/Entities/Area/AreaMethods.cs:19-29
+  - src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs:13-14
+  - src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs:19-29
   - src/DungeonMaster.Domain/Entities/Entity.cs:23-27
 effort: XS
 risk: low
@@ -871,14 +900,14 @@ category: structure
 authority: conventions
 citation: backend/dotnet-format.md#11. Domain Building Blocks in C#
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/Floor.cs:8
-  - src/DungeonMaster.Domain/Entities/Floor/FloorMethods.cs:5
-  - src/DungeonMaster.Domain/Entities/Floor/FloorObjectMethods.cs:5
-  - src/DungeonMaster.Domain/Entities/Area/Area.cs:8
-  - src/DungeonMaster.Domain/Entities/Area/AreaMethods.cs:5
-  - src/DungeonMaster.Domain/Entities/Dungeon/Dungeon.cs:6
-  - src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs:5
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:8
+  - src/DungeonMaster.Domain/Entities/Floors/Floor.cs:8
+  - src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs:5
+  - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:5
+  - src/DungeonMaster.Domain/Entities/Areas/Area.cs:8
+  - src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs:5
+  - src/DungeonMaster.Domain/Entities/Dungeons/Dungeon.cs:6
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:5
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:8
 effort: XS
 risk: low
 independent: true
@@ -911,7 +940,7 @@ category: naming
 authority: conventions
 citation: backend/dotnet-format.md#2. File Organization
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/RotateDirection.cs:1-3
+  - src/DungeonMaster.Domain/Entities/Floors/RotateDirection.cs:1-3
 effort: XS
 risk: low
 independent: true
@@ -943,9 +972,9 @@ locations:
   - src/DungeonMaster.Application/Common/Behaviors/ValidationBehavior.cs:26
   - src/DungeonMaster.Application/Features/Dungeons/IDungeonWriteRepository.cs:22-24
   - src/DungeonMaster.Application/Features/Dungeons/IDungeonReadRepository.cs:20
-  - src/DungeonMaster.Domain/Entities/Floor/FloorObjectMethods.cs:40
-  - src/DungeonMaster.Domain/Entities/Floor/FloorObjectMethods.cs:65-73
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectRotation.cs:5-8
+  - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:40
+  - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:65-73
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectRotation.cs:5-8
 effort: S
 risk: low
 independent: true
@@ -976,12 +1005,12 @@ category: docs
 authority: conventions
 citation: backend/dotnet-format.md#9. XML Documentation Comments
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectKind.cs:3
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectRotation.cs:3
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectScale.cs:3-11
-  - src/DungeonMaster.Domain/Entities/Floor/SnapAnchor.cs:3
-  - src/DungeonMaster.Domain/Entities/Floor/RotateDirection.cs:3
-  - src/DungeonMaster.Domain/Entities/Floor/ScaleDirection.cs:3
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs:3
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectRotation.cs:3
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectScale.cs:3-11
+  - src/DungeonMaster.Domain/Entities/Floors/SnapAnchor.cs:3
+  - src/DungeonMaster.Domain/Entities/Floors/RotateDirection.cs:3
+  - src/DungeonMaster.Domain/Entities/Floors/ScaleDirection.cs:3
 effort: S
 risk: low
 independent: true
@@ -1015,8 +1044,8 @@ citation: backend/dotnet-format.md#9. XML Documentation Comments
 locations:
   - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:3-8
   - src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/PlacedObjectDto.cs:6-15
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:12
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:43-59
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:12
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:43-59
 effort: XS
 risk: low
 independent: true
@@ -1046,11 +1075,11 @@ category: style
 authority: judgment
 citation: n/a
 locations:
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectKind.cs:5-50
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectRotation.cs:5-8
-  - src/DungeonMaster.Domain/Entities/Floor/ObjectScale.cs:5-11
-  - src/DungeonMaster.Domain/Entities/Floor/SnapAnchor.cs:5-9
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:36-40
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs:5-50
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectRotation.cs:5-8
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectScale.cs:5-11
+  - src/DungeonMaster.Domain/Entities/Floors/SnapAnchor.cs:5-9
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:36-40
   - src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/PlacedObjectDto.cs:17-21
 effort: XS
 risk: low
@@ -1154,10 +1183,10 @@ category: performance
 authority: judgment
 citation: n/a
 locations:
-  - src/DungeonMaster.Domain/Entities/Dungeon/Dungeon.cs:48-49
-  - src/DungeonMaster.Domain/Entities/Floor/Floor.cs:65-66
-  - src/DungeonMaster.Domain/Entities/Floor/Floor.cs:71-72
-  - src/DungeonMaster.Domain/Entities/Area/Area.cs:60-61
+  - src/DungeonMaster.Domain/Entities/Dungeons/Dungeon.cs:48-49
+  - src/DungeonMaster.Domain/Entities/Floors/Floor.cs:65-66
+  - src/DungeonMaster.Domain/Entities/Floors/Floor.cs:71-72
+  - src/DungeonMaster.Domain/Entities/Areas/Area.cs:60-61
   - src/DungeonMaster.Application/Common/Map/MapDrawingSession.cs:37-38
 effort: XS
 risk: low
@@ -1259,12 +1288,12 @@ category: boundary
 authority: judgment
 citation: n/a
 locations:
-  - src/DungeonMaster.Domain/Entities/Area/Area.cs:12
-  - src/DungeonMaster.Domain/Entities/Dungeon/Dungeon.cs:10
-  - src/DungeonMaster.Domain/Entities/Floor/Floor.cs:13
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:10
-  - src/DungeonMaster.Domain/Entities/Area/Area.cs:45
-  - src/DungeonMaster.Domain/Entities/Floor/PlacedObject.cs:53
+  - src/DungeonMaster.Domain/Entities/Areas/Area.cs:12
+  - src/DungeonMaster.Domain/Entities/Dungeons/Dungeon.cs:10
+  - src/DungeonMaster.Domain/Entities/Floors/Floor.cs:13
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:10
+  - src/DungeonMaster.Domain/Entities/Areas/Area.cs:45
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:53
 effort: XS
 risk: low
 independent: true

@@ -258,7 +258,7 @@ independent: true
 **What.** `AreaSidebarItem.Area` is typed `AreaDto`, `FloorSidebarItem.Floor` is typed `FloorDto`,
 and `FloorMapDrawable` takes `FloorDto`, `AreaDto` and `PlacedObjectDto` -- all imported from
 `DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail`. `FloorMapDrawable`
-additionally imports `DungeonMaster.Domain.Entities.Floor`, `DungeonMaster.Domain.ValueObjects`
+additionally imports `DungeonMaster.Domain.Entities.Floors`, `DungeonMaster.Domain.ValueObjects`
 and `DungeonMaster.Application.Common.Map`, and computes distance in feet from tile deltas at
 `Graphics/FloorMapDrawable.cs:519-524`.
 
