@@ -1,6 +1,6 @@
 using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
 using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;

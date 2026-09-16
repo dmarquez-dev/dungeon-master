@@ -1,9 +1,9 @@
 using DungeonMaster.Domain.Entities;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeon.Dungeon;
-using DomainFloor = DungeonMaster.Domain.Entities.Floor.Floor;
+using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
+using DomainFloor = DungeonMaster.Domain.Entities.Floors.Floor;
 
 namespace DungeonMaster.Tests.Domain.Entities.Floor;
 
