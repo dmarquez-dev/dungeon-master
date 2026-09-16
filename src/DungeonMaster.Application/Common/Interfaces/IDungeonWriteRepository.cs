@@ -1,4 +1,4 @@
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
 
 namespace DungeonMaster.Application.Common.Interfaces;
 

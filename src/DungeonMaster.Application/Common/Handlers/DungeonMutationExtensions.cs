@@ -1,6 +1,6 @@
 using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
 
 namespace DungeonMaster.Application.Common.Handlers;
 
