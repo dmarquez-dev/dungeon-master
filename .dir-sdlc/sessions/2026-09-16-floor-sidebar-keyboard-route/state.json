@@ -1,0 +1,87 @@
+{
+  "session": "2026-09-16-floor-sidebar-keyboard-route",
+  "updatedAt": "2026-09-16T20:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-vi",
+  "branch": "dir/2026-09-16-floor-sidebar-keyboard-route",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "7483b57f91cb89e8f89eef742d540c15932fec82",
+      "commit": "525605d0749ab5db55061a3d70b700fa450159be"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "7483b57f91cb89e8f89eef742d540c15932fec82",
+      "commit": "553493fd98dff526e35ebc54d58cc66117f30163"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 2,
+      "redispatches": 0,
+      "startRef": "553493fd98dff526e35ebc54d58cc66117f30163",
+      "commit": "3e28075f5e1861aad84d30e55dce79acf59a72b3"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "3cf6e1f64dc27d7e5506a595fc456f335323e96c",
+      "commit": "4c7936499715358fa031f1aa953c0c5d94aa48cd"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T3",
+      "question": "Observation O1 found the pointer drag-reorder BROKEN after the drag handle was converted from a Label to a Button, and the floor name squeezed (MAIN TAV... -> MAIN TA...). Both are consequences of the Button's rendered footprint and press handling. The keyboard route itself works, including on repeat. C1 section 6 makes observation 2 blocking and directs the session to escalate rather than ship. How should the session proceed?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Revert the handle to a Label and gate Ctrl+arrow on focus anywhere within the floor card, which ExpandToggle already provides.",
+          "rationale": "Fixes both failures with one change, because both have one cause. The keyboard reorder route survives intact - ExpandToggle has been a focusable Button since MASTER-164, so the card is already keyboard-reachable and Tab already stops there. Restores the drag to the exact element 6b-iv observed working, and returns the name column to its 7483b57 width. This is the lower-risk design offered and declined at Gate 2, now with evidence behind it. Cost: the handle itself stops being a tab stop, so its Hint is reached by a screen reader as static text rather than as a focusable control.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "observations/O1-keyboard-and-drag.md",
+              "FloorSidebarItem.xaml:100-108",
+              "docs/audit/00-master-index.md:658"
+            ]
+          }
+        },
+        {
+          "summary": "Keep the Button as the focus target and restore the drag to a separate adjacent Label in the same column.",
+          "rationale": "Preserves the handle as a tab stop and keeps the announced Hint on a focusable control, while returning the drag to an element type that demonstrably supports it. Cost: two elements share the handle column, so the name is squeezed FURTHER than it is now - it makes observation 4 worse, not better - and a user would see two visually similar affordances where the design intends one.",
+          "evidence": {
+            "kind": "external",
+            "sources": [
+              "https://learn.microsoft.com/dotnet/maui/fundamentals/gestures/drag-and-drop?view=net-maui-10.0#enable-drag"
+            ]
+          }
+        },
+        {
+          "summary": "Ship as-is: keyboard reorder works, pointer drag stays broken, and both the regression and the name truncation are filed.",
+          "rationale": "Closes MASTER-176 now and defers the cost. Stated because it is the user's call and not the orchestrator's - but contract C1 section 6 explicitly forbids it, and it trades a working feature a pointer user relies on for an accessibility fix, which is a net regression for most users rather than a net gain.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Revert the drag handle to a Label and gate the reorder keys on focus anywhere within the floor card, which ExpandToggle already provides. Chosen because both failures have one cause, so one change fixes the broken pointer drag and the squeezed floor name together, and the keyboard reorder route survives intact. The user accepted the disclosed cost: the handle stops being its own tab stop, so a screen reader meets its Hint as static text rather than as a focusable control. Contract C1 sections 1, 1.1, 1.2, 1.3 and 3 superseded by amendment A1, written before any implementation."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 1,
+    "reviewRounds": 3
+  }
+}
