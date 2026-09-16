@@ -51,27 +51,38 @@ public class FloorDragHandleTests
 	private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2009/xaml";
 
 	/// <summary>
-	///		The drag handle is the <c>Button</c> that hosts the reorder gesture, under the
+	///		The drag handle is the <c>Label</c> that hosts the reorder gesture, under the
 	///		identifier the out-of-process harness addresses it by.
 	/// </summary>
 	/// <remarks>
 	///		<para>
-	///		This session's contract C1 section 1. The element was a <c>Label</c> and is now a
-	///		<c>Button</c>, and the type is the whole point rather than a detail: only
-	///		<c>Control</c>-derived classes take WinUI keyboard focus, so as a <c>Label</c> the
-	///		handle could not be tabbed to and the <c>Ctrl</c>+arrow route in
-	///		<c>DungeonDetailPage.OnKeyDown</c> — which fires only while THIS element holds focus —
-	///		could never fire at all. A revert to <c>Label</c> leaves markup that still reads correct
-	///		and a keyboard route that is silently dead, which is what this assertion is here to
-	///		catch. The 6b-iv contract that froze the element as a <c>Label</c> expired with that
-	///		sub-session and binds nothing now.
+	///		Contract C1 amendment A1 section 1A, which SUPERSEDES section 1. This element was
+	///		converted to a <c>Button</c> so it could take keyboard focus, and the conversion was
+	///		REVERTED: the human observation pass O1 on 2026-09-16 found that a WinUI <c>Button</c>
+	///		consumes the press, so MAUI's <c>DragGestureRecognizer</c> never started a drag from it
+	///		and the pointer reorder was broken outright, and that the <c>Button</c>'s wider
+	///		footprint squeezed the floor name beside it. Microsoft's drag-and-drop guidance
+	///		attaches that recogniser only to non-interactive elements and exposes no property that
+	///		makes a <c>Button</c> a drag source, so no fix kept it. A <c>Label</c> is therefore the
+	///		asserted type, and it is the exact element 6b-iv observed starting a drag on
+	///		2026-09-11. A second conversion to <c>Button</c> would break the drag the same way, and
+	///		that is what this assertion is here to catch.
 	///		</para>
 	///		<para>
-	///		The reorder path itself is unchanged in every other respect: contract C1 section 1.1
-	///		rehosts the <c>DragGestureRecognizer</c> onto the <c>Button</c> deliberately but freezes
-	///		both handler names and freezes that this file declares exactly ONE drag source.
-	///		Renaming either handler, or adding a second source, is a contract change and both are
-	///		invisible in a diff that also converts an element.
+	///		THIS ELEMENT TAKES NO KEYBOARD FOCUS, and nothing here should be read as claiming it
+	///		does. Only <c>Control</c>-derived classes take WinUI keyboard focus, which is exactly
+	///		why amendment A1 section 3A moved the <c>Ctrl</c>+arrow gate OFF the handle and onto the
+	///		floor card — <c>FloorSidebarItem.ContainsKeyboardFocus</c>, which reports focus anywhere
+	///		within the card, reachable through the <c>ExpandToggle</c> <c>Button</c> that
+	///		<c>MASTER-164</c> already made focusable. The route is not asserted by this file at all;
+	///		it is a focus fact and this is a markup-shape test.
+	///		</para>
+	///		<para>
+	///		The drag gesture rides on this <c>Label</c> with both handler names unchanged, and
+	///		amendment A1 section 1A freezes all three of those facts: the two handler names and that
+	///		this file declares exactly ONE drag source. Renaming either handler, or adding a second
+	///		source, is a contract change and both are invisible in a diff that also converts an
+	///		element.
 	///		</para>
 	/// </remarks>
 	[Fact]
@@ -84,10 +95,10 @@ public class FloorDragHandleTests
 			.QualifiedElementName(handle.Name)
 			.Should()
 			.Be(
-				"Button",
-				"this session's contract C1 section 1 freezes this element as a Button: only "
-				+ "Control-derived types take WinUI keyboard focus, so as a Label the handle "
-				+ "cannot be tabbed to and the Ctrl+arrow reorder route is dead on arrival");
+				"Label",
+				"contract C1 amendment A1 section 1A freezes this element as a Label: observation "
+				+ "O1 found that a WinUI Button consumes the press, so the DragGestureRecognizer "
+				+ "never starts a drag from one and the pointer reorder is broken outright");
 
 		var gestures = handle
 			.Elements()
@@ -101,23 +112,23 @@ public class FloorDragHandleTests
 		gestures
 			.Should()
 			.ContainSingle(
-				"the handle is the only POINTER reorder affordance in the source — OnKeyDown now "
-				+ "carries the Ctrl+arrow route alongside it, and that route is reached from this "
-				+ "same element by focus — so a drag gesture that is not on THIS element is a "
-				+ "reorder the user cannot start with the pointer");
+				"the handle is the only POINTER reorder affordance in the source — OnKeyDown "
+				+ "carries the Ctrl+arrow route alongside it, gated on focus anywhere within the "
+				+ "CARD rather than on this element — so a drag gesture that is not on THIS "
+				+ "element is a reorder the user cannot start with the pointer");
 
 		((string?)gestures[0].Attribute("DragStarting"))
 			.Should()
 			.Be(
 				"OnDragStarting",
-				"contract C1 section 3 freezes the handler name; the payload contract's only "
-				+ "writer is that method");
+				"contract C1 amendment A1 section 1A freezes the handler name; the payload "
+				+ "contract's only writer is that method");
 
 		((string?)gestures[0].Attribute("DropCompleted"))
 			.Should()
 			.Be(
 				"OnDropCompleted",
-				"contract C1 section 3 freezes the handler name");
+				"contract C1 amendment A1 section 1A freezes the handler name");
 
 		// DESCENDANTS of the whole document, deliberately: the assertion that matters is that no
 		// SECOND drag source appeared elsewhere in the card while this one was being widened.
@@ -192,11 +203,21 @@ public class FloorDragHandleTests
 	/// </summary>
 	/// <remarks>
 	///		<para>
-	///		Contract C1 section 5 freezes this string word for word. It is asserted whole rather
-	///		than by a <c>Contain("Control")</c>, because a hint that has drifted into naming only
-	///		one of the two directions, or into "Ctrl+Up", is still a passing substring match and
-	///		still a defective announcement — the contract spells the keys out precisely because a
-	///		screen reader reads the string as written, not as a keyboard shortcut.
+	///		Contract C1 amendment A1 section 5A freezes this string word for word, replacing the
+	///		wording section 5 froze. It is asserted whole rather than by a <c>Contain("Control")</c>,
+	///		because a hint that has drifted into naming only one of the two directions, or into
+	///		"Ctrl+Up", is still a passing substring match and still a defective announcement — the
+	///		contract spells the keys out precisely because a screen reader reads the string as
+	///		written, not as a keyboard shortcut.
+	///		</para>
+	///		<para>
+	///		WHY THE WORDING CHANGED. Section 5's string told the user to press the keys with the
+	///		handle in hand, which was true only while the handle was a <c>Button</c>. It is a
+	///		<c>Label</c> again and focus never rests on it, so A1 section 5A rewords the hint to say
+	///		"with a floor card focused" — the gate is now
+	///		<c>FloorSidebarItem.ContainsKeyboardFocus</c>, satisfied from any focusable control on
+	///		the card. The cost A1 discloses is that this handle is no longer its own tab stop, so a
+	///		screen-reader user meets this string as static text rather than on a focused control.
 	///		</para>
 	///		<para>
 	///		Nothing else in the repository guards it. The route has no visible affordance at all:
@@ -204,7 +225,7 @@ public class FloorDragHandleTests
 	///		the keys from the tooltip and a screen-reader user learns them from HERE or nowhere.
 	///		Silently losing this attribute would leave the feature shipped and undiscoverable,
 	///		which is the failure this test exists for. It does NOT establish that the keystroke
-	///		works — contract C1 section 6 observation 1 is the only thing that can.
+	///		works — observation O1 settled that, and no test in this project could.
 	///		</para>
 	/// </remarks>
 	[Fact]
@@ -215,10 +236,12 @@ public class FloorDragHandleTests
 		Attribute(handle, "SemanticProperties.Hint")
 			.Should()
 			.Be(
-				"Drag this handle onto another floor card, or press Control plus Up Arrow or "
-				+ "Control plus Down Arrow, to change the floor order.",
-				"contract C1 section 5 freezes this hint verbatim, and it is the only place a "
-				+ "screen reader user is told the Ctrl+Up / Ctrl+Down route exists at all");
+				"Drag this handle onto another floor card to change the floor order. With a "
+				+ "floor card focused, press Control plus Up Arrow or Control plus Down Arrow to "
+				+ "move it.",
+				"contract C1 amendment A1 section 5A freezes this hint verbatim, and it is the "
+				+ "only place a screen reader user is told the Ctrl+Up / Ctrl+Down route exists "
+				+ "at all");
 	}
 
 	/// <summary>
