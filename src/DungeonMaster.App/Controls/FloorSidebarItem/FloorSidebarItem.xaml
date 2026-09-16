@@ -232,27 +232,55 @@
                      does not hit-test a null Background, so without it the padding would be
                      inert and only the glyph itself would take the press.
 
-                     The DragGestureRecognizer stays on THIS Label and its two handler names are
-                     unchanged — contract C1 section 3 freezes both. -->
-                <Label
+                     THIS IS A Button AND NOT A Label, AND THAT IS THE POINT (MASTER-176). The
+                     sentence ExpandToggle's comment above states applies to this element
+                     unchanged: as a Label it took no keyboard focus on WinUI, because only
+                     Control-derived classes do, so the reorder handle could not be tabbed to and
+                     the Ctrl+Up / Ctrl+Down route in DungeonDetailPage.OnKeyDown — which fires
+                     only while THIS element holds focus — could never fire at all. ExpandToggle
+                     is the worked precedent in this same file for the same reason.
+
+                     THIS SUPERSEDES THE 6b-iv CONTRACT NOTE THAT STOOD HERE, which said the drag
+                     gesture below stays on THIS Label and that 6b-iv's contract C1 section 3
+                     froze it there. That contract expired with 6b-iv and binds nothing now; this
+                     session's contract C1 section 1.1 rehosts the gesture onto the Button
+                     deliberately. The HANDLER NAMES are still unchanged, and this file still
+                     declares exactly ONE drag source: OnDragStarting is the payload contract's
+                     only writer, so a second one would start a reorder from somewhere that
+                     payload was never written for.
+
+                     THE FOOTPRINT IS PINNED, exactly as it is for ExpandToggle: the glyph keeps
+                     the Label's FontFamily and FontSize, the grab area still comes from Padding
+                     rather than from a bigger glyph, Transparent plus BorderWidth 0 leave nothing
+                     of the button drawn, Margin is 0 because padding is the mechanism, and
+                     neither HeightRequest nor MinimumHeightRequest is set because either one
+                     raises the 44-DIU header row.
+
+                     THE TAP RECOGNISER THAT SAT HERE IS GONE. Its handler set _suppressCardTap,
+                     and a Button's press does NOT reach the card's VerticalStackLayout tap
+                     recogniser — measured, and written up in OnExpandToggleClicked's comment in
+                     the code-behind — so it had nothing to suppress, left the flag set, and the
+                     next card-body tap was swallowed by it. -->
+                <Button
+                    x:Name="DragHandle"
                     Grid.Column="4"
                     Padding="8,0"
+                    Margin="0"
+                    BorderWidth="0"
                     BackgroundColor="Transparent"
                     AutomationId="FloorDragHandle"
                     Text="&#x22EE;"
                     FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeLarge}"
                     TextColor="{StaticResource DmTextTavernMuted}"
-                    HorizontalTextAlignment="Center"
-                    VerticalTextAlignment="Center"
                     SemanticProperties.Description="Reorder floor"
-                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order."
+                    SemanticProperties.Hint="Drag this handle onto another floor card, or press Control plus Up Arrow or Control plus Down Arrow, to change the floor order."
+                    ToolTipProperties.Text="Reorder floor (Ctrl+Up / Ctrl+Down)"
                     VerticalOptions="Fill">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnDragHandleTapped" />
+                    <Button.GestureRecognizers>
                         <DragGestureRecognizer DragStarting="OnDragStarting" DropCompleted="OnDropCompleted" />
-                    </Label.GestureRecognizers>
-                </Label>
+                    </Button.GestureRecognizers>
+                </Button>
             </Grid>
 
             <!-- Separator between the floor's own row and its area list; visible only while

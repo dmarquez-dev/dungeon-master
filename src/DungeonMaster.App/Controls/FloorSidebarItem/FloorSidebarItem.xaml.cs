@@ -156,6 +156,16 @@ public partial class FloorSidebarItem : ContentView
 	}
 
 	/// <summary>
+	///		Gets a value indicating whether this floor's reorder handle currently holds keyboard focus.
+	///		Computed on every read off the Button's own IsFocused, so it cannot go stale against it.
+	///		A stored copy would be two owners of one fact — the defect MASTER-098 took out of this
+	///		file — and the frontend discipline requires derived values to be computed, never stored.
+	///		<c>DungeonDetailPage</c> reads this to gate its Ctrl+Up / Ctrl+Down reorder route,
+	///		which fires only while exactly one floor's handle is focused.
+	/// </summary>
+	public bool IsDragHandleFocused => DragHandle.IsFocused;
+
+	/// <summary>
 	///		Gets or sets a value indicating whether this floor's area list is shown.
 	///		Expanding is the only route to a floor's areas, so this is also what the page means by
 	///		selecting a floor.
@@ -283,6 +293,31 @@ public partial class FloorSidebarItem : ContentView
 		}
 	}
 
+	/// <summary>
+	///		Moves keyboard focus to this floor's reorder handle.
+	///		Focus is an ACTION, not appearance state, so it is a method and not a bindable property —
+	///		and the Button lives inside this control's template, so the page has no other handle on
+	///		it. This is the same justified shape as <see cref="SetAreaEditing"/> and does not reopen
+	///		MASTER-098, whose direction is that APPEARANCE state be bindable rather than driven by
+	///		imperative setters.
+	///		<para>
+	///		The page calls this after a keyboard reorder completes, because RebuildFloorList clears
+	///		FloorListContainer.Children and the Button that held focus is destroyed by the very
+	///		reorder the user just performed; without it the route would work exactly once.
+	///		</para>
+	/// </summary>
+	public void FocusDragHandle()
+	{
+		// THE TYPE ANNOTATION IS A GUARD, not a style choice, and it is the same guard
+		// ApplyExpanded puts on ExpandToggle. DragHandle must stay a Button: as a Label it takes
+		// no keyboard focus on WinUI, so the Ctrl+Up / Ctrl+Down reorder route dies silently and
+		// nothing about a Label would fail to compile against the call below. Written out as a
+		// Button, reverting the markup is CS0029 and the build stops.
+		Button handle = DragHandle;
+
+		handle.Focus();
+	}
+
 	// The glyph IS the expanded state, so the description moves with it; both are CONTENT rather
 	// than appearance, which is why they stay here while the colours live in the XAML's
 	// FloorStates group. The three IsVisible toggles this method used to perform are bindings on
@@ -360,8 +395,12 @@ public partial class FloorSidebarItem : ContentView
 		SelectRequested?.Invoke(this, EventArgs.Empty);
 	}
 
-	private void OnDragHandleTapped(object? sender, TappedEventArgs e) =>
-		_suppressCardTap = true;
+	// THE DRAG HANDLE'S TAP HANDLER IS DELIBERATELY GONE, along with the tap recogniser that named
+	// it. It set _suppressCardTap, and once the handle became a Button its press stopped reaching
+	// the card's VerticalStackLayout tap recogniser — the same measured behaviour
+	// OnExpandToggleClicked's comment above records — so the flag had nothing to suppress, stayed
+	// set, and swallowed the next card-body tap. _suppressCardTap itself stays: OnDeleteClicked
+	// and OnNotebookClicked still set it.
 
 	private void OnPointerEntered(object? sender, PointerEventArgs e)
 	{
