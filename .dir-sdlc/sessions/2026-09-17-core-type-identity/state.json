@@ -1,0 +1,71 @@
+{
+  "session": "2026-09-17-core-type-identity",
+  "updatedAt": "2026-09-17T04:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-viii",
+  "branch": "dir/2026-09-17-core-type-identity",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "9c2bff6221a2bceef2c73f6d1102d21c47f6fdd9",
+      "commit": "b4e2a74bcc01b29095be2b54f420194630b9116e"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "b4e2a74bcc01b29095be2b54f420194630b9116e",
+      "commit": "3ef82c8082dcd99f91ec8c6ccd6c4ef9f054980a"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-073's fix departs from CORE-017's own recorded recommendation (`None = 0`). Ratify option A (`DoorWood = 1`), or follow the audit record?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Option A - number the members from 1; no new member, and the existing IsInEnum() rule starts rejecting default with no validator change.",
+          "rationale": "The repo already models absence as ObjectKind?, so None would be a second competing way to say the same thing; under B, None is a defined member that IsInEnum() accepts, so every validator forever needs .NotEqual(ObjectKind.None) - a rule that looks like a guard and is not, which is this entry's own defect. Verified to build clean: CA1008 does not fire.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs:13",
+              "src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:458",
+              "src/DungeonMaster.Application/Features/Dungeons/Commands/AddPlacedObject/AddPlacedObjectCommandValidator.cs:27",
+              "orchestrator build probe at 9c2bff6: 0 Warning(s), 0 Error(s)"
+            ]
+          }
+        },
+        {
+          "summary": "Option B - add an explicit None = 0, following CORE-017 and the Microsoft enum guideline as written.",
+          "rationale": "It is the project's own recorded decision; overriding an audit record sets a precedent for later sessions. Makes absence nameable and greppable rather than expressible only as Enum.IsDefined at every boundary. Requires .NotEqual(ObjectKind.None) in validators and a re-decomposition.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md:741"
+            ]
+          }
+        },
+        {
+          "summary": "Hold Gate 2 and have the architect argue B as strongly as it argued A, then decide.",
+          "rationale": "The architect's first report gave A four numbered points and B one paragraph of costs; the asymmetry is itself a reason to distrust the conclusion on a permanent Domain type change.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Option B, with the member named `None`. The architect's steelman reversed its own recommendation, retracting three of its four original arguments; the user ruled for B on that reversal. `None` is declared as the first member with no explicit numeric value, so it is implicitly zero and the repository introduces no explicit enum value anywhere. 37 -> 38 members. The guard at the single chokepoint rejects both `None` and any undefined value; `AddPlacedObjectCommandValidator` gains `.NotEqual(ObjectKind.None)` beside its existing `IsInEnum()`, with a test proving `IsInEnum()` alone still accepts `None`. The `ObjectKindInfo` fallback-absorption residual is carried to the Gate 3 backlog rather than filed as a new audit entry this session."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  }
+}
