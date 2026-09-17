@@ -25,6 +25,14 @@ public sealed class PlacedObject : Entity
 		ObjectRotation rotation,
 		float scale)
 	{
+		if (kind == ObjectKind.None || !Enum.IsDefined(kind))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(kind),
+				kind,
+				$"Kind must be a defined {nameof(ObjectKind)} other than {nameof(ObjectKind.None)}.");
+		}
+
 		if (float.IsNaN(scale) || float.IsInfinity(scale) || scale < ObjectScale.Min || scale > ObjectScale.Max)
 		{
 			throw new ArgumentOutOfRangeException(

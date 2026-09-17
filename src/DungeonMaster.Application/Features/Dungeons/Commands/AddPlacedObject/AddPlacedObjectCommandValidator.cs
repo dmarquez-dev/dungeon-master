@@ -24,7 +24,8 @@ public sealed class AddPlacedObjectCommandValidator
 
 		RuleFor(command =>
 			command.Kind)
-			.IsInEnum();
+			.IsInEnum()
+			.NotEqual(ObjectKind.None);
 
 		RuleFor(command =>
 			command.Position)
