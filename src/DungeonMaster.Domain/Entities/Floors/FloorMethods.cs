@@ -10,8 +10,17 @@ public sealed partial class Floor
 	/// <param name="number">
 	///		The new floor number to assign.
 	/// </param>
+	/// <exception cref="ArgumentOutOfRangeException"><paramref name="number"/> is less than 1.</exception>
 	internal void UpdateNumber(int number)
 	{
+		if (number < 1)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(number),
+				number,
+				"Floor number must be 1 or greater.");
+		}
+
 		Number = number;
 
 		Touch();
