@@ -2,6 +2,7 @@ using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
+using FluentValidation;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Validators;
 
@@ -120,6 +121,61 @@ public class AddPlacedObjectCommandValidatorTests
 		result.IsValid.Should().BeFalse();
 		result.Errors.Should().ContainSingle(error =>
 			error.PropertyName == nameof(AddPlacedObjectCommand.Rotation));
+	}
+
+	[Fact]
+	public void Validate_WithNoneKind_ReturnsViolation()
+	{
+		// Arrange
+		var command = new AddPlacedObjectCommand(
+			Guid.NewGuid(),
+			Guid.NewGuid(),
+			ObjectKind.None,
+			new CanvasPoint(0f, 0f),
+			ObjectRotation.None,
+			ObjectScale.Default);
+
+		// Act
+		var result = _validator.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeFalse();
+		result.Errors.Should().ContainSingle(error =>
+			error.PropertyName == nameof(AddPlacedObjectCommand.Kind));
+	}
+
+	[Fact]
+	public void IsInEnumAlone_AcceptsNoneKind_WhichIsWhyNotEqualIsLoadBearing()
+	{
+		// Arrange: a throwaway validator carrying ONLY the IsInEnum() rule.
+		var isInEnumOnly = new KindIsInEnumOnlyValidator();
+
+		var command = new AddPlacedObjectCommand(
+			Guid.NewGuid(),
+			Guid.NewGuid(),
+			ObjectKind.None,
+			new CanvasPoint(0f, 0f),
+			ObjectRotation.None,
+			ObjectScale.Default);
+
+		// Act
+		var result = isInEnumOnly.Validate(command);
+
+		// Assert: IsInEnum() is Enum.IsDefined underneath and None is a defined
+		// member, so it accepts None. The production validator's
+		// .NotEqual(ObjectKind.None) rule is therefore load-bearing.
+		result.IsValid.Should().BeTrue();
+	}
+
+	private sealed class KindIsInEnumOnlyValidator
+		: AbstractValidator<AddPlacedObjectCommand>
+	{
+		public KindIsInEnumOnlyValidator()
+		{
+			RuleFor(command =>
+				command.Kind)
+				.IsInEnum();
+		}
 	}
 
 	private static AddPlacedObjectCommand CommandWith(
