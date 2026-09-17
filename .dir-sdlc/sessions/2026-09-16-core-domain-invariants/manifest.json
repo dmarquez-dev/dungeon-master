@@ -1,0 +1,85 @@
+{
+  "session": "2026-09-16-core-domain-invariants",
+  "createdAt": "2026-09-16",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/domain-invariants.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "MASTER-168: Area.SetOutline rejects a null or under-three-segment outline",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs",
+        "src/DungeonMaster.Tests/Domain/Entities/Area/AreaOutlineTests.cs",
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/AreaOutlineChangeTrackingTests.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "GUARD: `src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs` declares `internal void SetOutline(IReadOnlyList<PathSegment> outline)` with its signature unchanged, and its body rejects a null `outline` with `ArgumentNullException` (ParamName `outline`) and an `outline` of fewer than 3 elements with an exactly-typed `ArgumentException` (ParamName `outline`), per contracts/domain-invariants.md section 1. Empty is rejected by the count rule; no separate empty branch and no `ClearOutline` member is added.",
+        "NO PARTIAL MUTATION: both rejections occur textually before the first statement that touches `_outline`. Proven by a test that gives an area a valid 3-segment outline, then calls `dungeon.UpdateAreaOutline` with a 2-segment outline, catches the throw, and asserts `area.Outline` still has exactly the original 3 segments (assert the segment values, not only the count).",
+        "NEW TESTS: `src/DungeonMaster.Tests/Domain/Entities/Area/AreaOutlineTests.cs` gains exactly 4 new `[Fact]` methods (no `[Theory]`, so the count is unambiguous): null outline asserts `ThrowExactly<ArgumentNullException>()`; empty outline on a FOUND area asserts `ThrowExactly<ArgumentException>()`; two-segment outline on a found area asserts `ThrowExactly<ArgumentException>()`; a three-segment outline succeeds and leaves `Outline` with 3 segments. `ThrowExactly` is required, not `Throw`, because `ArgumentNullException` derives from `ArgumentException`. After the edit `grep -c \"\\[Fact\\]\" src/DungeonMaster.Tests/Domain/Entities/Area/AreaOutlineTests.cs` prints 8.",
+        "GUARD SITS INSIDE Area.SetOutline, NOT AT THE AGGREGATE EDGE: the two pre-existing tests `UpdateAreaOutline_WithUnknownFloor_IsNoOp` and `UpdateAreaOutline_WithUnknownArea_IsNoOp` pass an EMPTY outline and assert no throw. They are left byte-for-byte unmodified and still pass, which is only possible if the `MutationOutcome.NotFound` checks still run before `SetOutline`. `Dungeon.UpdateAreaOutline` and `Floor.UpdateAreaOutline` are not edited (they are outside this task's `owns`).",
+        "EXISTING TESTS REPAIRED: `src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/AreaOutlineChangeTrackingTests.cs` passes a SINGLE-segment outline to `UpdateAreaOutline` at two places (near lines 88 and 121) on an area that IS found, which becomes illegal under this guard. Both are raised to an outline of 3 or more segments that still differs from the seeded `Outline()` so the change-tracking assertions (`written > 0`, and the reloaded outline differing) still hold. The class still has exactly 3 `[Fact]` methods; none are deleted or renamed.",
+        "PATHSEGMENT FORWARD-COMPATIBILITY: every `PathSegment` this task writes already satisfies contracts/domain-invariants.md section 3.2 — a `Line` is constructed with `null, null`, and a `CubicBezier` with BOTH control points non-null. T3 makes this enforced; writing a segment that violates it now would leave a failure for T3 to inherit.",
+        "DISCRIMINATION, RUN NOT ASSERTED: after the tests pass, delete the guard from `SetOutline`, run `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter \"FullyQualifiedName~AreaOutlineTests\"`, and record the observed failure: the three rejection tests must FAIL and the three-segment success test must still PASS (that positive control proves the run was not broken by something unrelated). Restore the guard and re-run to green. The report names the command and quotes the failure lines. A red-step-first order satisfies this equally; what is required is that the failure was observed, not the order.",
+        "BUILD: `dotnet build src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` reports 0 warnings and 0 errors. `IDE0055` is a build error in this repository, so a formatting slip fails here.",
+        "SUITE: `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` reports 0 failed. The measurement records this project at 796 passing at commit dff976d; this task adds 4, so it should report 800 passing. If it reports any other number, do not adjust a test to reach 800 — report the discrepancy with the actual output.",
+        "NO STRAY EDITS: no file outside this task's `owns` globs is created or modified. Tracked files are CRLF and `IDE0055` is a build error, so every edit is made through the edit tools; `sed -i` is never used."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "MASTER-169: Floor rejects a floor number below 1 in both the constructor and UpdateNumber",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/Entities/Floors/Floor.cs",
+        "src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs",
+        "src/DungeonMaster.Tests/Domain/Entities/Floor/FloorNumberGuardTests.cs"
+      ],
+      "dependsOn": ["T1"],
+      "acceptance": [
+        "GUARD, BOTH SITES: `Floor.cs` `internal Floor(Guid dungeonId, int number, string? name)` and `FloorMethods.cs` `internal void UpdateNumber(int number)` each throw `ArgumentOutOfRangeException` with ParamName `number` and the offending value carried as `ActualValue` when `number < 1`, matching the `PlacedObject.cs:30` / `:82` precedent and contracts/domain-invariants.md section 2. In the constructor the throw precedes every field assignment; in `UpdateNumber` it precedes the assignment to `Number` and the `Touch()` call.",
+        "EF CONSTRUCTOR UNTOUCHED: the private parameterless `Floor()` constructor in `Floor.cs` is unchanged and carries no guard. EF materialises through it and a guard there would break loading.",
+        "AGGREGATE EDGE UNCHANGED: `Dungeon.ReorderFloor` is outside this task's `owns` and is not edited. Its `newNumber < 1 || newNumber > _floors.Count` check must keep returning `MutationOutcome.OutOfRange` rather than throwing. Proven by a new test that calls `dungeon.ReorderFloor(floorId, 0)` on a dungeon with floors and asserts the returned value is `MutationOutcome.OutOfRange` and that nothing was thrown.",
+        "NEW TESTS: a new file `src/DungeonMaster.Tests/Domain/Entities/Floor/FloorNumberGuardTests.cs` containing exactly 7 `[Fact]` methods (no `[Theory]`, so the count is unambiguous): constructor with 0 throws; constructor with a negative throws; constructor with 1 succeeds and sets `Number` to 1; `UpdateNumber(0)` throws; `UpdateNumber(-1)` throws; `UpdateNumber(1)` succeeds and sets `Number` to 1; `ReorderFloor` with target 0 returns `OutOfRange`. Every throwing case asserts `ThrowExactly<ArgumentOutOfRangeException>()` and asserts `.Which.ParamName` is `number`. The three non-throwing cases are the positive controls that catch an over-broad guard. After the edit `grep -c \"\\[Fact\\]\" src/DungeonMaster.Tests/Domain/Entities/Floor/FloorNumberGuardTests.cs` prints 7.",
+        "REACHING THE INTERNAL MEMBERS: `src/DungeonMaster.Domain/AssemblyInfo.cs` already carries `[assembly: InternalsVisibleTo(\"DungeonMaster.Tests\")]`, so the tests call the internal constructor and `UpdateNumber` directly. Do NOT add or change an `InternalsVisibleTo` attribute, and do NOT widen either member's accessibility to make it testable. Note the namespace trap: the test file's namespace `DungeonMaster.Tests.Domain.Entities.Floor` shadows the type name `Floor`, so alias the type (for example `using DomainFloor = DungeonMaster.Domain.Entities.Floors.Floor;`) exactly as the sibling files in that folder already alias `Dungeon`.",
+        "PRE-EXISTING TEST STILL PASSES: `FloorMethodsTests.UpdateNumber_WhenCalled_UpdatesLastModified` drives `UpdateNumber` through `dungeon.ReorderFloor` and must still pass unmodified. That file is outside this task's `owns` and is not edited; if it turns out to need a change, stop and escalate rather than editing it.",
+        "DISCRIMINATION, RUN NOT ASSERTED: after the tests pass, remove the guard from `UpdateNumber` ONLY (leaving the constructor guard in place), run `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter \"FullyQualifiedName~FloorNumberGuardTests\"`, and record the observed result: the two `UpdateNumber` rejection tests must FAIL while the two constructor rejection tests and the three positive controls still PASS. Removing one guard and watching only its own tests fail proves the two guards are independently covered rather than one test standing in for both. Restore and re-run to green; the report names the command and quotes the failure lines.",
+        "BUILD: `dotnet build src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` reports 0 warnings and 0 errors.",
+        "SUITE: `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj` reports 0 failed. With T1 landed at 800 passing and this task adding 7, it should report 807 passing. If it reports any other number, report the discrepancy with the actual output rather than adjusting a test to reach 807.",
+        "NO STRAY EDITS: no file outside this task's `owns` globs is created or modified. Every edit is made through the edit tools; `sed -i` is never used on a tracked file."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "MASTER-170: PathSegment validates control points bidirectionally in its constructor",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/ValueObjects/PathSegment.cs",
+        "src/DungeonMaster.Tests/Domain/ValueObjects/PathSegmentTests.cs",
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PathSegmentJsonRoundTripTests.cs",
+        "src/DungeonMaster.Tests/AppCore/Map/AreaOutlineGeometryTests.cs"
+      ],
+      "dependsOn": ["T2"],
+      "acceptance": [
+        "GUARD, BOTH DIRECTIONS: `src/DungeonMaster.Domain/ValueObjects/PathSegment.cs` keeps the positional record `PathSegment(PathSegmentKind Kind, TilePoint End, TilePoint? Ctrl1, TilePoint? Ctrl2)` with its parameter names, types and order unchanged, and its primary constructor throws an exactly-typed `ArgumentException` when `Kind` is `CubicBezier` and either control point is null, and when `Kind` is `Line` and either control point is non-null. `ParamName` names the offending control point (`Ctrl1` or `Ctrl2`; `Ctrl1` when both offend). See contracts/domain-invariants.md section 3 for the construction form that achieves this on a positional record.",
+        "DOC COMMENT CORRECTED: the XML doc comments on `Ctrl1` and `Ctrl2` no longer read \"used only when `PathSegmentKind.CubicBezier` is specified\" — the wording the audit entry names as contradicted — and instead state the requirement the constructor now enforces in both directions. All other XML doc comments on the type are preserved.",
+        "NEW VALUE-OBJECT TESTS: a new file `src/DungeonMaster.Tests/Domain/ValueObjects/PathSegmentTests.cs` containing exactly 7 `[Fact]` methods (no `[Theory]`): CubicBezier with both control points succeeds; CubicBezier with null Ctrl1 throws; CubicBezier with null Ctrl2 throws; CubicBezier with both null throws; Line with no control points succeeds; Line carrying Ctrl1 throws; Line carrying Ctrl2 throws. Every throwing case asserts `ThrowExactly<ArgumentException>()` — exact, so an `ArgumentNullException` would fail it — and asserts `.Which.ParamName` is `Ctrl1` or `Ctrl2` as the contract's table specifies. The two succeeding cases are the positive controls that catch an over-broad guard. After the edit `grep -c \"\\[Fact\\]\" src/DungeonMaster.Tests/Domain/ValueObjects/PathSegmentTests.cs` prints 7.",
+        "THE PERSISTENCE CONSEQUENCE IS MADE OBSERVABLE: a new file `src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PathSegmentJsonRoundTripTests.cs` containing exactly 2 `[Fact]` methods, using the same `JsonSerializerOptions` shape `AreaConfiguration` uses: (a) a POSITIVE CONTROL that deserialises a JSON array holding one `Line` segment with null control points and one valid `CubicBezier` into `List<PathSegment>` and asserts both round-trip to equal values — this is what proves normal outline loading still works after the guard; (b) a test that deserialises a corrupt row, a `CubicBezier` object whose `Ctrl2` is `null`, and asserts it throws. For (b) do NOT guess the exception type: run it first, observe whether `System.Text.Json` surfaces the `ArgumentException` directly or wraps it, and pin the OBSERVED type in the assertion with `ThrowExactly` or `Throw<T>().WithInnerExceptionExactly<ArgumentException>()` as the observation dictates. The report states which was observed.",
+        "RETIRED TEST REMOVED, NOT REPAIRED: `src/DungeonMaster.Tests/AppCore/Map/AreaOutlineGeometryTests.cs` contains `Translate_SegmentWithOnlyCtrl2Null_OffsetsCtrl1AndLeavesCtrl2Null` (around line 57), whose arrangement constructs a `CubicBezier` with `Ctrl1` set and `Ctrl2` null — a value this task makes unconstructible. Its premise is retired by the Gate 1 decision, so the `[Fact]` is DELETED in full, not rewritten with a legal input: a test whose failing input can no longer occur tests nothing. No other test in that file is modified, and after the edit `grep -c \"\\[Fact\\]\" src/DungeonMaster.Tests/AppCore/Map/AreaOutlineGeometryTests.cs` prints one less than it printed before the edit — record both numbers.",
+        "FULL CONSTRUCTION CENSUS, BOTH FORMS: `grep -rn \"new PathSegment(\\|new(PathSegmentKind\\.\" src --include=*.cs`, excluding `/obj/` and `/bin/`, finds every construction site — the explicit form and the target-typed `new(...)` form inside collection expressions are the same constructor, and a census that greps only `new PathSegment(` undercounts (26 versus 42 in this repository). After this task's edits, every site that grep reports satisfies the rule: a `Line` passes `null, null`, and a `CubicBezier` passes BOTH control points non-null. Report the site count the grep returns and confirm zero violations remain.",
+        "APP-LAYER SURFACE UNTOUCHED: `src/DungeonMaster.App.Core/Map/AreaOutlineGeometry.cs:42` uses a `with` expression on `PathSegment`, and a record's copy constructor does not re-run the primary constructor, so `with` bypasses this guard. That is a known and accepted gap for this session: the translation preserves `Kind` and the null-ness of both control points, so it cannot turn a valid segment invalid. Do NOT change `AreaOutlineGeometry` or any other file under `src/DungeonMaster.App`, `src/DungeonMaster.App.Core`, or `src/DungeonMaster.Application` — the Domain project is this session's whole production surface. If the task concludes an App-layer change is genuinely entailed, it stops and escalates.",
+        "DISCRIMINATION, RUN NOT ASSERTED: after the tests pass, weaken the guard to the `CubicBezier` direction only (delete the `Line`-with-control-points branch), run `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter \"FullyQualifiedName~PathSegmentTests\"`, and record the observed result: the two `Line` rejection tests must FAIL while the three `CubicBezier` rejection tests and the two positive controls still PASS. Restore and re-run to green; the report names the command and quotes the failure lines.",
+        "FULL SOLUTION BUILD: `dotnet build src/DungeonMaster.sln` reports 0 warnings and 0 errors across all three App target frameworks. Close any running `DungeonMaster.App` first or the Windows TFM fails with MSB3026/MSB3027. `src/DungeonMaster.App.UiTests` is deliberately outside this solution; do not add it.",
+        "FULL SUITE, THE ONE PLACE THE TOTAL IS RECONCILED: run all three test projects in the solution and report each count. The measurement records 796 / 97 / 23 = 916 passing at commit dff976d. Expected after all three tasks: `DungeonMaster.Tests` 796 + 4 (T1) + 7 (T2) + 9 new − 1 deleted (T3) = 815; `DungeonMaster.App.Tests` 97 unchanged (its `MapTestScene` CubicBezier segments already carry both control points); `DungeonMaster.App.UnitTests` 23 unchanged (it does not reference `PathSegment`); total 935, with 0 failed. Report the actual three numbers alongside the expected ones. If they differ, report the discrepancy with the actual output — do not add or delete a test to reach 935.",
+        "NO STRAY EDITS: no file outside this task's `owns` globs is created or modified. Every edit is made through the edit tools; `sed -i` is never used on a tracked file."
+      ]
+    }
+  ]
+}
