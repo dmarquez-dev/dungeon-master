@@ -113,6 +113,30 @@ public class MutationOutcomeExtensionsTests
 			outcome.ToResult("Floor not found.");
 
 		// Assert
-		act.Should().Throw<ArgumentOutOfRangeException>();
+		// ParamName and ActualValue are both asserted so that this distinguishes the
+		// guard in ToResult from an ArgumentOutOfRangeException raised a level below it.
+		act.Should().Throw<ArgumentOutOfRangeException>()
+			.Which.ParamName.Should().Be("outcome");
+
+		act.Should().Throw<ArgumentOutOfRangeException>()
+			.Which.ActualValue.Should().Be((MutationOutcome)99);
+	}
+
+	/// <summary>
+	///		Verifies that the zero member, which is what <see langword="default"/> produces, is rejected.
+	/// </summary>
+	[Fact]
+	public void ToResult_WithNone_Throws()
+	{
+		// Act
+		var act = () =>
+			default(MutationOutcome).ToResult("Floor not found.");
+
+		// Assert
+		act.Should().Throw<ArgumentOutOfRangeException>()
+			.Which.ParamName.Should().Be("outcome");
+
+		act.Should().Throw<ArgumentOutOfRangeException>()
+			.Which.ActualValue.Should().Be(MutationOutcome.None);
 	}
 }

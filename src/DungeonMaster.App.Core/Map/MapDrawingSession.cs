@@ -8,6 +8,11 @@ namespace DungeonMaster.App.Core.Map;
 public enum DrawSessionResult
 {
 	/// <summary>
+	///		No placement attempt was made. Never returned by <see cref="MapDrawingSession.PlaceVertex"/>.
+	/// </summary>
+	None,
+
+	/// <summary>
 	///		The vertex was accepted and added to the in-progress polygon.
 	/// </summary>
 	Added,

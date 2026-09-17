@@ -6,6 +6,12 @@ namespace DungeonMaster.Domain.Entities;
 public enum MutationOutcome
 {
 	/// <summary>
+	///		No outcome was reported. No aggregate mutation ever returns this member, and the
+	///		Application layer's mapping onto its result type rejects it.
+	/// </summary>
+	None,
+
+	/// <summary>
 	///		The mutation was applied, or was a no-op that leaves the aggregate in the requested state.
 	/// </summary>
 	Success,

@@ -27,7 +27,9 @@ public static class MutationOutcomeExtensions
 	///		A <see cref="Result"/> carrying the mapped category and message.
 	/// </returns>
 	/// <exception cref="ArgumentOutOfRangeException">
-	///		Thrown when the outcome is not a recognised <see cref="MutationOutcome"/> member.
+	///		Thrown when the outcome does not describe a mutation the aggregate performed: either
+	///		<see cref="MutationOutcome.None"/>, which is a declared member that no mutation returns,
+	///		or a value outside the declared <see cref="MutationOutcome"/> members.
 	/// </exception>
 	public static Result ToResult(
 		this MutationOutcome outcome,
@@ -52,7 +54,9 @@ public static class MutationOutcomeExtensions
 	///		A <see cref="Result"/> carrying the mapped category and message.
 	/// </returns>
 	/// <exception cref="ArgumentOutOfRangeException">
-	///		Thrown when the outcome is not a recognised <see cref="MutationOutcome"/> member.
+	///		Thrown when the outcome does not describe a mutation the aggregate performed: either
+	///		<see cref="MutationOutcome.None"/>, which is a declared member that no mutation returns,
+	///		or a value outside the declared <see cref="MutationOutcome"/> members.
 	/// </exception>
 	public static Result ToResult(
 		this MutationOutcome outcome,
@@ -70,6 +74,11 @@ public static class MutationOutcomeExtensions
 					Result.Failure(
 						outOfRangeMessage,
 						ErrorCategory.Validation),
+				MutationOutcome.None =>
+					throw new ArgumentOutOfRangeException(
+						nameof(outcome),
+						outcome,
+						"No mutation outcome was reported."),
 				_ =>
 					throw new ArgumentOutOfRangeException(
 						nameof(outcome),
