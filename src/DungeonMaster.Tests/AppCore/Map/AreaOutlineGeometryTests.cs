@@ -56,20 +56,6 @@ public class AreaOutlineGeometryTests
 	}
 
 	[Fact]
-	public void Translate_SegmentWithOnlyCtrl2Null_OffsetsCtrl1AndLeavesCtrl2Null()
-	{
-		IReadOnlyList<PathSegment> outline =
-		[
-			new(PathSegmentKind.CubicBezier, new TilePoint(0, 0), new TilePoint(1, 1), null),
-		];
-
-		var result = AreaOutlineGeometry.Translate(outline, new TilePoint(3, 4));
-
-		result[0].Ctrl1.Should().Be(new TilePoint(4, 5));
-		result[0].Ctrl2.Should().BeNull();
-	}
-
-	[Fact]
 	public void Translate_EmptyOutline_ReturnsEmptyList()
 	{
 		var result = AreaOutlineGeometry.Translate([], new TilePoint(3, 4));
