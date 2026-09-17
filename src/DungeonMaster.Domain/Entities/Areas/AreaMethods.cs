@@ -33,10 +33,21 @@ public sealed partial class Area
 	/// </summary>
 	/// <param name="outline">
 	///		The new ordered list of path segments that form the closed outline polygon,
-	///		in floor-absolute tile coordinates.
+	///		in floor-absolute tile coordinates. Must contain at least three segments.
 	/// </param>
+	/// <exception cref="ArgumentNullException"><paramref name="outline"/> is null.</exception>
+	/// <exception cref="ArgumentException"><paramref name="outline"/> contains fewer than three segments.</exception>
 	internal void SetOutline(IReadOnlyList<PathSegment> outline)
 	{
+		ArgumentNullException.ThrowIfNull(outline);
+
+		if (outline.Count < 3)
+		{
+			throw new ArgumentException(
+				"An area outline must contain at least 3 path segments.",
+				nameof(outline));
+		}
+
 		_outline.Clear();
 		_outline.AddRange(outline);
 
