@@ -1,0 +1,40 @@
+{
+  "session": "2026-09-17-enum-zero-values",
+  "updatedAt": "2026-09-17T05:30:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-ix",
+  "branch": "dir/2026-09-17-enum-zero-values",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "80beda93a689e47ed899d64fe7ad41fb8e99a677",
+      "commit": "df7209659746c6b7a3ecbf32fb01bb6953f27b07"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "df7209659746c6b7a3ecbf32fb01bb6953f27b07",
+      "commit": "df0e0c30154d7635fbfa174dd79c62e41630ab06"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 2,
+      "redispatches": 0,
+      "startRef": "df0e0c30154d7635fbfa174dd79c62e41630ab06",
+      "commit": "476b510e8610e5d9fb5a3b058be41395dc622b87"
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 2
+  }
+}
