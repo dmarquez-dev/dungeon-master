@@ -743,6 +743,14 @@ deserialisation gap therefore produces a wooden door rather than an obvious erro
 shift by one, so any persisted integer column has to be migrated -- hence medium risk; T2 owns the
 persistence side.
 
+**AMENDED 6b-viii, 2026-09-17 -- the migration clause above is STRUCK as false.** There is no persisted
+integer column. `PlacedObjectConfiguration` maps `Kind` with `.HasConversion<string>()`, so the column
+stores the member NAME, and `ObjectPackRegistry` parses by name too; no ordinal is persisted or serialised
+anywhere, and no `(ObjectKind)` numeric cast or `Enum.GetValues` over the type exists. Renumbering is
+therefore free, which was confirmed empirically when `MASTER-073` closed: no Infrastructure file changed
+and every persistence and Graphics test passed unmodified. The *suggested direction* itself -- add `None`
+as a zero member and reject it at the boundary -- was followed, and is what `MASTER-073` implements.
+
 ### CORE-018 -- Entity provides no identity-based equality, so two instances of the same entity compare unequal
 
 ```yaml
