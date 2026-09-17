@@ -31,6 +31,29 @@ public sealed class AreaOutlineChangeTrackingTests : SqliteInMemoryTestBase
 			new TilePoint(6, 3)),
 	];
 
+	/// <summary>
+	///		A replacement outline that differs from <see cref="Outline"/> in every segment, and still
+	///		satisfies the minimum of three segments that <c>Area.SetOutline</c> enforces (MASTER-168).
+	/// </summary>
+	private static IReadOnlyList<PathSegment> EditedOutline() =>
+	[
+		new PathSegment(
+			PathSegmentKind.Line,
+			new TilePoint(9, 9),
+			null,
+			null),
+		new PathSegment(
+			PathSegmentKind.Line,
+			new TilePoint(9, 12),
+			null,
+			null),
+		new PathSegment(
+			PathSegmentKind.Line,
+			new TilePoint(12, 12),
+			null,
+			null),
+	];
+
 	private async Task<Guid> SeedAsync()
 	{
 		// Arrange
@@ -88,13 +111,7 @@ public sealed class AreaOutlineChangeTrackingTests : SqliteInMemoryTestBase
 		loaded.UpdateAreaOutline(
 			floor.Id,
 			floor.Areas.Single().Id,
-			[
-				new PathSegment(
-					PathSegmentKind.Line,
-					new TilePoint(9, 9),
-					null,
-					null),
-			]);
+			EditedOutline());
 
 		unitOfWork.Dungeons.Update(loaded);
 
@@ -121,13 +138,7 @@ public sealed class AreaOutlineChangeTrackingTests : SqliteInMemoryTestBase
 			loaded.UpdateAreaOutline(
 				floor.Id,
 				floor.Areas.Single().Id,
-				[
-					new PathSegment(
-						PathSegmentKind.Line,
-						new TilePoint(9, 9),
-						null,
-						null),
-				]);
+				EditedOutline());
 
 			unitOfWork.Dungeons.Update(loaded);
 			await unitOfWork.CommitAsync(CancellationToken.None);
@@ -140,7 +151,6 @@ public sealed class AreaOutlineChangeTrackingTests : SqliteInMemoryTestBase
 			CancellationToken.None);
 
 		// Assert
-		reloaded!.Floors.Single().Areas.Single().Outline.Should().ContainSingle()
-			.Which.End.Should().Be(new TilePoint(9, 9));
+		reloaded!.Floors.Single().Areas.Single().Outline.Should().Equal(EditedOutline());
 	}
 }

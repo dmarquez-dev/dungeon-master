@@ -81,4 +81,86 @@ public class AreaOutlineTests
 		obj.Position.Should().Be(new CanvasPoint(100f, 100f));
 		area.Outline.Should().HaveCount(3);
 	}
+
+	[Fact]
+	public void UpdateAreaOutline_WithNullOutline_Throws()
+	{
+		var dungeon = new DomainDungeon("Test");
+		var floor = dungeon.AddFloor(null);
+		var area = dungeon.AddArea(floor.Id, "Room", null)!;
+
+		var act = () => dungeon.UpdateAreaOutline(
+			floor.Id,
+			area.Id,
+			null!);
+
+		act.Should().ThrowExactly<ArgumentNullException>()
+			.WithParameterName("outline");
+	}
+
+	[Fact]
+	public void UpdateAreaOutline_WithEmptyOutline_OnAKnownArea_Throws()
+	{
+		var dungeon = new DomainDungeon("Test");
+		var floor = dungeon.AddFloor(null);
+		var area = dungeon.AddArea(floor.Id, "Room", null)!;
+
+		var act = () => dungeon.UpdateAreaOutline(
+			floor.Id,
+			area.Id,
+			new List<PathSegment>());
+
+		act.Should().ThrowExactly<ArgumentException>()
+			.WithParameterName("outline");
+	}
+
+	[Fact]
+	public void UpdateAreaOutline_WithTwoSegments_Throws_AndLeavesTheOutlineUntouched()
+	{
+		var dungeon = new DomainDungeon("Test");
+		var floor = dungeon.AddFloor(null);
+		var area = dungeon.AddArea(floor.Id, "Room", null)!;
+
+		var original = new List<PathSegment>
+		{
+			new(PathSegmentKind.Line, new TilePoint(0, 0), null, null),
+			new(PathSegmentKind.Line, new TilePoint(3, 0), null, null),
+			new(PathSegmentKind.Line, new TilePoint(3, 3), null, null),
+		};
+
+		dungeon.UpdateAreaOutline(floor.Id, area.Id, original);
+
+		var act = () => dungeon.UpdateAreaOutline(
+			floor.Id,
+			area.Id,
+			[
+				new PathSegment(PathSegmentKind.Line, new TilePoint(7, 7), null, null),
+				new PathSegment(PathSegmentKind.Line, new TilePoint(8, 8), null, null),
+			]);
+
+		act.Should().ThrowExactly<ArgumentException>()
+			.WithParameterName("outline");
+
+		area.Outline.Should().Equal(original);
+	}
+
+	[Fact]
+	public void UpdateAreaOutline_WithThreeSegments_Succeeds()
+	{
+		var dungeon = new DomainDungeon("Test");
+		var floor = dungeon.AddFloor(null);
+		var area = dungeon.AddArea(floor.Id, "Room", null)!;
+
+		var act = () => dungeon.UpdateAreaOutline(
+			floor.Id,
+			area.Id,
+			[
+				new PathSegment(PathSegmentKind.Line, new TilePoint(1, 1), null, null),
+				new PathSegment(PathSegmentKind.Line, new TilePoint(5, 1), null, null),
+				new PathSegment(PathSegmentKind.Line, new TilePoint(5, 5), null, null),
+			]);
+
+		act.Should().NotThrow();
+		area.Outline.Should().HaveCount(3);
+	}
 }
