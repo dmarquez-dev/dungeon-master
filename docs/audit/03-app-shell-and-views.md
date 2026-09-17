@@ -1312,6 +1312,70 @@ for the macCatalyst input paths being unverified.
 **Suggested direction.** No action needed as a file change. Worth reading alongside UI-021 when deciding
 what macCatalyst support is meant to mean.
 
+### UI-037 -- DrawSessionResult's zero value was Added, and the two consumer sites still do not reject the new zero member
+
+```yaml
+id: UI-037
+layer: UI
+severity: S3
+category: correctness
+authority: microsoft
+citation: https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/enum
+locations:
+  - src/DungeonMaster.App.Core/Map/MapDrawingSession.cs:8-24
+  - src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:1473
+  - src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:1489
+effort: XS
+risk: low
+independent: true
+```
+
+**What.** `DrawSessionResult` declared `{ Added, Closed, Ignored }` with no explicit values, so
+`default(DrawSessionResult)` was `Added`. It is one of the two class A enums in the triage recorded as
+`CORE-035` -- the two whose zero value asserts a consequential outcome rather than merely picking a default.
+The enum is consumed by two equality comparisons in the detail page's vertex-placement path, and by nothing
+else in `DungeonMaster.App` -- `grep -rn "DrawSessionResult" --include=*.cs src/DungeonMaster.App/` returns
+**2 lines**:
+`if (result == DrawSessionResult.Added)` (`DungeonDetailPage.xaml.cs:1473`) and
+`else if (result == DrawSessionResult.Closed)` (`:1489`). A leaked default therefore read as "a vertex was
+added" and the page committed a vertex for a placement attempt that never happened.
+
+**What landed in session 6b-ix.** `None` was added at zero, **in `App.Core` only**. `MapDrawingSession.PlaceVertex`
+is unchanged -- it already returned one of `Added`, `Closed` or `Ignored` on every path, from **three** explicit
+`return` statements with no fall-through, so it never returns `None` and needed no edit. Measured:
+`grep -n "return DrawSessionResult" src/DungeonMaster.App.Core/Map/MapDrawingSession.cs` returns **3 lines**
+(`:70` `Ignored`, `:75` `Closed`, `:79` `Added`), all three inside `PlaceVertex`
+(`MapDrawingSession.cs:66-80`), and the last of them is unconditional and is the method's final statement, so
+there is no path that falls off the end. The behavioural effect
+is confined to what a leaked default now does: `None` compares unequal at both sites, takes neither branch, and
+**no vertex is committed**. The failure mode changed from a silently fabricated vertex to a silently ignored
+placement.
+
+**The follow-up deliberately NOT taken.** The two equality sites at `DungeonDetailPage.xaml.cs:1473` and `:1489`
+**still carry no explicit rejection of the zero member.** Neither site has an `else` that throws, logs, or
+otherwise names `None`; a `None` arriving there is absorbed by falling off the end of an if/else-if chain that
+has no final `else`. Read from `sed -n '1473,1494p'
+src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs`: the chain is
+`if (result == DrawSessionResult.Added) { ... }` at `:1473` and `else if (result == DrawSessionResult.Closed)
+{ await FinishDrawing(); }` at `:1489`, closing at `:1492`; `:1493` closes the enclosing `try` and `:1494` is
+its `catch`, so there is no `else` after the chain. The same grep cited under **What** establishes that these
+two are the only sites. This was a decision, not an omission: the frozen contract for this session
+(`.dir-sdlc/sessions/2026-09-17-enum-zero-values/contracts/enum-zero-values.md` C2) places the two consumer
+sites out of scope and states that no task in the session modifies them. The result is that the defect's
+**consequence** is fixed -- no fabricated vertex -- while its **detectability** is not: a leaked default is now
+silent rather than wrong, which is better but is still silent.
+
+**Why it matters that this is recorded rather than left.** This is the same shape as the `RotationDirection` and
+`ScaleDirection` finding in `CORE-035`: adding a zero member to an enum whose consumers compare for equality
+changes what the else-branch absorbs, and does not by itself make the leak observable. Here the absorption is
+benign and there it is not, but the mechanism is identical and the remedy is the same -- the rejection has to be
+written at the consumer, because the enum declaration cannot express it.
+
+**Suggested direction.** Add an explicit final `else` at the vertex-placement chain that rejects
+`DrawSessionResult.None` -- throw, or log and no-op with a named reason -- so that a leaked default is reported
+rather than absorbed. XS effort and low risk: `PlaceVertex` never returns `None` today, so the new branch is
+unreachable from production paths and can be covered by a test that passes `None` directly.
+
 ## Layer verdict
 
 This half of the App layer holds its shape at the edges and loses it in the middle. The shell, the list

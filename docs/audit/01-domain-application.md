@@ -751,6 +751,25 @@ therefore free, which was confirmed empirically when `MASTER-073` closed: no Inf
 and every persistence and Graphics test passed unmodified. The *suggested direction* itself -- add `None`
 as a zero member and reject it at the boundary -- was followed, and is what `MASTER-073` implements.
 
+**AMENDED 6b-ix, 2026-09-17 -- the amendment above is CORRECT and its reasoning DOES NOT GENERALISE.** Nothing
+in the paragraph above is withdrawn: `ObjectKind` maps with `.HasConversion<string>()`
+(`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs:26-28`), that is its
+only EF property mapping --
+`grep -rn "builder.Property(obj => obj.Kind)" --include=*.cs src/DungeonMaster.Infrastructure/` returns **one
+line**, `PlacedObjectConfiguration.cs:26` -- so no ordinal of it is persisted, and renumbering it was free.
+What is added here is the boundary of that conclusion, because the sentence "renumbering is therefore free" is
+the kind of sentence a later reader carries to the next enum.
+**It was true of `ObjectKind` because of `.HasConversion<string>()`, and it is false of `PathSegmentKind`.**
+`PathSegmentKind` persists its **ordinal** through the `Areas.Outline` JSON column: `AreaConfiguration`
+(`src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:16`) builds its options as
+`private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.General);` -- the
+target-typed `new` constructs a `JsonSerializerOptions` from `JsonSerializerDefaults.General` with no converter
+supplied -- `grep -rn "JsonStringEnumConverter\|JsonConverter"
+--include=*.cs src/` returns **zero hits** across `src/`, and `PathSegmentJsonRoundTripTests.cs:26-28` pins
+`"Kind": 0` as `Line` and `"Kind": 1` as `CubicBezier`. Inserting a zero member there is a data migration on
+persisted rows. The general rule is that freedom to renumber is a property of **each enum's own persistence
+mapping**, established per enum, and never inherited from a sibling; see `CORE-035` for the full triage.
+
 ### CORE-018 -- Entity provides no identity-based equality, so two instances of the same entity compare unequal
 
 ```yaml
@@ -1324,6 +1343,231 @@ and scale bounds rather than exposing setters.
 **Suggested direction.** Nothing required. If the concession is ever worth removing, EF Core can
 construct via the full constructor for these shapes; a one-line comment on each private constructor
 naming its purpose would be cheaper and would stop a future reader deleting them as dead code.
+
+### CORE-034 -- default(MutationOutcome) was Success, and ToResult's `_ =>` arm passed it through instead of catching it
+
+```yaml
+id: CORE-034
+layer: CORE
+severity: S2
+category: correctness
+authority: microsoft
+citation: https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/enum
+locations:
+  - src/DungeonMaster.Domain/Entities/MutationOutcome.cs:6-28
+  - src/DungeonMaster.Application/Common/Handlers/MutationOutcomeExtensions.cs:61-87
+effort: S
+risk: low
+independent: true
+```
+
+**What.** `MutationOutcome` declared `{ Success, NotFound, OutOfRange }` in that order with no explicit
+values, so `default(MutationOutcome)` was `MutationOutcome.Success`. A mutation nobody performed reported
+that it worked.
+
+**Why it matters.** The guard that exists for this enum could not catch it. `MutationOutcomeExtensions.ToResult`
+switches on the outcome and closes with a `_ =>` arm that throws `ArgumentOutOfRangeException`. That arm
+catches an undefined value such as `(MutationOutcome)99`, and it **could not catch the CLR default, because
+the CLR default IS a recognised member** -- `Success` -- so the default fell into the `MutationOutcome.Success`
+arm and was mapped straight to `Result.Success()`. The failure was reported to the Application layer as a
+success, and the two mechanisms that might have observed it did not: the `_ =>` arm at
+`MutationOutcomeExtensions.cs:61-87` could not fire on a recognised member, and `CA1008` does not fire at this
+solution's `AnalysisMode=Recommended` (`Directory.Build.props:15`, measured by build probe in session 6b-viii).
+No claim is made here about what the test suite did or did not cover before this session.
+
+**This is the same defect class as `MASTER-073`, with the mechanism inverted, and the inversion is the point.**
+`MASTER-073`'s zero value (`ObjectKind.DoorWood`) was **absorbed** by a `_ =>` arm -- the arm fired, and the
+wrong value was stopped by accident. This one is **passed through** by a `_ =>` arm -- the arm never fires,
+because a named arm above it claims the value first. A reviewer who has internalised `MASTER-073` will look for
+a catch-all arm, find one, and conclude the enum is guarded. It is not. The presence of a `_ =>` arm is
+evidence about undefined values only, and says nothing about the zero member.
+
+**The defect was latent, and the search that established that is a weak instrument.** No
+`default(MutationOutcome)`, `= default`, `new MutationOutcome[]`, or uninitialised field or property of that
+type was found; every production site returns an explicit member. That figure and its command are recorded in
+`.dir-sdlc/sessions/2026-09-17-enum-zero-values/measurement.md` §2, which also states the limit of the
+instrument: it matches source patterns only and cannot see reachability through a generic `default(T)`, a
+`FirstOrDefault`, a struct field, a mocking framework's unconfigured return, or a persistence round-trip.
+Where it is silent, that silence is not evidence. `MASTER-073` was latent on the same terms and was closed
+anyway.
+
+**Resolved in session 6b-ix.** `None` was added at zero and `ToResult` rejects it through its **own** switch
+arm, separate from the arm rejecting undefined values, so that either rejection can be removed without
+disabling the other. The rejection is member-specific rather than an `Enum.IsDefined` check, because
+`Enum.IsDefined(MutationOutcome.None)` is `true` and a definedness check would admit it. The XML `<exception>`
+wording on both overloads -- **two** `ToResult` declarations and no more, by
+`grep -n "public static Result ToResult(" src/DungeonMaster.Application/Common/Handlers/MutationOutcomeExtensions.cs`,
+which returns lines `34` and `61` (the third `ToResult` hit in that file, at `:37`, is a call site, not a
+declaration) -- previously read "not a recognised `MutationOutcome` member", which became false for
+the `None` case once `None` was declared, and was corrected on both.
+
+### CORE-035 -- Triage of the fourteen production enums with a concrete member at zero
+
+```yaml
+id: CORE-035
+layer: CORE
+severity: S4
+category: api-design
+authority: microsoft
+citation: https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/enum
+locations:
+  - src/DungeonMaster.Domain/Entities/MutationOutcome.cs:6-28
+  - src/DungeonMaster.App.Core/Map/MapDrawingSession.cs:8-24
+  - src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:35
+  - src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs:24-28
+  - src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:140
+  - src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:151
+  - src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:167
+  - src/DungeonMaster.Application/Common/Results/Result.cs:31
+  - src/DungeonMaster.Application/Common/Results/ResultOfT.cs:39
+effort: M
+risk: medium
+independent: true
+```
+
+**What.** `CORE-017` and `CORE-034` each filed one enum. This entry records the census that asked how many
+others there are, and triages the answer, so that the twelve this session does not change -- the fourteen in
+the table below less its two class A rows, 14 - 2 = 12 (table census, defined under that table) -- are visible
+as decisions rather than as oversights.
+
+**The figure is 14 of 17 as the tree stood at session start, before this session's own two changes**, measured
+in `.dir-sdlc/sessions/2026-09-17-enum-zero-values/measurement.md` §1 by a
+Python walk of `src/` that strips block and line comments from each file before parsing: **17 production enum
+declarations** (18 under `src/`, of which one, `AsyncVoidUnitKind`, is in the test project), of which
+**14 have a concrete member at zero** and 3 have `None` at zero.
+
+**After this session's two class A changes the same census returns `12 of 17`**, with **five** enums carrying
+`None` at zero -- `MutationOutcome`, `DrawSessionResult`, `ObjectKind`, `ObjectRotation`, `FloorDropOwner`.
+That second figure is not the session-start measurement above; it is a **re-run of the same census on the
+post-change worktree**, performed after this entry's triage was written, and it moves because `MutationOutcome`
+and `DrawSessionResult` left the concrete-at-zero bucket when they gained `None`. Predicate check on the re-run:
+`MutationOutcome` must now fall in the `None` bucket and does, `PathSegmentKind` must still fall in the
+concrete bucket (`Line`) and does. **A later reader re-running the census on current `main` should expect 12,
+not 14** -- both figures are correct, of different trees, and the triage table below is the session-start
+fourteen.
+
+**The inherited figure of "14 of 16" was wrong in its denominator and is corrected here.** It reconciles
+exactly: `ObjectKind.None` was added by 6b-viii, moving `ObjectKind` out of the concrete-at-zero bucket, so the
+census that produced `14 of 16` was taken over a tree where the true figure was `15 of 17` -- derived, not
+measured: the measured `14 of 17` plus the one enum 6b-viii moved out of the bucket, 14 + 1 = 15 over the same
+17 declarations. That census therefore missed one concrete-at-zero enum, and which one is not recoverable from
+the claim. The figure to use for the as-found tree is
+`14 of 17`. The correction is recorded rather than quietly applied because "14 of 16" was an **uncited count**
+that survived into a session artifact and had to be found by re-measurement; measurement.md §1 also records
+that the first run of the corrected census was itself wrong and was discarded, having split enum bodies on `,`
+before stripping doc comments, which corrupted every enum whose `<summary>` contains a comma.
+
+**The fourteen.** The Microsoft guideline admits two compliant shapes -- `None = 0`, or the *most common
+default value* at zero -- and most of these sit in the second branch legitimately. Class A is measured; class
+B is a design question; class C is a judgment about intent, qualified below.
+
+| Enum | Zero member | Class |
+|---|---|---|
+| `MutationOutcome` | `Success` | A -- the zero value asserts a consequential outcome |
+| `DrawSessionResult` | `Added` | A |
+| `RotationDirection` | `Clockwise` | B -- the zero value silently picks one of several equally valid options |
+| `ScaleDirection` | `Up` | B |
+| `PathSegmentKind` | `Line` | B |
+| `SnapAnchor` | `Center` | C -- **reclassified from B by this entry**; see below |
+| `MapTool` | `Draw` | C -- most common default, compliant under the guideline's second branch |
+| `DrawState` | `Idle` | C |
+| `NotebookKind` | `Dungeon` | C |
+| `NotebookPane` | `Description` | C |
+| `CanvasCursorShape` | `Arrow` | C |
+| `BehaviorCursorShape` | `Hand` | C |
+| `FloorListBandKind` | `FloorCard` | C |
+| `ErrorCategory` | `Validation` | C |
+
+**Every class count in the rest of this entry is read off the table above, by this command.** Run in the
+repository root, over the line range the table occupies in this file
+(`grep -n '^| \`MutationOutcome\`\|^| \`ErrorCategory\`' docs/audit/01-domain-application.md` gives the range):
+
+```
+sed -n '<first>,<last>p' docs/audit/01-domain-application.md | wc -l          # 14 rows
+sed -n '<first>,<last>p' docs/audit/01-domain-application.md | grep -c '| A'  # 2
+sed -n '<first>,<last>p' docs/audit/01-domain-application.md | grep -c '| B'  # 3
+sed -n '<first>,<last>p' docs/audit/01-domain-application.md | grep -c '| C'  # 9
+```
+
+The `| ` prefix in the pattern is load-bearing and the predicate was checked both ways before the totals were
+used: the `SnapAnchor` row must **not** match `| B` even though its text reads "reclassified from B", and it
+must match `| C`; `grep '| B'` over the range prints exactly `RotationDirection`, `ScaleDirection` and
+`PathSegmentKind`, and 2 + 3 + 9 = 14 reconciles with the row count. **Every count below cites this block as
+`(table census)`.**
+
+**`SnapAnchor` is reclassified from class B to class C on repository evidence.** `ObjectKindInfo.GetDefaultAnchor`
+(`src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs:24-28`) tests for wall objects and wall-adjacent
+objects and then returns `SnapAnchor.Center` as its **terminal fallback**. `Center` is therefore the repository's
+own most-common-default for this enum, stated in code, which places it inside the guideline's second branch
+rather than in the "silently picks one of several equally valid options" shape it was first read as.
+
+**`PathSegmentKind` is blocked, and the blocker is a data migration rather than a renumbering.** Here, inserting
+a zero member is not free. (No claim is made about the remaining thirteen rows: each one's freedom to renumber
+is a property of its own persistence mapping, and only `PathSegmentKind` and `ObjectKind` were checked.)
+
+- `AreaConfiguration` builds its serializer options as, verbatim from
+  `src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:16`:
+
+  ```csharp
+  private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.General);
+  ```
+
+  The `new` is target-typed, so the constructed type is `JsonSerializerOptions` and the single argument is
+  `JsonSerializerDefaults.General` -- no converter is supplied.
+- `grep -rn "JsonStringEnumConverter\|JsonConverter" --include=*.cs src/` returns **zero hits** across the whole
+  of `src/`, so no converter is registered anywhere else either.
+- `System.Text.Json` therefore writes the enum as its **ordinal** into the `Areas.Outline` TEXT column.
+- `PathSegmentJsonRoundTripTests.cs:26-28` pins that persisted form: `"Kind": 0` deserialises to `Line` and
+  `"Kind": 1` to `CubicBezier`.
+
+Inserting `None = 0` would reinterpret every already-persisted outline -- every stored `Line` would read back as
+`None`, every `CubicBezier` as `Line`. That is a **data migration on a JSON column, not a renumbering**, and it
+is out of scope for this session.
+
+**For `RotationDirection` and `ScaleDirection`, adding a zero member does not on its own make a leaked default
+detectable.** Both enums are consumed by boolean comparison, not by a switch. Measured:
+`grep -rn "RotationDirection\." --include=*.cs src/` returns **4 lines** and
+`grep -rn "ScaleDirection\." --include=*.cs src/` returns **3 lines**; of those seven, four are *producers* that
+raise an event with a member (`ControlsPaletteView.xaml.cs:14`, `:15`, `:16`, `:17`) and the remaining **three
+are the only consuming reads**, all of them `==` comparisons:
+
+- `_editor.GhostRotation = dir == RotationDirection.Clockwise` (`DungeonDetailPage.xaml.cs:140`)
+- `await RotateObjectAsync(dir == RotationDirection.Clockwise);` (`:151`)
+- `var down = dir == ScaleDirection.Down;` (`:167`)
+
+No `switch` on either type appears in those seven lines.
+
+A new `None` member would compare unequal at each site, so the **else-branch would absorb it and the operation
+would still be performed, in the opposite direction** -- a leaked default would rotate counter-clockwise or
+scale up rather than being rejected. Adding the member without also changing these three sites buys nothing,
+which is why these two are recorded as a design question rather than scheduled as a fix.
+
+**Class C is a judgment about intent supported by usage, not a measurement** -- with one exception.
+**`ErrorCategory` carries measured evidence**: it is stored as `ErrorCategory?` at
+`src/DungeonMaster.Application/Common/Results/Result.cs:31` and
+`src/DungeonMaster.Application/Common/Results/ResultOfT.cs:39`, so absence of a category is already modelled by
+`null` rather than by a zero member, and the zero value is not reachable as "no category supplied". The other
+**eight** class C entries (nine class C rows less `ErrorCategory`; table census) rest on reading how each enum
+is used and could be argued with.
+
+**`CA1008` will not flag anything this triage leaves unchanged**, which is the only analyser measured here; no
+claim is made about analysers not enabled in this solution. `CA1008` (*Enums should have zero value*) does
+**not** fire at this solution's `AnalysisMode=Recommended`, measured by build probe in session 6b-viii; the two
+settings that probe rests on are at `Directory.Build.props:15` (`<AnalysisMode>Recommended</AnalysisMode>`) and
+`Directory.Build.props:5` (`<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`), both read by
+`grep -n "AnalysisMode\|TreatWarningsAsErrors" Directory.Build.props`. The **twelve** enums left alone here --
+the fourteen rows of the table above less its two class A rows, 14 - 2 = 12 (table census) -- are therefore
+left alone silently: no `CA1008` warning is emitted for them whether or not they are ever changed, so this
+record is the only place their status is visible.
+
+**Suggested direction.** Nothing is required for class C. **Class B is three enums after the `SnapAnchor`
+reclassification above** (table census), and three separate design decisions; of those three, **one**
+(`PathSegmentKind`) is blocked above, leaving **two** -- 3 - 1 = 2, the class B count from the table census
+less the single blocked row named in this entry -- and neither of those two has a named defect the way `MutationOutcome` did. `RotationDirection` and `ScaleDirection`
+need their three comparison sites reconsidered before a zero member is worth adding, and `PathSegmentKind`
+needs a persistence decision first. (`SnapAnchor`, now class C, is no longer in this list.) The cheapest
+durable fix for `PathSegmentKind` is to register a `JsonStringEnumConverter` and migrate the stored outlines to names, after
+which its ordinals stop being load-bearing and a zero member becomes free; that is a session of its own.
 
 ## Layer verdict
 
