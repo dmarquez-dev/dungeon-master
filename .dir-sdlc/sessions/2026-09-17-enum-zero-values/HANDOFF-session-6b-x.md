@@ -16,9 +16,9 @@ rationale of a user decision.** It also corrected *its own* first measurement be
 
 ## 1. Where the repository stands
 
-- Branch `chore/repo-audit` at **`911527f`** before this handoff's own commit, which follows it. **Not pushed**
-  — local is ahead of `origin/chore/repo-audit`, which is still at `80beda9`. The push question was asked and
-  deferred; see section 7.
+- Branch `chore/repo-audit` at **`8c2ac20`**, **pushed**; local and `origin` at **0/0 parity**, working tree
+  clean. That tip is two commits past this handoff's own (`63a15c5`): the push question was asked separately
+  from Gate 3 and answered yes, and `8c2ac20` corrects this document's `dir-git` section — see section 4.
 - **`main` is untouched** at `45495c1`, local and remote identical. Nothing in 6b-ix went near it.
 - One worktree — the main checkout. `C:/dm-wt/6b-ix` was removed at session end. 6b-ix's branch
   `dir/2026-09-17-enum-zero-values` is retained locally at `476b510` and **deliberately not pushed**. There are
@@ -325,9 +325,12 @@ commit** — 6b-ix did both, and the second run is the one that proved the rows 
 
 ## 7. Mechanics
 
-- **Push is outstanding.** `chore/repo-audit` is ahead of `origin/chore/repo-audit`, which is still at
-  `80beda9`. 6b-ix asked the push question separately from Gate 3, as the framework requires. Confirm before
-  assuming the remote has any of this.
+- **Push is done, and 6b-ix is the first session since 6b-vii to end at parity.** `chore/repo-audit` and
+  `origin/chore/repo-audit` are both at `8c2ac20`; `main` is untouched at `45495c1` on both sides; and
+  `git ls-remote --heads origin "dir/*"` still returns **nothing** against **thirteen** local session
+  branches. The push question was asked separately from Gate 3, as the framework requires. **Re-derive this
+  yourself** — an earlier draft of this handoff said "not pushed", which was true when written and false
+  twenty minutes later.
 - **Worktree root must be short.** Use `C:/dm-wt/6b-x`. This is a MAUI/WinUI solution and a long path breaks
   the WinUI XAML compiler with `MAX_PATH` errors; the scratchpad path is too long. `C:/dm-wt` exists and is
   empty again.
