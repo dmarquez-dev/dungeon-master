@@ -1424,6 +1424,14 @@ repository** boundaries only; the dispatcher's token propagation is unasserted a
 separately as **`MASTER-172`**. `MASTER-070`'s closure does not claim it, and a later reader must not
 take one for the other.**]**
 
+**[AMENDED 6b-x, 2026-09-18 -- the clause above is now out of date and is corrected here rather than
+rewritten.** "The dispatcher's token propagation is unasserted" was true when written and is **false as
+of `b0fa532`, merged `98326d4`**: `MASTER-172` is closed, and `DispatcherCancellationTests.cs` asserts
+propagation to the handler **and** to the pipeline behaviour on all three request paths. The rest of the
+paragraph stands unchanged -- `MASTER-070`'s closure still does not claim the dispatcher boundary, and a
+later reader still must not take one for the other. See the amended block at `:321` and the
+`MASTER-172` row in `docs/audit/00-master-index.md`.**]**
+
 ### TEST-020 -- Domain coverage is happy paths and unknown-id no-ops, with no constructor or boundary cases
 
 ```yaml
