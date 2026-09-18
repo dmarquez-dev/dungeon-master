@@ -318,6 +318,38 @@ and `Dispatcher`'s missing-handler failure mode is untested. They are filed as *
 **`MASTER-173`** in `docs/audit/00-master-index.md`. `MASTER-020`'s closure does not claim either,
 and neither does `MASTER-070`'s -- see `TEST-019`.**]**
 
+**[AMENDED 6b-x, 2026-09-18 -- BOTH RESIDUALS ARE NOW CLOSED, and the decision above is vindicated.**
+`MASTER-172` and `MASTER-173` were both closed by session 6b-x: commit `b0fa532`, merged `98326d4`.
+Two new files in `src/DungeonMaster.Tests/Application/Common/Dispatch/` -- `DispatcherCancellationTests.cs`
+(6 `[Fact]`) and `DispatcherMissingHandlerTests.cs` (3) -- with **no production code change**
+(`Dispatcher.cs` byte-identical at `sha256 e748d9ea…0375`). Solution suite 960 -> 969, 0 failed,
+0 warnings, verified in the main checkout after the merge.
+
+**6b-iii was right to refuse to fold these into `MASTER-020`'s closure, and 6b-x measured why.** Both
+residuals were re-measured against `506cbba` before this session decomposed anything, and **both still
+held** -- the first inherited claims in six sessions to survive re-measurement unchanged. Had they been
+absorbed in 2026-09-11, the propagation gap would have been closed by a claim nobody could check: at
+`506cbba` the dispatch tests carried 6 `[Fact]`, **none** of which passed a token, and across all three
+test projects there were 12 `CancellationTokenSource` sites, **none** in `Application/Common/Dispatch/`.
+
+**The `MASTER-173` closure carries a distinction this note is the right place to keep.** It was a
+**contract-coverage gap, not a reachable defect**. The startup self-check at
+`ApplicationServiceCollectionExtensions.ValidateHandlerRegistrations` makes the Dispatcher's runtime
+missing-handler path unreachable for every real command in the real container -- proven by
+`ApplicationServiceRegistrationTests.cs:29`, `:129` and `:169`. A reader who finds
+`ApplicationServiceRegistrationTests.cs:46`
+(`ValidateHandlerRegistrations_WithAMissingHandler_ThrowsNamingTheCommand`) and concludes `MASTER-173`
+was already covered has found the **near-miss**, not the entry: that test exercises the self-check and
+never constructs or invokes `Dispatcher`. 6b-x read it in full before concluding the gap was real, and
+the distinction is why the entry stayed `S3` rather than being re-rated in either direction.
+
+**Coverage went wider than `MASTER-172`'s wording.** The entry names only "the handler it resolves";
+the session also asserted the token reaching the **pipeline behaviour** on all three paths, because the
+three invoker classes share no code on that axis and a dropped token is silent rather than throwing.
+**One residual remains and is in `.dir-sdlc/backlog.md`, deliberately not folded in here** -- the same
+discipline this block exists to record: no fact covers the *handler's* token when a behaviour is also
+registered, so a defect dropping it only on that path would pass all nine new facts.**]**
+
 ### TEST-002 -- Every persistence test builds its schema with EnsureCreated, so no test exercises a migration
 
 ```yaml
