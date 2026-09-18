@@ -207,7 +207,7 @@ environment is trustworthy about them.**
 the `ParamName` half of a rejection test is guarded by the build, not by the test. Any future criterion
 asserting `ParamName` should know the test is not the control it appears to be.
 
-### `dir-git` — clean for the second session running, same reason
+### `dir-git` — commit messages clean for the second session running; one fabricated hash in a report
 
 **Eight dispatches, every repository write correct, and every commit message body factually clean.** What
 changed is not the agent: **every dispatch supplied the message's factual content verbatim and forbade
@@ -215,6 +215,8 @@ additions**, and each body was **read back against `git show --stat` before the 
 The merge dispatch again carried an explicit prohibition on claiming to carry the `.dir-sdlc` artifacts, because
 `e22f37a` falsely claimed exactly that. **Keep doing both.** The failure mode is in its *reports and prose*, not
 its writes.
+
+**And it produced one wrong report anyway, on the ninth dispatch.** Its `cleanup` report printed the base branch's SHA as `63a15c5579d70410fe7b224bd66e2bb3e7eb91d78` — an extra digit inserted into `63a15c579d70410fe7b224bd66e2bb3e7eb91d78`. **The write was correct**: the worktree is genuinely removed, the branch genuinely retained, the tree genuinely clean. Only the hash in the prose was invented, and it was caught because the orchestrator re-ran `git rev-parse` rather than reading the report. **This is the fifth consecutive session recording the same split — correct writes, unreliable reports — and the first to catch it outside a commit message.** Read back every hash it prints, not only the ones in commit bodies.
 
 ### The structural limits, unchanged
 
