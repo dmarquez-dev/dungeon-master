@@ -1334,8 +1334,10 @@ independent: true
 `default(DrawSessionResult)` was `Added`. It is one of the two class A enums in the triage recorded as
 `CORE-035` -- the two whose zero value asserts a consequential outcome rather than merely picking a default.
 The enum is consumed by two equality comparisons in the detail page's vertex-placement path, and by nothing
-else in `DungeonMaster.App` -- `grep -rn "DrawSessionResult" --include=*.cs src/DungeonMaster.App/` returns
-**2 lines**:
+else in `DungeonMaster.App` -- `grep -rn "DrawSessionResult" --include=*.cs src/DungeonMaster.App/` returned
+**2 lines** when this was written, **and returns 13 as of 6b-xi** (`6d45515`), because that session added
+`DrawSessionResultGuard.cs` to this project. Both figures are stated because the 2 is what the finding rests
+on and the 13 is what a reader re-running the command today will see:
 `if (result == DrawSessionResult.Added)` (`DungeonDetailPage.xaml.cs:1473`) and
 `else if (result == DrawSessionResult.Closed)` (`:1489`). A leaked default therefore read as "a vertex was
 added" and the page committed a vertex for a placement attempt that never happened.
@@ -1351,7 +1353,7 @@ is confined to what a leaked default now does: `None` compares unequal at both s
 **no vertex is committed**. The failure mode changed from a silently fabricated vertex to a silently ignored
 placement.
 
-**The follow-up deliberately NOT taken.** The two equality sites at `DungeonDetailPage.xaml.cs:1473` and `:1489`
+**The follow-up deliberately not taken in 6b-ix -- CLOSED in 6b-xi, see below.** The two equality sites at `DungeonDetailPage.xaml.cs:1473` and `:1489`
 **still carry no explicit rejection of the zero member.** Neither site has an `else` that throws, logs, or
 otherwise names `None`; a `None` arriving there is absorbed by falling off the end of an if/else-if chain that
 has no final `else`. Read from `sed -n '1473,1494p'
@@ -1375,6 +1377,39 @@ written at the consumer, because the enum declaration cannot express it.
 `DrawSessionResult.None` -- throw, or log and no-op with a named reason -- so that a leaked default is reported
 rather than absorbed. XS effort and low risk: `PlaceVertex` never returns `None` today, so the new branch is
 unreachable from production paths and can be covered by a test that passes `None` directly.
+
+**What landed in session 6b-xi (2026-09-18), which closes this record.** Commits `aadf0c8` and `4df98c2`,
+merged `6d45515`. The suggested direction was taken, with one change forced by the build and one
+correction to its final sentence.
+
+*The rejection is not a final `else` at the chain.* `CA2208` is an error in this solution and rejects
+`nameof()` naming a **local** rather than a parameter of the enclosing method; `result` at `:1471` is a local,
+so the inline form **does not compile** -- measured by build probe during decomposition and reproduced
+independently by the orchestrator under `AnalysisLevel 10.0` / `AnalysisMode Recommended` /
+`TreatWarningsAsErrors=true` / `EnforceCodeStyleInBuild=true`. The rejection therefore lives in
+`DrawSessionResultGuard.EnsurePlacementOutcome`, an extension method taking the value as a parameter, and the
+call site becomes `PlaceVertex(snapped).EnsurePlacementOutcome()` -- a one-statement change at `:1471`.
+
+*The shape was counted, not chosen.* A survey of this repository found exactly **one** production site
+handling an enum member documented as never occurring -- `MutationOutcomeExtensions.ToResult` -- and this
+follows it: a dedicated `None` arm, a separate `_` arm with a different message, and an `<exception>` block
+naming both cases. `n = 1` is recorded as a **weak** convention rather than a rule. Also counted: **0**
+`Debug.Assert` and **0** `Trace.Assert` in production, so an assertion-based rejection would have introduced a
+construct that appears nowhere.
+
+*The final sentence above was right, and it is the residual.* "The new branch is unreachable from production
+paths and can be covered by a test that passes `None` directly" -- both halves hold, and the second does not
+rescue the first. The guard **function** is covered: deleting its dedicated `None` arm reddens exactly one
+fact, and under that defect the exception type and `ActualValue` both still match, so the **message**
+assertion is the sole discriminator. But the **application** of the guard is covered by nothing: deleting
+`.EnsurePlacementOutcome()` from `:1471` leaves `App.Tests` green at **102 / 102** with zero diagnostics --
+measured by the reviewer, not argued. Because `None` is unreachable through `PlaceVertex`, **no runtime test
+can distinguish a guarded call site from an unguarded one**; only a static check could. Carried to
+`.dir-sdlc/backlog.md` with that remedy.
+
+*Observed.* Drawing was confirmed working in the running application by the user before the merge -- vertices
+added, a repeated vertex ignored, the polygon closing on the origin tap, and no "Could not complete that map
+action" banner, which is the signature a misfiring guard would produce.
 
 ## Layer verdict
 
