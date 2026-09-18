@@ -35,4 +35,14 @@ public class DrawSessionResultZeroValueTests
 		ignored.Should().NotBe(DrawSessionResult.None);
 		closed.Should().NotBe(DrawSessionResult.None);
 	}
+
+	[Fact]
+	public void DeclaresExactlyFourMembers_AndOnlyNoneCastsToZero()
+	{
+		var values = Enum.GetValues<DrawSessionResult>();
+
+		values.Should().HaveCount(4);
+		values.Where(result => (int)result == 0).Should().ContainSingle()
+			.Which.Should().Be(DrawSessionResult.None);
+	}
 }

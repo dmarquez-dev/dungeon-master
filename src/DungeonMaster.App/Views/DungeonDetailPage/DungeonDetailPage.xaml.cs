@@ -1468,7 +1468,7 @@ public partial class DungeonDetailPage : ContentPage
 			}
 
 			var snapped = TileCoordinateHelper.SnapToGrid(canvasPoint.X, canvasPoint.Y, _drawable.TileSize);
-			var result = _viewModel.Canvas.DrawingSession.PlaceVertex(snapped);
+			var result = _viewModel.Canvas.DrawingSession.PlaceVertex(snapped).EnsurePlacementOutcome();
 
 			if (result == DrawSessionResult.Added)
 			{
