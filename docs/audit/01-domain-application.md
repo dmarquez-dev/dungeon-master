@@ -296,6 +296,121 @@ command legitimately returns an empty `Guid`.
 summary to state that `Value` holds `default(T)` on failure and stop callers from treating the default
 as a failure signal.
 
+**[AMENDED 6b-xii, 2026-09-18 -- four of this entry's seven claims were stale or false when first
+measured. The defect is real and smaller than described; the entry's core survives.** Every figure
+below names the command that produced it, re-measured in the session worktree after this session's
+three code commits landed. As with `CORE-004` above, the `locations:` block and the "What.", "Why it
+matters." and "Suggested direction." paragraphs are left exactly as written: they record where the
+defect was found and how the code then stood.
+
+**Classification: DRIFT, not measurement error -- and the drift has a named cause.** None of these
+claims went stale because anyone worked on this entry. `CORE-006`, the entry immediately below, proposed
+"adding a non-generic `Result` (or a `Unit` payload) for commands with no return value, and making the
+properties `private init`". **Both landed.** That single fix, aimed at a neighbour, narrowed this
+entry's premise, changed its accessors, and moved its type to another file. Nothing in this audit
+process re-measures an entry when the entry beside it is fixed, so `MASTER-044` sat with four wrong
+claims until this session measured it. **The next `CORE-00x` fix can falsify a neighbouring entry the
+same way, silently.**
+
+*Correction 1 -- the location.* The `locations:` block cites
+`src/DungeonMaster.Application/Common/Results/Result.cs:9` and `Result.cs:16-19`. The generic type is
+not in that file at all. `Result.cs:6` declares the **non-generic** `public sealed record Result`, and
+`Result.cs:16-19` is now that type's `IsSuccess` / `IsFailure`. `Result<T>` is declared at
+**`src/DungeonMaster.Application/Common/Results/ResultOfT.cs:9`** (`grep -n "record Result<T>"`).
+
+*Correction 2 -- the accessors.* The "What." paragraph describes `public T? Value { get; init; }`. The
+unconstrained `T` holds; the accessor does not. Every property on the type is **`private init`**:
+`grep -c "private init" src/DungeonMaster.Application/Common/Results/ResultOfT.cs` returns **5**
+(`IsSuccess` `:18`, `Value` `:43`, `Error` `:48`, `ErrorCategory` `:53`, `ValidationErrors` `:58`), and
+`grep -c "{ get; init; }"` on the same file returns **0**. This claim was already falsified by
+`CORE-006`, whose fix made them private.
+
+*Correction 3 -- the population.* The "Why it matters." paragraph says the documentation "misdescribes
+the type for fourteen of the sixteen dispatchable operations". **Sixteen is still right; fourteen is
+not.** Over `src/DungeonMaster.Application` with `/obj/` filtered: `": ICommand<Guid>;"` returns **4**,
+`": ICommand;"` returns **10**, `": IQuery<.*;"` returns **2** -- 4 + 10 + 2 = 16. Only the **4** that
+close `T` use `Result<T>` at all. The 10 non-generic commands return the non-generic `Result`, and the
+two queries were never in the population: `IDispatcher.cs` declares `QueryAsync<TResult>` returning
+`Task<TResult>` bare, not `Task<Result<TResult>>`, so a query never constructs a `Result<T>`. So the
+figure is **4 of 16**, and it is 4 rather than 14 because of `CORE-006`'s fix.
+**The near-miss this count must exclude** is the generic constraint form `where TCommand :
+ICommand<TResult>`: the unqualified `": ICommand<"` returns **7**, of which **3** are that form
+(`ValidationBehavior.cs:56`, `Dispatcher.cs:154`, `ICommandHandler.cs:41`). Anchoring on the trailing
+semicolon excludes all three and leaves 4.
+
+*Correction 4 -- `bool` is gone.* The "What." paragraph's "Every command in this layer closes `T` as
+`Guid` or `bool`, both value types" is **half false: no command closes `T` as `bool` any more.** The
+`bool` commands became the non-generic `Result` under `CORE-006`.
+`grep -rn "Result<bool>\|ICommand<bool>" --include=*.cs src/`, `/obj/` and `/bin/` filtered, returns
+**exactly one line** -- `src/DungeonMaster.Tests/App/AsyncDiscipline/SyncOverAsyncIsAbsentTests.cs:62`
+-- and that line is the substring `IPopupResult<bool>` inside a constructed string literal in a
+source-scanning test, not a use of `Result<bool>`. **Read against that one near-miss, n = 0.**
+Counted a second way that could not share the first's mistake,
+`grep -rhno "Result<[A-Za-z0-9_?<>, .]*>"` over the four production projects yields `Result<Guid>` (6)
+and `Result<Guid>>` (4) as the **only** closed constructions; every other form is generic plumbing
+(`Result<T>`, `Result<TResult>` and variants, `Result<>`). **`Result<Guid>` is the only closed
+construction in production**, so `Guid.Empty` is the only failure default this defect can produce. The
+two counts agree.
+
+*Correction 5 -- the sentinel citation.* The "Why it matters." paragraph cites
+`ViewModels/DungeonDetailViewModel.cs:302`. That line cannot exist: the file is **202** lines
+(`b.count(b'\n')`, read in binary). The sentinel that did exist was
+**`src/DungeonMaster.App/ViewModels/MapCanvasViewModel.cs:213`**, `if (addResult.Value == Guid.Empty)
+{ return; }`, and this session deleted it. Whether `:302` was wrong when written or the file shrank
+afterwards is **not settled here** -- this record's author could not read git history, so the
+classification of this one citation is left open rather than guessed.
+
+**The sentinel was unreachable, verified end to end rather than asserted.** It sat *after* the
+`IsFailure` early return, so only the success path reached it, and on that path
+`AddAreaCommandHandler.cs:33` returns `area.Id`, where `area` comes from `DungeonMethods.cs:216` ->
+`FloorMethods.cs:64` (`new Areas.Area(Id, name, description)`), whose constructor never assigns `Id`,
+leaving `Entity.cs:11`'s `= Guid.NewGuid()`. `MutateAsync<TResult>` was checked too and never
+synthesises `Success(default)`. So the entry's warning that the sentinel "would silently mis-fire the
+day a command legitimately returns an empty `Guid`" is right in principle; what it actually did was
+return silently, reporting no error, on a branch nothing reached. The legitimate read survives at
+`MapCanvasViewModel.cs:217`, passing the new area id to `UpdateAreaOutlineCommand`.
+
+**The suite pinned the defect as a requirement, which is why closing this entry needed a test change.**
+`ResultOfTTests.cs` carried a fact named `Failure_WithCategory_IsNotSuccessAndCarriesNoValue`, with an
+XML summary saying "no value", whose assertion was `result.Value.Should().Be(Guid.Empty)`. The name and
+the summary denied what the assertion required. It is renamed to `...CarriesTheDefaultValue`, its
+summary corrected, and its assertion written as `Be(default(Guid))` so the literal states the intent.
+
+**Outcome -- the "at minimum" half of the "Suggested direction." was taken; the first half was
+considered and NOT adopted.** `TryGetValue(out T value)` and a `Match`-style accessor were both
+weighed and rejected on repository evidence: `grep -rn "bool Try[A-Za-z]*(" --include=*.cs src/`, with
+`/obj/` and `/bin/` filtered, returns **0 lines**. **This repository declares no `bool Try...(out T)`
+accessor of its own anywhere, production or test, so adopting one here would have introduced a pattern
+with no precedent** -- and `n = 0` is reported as the absence of a precedent, not as a convention
+against it. The predicate was validated against a synthetic positive,
+`"public bool TryGetValue(out int x)"`, which it matches, and a synthetic near-miss,
+`"public bool IsSuccess(out int x)"`, which it does not. Two narrower facts, recorded so a later reader
+does not over-read the `0`: `Try`-**named** members do exist (`DmInlineEditor.xaml.cs:275` declares
+`public void TryCommit()`, correctly excluded as not the `bool`-returning out-parameter pattern), and
+`Try`-shaped **calls** into the BCL and EF Core are common -- `grep -rn "Try[A-Za-z]*("` over the same
+scope returns **30** lines, among them `Enum.TryParse` at
+`src/DungeonMaster.App/Assets/ObjectAssets/ObjectPackRegistry.cs:24`.
+
+**`T?` on an unconstrained `T` is left exactly as it is, by the user's decision at this session's Gate
+2.** It is the correct C# annotation for "may be the default"; the Microsoft reference this entry cites
+is describing the annotation working as specified, not a bug in it. **The defect was the prose, and the
+fix is prose.** `ResultOfT.cs`'s `Value` summary now states that a failed result carries
+`<see langword="default"/>` of `T` because the failure factories never assign the property, that the
+default is not a failure signal and must never be read as one, that `IsSuccess` / `IsFailure` are the
+only failure signals, and that for `Result<Guid>` the failure value is `Guid.Empty`, indistinguishable
+from a Guid a success could return. `grep -c "when the operation failed"` on that file now returns
+**0**.
+
+**A new source-scanning fact pins the sentinel's absence**, in
+`src/DungeonMaster.Tests/App/ViewModels/ResultSentinelIsAbsentTests.cs`, guarded against scanning
+nothing and shown able to flag the removed form. **Its reach is narrower than its name suggests and is
+recorded here so nobody mistakes it for a general guard:** it detects the single-line comparison form
+this session removed, and it does **not** catch `.Equals(Guid.Empty)`, an indexer or call receiver, a
+comparison against a local copy of the value, `new Guid()`, a property pattern, or any form split
+across lines. It pins this defect's shape, not the class.
+
+The record's severity, category, effort and risk are unchanged.**]**
+
 ### CORE-006 -- Result<T> permits invalid states and every state-changing command returns an always-true bool
 
 ```yaml
