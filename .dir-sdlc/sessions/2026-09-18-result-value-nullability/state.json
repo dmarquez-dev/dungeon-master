@@ -1,0 +1,48 @@
+{
+  "session": "2026-09-18-result-value-nullability",
+  "updatedAt": "2026-09-29T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xii",
+  "branch": "dir/2026-09-18-result-value-nullability",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "42ec7e9805ecf5b7a792c0013da6390d6fd1074a",
+      "commit": "99c05c4b93f55521607ea9e79b61887c7d2b6d5e"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "99c05c4b93f55521607ea9e79b61887c7d2b6d5e",
+      "commit": "4f66fe109a427d27270b1eef1c3a9686c25cb6ab"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "4f66fe109a427d27270b1eef1c3a9686c25cb6ab",
+      "commit": "08d31cdc01363adb66516a334e0644d7ac50686f"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "08d31cdc01363adb66516a334e0644d7ac50686f",
+      "commit": "6771204c6cfaaea4a3aa4c069b08cbbb969c04a7"
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}
