@@ -45,22 +45,6 @@ public class ObjectKindGuardTests
 	}
 
 	[Fact]
-	public void FourParameterConstructor_WithNoneKind_Throws()
-	{
-		var act = () => new PlacedObject(
-			Guid.NewGuid(),
-			ObjectKind.None,
-			new CanvasPoint(0f, 0f),
-			ObjectRotation.None);
-
-		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
-			.Which.ParamName.Should().Be("kind");
-
-		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
-			.Which.ActualValue.Should().Be(ObjectKind.None);
-	}
-
-	[Fact]
 	public void FiveParameterConstructor_WithUndefinedKind_Throws()
 	{
 		var act = () => new PlacedObject(
@@ -89,6 +73,9 @@ public class ObjectKindGuardTests
 
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("kind");
+
+		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
+			.Which.ActualValue.Should().Be(ObjectKind.None);
 	}
 
 	[Fact]

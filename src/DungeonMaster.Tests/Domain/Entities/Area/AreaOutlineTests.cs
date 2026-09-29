@@ -67,7 +67,8 @@ public class AreaOutlineTests
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(100f, 100f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		dungeon.UpdateAreaOutline(
 			floor.Id,

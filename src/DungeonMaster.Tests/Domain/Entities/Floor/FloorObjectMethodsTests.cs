@@ -24,7 +24,8 @@ public class FloorObjectMethodsTests
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			pos,
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		obj.Kind.Should().Be(ObjectKind.Chair);
 		obj.Position.Should().Be(pos);
@@ -41,7 +42,8 @@ public class FloorObjectMethodsTests
 		var obj = floor.AddObject(
 			ObjectKind.Barrel,
 			new CanvasPoint(10f, 10f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		floor.Areas.Should().BeEmpty();
 		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
@@ -54,7 +56,8 @@ public class FloorObjectMethodsTests
 		var obj = floor.AddObject(
 			ObjectKind.Barrel,
 			new CanvasPoint(40f, 40f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var removed = floor.RemoveObject(obj.Id);
 
@@ -79,7 +82,8 @@ public class FloorObjectMethodsTests
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(0f, 0f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 		var newPos = new CanvasPoint(200f, 300f);
 
 		var updated = floor.UpdateObject(
@@ -117,50 +121,12 @@ public class FloorObjectMethodsTests
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(50f, 50f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		dungeon.RemoveArea(floor.Id, area.Id);
 
 		floor.Areas.Should().BeEmpty();
 		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
-	}
-
-	[Fact]
-	public void UpdateObject_WithoutScaleOnExistingObject_ReturnsSuccessAndAppliesPositionAndRotation()
-	{
-		// Arrange
-		var floor = CreateFloor();
-		var obj = floor.AddObject(
-			ObjectKind.Chair,
-			new CanvasPoint(0f, 0f),
-			ObjectRotation.None);
-		var newPosition = new CanvasPoint(120f, 45f);
-
-		// Act
-		var updated = floor.UpdateObject(
-			obj.Id,
-			newPosition,
-			ObjectRotation.CW180);
-
-		// Assert
-		updated.Should().Be(MutationOutcome.Success);
-		obj.Position.Should().Be(newPosition);
-		obj.Rotation.Should().Be(ObjectRotation.CW180);
-	}
-
-	[Fact]
-	public void UpdateObject_WithoutScaleOnUnknownId_ReturnsNotFound()
-	{
-		// Arrange
-		var floor = CreateFloor();
-
-		// Act
-		var updated = floor.UpdateObject(
-			Guid.NewGuid(),
-			new CanvasPoint(1f, 1f),
-			ObjectRotation.None);
-
-		// Assert
-		updated.Should().Be(MutationOutcome.NotFound);
 	}
 }
