@@ -210,11 +210,6 @@ public partial class MapCanvasViewModel(AppDispatcher dispatcher, IDungeonEditin
 			return;
 		}
 
-		if (addResult.Value == Guid.Empty)
-		{
-			return;
-		}
-
 		var outlineResult = await dispatcher.SendAsync(
 			new UpdateAreaOutlineCommand(
 				context.DungeonId,

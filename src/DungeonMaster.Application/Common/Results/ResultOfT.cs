@@ -24,8 +24,22 @@ public sealed record Result<T>
 		!IsSuccess;
 
 	/// <summary>
-	///		Gets the value returned by the operation, or <see langword="null"/> when the operation failed.
+	///		Gets the value returned by the operation. A failed result carries <see langword="default"/> of
+	///		<typeparamref name="T"/>, because the failure factories never assign this property.
 	/// </summary>
+	/// <remarks>
+	///		<para>
+	///		That default is NOT a failure signal and must never be read as one. <see cref="IsSuccess"/> and
+	///		<see cref="IsFailure"/> are the only failure signals; branch on one of them before reading this
+	///		property.
+	///		</para>
+	///		<para>
+	///		<typeparamref name="T"/> is unconstrained, so the <c>?</c> annotation has no effect once
+	///		<typeparamref name="T"/> is closed as a value type. For <c>Result&lt;Guid&gt;</c>, the only closed
+	///		construction this application uses, the failure value is therefore <c>Guid.Empty</c>, which is
+	///		indistinguishable from a Guid a successful operation could in principle return.
+	///		</para>
+	/// </remarks>
 	public T? Value { get; private init; }
 
 	/// <summary>

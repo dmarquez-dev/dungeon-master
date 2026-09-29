@@ -30,10 +30,16 @@ public class ResultOfTTests
 	}
 
 	/// <summary>
-	///		Verifies that a failed result carries the supplied message and category and no value.
+	///		Verifies that a failed result carries the supplied message and category, and the DEFAULT
+	///		value of its type rather than a missing one.
+	///		<para>
+	///		The default is NOT a failure signal. <c>default(Guid)</c> is a perfectly legal success
+	///		value, so a caller cannot tell a failure from a success by inspecting <c>Value</c>:
+	///		<c>IsSuccess</c> and <c>IsFailure</c> are the only signals that separate the two.
+	///		</para>
 	/// </summary>
 	[Fact]
-	public void Failure_WithCategory_IsNotSuccessAndCarriesNoValue()
+	public void Failure_WithCategory_IsNotSuccessAndCarriesTheDefaultValue()
 	{
 		// Act
 		var result = Result<Guid>.Failure(
@@ -43,7 +49,7 @@ public class ResultOfTTests
 		// Assert
 		result.IsSuccess.Should().BeFalse();
 		result.IsFailure.Should().BeTrue();
-		result.Value.Should().Be(Guid.Empty);
+		result.Value.Should().Be(default(Guid));
 		result.Error.Should().Be("Dungeon not found.");
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 		result.ValidationErrors.Should().BeEmpty();
