@@ -315,7 +315,10 @@ same way, silently.**
 *Correction 1 -- the location.* The `locations:` block cites
 `src/DungeonMaster.Application/Common/Results/Result.cs:9` and `Result.cs:16-19`. The generic type is
 not in that file at all. `Result.cs:6` declares the **non-generic** `public sealed record Result`, and
-`Result.cs:16-19` is now that type's `IsSuccess` / `IsFailure`. `Result<T>` is declared at
+that type declares `IsSuccess` at `Result.cs:15` and `IsFailure` at `Result.cs:20-21` -- **not**
+at `:16-19`, which holds a blank line and `IsFailure`'s doc comment and so contains neither
+declaration. (Corrected post-merge by 6b-xii's orchestrator: the amendment as first written
+reproduced, at this very line, the defect class it exists to correct.) `Result<T>` is declared at
 **`src/DungeonMaster.Application/Common/Results/ResultOfT.cs:9`** (`grep -n "record Result<T>"`).
 
 *Correction 2 -- the accessors.* The "What." paragraph describes `public T? Value { get; init; }`. The
@@ -363,7 +366,7 @@ classification of this one citation is left open rather than guessed.
 **The sentinel was unreachable, verified end to end rather than asserted.** It sat *after* the
 `IsFailure` early return, so only the success path reached it, and on that path
 `AddAreaCommandHandler.cs:33` returns `area.Id`, where `area` comes from `DungeonMethods.cs:216` ->
-`FloorMethods.cs:64` (`new Areas.Area(Id, name, description)`), whose constructor never assigns `Id`,
+`FloorMethods.cs:68-71` (`new Areas.Area(Id, name, description)`; `:64` is the `AddArea(` signature), whose constructor never assigns `Id`,
 leaving `Entity.cs:11`'s `= Guid.NewGuid()`. `MutateAsync<TResult>` was checked too and never
 synthesises `Success(default)`. So the entry's warning that the sentinel "would silently mis-fire the
 day a command legitimately returns an empty `Guid`" is right in principle; what it actually did was
