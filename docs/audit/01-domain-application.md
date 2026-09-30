@@ -869,11 +869,12 @@ authority: conventions
 citation: backend/backend-conventions.md#5. Policy Conventions
 locations:
   - src/DungeonMaster.Domain/Entities/Floors/ObjectScale.cs:3-12
-  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:28-34
-  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:80-86
-  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:9
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:91-100
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:28
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:70
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:42
   - src/DungeonMaster.Domain/ValueObjects/TilePoint.cs:12
-  - src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:18-22
+  - src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:25-29
 effort: M
 risk: low
 independent: true
@@ -897,6 +898,165 @@ surfaces as an exception rather than a validation result.
 have `PlacedObject` store the value object, and let the command validators call the policy directly to
 produce field-level errors before construction. `PathSegment`'s `Ctrl1`/`Ctrl2` nullability rule
 (control points only meaningful for `CubicBezier`) is a second candidate for the same treatment.
+
+**[AMENDED 6b-xv, 2026-09-30 -- this entry is PART DONE, not done. Two of its remedies landed; the
+policy layer it is actually about was deliberately not built. Three of its prose claims are corrected,
+one of which was false when written rather than stale, and five of its six `locations:` ranges are
+re-measured. Classification: PARTIALLY ACTED ON, plus DRIFT, plus one ORIGINAL ERROR.**
+
+**Nothing below deletes any previous wording.** This register's correction convention quotes the
+previous text verbatim and leaves it readable -- see the `AMENDED 6b-xiv` block on `CORE-019` below and
+the `AMENDED 6b-iv` block on `MASTER-165` in `00-master-index.md:628` -- so every sentence corrected
+here still stands above it, and this block is what a reader must read alongside them. The one exception
+is the `locations:` block, corrected **in place**, which is this register's documented exception to
+leaving an entry's original text standing (the `AMENDED 6b-xiii` block on `CORE-019` records the same
+exception, as does the `MASTER-167` closure in `00-master-index.md` for `UIKIT-004`'s range).
+
+**The task that wrote this block could not invoke `git`.** Commits are handed over: `3cef4dd` (store
+behaviour pinned), `4031fc8` (validator and viewport behaviour pinned), `93a4c90` (the `CanvasPoint`
+guard), `f62b1c7` (the store tests rewritten beneath the domain), `ba5666d` (the `PlacedObject`
+scale-guard extraction). Every `file:line` range in this block was read from the file in the worktree
+at `ba5666d` by the task that wrote it; none is carried over from the session's `measurement.md`, from
+this entry's previous text, or from another task's report.
+
+**What this session did NOT do, which is why the entry stays open.** There is still no `Policies/`
+directory, no `ObjectScalePolicy`, no `PolicyResult`, no `DomainException`, and no `ObjectScale` value
+object -- `ObjectScale` remains the static `const float` holder the `What.` paragraph describes.
+`PlacedObject` still stores a bare `float Scale` and still throws rather than returning a structured
+result. The `Suggested direction.` paragraph above therefore stands in full and unactioned. What landed
+is narrower and was chosen deliberately: the duplication was removed, and the `CanvasPoint` hole the
+entry names in its last sentence was closed.
+
+*Locations correction (in place).* Previous wording, verbatim:
+`PlacedObject.cs:28-34`, `PlacedObject.cs:80-86`, `CanvasPoint.cs:9`, `PathSegment.cs:18-22`. Of these,
+**`CanvasPoint.cs:9` and `PathSegment.cs:18-22` were already stale before this session touched
+anything**, and `PathSegment.cs:18-22` never held the record at all -- at `ba5666d` it is the
+`<param name="Ctrl2">` doc block, and the record declaration is at **`:25-29`** (`grep -n "public
+record PathSegment" src/DungeonMaster.Domain/ValueObjects/PathSegment.cs` returns `25:`, and the
+parameter list closes at `:29`). `CanvasPoint.cs:9` is now a `<para>` line inside the type's
+`<remarks>`; the record declaration is at **`:42`** (`grep -n "public record CanvasPoint"` returns
+`42:`). The two `PlacedObject` ranges held the two inline `if` blocks and no longer exist as such: the
+rule is one helper at **`:91-100`**, called from **`:28`** and **`:70`** (`grep -n "ValidateScale"
+src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs` returns `28:`, `70:` and `91:`, the last
+being the declaration, whose body closes at `:100`). `ObjectScale.cs:3-12` and `TilePoint.cs:12` were
+re-read and are **unchanged and correct**.
+
+*Correction A -- `verbatim` was FALSE when written, and `twice` is now stale.* Previous wording,
+verbatim, from the `What.` paragraph above: *"is written twice, verbatim, as an inline `if` in the
+`PlacedObject` constructor and again in `PlacedObject.Update`"*. **The two copies were never
+verbatim.** Their conditions differed in the identifier under test -- `scale` in the constructor and
+`newScale` in `Update` -- and it was the interpolated **message string** that was byte-identical. That
+is a small difference and it is the reason the de-duplication needed a `paramName` parameter rather
+than a bare `nameof` inside the helper. **After `ba5666d` there is one copy**, not two: a single
+`private static void ValidateScale(float scale, string paramName)` at `PlacedObject.cs:91-100`, called
+from the constructor at `:28` and from `Update` at `:70`. Each call site passes `nameof` **evaluated at
+the call site**, so the reported `ParamName` is still `"scale"` and `"newScale"` respectively and the
+observable behaviour is unchanged: same inputs rejected, same exception type, `ParamName`, `ActualValue`
+and message. `Update`'s theory gained a `float.NegativeInfinity` case the constructor's already had.
+
+*Correction B -- the no-validator clause is STRUCK as stale.* Previous wording, verbatim, from the
+`Why it matters.` paragraph above: *"because `AddPlacedObjectCommand` has no validator (CORE-009) an
+out-of-range scale reaches the entity and surfaces as an exception rather than a validation result"*.
+**`MASTER-079` / `CORE-009` is closed** -- `00-master-index.md:267` carries `**done**` -- and both
+commands now bind their scale field with `InclusiveBetween(ObjectScale.Min, ObjectScale.Max)`:
+`src/DungeonMaster.Application/Features/Dungeons/Commands/AddPlacedObject/AddPlacedObjectCommandValidator.cs:38-42`
+on `Scale`, and
+`src/DungeonMaster.Application/Features/Dungeons/Commands/UpdatePlacedObject/UpdatePlacedObjectCommandValidator.cs:37-41`
+on **`NewScale`** -- the property names differ between the two commands, so a reader grepping for
+`Scale` alone will miss the second. Both reference the `ObjectScale` constants rather than restating the
+bounds. So an out-of-range scale now surfaces as a validation result at the boundary, and the entity
+guard is the backstop rather than the only check. The convention gap the paragraph rests on is
+unaffected: a validator is not a policy, and the rule is still expressed twice in two layers.
+
+*Correction C -- the value-object clause is STRUCK as stale.* Previous wording, verbatim, from the
+`What.` paragraph above: *"The three value objects under `ValueObjects/` are plain positional records
+that accept any input, including `float.NaN` for `CanvasPoint`"*. Two of the three are no longer plain.
+`PathSegment` validates its control points against its `Kind` through a redeclared property initializer
+(`PathSegment.cs:35`, helper at `:40-79`), added under `MASTER-170`. `CanvasPoint` now **rejects a
+non-finite coordinate** (`CanvasPoint.cs:42-110`), throwing `ArgumentOutOfRangeException` whose
+`ParamName` is the offending coordinate and whose `ActualValue` is the rejected value. `float.IsFinite`
+is the whole predicate, so `float.MaxValue` and `float.MinValue` remain accepted. `TilePoint`
+(`TilePoint.cs:12`) is still a plain positional record, and its coordinates are `int`, so the finiteness
+question does not arise for it.
+
+**The design detail worth carrying.** `CanvasPoint`'s guard fires on **both** the primary constructor
+**and** `with`-expressions, through two different mechanisms -- private field initializers
+(`CanvasPoint.cs:49-50`) and `init` accessors (`:63-79`) -- because a record's compiler-generated copy
+constructor assigns backing fields directly and never re-runs a property initializer. An
+initializer-only guard would have left `with`-expressions open. **That is exactly the carried
+`MASTER-170` gap that `AreaOutlineGeometry.Translate` still walks through, and this session did not
+close it.** `PathSegment` is still guarded by an initializer only. Nothing here closes or fixes
+`MASTER-170`, and nothing here fixes `PathSegment`; that bypass remains a carried backlog item. This
+change only avoids repeating the shape.
+
+**What the store actually does, measured (`3cef4dd`, rewritten `f62b1c7`).**
+`src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointNonFinitePersistenceTests.cs`
+pins it. **The three non-finite values do not behave alike, and it is wrong to say SQLite rejects
+non-finite floats.** It refuses exactly one of the three and stores the other two. `float.NaN` is
+refused and nothing is written. **Both infinities round-trip intact**, stored and read back unchanged,
+with `SELECT typeof(Position_X)` returning **`real`** -- not `NULL`, not clamped, not text. The
+attribution, which must not be broadened: the `NaN` refusal is **`Microsoft.Data.Sqlite`'s ADO layer
+refusing to bind the parameter**, demonstrated on a call path with no EF on it at all, throwing an
+unwrapped `InvalidOperationException("Cannot store 'NaN' values.")` from
+`Microsoft.Data.Sqlite.SqliteValueBinder.BindDouble`. It is **not** a SQLite constraint and **not** the
+`IsRequired()` mapping; a `REAL NOT NULL` violation surfaces instead as `SqliteException` with a
+constraint code, and that contrast was measured. The `REAL` column type is nonetheless why EF attempts
+a floating-point bind at all, so it is not irrelevant -- a TEXT mapping would store `NaN` without
+complaint. The file reaches the store **beneath** the domain, because `93a4c90`'s guard means the domain
+type can no longer hold a non-finite value for EF to attempt to persist: raw-SQL write plus a direct
+`SELECT` for the infinities, and a direct `Microsoft.Data.Sqlite` parameter bind for the `NaN`. It
+declares **3 test methods** carrying **6 cases** (`grep -c "public async Task\|public void"` returns
+`3`; `grep -c "InlineData"` returns `4`, on the one theory, plus 2 facts).
+
+**A superseded framing still in the source, carried as a finding this task could not fix.**
+`CanvasPoint.cs:16-25` describes the `NaN` refusal as *"a `DbUpdateException` wrapping
+`InvalidOperationException`"* arriving *"at commit time"*. That was what the pre-`f62b1c7` test observed
+through EF; `93a4c90`'s own guard made that path unreachable, so the wrapper is no longer the thing
+being described. **Prefer this block's ADO-layer framing over that doc comment.** Correcting the comment
+is a `src/` edit and outside this task's ownership set; it is left as a carried item.
+
+**Whether a production path can produce a non-finite `CanvasPoint`, measured (`4031fc8`).** This matters
+because the entry's severity should rest on a run result rather than on the type merely permitting one.
+`src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs` (**6 test methods**, by
+`grep -c "public void"`) pins it, and **the answer is split.** For **`ZoomLevel` there is no reachable
+non-finite path on the shipping Windows TFM**: all six production writes to `ZoomLevel` / `PanOffset`
+were enumerated, and the generated-code route was closed by a grep restricted to `obj/` | `bin/`
+returning zero. For **`PanOffset` the question is OPEN**, recorded as an open question by explicit user
+decision (escalation E2) and **deliberately not resolved in either direction**.
+`DungeonDetailPage.xaml.cs` accumulates raw touch coordinates with no finiteness test, and only
+`ResetViewport` sanitizes it; one non-finite touch coordinate would make `PanOffset` permanently `NaN`
+and every later `ScreenToCanvas` result `NaN`. **Whether the MAUI Windows pointer pipeline can deliver
+such a coordinate is a fact about an external framework's runtime, not about this repository, and
+nothing in this session asserts it either way.** Also measured, and a trap worth carrying:
+**`Math.Clamp` does not clamp `NaN`** -- it returns `NaN` unchanged while clamping `±Infinity` to the
+bounds. So the Windows conclusion holds because of a `#elif MACCATALYST` fence, not because of the
+clamp, and **the MacCatalyst pinch path is a live latent hole on that TFM.**
+
+**`measurement.md` section 2(e) is now RUN, and its reasoning was worth nothing in either direction.**
+That section reasoned about whether `InclusiveBetween` rejects `NaN` and declined to claim it.
+`src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/NonFiniteScaleRejectionTests.cs`
+(**4 test methods**, by `grep -c "public void"`) measured it: **`InclusiveBetween` rejects all three
+non-finite scale values on both command validators** -- 3 values across 2 validators, so **6
+rejections** -- each a single failure carrying error code `InclusiveBetweenValidator` on the scale
+property, with `ObjectScale.Default` valid on both as a control. The mechanism, measured by loading the
+shipped assembly: the comparison runs through a total order that sorts `NaN` below every other value,
+so a `NaN` fails the lower bound rather than being skipped as incomparable. **It is not
+`Comparer<float>.Default`** -- an earlier draft of this session said so and was corrected -- and the
+type that does it is `internal` to FluentValidation, so naming it here would be a citation that can
+change without a public-API signal. Two parties reasoned from different implicit forms of a range check
+and reached **opposite** conclusions; only the measurement settled it.
+
+**This block moves a citation in a later entry, and says so rather than leaving it to drift.** Inserting
+these paragraphs shifts every line below `CORE-016`, which includes the two in-document citations the
+`AMENDED 6b-xiv` block on `CORE-019` states as positions: `:761-768` (`CORE-015`) is **unmoved**,
+because it sits above this insertion point, while `:1002-1007` (`CORE-019`'s `locations:` window) has
+moved. Re-run of that block's own predicate after this edit: the `CORE-019` `locations:` window is now
+**`:1162-1167`**, was `:1002-1007`. This is the neighbour-falsification mechanism the `MASTER-047` closure
+describes, and it is recorded here because nothing in this audit process re-measures an entry when the
+document around it changes.
+
+The record's severity, category, effort and risk are unchanged, and `MASTER-081` / `CORE-016` stays
+**OPEN as part done**.**]**
 
 ### CORE-017 -- ObjectKind has no zero value, so default(ObjectKind) silently means DoorWood
 

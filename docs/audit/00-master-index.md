@@ -266,7 +266,7 @@ target frameworks rather than from any decision a test author made.
 | 78 | MASTER-078 | S3 | XCUT | dependency | S | medium | Analysis mode is left at Default and code-style rules are not enforced on build | XCUT-010 | **done** |
 | 79 | MASTER-079 | S3 | CORE | structure | M | low | Ten of the fourteen commands have no validator, making ValidationBehavior a no-op for them | CORE-009 | **done** |
 | 80 | MASTER-080 | S3 | CORE | structure | M | low | Queries bypass the pipeline entirely; IPipelineBehavior applies only to commands | CORE-012 | **done** |
-| 81 | MASTER-081 | S3 | CORE | structure | M | low | The Domain has no policy layer and scale validation is inline and duplicated | CORE-016 | |
+| 81 | MASTER-081 | S3 | CORE | structure | M | low | The Domain has no policy layer and scale validation is inline and duplicated | CORE-016 | part done (6b-xv, 2026-09-30) -- the duplicated scale rule is now one `PlacedObject.ValidateScale` helper and `CanvasPoint` gained a finiteness guard; the policy layer, `PolicyResult`, `DomainException` and an `ObjectScale` value object were deliberately not built, which is why this entry is not closed |
 | 82 | MASTER-082 | S3 | CORE | structure | M | low | Common/Map holds three geometry types that no command, query or handler in the layer uses | CORE-020 | **done** (5a) |
 | 83 | MASTER-083 | S3 | UI | performance | M | low | The create-dungeon popup's six bindings are reflection-based because it declares no x:DataType | UI-030 | **done** (5b) |
 | 84 | MASTER-084 | S3 | UI | accessibility | M | low | The map canvas and the floor sidebar have no accessibility affordances | UI-031 | **done** (5b) |
