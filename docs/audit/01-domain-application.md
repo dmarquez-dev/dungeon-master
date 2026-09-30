@@ -1279,9 +1279,13 @@ is about.** `measurement.md` section 1 claim 4 gave the range as `+13` to `+51`.
 `374`, the drift of the FOUR-parameter `AddPlacedObject`** -- which is a `CORE-019` citation and not
 one of `CORE-015`'s eight. `CORE-015` cites `356-380`, the **five-parameter** overload, and that one
 moved **+18**. The low end was wrong too: the true minimum is `AddArea`'s **+12**. A figure was
-carried in from a neighbouring entry's citation and neither endpoint was measured. That row is **the
-only row in `measurement.md` section 1 with no command named beside it**, and it is the row that went
-wrong.
+carried in from a neighbouring entry's citation and neither endpoint was measured. That row was **one
+of three rows in `measurement.md` section 1 with no command named beside it** -- section 1 carries six
+claims against a `Commands:` list of three bullets, and those bullets cover claims 1, 2 and 3, so
+claims 4, 5 and 6 all lack one -- **and it is the only one of the three that states a figure**: the
+other two state qualitative verdicts, which a reader can check by reading. The distinguishing
+property was never uniqueness; it is that a figure was asserted where the document's own convention
+names a command.
 
 **So this is not one entry's defect.** Citations in this document were exact on 2026-08-17 and have
 drifted with the code since, and nothing in this audit process re-measures an entry when the code
