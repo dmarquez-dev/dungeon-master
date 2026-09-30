@@ -152,3 +152,20 @@
   resolving (`761-768`, `1002-1007`). `sed -i` refused for the third time by this agent.
 - `2026-09-30T03:10Z` — `.dir-sdlc/backlog.md` appended: **4 items, 8 lines, 431 → 439**. Lone CR count
   measured before and after in binary: **8 both times**, unchanged since 6b-iv.
+- `2026-09-30T03:20Z` — `dir-git` `merge-session` → **`e5d1398`**, `--no-ff`. Orchestrator verified with
+  `git cat-file -p`: **exactly two parents**, `20b0b09` and `a70fc95`; no `.dir-sdlc/` path swept in;
+  `main` untouched at `45495c1`. `git merge-tree` had predicted no conflicts and there were none.
+- `2026-09-30T03:25Z` — **Verified in the MAIN checkout, not only the worktree.** All four merged files
+  `crlf == lf == cr` (687 / 2061 / 471 / 580) and two `sha256`-identical between the two checkouts.
+  Suite in the main checkout: **980** (855 / 23 / 102), 0 failed, 0 skipped. Register survey re-run:
+  **179 rows, 132 closed, 44 open, 3 part done, zero `UNCLASSIFIED`**; S3 band **3 → 2**, CORE **14 → 13**.
+- `2026-09-30T03:35Z` — `dir-git` artifact commit → **`50b627d`**, 15 paths, one parent, no trailers,
+  `HANDOFF` correctly excluded, backlog `8 0`.
+- `2026-09-30T03:40Z` — **A line-ending claim inherited from the architect was measured and is half
+  wrong.** It predicted LF artifacts "normalize on commit and the main checkout will show CRLF". Storage
+  is always LF — five blobs checked byte-exactly, all `crlf=0` — but a file an agent *writes* is never
+  checked out, so 11 of 15 artifacts stayed LF on disk after the commit. Deleting one and running
+  `git checkout --` restored it at `156/156/156` with a clean status, proving the content is correct and
+  only the un-checked-out copy differs. **The orchestrator's own `grep -c $'\r'` over `cat-file` output
+  had reported CRs that are not in the blob — its fifth wrong instrument this session.** Recorded in the
+  handoff so 6b-xv does not "fix" a non-defect.
