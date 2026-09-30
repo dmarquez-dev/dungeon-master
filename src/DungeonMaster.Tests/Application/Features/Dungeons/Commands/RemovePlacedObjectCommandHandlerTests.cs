@@ -33,7 +33,8 @@ public sealed class RemovePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			floor.Id,
 			ObjectKind.Barrel,
 			new CanvasPoint(80f, 80f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var objId = floor.Objects[0].Id;
 		WriteRepository

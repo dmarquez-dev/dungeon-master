@@ -428,7 +428,7 @@ public class DungeonAggregateTests
 	}
 
 	[Fact]
-	public void AddPlacedObject_WithoutScale_ReturnsObjectWithDefaultScaleAndGivenKindPositionAndRotation()
+	public void AddPlacedObject_ReturnsObjectWithGivenKindPositionRotationAndScale()
 	{
 		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
@@ -440,7 +440,8 @@ public class DungeonAggregateTests
 			floor.Id,
 			ObjectKind.Chair,
 			position,
-			ObjectRotation.CW90);
+			ObjectRotation.CW90,
+			ObjectScale.Default);
 
 		// Assert
 		placed.Should().NotBeNull();
@@ -452,7 +453,7 @@ public class DungeonAggregateTests
 	}
 
 	[Fact]
-	public void AddPlacedObject_WithoutScaleOnUnknownFloorId_ReturnsNull()
+	public void AddPlacedObject_OnUnknownFloorId_ReturnsNull()
 	{
 		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
@@ -463,7 +464,8 @@ public class DungeonAggregateTests
 			Guid.NewGuid(),
 			ObjectKind.Barrel,
 			new CanvasPoint(10f, 10f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		// Assert
 		placed.Should().BeNull();

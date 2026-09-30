@@ -33,7 +33,8 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			floor.Id,
 			ObjectKind.Throne,
 			new CanvasPoint(0f, 0f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var obj = floor.Objects[0];
 		WriteRepository
@@ -138,7 +139,8 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			floor.Id,
 			ObjectKind.Chair,
 			new CanvasPoint(10f, 10f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var theObj = floor.Objects.Should().ContainSingle().Which;
 		var originalPos = theObj.Position;
@@ -187,7 +189,8 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			floor.Id,
 			ObjectKind.Chair,
 			new CanvasPoint(10f, 10f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var obj = floor.Objects.Should().ContainSingle().Which;
 		WriteRepository

@@ -16,7 +16,8 @@ public class PlacedObjectTests
 			floorId,
 			ObjectKind.DoorWood,
 			pos,
-			ObjectRotation.CW90);
+			ObjectRotation.CW90,
+			ObjectScale.Default);
 
 		obj.Id.Should().NotBeEmpty();
 		obj.FloorId.Should().Be(floorId);
@@ -46,7 +47,8 @@ public class PlacedObjectTests
 			Guid.NewGuid(),
 			ObjectKind.Chair,
 			new CanvasPoint(40f, 40f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var newPos = new CanvasPoint(160f, 80f);
 
@@ -55,20 +57,6 @@ public class PlacedObjectTests
 		obj.Position.Should().Be(newPos);
 		obj.Rotation.Should().Be(ObjectRotation.CW180);
 		obj.Scale.Should().BeApproximately(1.5f, 0.001f);
-	}
-
-	[Fact]
-	public void Update_WithDefaultScale_KeepsDefaultScale()
-	{
-		var obj = new PlacedObject(
-			Guid.NewGuid(),
-			ObjectKind.Chair,
-			new CanvasPoint(40f, 40f),
-			ObjectRotation.None);
-
-		obj.Update(new CanvasPoint(10f, 10f), ObjectRotation.None);
-
-		obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 	}
 
 	[Theory]
@@ -100,7 +88,8 @@ public class PlacedObjectTests
 			Guid.NewGuid(),
 			ObjectKind.Chair,
 			new CanvasPoint(0f, 0f),
-			ObjectRotation.None);
+			ObjectRotation.None,
+			ObjectScale.Default);
 
 		var act = () => obj.Update(
 			new CanvasPoint(10f, 10f),
@@ -108,22 +97,5 @@ public class PlacedObjectTests
 			invalidScale);
 
 		act.Should().Throw<ArgumentOutOfRangeException>();
-	}
-
-	[Fact]
-	public void Update_TwoParam_PreservesCustomScale()
-	{
-		var obj = new PlacedObject(
-			Guid.NewGuid(),
-			ObjectKind.Chair,
-			new CanvasPoint(0f, 0f),
-			ObjectRotation.None,
-			scale: 2.0f);
-
-		obj.Update(
-			new CanvasPoint(10f, 10f),
-			ObjectRotation.CW90);
-
-		obj.Scale.Should().BeApproximately(2.0f, 0.001f);
 	}
 }

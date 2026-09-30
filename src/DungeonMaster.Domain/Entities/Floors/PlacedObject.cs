@@ -9,14 +9,6 @@ public sealed class PlacedObject : Entity
 {
 	private PlacedObject() { }
 
-	/// <summary>Initializes a new <see cref="PlacedObject"/> with default scale.</summary>
-	internal PlacedObject(
-		Guid floorId,
-		ObjectKind kind,
-		CanvasPoint position,
-		ObjectRotation rotation)
-		: this(floorId, kind, position, rotation, ObjectScale.Default) { }
-
 	/// <summary>Initializes a new <see cref="PlacedObject"/> with an explicit scale.</summary>
 	internal PlacedObject(
 		Guid floorId,
@@ -65,10 +57,6 @@ public sealed class PlacedObject : Entity
 
 	/// <summary>Gets the scale multiplier applied to this object. Default is 1.0.</summary>
 	public float Scale { get; private set; } = ObjectScale.Default;
-
-	/// <summary>Updates the position and rotation, keeping the current scale.</summary>
-	internal void Update(CanvasPoint newPosition, ObjectRotation newRotation)
-		=> Update(newPosition, newRotation, Scale);
 
 	/// <summary>Updates the position, rotation, and scale of this object.</summary>
 	/// <param name="newPosition">
