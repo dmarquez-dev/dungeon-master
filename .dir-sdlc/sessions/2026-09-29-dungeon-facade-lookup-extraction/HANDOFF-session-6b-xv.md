@@ -51,9 +51,12 @@ re-reading:**
 
 ## 1. Where the repository stands
 
-- Branch `chore/repo-audit` at **`50b627d`** (the session-artifact commit) plus this handoff's own
-  commit after it. **Re-derive the push state yourself** with
-  `git rev-list --left-right --count chore/repo-audit...origin/chore/repo-audit`.
+- Branch `chore/repo-audit`: the session's last commit is a **post-handoff correction commit** that adds
+  `MASTER-107`'s commit evidence and records `66a0b73`'s false body claims — see section 5, item 2.
+  **Re-derive the tip and the push state yourself** with `git rev-parse --short chore/repo-audit` and
+  `git rev-list --left-right --count chore/repo-audit...origin/chore/repo-audit`. The session's own
+  commits are `aa5d7ac`, `66a0b73`, `e2315e3`, `a70fc95`, merge `e5d1398`, artifacts `50b627d`, handoff
+  `b1d1aaf`, plus that correction.
 - **`main` is untouched** at `45495c1`, local and remote identical. Nothing in 6b-xiv went near it.
 - 6b-xiv merged as **`e5d1398`**, a `--no-ff` merge with **exactly two parents**, `20b0b09` and
   `a70fc95`. **Parent count verified with `git cat-file -p`**, not taken from `dir-git`'s report.
@@ -76,7 +79,7 @@ re-reading:**
 | `docs/audit/01-domain-application.md` | 1820 | **2061** | **+241**, in two blocks: `CORE-015` at `:792` and `CORE-019` at `:1133`. A citation at or above `:791` is unaffected |
 | `src/.../Dungeons/DungeonMethods.cs` | 489 | **471** | **−18** |
 | `src/.../Dungeon/DungeonAggregateTests.cs` | 473 | **580** | **+107**, insertions only |
-| `.dir-sdlc/backlog.md` | 431 | **439** | **+8**, all appended at the end |
+| `.dir-sdlc/backlog.md` | 431 | **441** | **+10**, all appended at the end |
 
 **Do not apply the table and consider the citation verified.** It tells you where a line *moved*, not
 whether the claim at that line is still true. Items 1, 4, 5 and 6 of section 0 are all instances.
@@ -298,13 +301,39 @@ root path fails `MSB1009` — and through a `tee` pipe it reports exit 0.
    would satisfy six other criteria. **The strongest single item in this file**: the hole is measured,
    not suspected, and one test closes it.
 2. **`66a0b73`'s two false body claims**, permanent in history — including `CORE-015`'s own rename error
-   reproduced in the commit that fixes it.
+   reproduced in the commit that fixes it. **This one is now ALSO recorded in `MASTER-107`'s Status cell**,
+   alongside the commit evidence, because a claim that lives only in a backlog file is invisible to anyone
+   reading the register. The backlog item stays as the record of the decision; the register carries the
+   correction.
 3. **A universal in the `AMENDED 6b-xiv` preamble still reaches the `A1` table**, which was handed over
    with a method rather than a command. One clause closes it. **No criterion constrains that preamble**,
    which is why it survived three review passes.
 4. **Correction 4's cited `grep -c` decays inside its own commit** — it says 5, and T2's landing makes it
    return 1. Not false (the anchor is in the paragraph above) but a mismatch inside a block whose thesis
    is that unanchored positions decay.
+
+5. **A `git notes` convention, and one notes pass over the whole arc — deliberately deferred.** The
+   process correctly never rewrites history, and 6b-xiv measured what that protects: rewriting one task
+   commit would have swept **5 commits including the merge** and invalidated **21 SHA references across
+   committed artifacts**, `state.json`'s task commits included. But there is no mechanism for correcting a
+   commit *message*, so every false claim in one is recorded only in prose elsewhere and **a reader of
+   `git log` sees none of it**. `git notes` is the git-native fix. **This repository has no notes
+   convention** — `git notes list` → 0 and `git ls-remote origin 'refs/notes/*'` → 0 — so the item asks
+   for the convention to be decided first (format, what earns a note, whether notes are pushed, who writes
+   them) and the sweep done in **one** pass afterwards. **Do not start annotating ad hoc.** Known
+   candidates: `a116b2c` and `66a0b73`.
+
+5. **A `git notes` convention, and one notes pass over the whole arc — deliberately deferred.** The
+   process correctly never rewrites history, and 6b-xiv measured what that protects: rewriting one task
+   commit would have swept **5 commits including the merge** and invalidated **21 SHA references across
+   committed artifacts**, `state.json`'s task commits included. But there is no mechanism for correcting
+   a commit *message*, so every false claim in one is recorded only in prose elsewhere and **a reader of
+   `git log` sees none of it**. `git notes` is the git-native fix — it attaches text to a commit without
+   changing its SHA and needs no force-push. **This repository has no notes convention**: `git notes
+   list` → **0** and `git ls-remote origin 'refs/notes/*'` → **0**. The item asks that the convention be
+   decided first — format, what earns a note, whether notes are pushed (`refs/notes/commits` is neither
+   pushed nor fetched by default), who writes them — and the sweep done in **one** pass afterwards.
+   **Do not start annotating ad hoc.** Known candidates: `a116b2c` and `66a0b73`.
 
 **Still unscheduled from earlier sessions:** the UI latency spike; the five misleadingly named
 `WithUnknown{Area,Object}Id` tests, whose confusion risk **rose** this session now that ten

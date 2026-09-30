@@ -169,3 +169,18 @@
   only the un-checked-out copy differs. **The orchestrator's own `grep -c $'\r'` over `cat-file` output
   had reported CRs that are not in the blob — its fifth wrong instrument this session.** Recorded in the
   handoff so 6b-xv does not "fix" a non-defect.
+- `2026-09-30T04:10Z` — **Post-session correction, at the user's request.** Two things landed in one
+  edit to `MASTER-107`'s Status cell. **(a) The commit evidence the orchestrator owed at Gate 3 and had
+  omitted** — `aa5d7ac`, `66a0b73`, `e2315e3`, `a70fc95`, merged `e5d1398` — per the convention this same
+  cell quotes at `00-master-index.md:623`, which 6b-xiii honoured in `6cd9db0` and 6b-xiv had not.
+  **(b) The correction for `66a0b73`'s two false body claims**, recorded in the register rather than only
+  in the backlog, because a claim living only in a backlog file is invisible to a reader of the register.
+- `2026-09-30T04:12Z` — **A rewrite was measured and rejected rather than assumed unsafe.** `66a0b73` is
+  published; rewriting it would sweep **5 commits including the merge `e5d1398`** and invalidate **21 SHA
+  references across committed audit artifacts** — `backlog.md`, the handoff, `log.md` and **`state.json`**,
+  which is both the audit trail and the resume mechanism. The user chose the register-record route and
+  deferred a `git notes` pass.
+- `2026-09-30T04:15Z` — Backlog item **5** appended: define an enforceable `git notes` convention, then do
+  **one** pass over the arc. Measured now so the item is not a licence to start: `git notes list` → **0**,
+  `git ls-remote origin 'refs/notes/*'` → **0**. Backlog **439 → 441**; lone CR asserted at **8** before
+  and after. Handoff updated — §1 tip, §5 count and the new item, and the index-arithmetic row.
