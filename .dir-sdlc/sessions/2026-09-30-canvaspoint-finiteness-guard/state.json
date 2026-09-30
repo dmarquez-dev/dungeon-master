@@ -1,0 +1,116 @@
+{
+  "session": "2026-09-30-canvaspoint-finiteness-guard",
+  "updatedAt": "2026-09-30T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xv",
+  "branch": "dir/2026-09-30-canvaspoint-finiteness-guard",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "75e80ee22a9d801533116ca07cb7a905e18ab67e",
+      "commit": "3cef4dd8007e6fbadd042607d6704cf1f9da8974"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "3cef4dd8007e6fbadd042607d6704cf1f9da8974",
+      "commit": "4031fc8fbd9f7a61a4790bd2d614e1cc7426d394"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "4031fc8fbd9f7a61a4790bd2d614e1cc7426d394",
+      "commit": "93a4c9063f92d03a0b37e87731ce12c939abdda1"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "f62b1c7594c9c70b4e18e2cf96ef2af20d2a683e",
+      "commit": "ba5666dc05d1386cda11eb952ef7b6406d0eaf49"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "ba5666dc05d1386cda11eb952ef7b6406d0eaf49",
+      "commit": "3ca623b8f60e3a80fe820e6f9d7c945b0f78a2fa"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "4031fc8fbd9f7a61a4790bd2d614e1cc7426d394",
+      "commit": "f62b1c7594c9c70b4e18e2cf96ef2af20d2a683e"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T1 observed a SPLIT (NaN throws, both infinities round-trip). T3 criterion 9's two branches therefore both fire, and they require mutually exclusive outcomes. Branch 2 also requires a comment asserting materialization cannot encounter a non-finite value, which is now known false. How should c9 be resolved, and which value must the SQL-write test use given that NaN cannot be written at all?",
+      "answer": "Amend c9. Require CanvasPointGuardMaterializationTests.cs unconditionally, and specify that it writes a POSITIVE or NEGATIVE INFINITY through raw SQL, never NaN -- T1 proved NaN cannot be written at all, so a NaN-based test could not be constructed. NaN's unstorability is recorded separately in a comment in CanvasPoint.cs. Amended rather than resolved by interpretation because the reviewer judges c9 against its frozen text, and a dispatch note is not part of that text."
+    },
+    {
+      "id": "E2",
+      "taskId": "T2",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T2 criterion 7 asks whether any reachable input can leave ZoomLevel or PanOffset non-finite. T2 resolved it NO for ZoomLevel and 'not decidable from this repository's source' for PanOffset, because the answer depends on whether the MAUI Windows pointer pipeline can deliver a non-finite touch coordinate. Does stating undecidability satisfy a criterion that asked for a yes or no?",
+      "answer": "Accept criterion 7 as met-in-substance. T2's doc states what is known, what is not, and why, plus the full assignment-site census. PanOffset is recorded as an OPEN QUESTION in the audit register by T5 rather than as a closed finding. No amendment; the criterion's letter stays unmet and the reason is recorded."
+    },
+    {
+      "id": "E3",
+      "taskId": "T2",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "question": "T2's doc comment names the wrong comparer type (Comparer<float>.Default rather than FluentValidation's ComparableComparer<float>), and carries an overbroad inference about operator-based range checks. Both are advisory, so neither triggers a revision round, but committing them makes them permanent because this repository never rewrites history. Fix before committing, or commit and correct downstream?",
+      "answer": "Fix BOTH A1 and A2 before committing T2. Deliberate deviation: a revision round is being spent on advisory findings, which the reviewer did not demand. Reason: A1 is a measurably false type name the reviewer calls undetectable from the verdict alone, so nothing downstream would catch it, and this repository never rewrites history. This charges revisionRounds 1 and reviewRounds 1 to T2, and the round is NOT the implementer's fault -- to be stated as such in the Gate 3 report rather than reconciled away."
+    },
+    {
+      "id": "E4",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T3's CanvasPoint guard breaks 7 of the 8 tests in T1's CanvasPointNonFinitePersistenceTests.cs (confirmed: Failed 7, Passed 1), because those tests construct new CanvasPoint(NaN/Infinity, ...) in Arrange via [InlineData] theory parameters. The guard is working as designed; T1's store-behaviour evidence is now inexpressible through the domain constructor. T3 correctly stopped rather than edit a file it does not own. How should T1's evidence be preserved? All three options need a manifest amendment. NOTE: the orchestrator's construction-site census told T3 the guard would break nothing -- a predicate error, since the grep form used cannot see values passed as [InlineData].",
+      "answer": "Add a new task T6 (dir-database-engineer, domain database) owning CanvasPointNonFinitePersistenceTests.cs, rewriting it to reach the store BENEATH the domain guard: the infinity round-trip as a raw-SQL write plus a direct SELECT asserting typeof() = 'real', and the NaN refusal as a direct Microsoft.Data.Sqlite parameter bind. Chosen over widening T3's ownership (which would mix a persistence-test rewrite into a backend task's single commit) and over retiring the file (which would leave store behaviour un-re-measured, so a provider upgrade could silently falsify the register). Relaxing the guard was rejected. The rewrite is MORE faithful to T1's own finding than T1's tests were: T1 located the refusal at the ADO layer, and a direct bind tests that layer instead of reaching it through two layers that now reject the value first."
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "T3 c9 was conditional on T1 observing EITHER that a non-finite value is stored OR that the save throws, requiring the materialization test in the first case and its absence plus a 'cannot encounter' comment in the second.",
+      "after": "T3 c9 unconditionally requires the materialization test, writing an INFINITY rather than NaN through raw SQL, with NaN's unstorability recorded in a separate CanvasPoint.cs comment.",
+      "inFlight": []
+    },
+    {
+      "id": "A2",
+      "escalation": "E4",
+      "artifact": "manifest.json",
+      "before": "The manifest held 5 tasks; no task owned CanvasPointNonFinitePersistenceTests.cs after T1 completed, so the 7 tests T3's guard broke could not be repaired by any task.",
+      "after": "A sixth task T6 (dir-database-engineer, domain database, dependsOn T1/T2/T3) owns that file with 10 criteria, preserving T1's infinity and NaN findings below the domain layer and forbidding any edit to CanvasPoint.cs.",
+      "inFlight": [
+        "T3"
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 4,
+    "reviewRounds": 1
+  }
+}
