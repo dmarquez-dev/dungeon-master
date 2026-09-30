@@ -789,6 +789,75 @@ invariant in it -- the wrappers add only a `Touch()` and a null guard.
 floor-scoped accessor from the root and let callers work against `Floor` directly for behaviour that
 carries no cross-floor invariant. High risk because this is the aggregate's whole public surface.
 
+**[AMENDED 6b-xiv, 2026-09-29 -- three of this entry's figures are corrected, two duplications it never
+mentions are recorded, and its second suggested direction is struck as never viable. Classification:
+PARTIALLY FALSIFIED.** The entry's substance stands and this session acted on its **first** suggested
+direction. As with `CORE-005` and `CORE-019` in this file, the `locations:` block and the `What.`,
+`Why it matters.` and `Suggested direction.` paragraphs are left exactly as written -- they record how
+the code then stood -- and every correction below is recorded here rather than edited into them.
+**The task that wrote this block could not invoke `git`.** Every figure attributed to `16d594b` or to
+any other historical commit was measured by this session's orchestrator at Gate 1 and is recorded in
+`measurement.md` sections 1 and 3 of
+`.dir-sdlc/sessions/2026-09-29-dungeon-facade-lookup-extraction/`, each with the command that produced
+it. Nothing here is re-derived or inferred from a neighbouring figure.
+
+*Correction 1 -- "453 lines" was EXACT at authorship, so the figure is STALE and not an error.*
+`git show 16d594b:src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs | wc -l` returns **453**
+at `16d594b`, the commit that authored this document on 2026-08-17. A binary `b.count(b'\n')` over
+`src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs` at this session's baseline `20b0b09`
+returns **489**. **Note the path differs at `16d594b`** -- `Entities/Dungeon/`, singular, before the
+namespace pluralisation at `070d535`. The entry was correct when it was written and has drifted since.
+
+*Correction 2 -- "eight of its eleven methods": "eleven" was WRONG WHEN WRITTEN; "eight" is right.*
+A public-method census -- a regex over `^\tpublic <return type> <Name>(`, excluding the constructor,
+run against both commits -- returns **13** public methods at `16d594b` and **12** at `20b0b09`. **No
+reading of either commit yields eleven.** The 12 were re-derived independently at `20b0b09` with
+`grep -nE "^\tpublic "`, which returns exactly 12 lines -- `Update`, `AddFloor`, `RemoveFloor`,
+`ReorderFloor`, `UpdateFloor`, `AddArea`, `RemoveArea`, `UpdateArea`, `UpdateAreaOutline`,
+`AddPlacedObject`, `RemovePlacedObject`, `UpdatePlacedObject` -- and each declaration is reproduced
+verbatim in `contracts/dungeon-public-surface.md` section 1 of this session's artifacts. The 13th at
+`16d594b` was the second `AddPlacedObject` overload, deleted by 6b-xiii at `a9a5935`. **This
+correction is a different kind from Correction 1, and the difference is the point of writing both
+down:** the line count decayed with the code; this figure never held at any commit.
+
+*Correction 3 -- the lookup duplication is TEN-fold, not eight, and the entry's undercount is not an
+error in it.* The repeated `floorId` lookup occurs **10** times in `DungeonMethods.cs` at `20b0b09`,
+not the 8 that the entry's "eight of its ... methods" framing implies. Measured twice, by commands
+that could not share a mistake: `grep -c "FirstOrDefault"` returns **10**, and a Python read with
+`newline=''` counting the byte-exact two-line expression `_floors.FirstOrDefault(floor =>` followed by
+`floor.Id == floorId);` also returns **10**, as does a count of `if (floor is null)`. **Predicate
+control:** `Update` and `AddFloor` are the only two methods with no lookup -- confirmed by reading
+`:19-53`, where neither touches `_floors.FirstOrDefault` -- and `10 + 2 = 12` agrees with the method
+count in Correction 2. **Why the entry undercounts:** `RemoveFloor` and `ReorderFloor` carry the
+identical `FirstOrDefault` and null-guard but then run their own renumbering and shifting rather than
+forwarding, so the entry **correctly** excludes them from its eight *forwarders* -- and thereby
+undercounts the **ten** sites an extraction actually serves. The full table, with each site's
+disposition when the floor is absent, is in `contracts/dungeon-public-surface.md` section 2.
+
+*Correction 4 -- a SECOND duplication, which this entry never mentions.*
+`grep -c "if (outcome is not MutationOutcome.Success)"` over the same file returns **5**: `RemoveArea`,
+`UpdateArea`, `UpdateAreaOutline`, `RemovePlacedObject` and `UpdatePlacedObject` each re-check the
+inner `Floor` call's outcome before touching the aggregate. **`CORE-015` does not mention it at all.**
+Any design aiming at this entry's stated goal that "each wrapper collapses to two lines" has to
+address this duplication and not only the lookup.
+
+*Correction 5 -- the SECOND suggested direction was never viable as written.* The entry offers, as an
+alternative to the `RequireFloor` extraction, to "expose a narrow floor-scoped accessor from the root
+and let callers work against `Floor` directly". **Every `Floor` mutator is `internal`, and was
+`internal` at `16d594b`.** `grep -nE "^[[:space:]]+(public|internal) [A-Za-z]"` over `FloorMethods.cs`,
+`FloorObjectMethods.cs` and `Floor.cs` at `20b0b09`, and over the corresponding `Entities/Floor/` paths
+at `16d594b`, returns the same set at both commits: the nine `internal` members `UpdateNumber`,
+`UpdateDetails`, `AddArea`, `RemoveArea`, `UpdateArea`, `UpdateAreaOutline`, `AddObject`,
+`RemoveObject` and `UpdateObject`, with `Floor`'s `public` surface being only its five scalar
+properties plus the `Areas` and `Objects` read-only projections. So the second option is a
+**Domain-accessibility change**, not a refactor -- and it is **not** a smaller alternative to the
+first option, it is a larger one. A future session should not read the two options as comparable.
+
+**This entry's 8 `locations:` ranges are one half of a property of the whole audit document**, which is
+stated **once**, and deliberately not restated here, in the `AMENDED 6b-xiv` block on `CORE-019` below.
+
+The record's severity, category, effort and risk are unchanged.**]**
+
 ### CORE-016 -- The Domain has no policy layer and scale validation is inline and duplicated
 
 ```yaml
@@ -1060,6 +1129,178 @@ range, which is a claim about a file; the other about EF Core's materialization 
 about a library. Neither was a claim about a tool, and the narrower rule would have caught neither.
 
 The record's severity, category, effort and risk are unchanged.**]**
+
+**[AMENDED 6b-xiv, 2026-09-29 -- the `AMENDED 6b-xiii` block above carries three defects of its own:
+one false claim, one causal attribution that is impossible on dates, and one sentence a backlog item
+wrongly calls unsound. Classification: the 6b-xiii BLOCK is PARTIALLY FALSIFIED; this ENTRY's own
+substance is untouched and stays closed.** 6b-xii recorded introducing two stale citations into its
+own correction record, and 6b-xiii then did the same thing once; this block exists so that 6b-xiv does
+not make it three. **Nothing below deletes any previous wording.** This register's correction
+convention quotes the previous text verbatim and leaves it readable -- see the `AMENDED 6b-iv` block
+on `MASTER-165` in `00-master-index.md:628`, *"Previous wording, verbatim, from this entry's
+summary"* -- so every sentence corrected here still stands above it, and this block is what a reader
+must read alongside them. **The task that wrote this block could not invoke `git`.** Every figure
+attributed to a historical commit was measured by this session's orchestrator and handed over with
+the command that produced it. Most are recorded in `measurement.md` sections 1 and 6 of
+`.dir-sdlc/sessions/2026-09-29-dungeon-facade-lookup-extraction/`, measured at Gate 1. **The one
+exception is the eight-row drift table below, with the closing-line range beside it**: those were
+measured at Gate 3 under amendment A1 of that session's manifest, and they *replace* a
+`measurement.md` figure this block goes on to show was false. Nothing here is re-derived by the task,
+and no line position here is inferred from a neighbouring one.
+
+*Correction A -- the "within ten lines" sentence is FALSE.* Previous wording, verbatim, from the
+`AMENDED 6b-xiii` block above, spanning `:992-993` at this session's baseline `20b0b09`: *"The
+qualitative claim does not turn on the arithmetic: no `Update` overload of either arity was within ten
+lines of `:62-63`."* **The clause after the colon is false.**
+`git show b39a65d:src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs | grep -n "void Update"`
+returns **`70:`** and **`83:`**. At `b39a65d` that file declared the two-parameter `Update` at
+**`:70`** -- **7 lines** below `:63`, squarely within ten -- and a second overload at **`:83`**. The
+sentence was written as a redundant fallback, and the claim it falls back on still stands: `:62-63`
+does hold the `Rotation` property's doc comment rather than `Update`, and that was verified directly.
+But the false sentence sits inside the one block whose entire subject is confident unmeasured claims
+about line ranges, which is why it is corrected here rather than left as a harmless surplus. **The
+rest of Correction 2 above is unaffected**, including its honest marking *"Stated precisely, because
+it was derived rather than read"* -- exactly the marking this sentence lacks.
+
+*Correction B -- the "48 lines" sentence is SOUND, and the backlog item calling it unsound is the
+thing that is wrong.* The sentence spanning `:999-1001` at this session's baseline -- *"The direction
+corroborates insertion rather than movement: `AddPlacedObject` drifted **downward** by 48 lines, from
+the cited `:323` to the measured `:371`, which is what content added above a member does to it."* --
+is **accurate as written**. It is recorded as sound here because it was challenged, not because
+nobody looked. (It spans three lines: it begins mid-line at `:999`, the words "48 lines" sit on
+`:1000`, and both `:323` and `:371` sit on `:1001` where it ends. A citation of `:1000` alone
+addresses one line of three.)
+
+**The backlog item at `.dir-sdlc/backlog.md:427` is itself FALSE.** It asserts that *"`:323` was never
+a measured position of `AddPlacedObject`"* and concludes from that *"So 48 is the gap between a stale
+citation and a measured one, not a displacement anybody observed."* Both halves fail against the
+authorship commit.
+`git show 16d594b:src/DungeonMaster.Domain/Entities/Dungeon/DungeonMethods.cs | sed -n '323,333p'`
+returns the four-parameter scale-less `AddPlacedObject` declaration **in full and nothing else** --
+opening at `:323`, closing at `:333`. So `:323` **was** a measured position of that member, exactly,
+and the cited range `:323-333` was that declaration and nothing else. And the displacement is real.
+Tracking that one declaration across every commit that touched the file, with
+`git show <commit>:<path> | grep -n "AddPlacedObject(" | grep -v "=> AddPlacedObject"`:
+
+| Commit | 4-param `AddPlacedObject` | 5-param |
+|---|---|---|
+| `bb7405c` | **`:323`** | `:356` |
+| `781f73b` | **`:371`** | `:404` |
+| `a9a5935` | *deleted* | `:374` |
+
+`:323` to `:371` is **+48** -- one member, two adjacent commits, a measured displacement.
+**The irony is exact and belongs in the record:** the backlog item's stated reason for doubting the
+figure is that nobody read the entry's authorship commit. Reading the authorship commit is what
+refutes it. **`.dir-sdlc/backlog.md` is not annotated by this session** -- it lies outside the owning
+task's file set -- so this paragraph is the only place the falsification is written down.
+
+*Correction C -- the stated CAUSE of both stale citations is FALSE.* Previous wording, verbatim, from
+the passage standing at `:995-997` at this session's baseline, its quoted tail running onto `:998`:
+*"**The drift has a named cause, and a direction.** Neither stale citation was caused by any work on
+`MASTER-047`; nothing had been done to this entry between its authorship and this session. Both were
+caused by the **ObjectScale feature work**, which inserted the scale-carrying overloads above and
+beside the scale-less ones in all three files"*. **The first sentence stands; the attribution is
+false, for three reasons, and there are two real causes rather than one.**
+
+**(a) The ObjectScale work predates this document by three months.**
+`git log --no-walk --format='%h %ad %s' --date=short ec6c239 16d594b`:
+
+| Commit | Date | Subject |
+|---|---|---|
+| `ec6c239` | **2026-05-21** | `feat(dungeons) Add object scale to placed objects` |
+| `16d594b` | **2026-08-17** | `docs: add code-quality audit for domain and application` |
+
+`git merge-base --is-ancestor ec6c239 16d594b` is **true**. A commit that landed three months
+**before** this document was written cannot have moved a line the document cited afterwards. What
+ObjectScale created was the scale-less / scale-carrying overload **pairs** that `CORE-019` is *about*;
+it did not move the line numbers. The block above conflates the two, and they are different commits
+three months apart.
+
+**(b) There are two causes, not one, and they are different commits.**
+`DungeonMethods.cs:323-333` moved `:323` -> `:371` at **`781f73b`**, *"feat(domain): report mutation
+outcomes instead of silently no-opping"*, dated **2026-08-18** -- **one day** after this document was
+authored, and the first of exactly three commits to touch that file after authorship.
+`git diff --numstat 781f73b^ 781f73b -- "*DungeonMethods.cs"` returns `99  33`. **That one commit is
+the whole +48.** `PlacedObject.cs:62-63` moved `:62` -> `:70` at **`b4e2a74`**,
+*"feat(domain,application): add `ObjectKind.None` and validate placement"*, dated **2026-09-17** --
+the `ObjectKind` work, not ObjectScale. The two-parameter `Update` held at `:62` through `16d594b`,
+`413be78` and `070d535`, and moved only at `b4e2a74`, where the file went from **93** lines to
+**101**.
+
+**(c) One cause is claimed for "all three files", and no single commit moved both citations.**
+`git diff --numstat 781f73b^ 781f73b -- "*PlacedObject.cs"` returns **nothing**.
+
+**6b-xiii's ARITHMETIC was right and only its ATTRIBUTION was wrong**, which is worth separating
+because the two are easy to condemn together. The block above reconstructs the `PlacedObject` shift as
+*"the eight lines the four-parameter constructor and its blank separator occupied"*, and `b4e2a74`
+took that file from 93 lines to 101 -- exactly **+8**. It derived the *size* correctly and named the
+wrong commit.
+
+**THE PROPERTY ALL OF THIS IS AN INSTANCE OF, STATED ONCE HERE AND AS A PROPERTY OF THE DOCUMENT
+RATHER THAN OF ANY ONE ENTRY.** This audit document's citations were **accurate when they were
+authored** and decay with the code beneath them.
+
+- **`CORE-015` declares exactly 8 `locations:` ranges**, all naming `DungeonMethods.cs`, at `:761-768`
+  at this session's baseline (`awk 'NR>=751 && NR<=776 && /^  - src\//'` returns 8; the 8 line
+  numbers were then printed and read). **All 8 were exact declaration sites at `16d594b`, and all 8
+  have drifted since**, each by the amount tabulated below.
+- **`CORE-019` declares exactly 6 `locations:` ranges**, at `:933-938` at this session's baseline, of
+  which **2** are the ones 6b-xiii corrected -- not both of this entry's locations, of which there are
+  six. Both of those two were likewise **exact at `16d594b`**:
+  `DungeonMethods.cs:323-333` was the four-parameter `AddPlacedObject` exactly, and in
+  `PlacedObject.cs:62-63`, `:62` was the two-parameter `Update` signature and `:63` its expression
+  body -- `git show 16d594b:...PlacedObject.cs | grep -n "void Update"` returns `62:` and `75:`.
+- **6b-xiii's two corrections read as though this entry had mis-cited, and it had not.** Both
+  corrections are true of the file at `b39a65d`, which is what they were measured against, and
+  **neither of them says the citations once held.** A reader of the block above, or of the
+  `MASTER-047` closure that summarises it, would reasonably conclude the 2026-08-17 audit was careless
+  about line numbers. It was not.
+
+**THE EIGHT DRIFTS, ONE ROW PER CITED LOCATION.** Drift is measured **at each declaration's opening
+line**. The closing-line figures differ -- amendment A1 gives them as `+15` to `+48` -- and a bare
+range cannot say
+which of the two it means; that ambiguity is half of why the figure this table replaces went
+unchallenged. Each row was produced by resolving the cited range against both commits, and
+re-measured independently.
+
+| Member | `CORE-015` cites | Declaration at `20b0b09` | Drift |
+|---|---|---|---|
+| `UpdateFloor` | `155-171` | `168` | **+13** |
+| `AddArea` | `191-204` | `203` | **+12** |
+| `RemoveArea` | `215-229` | `234` | **+19** |
+| `UpdateArea` | `249-271` | `279` | **+30** |
+| `UpdateAreaOutline` | `286-303` | `326` | **+40** |
+| `AddPlacedObject` | `356-380` | `374` | **+18** |
+| `RemovePlacedObject` | `392-408` | `413` | **+21** |
+| `UpdatePlacedObject` | `429-452` | `459` | **+30** |
+
+**This table replaces a false figure, and the defect that produced it is the defect this whole block
+is about.** `measurement.md` section 1 claim 4 gave the range as `+13` to `+51`. **`+51` is `323` ->
+`374`, the drift of the FOUR-parameter `AddPlacedObject`** -- which is a `CORE-019` citation and not
+one of `CORE-015`'s eight. `CORE-015` cites `356-380`, the **five-parameter** overload, and that one
+moved **+18**. The low end was wrong too: the true minimum is `AddArea`'s **+12**. A figure was
+carried in from a neighbouring entry's citation and neither endpoint was measured. That row was **one
+of three rows in `measurement.md` section 1 with no command named beside it** -- section 1 carries six
+claims against a `Commands:` list of three bullets, and those bullets cover claims 1, 2 and 3, so
+claims 4, 5 and 6 all lack one -- **and it is the only one of the three that states a figure**: the
+other two state qualitative verdicts, which a reader can check by reading. The distinguishing
+property was never uniqueness; it is that a figure was asserted where the document's own convention
+names a command.
+
+**So this is not one entry's defect.** Citations in this document were exact on 2026-08-17 and have
+drifted with the code since, and nothing in this audit process re-measures an entry when the code
+around it changes. **The durable address is the symbol name**; a `file:line` range in this document
+should be read as a historical position at `16d594b` unless a later amendment re-measures it. That
+applies to this block's own two in-document citations as well: `:761-768` and `:933-938` are positions
+at `20b0b09`, and the `AMENDED 6b-xiv` block added to `CORE-015` above has already moved **the second
+of these**: `:933-938` is now `:1002-1007`. `:761-768` is **unmoved**, because `CORE-015`'s
+`locations:` block sits above this block's insertion point. (Re-run of the bullet's own predicate
+after the edit: the `CORE-015` window returns `761 762 763 764 765 766 767 768`, the `CORE-019`
+window `1002` through `1007`.) A statement about citation drift falsifying one of its own citations
+in the act of being written, which is the
+neighbour-falsification mechanism the `MASTER-047` closure describes, arriving inside a single block.
+
+The record's severity, category, effort and risk are unchanged, and `MASTER-047` stays closed.**]**
 
 ### CORE-020 -- Common/Map holds three geometry types that no command, query or handler in the layer uses
 
