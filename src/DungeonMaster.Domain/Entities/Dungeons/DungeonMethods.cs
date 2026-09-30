@@ -351,36 +351,6 @@ public sealed partial class Dungeon
 	}
 
 	/// <summary>
-	///		Adds a new placed object to the given floor at default scale.
-	/// </summary>
-	/// <param name="floorId">
-	///		The unique identifier of the floor to add the object to.
-	/// </param>
-	/// <param name="kind">
-	///		The kind of object to place.
-	/// </param>
-	/// <param name="position">
-	///		The canvas-space position of the object's bounding-box center, in floor-absolute pixels.
-	/// </param>
-	/// <param name="rotation">
-	///		The rotation to apply to the object.
-	/// </param>
-	/// <returns>
-	///		The newly created <see cref="Floors.PlacedObject"/> instance, or <see langword="null"/> if the floor is not found.
-	/// </returns>
-	public Floors.PlacedObject? AddPlacedObject(
-		Guid floorId,
-		Floors.ObjectKind kind,
-		CanvasPoint position,
-		Floors.ObjectRotation rotation)
-		=> AddPlacedObject(
-			floorId,
-			kind,
-			position,
-			rotation,
-			DungeonMaster.Domain.Entities.Floors.ObjectScale.Default);
-
-	/// <summary>
 	///		Adds a new placed object to the given floor.
 	/// </summary>
 	/// <param name="floorId">
