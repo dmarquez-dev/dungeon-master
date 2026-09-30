@@ -248,6 +248,24 @@ public class DungeonAggregateTests
 	}
 
 	[Fact]
+	public void RemoveArea_WithUnknownFloorId_ReturnsNotFound()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
+
+		// Act
+		var outcome = dungeon.RemoveArea(
+			Guid.NewGuid(),
+			area.Id);
+
+		// Assert
+		outcome.Should().Be(MutationOutcome.NotFound);
+		floor.Areas.Should().ContainSingle();
+	}
+
+	[Fact]
 	public void RemoveArea_WithUnknownAreaId_ReturnsNotFound()
 	{
 		// Arrange
@@ -264,6 +282,27 @@ public class DungeonAggregateTests
 	}
 
 	[Fact]
+	public void UpdateArea_WithUnknownFloorId_ReturnsNotFound()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
+
+		// Act
+		var outcome = dungeon.UpdateArea(
+			Guid.NewGuid(),
+			area.Id,
+			"Renamed",
+			null,
+			null);
+
+		// Assert
+		outcome.Should().Be(MutationOutcome.NotFound);
+		area.Name.Should().Be("Grand Foyer");
+	}
+
+	[Fact]
 	public void UpdateArea_WithUnknownAreaId_ReturnsNotFound()
 	{
 		// Arrange
@@ -277,6 +316,24 @@ public class DungeonAggregateTests
 			"Renamed",
 			null,
 			null);
+
+		// Assert
+		outcome.Should().Be(MutationOutcome.NotFound);
+	}
+
+	[Fact]
+	public void UpdateAreaOutline_WithUnknownFloorId_ReturnsNotFound()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
+
+		// Act
+		var outcome = dungeon.UpdateAreaOutline(
+			Guid.NewGuid(),
+			area.Id,
+			new List<PathSegment>());
 
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
@@ -300,6 +357,29 @@ public class DungeonAggregateTests
 	}
 
 	[Fact]
+	public void RemovePlacedObject_WithUnknownFloorId_ReturnsNotFound()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var placed = dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.Barrel,
+			new CanvasPoint(10f, 10f),
+			ObjectRotation.None,
+			ObjectScale.Default)!;
+
+		// Act
+		var outcome = dungeon.RemovePlacedObject(
+			Guid.NewGuid(),
+			placed.Id);
+
+		// Assert
+		outcome.Should().Be(MutationOutcome.NotFound);
+		floor.Objects.Should().ContainSingle();
+	}
+
+	[Fact]
 	public void RemovePlacedObject_WithUnknownObjectId_ReturnsNotFound()
 	{
 		// Arrange
@@ -313,6 +393,33 @@ public class DungeonAggregateTests
 
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
+	}
+
+	[Fact]
+	public void UpdatePlacedObject_WithUnknownFloorId_ReturnsNotFound()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		var originalPosition = new CanvasPoint(10f, 10f);
+		var placed = dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.Barrel,
+			originalPosition,
+			ObjectRotation.None,
+			ObjectScale.Default)!;
+
+		// Act
+		var outcome = dungeon.UpdatePlacedObject(
+			Guid.NewGuid(),
+			placed.Id,
+			new CanvasPoint(1f, 1f),
+			ObjectRotation.CW90,
+			ObjectScale.Default);
+
+		// Assert
+		outcome.Should().Be(MutationOutcome.NotFound);
+		placed.Position.Should().Be(originalPosition);
 	}
 
 	[Fact]
