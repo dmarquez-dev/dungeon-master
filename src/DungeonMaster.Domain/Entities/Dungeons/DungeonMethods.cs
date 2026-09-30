@@ -63,8 +63,7 @@ public sealed partial class Dungeon
 	/// </returns>
 	public MutationOutcome RemoveFloor(Guid floorId)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
@@ -104,8 +103,7 @@ public sealed partial class Dungeon
 		Guid floorId,
 		int newNumber)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
@@ -171,8 +169,7 @@ public sealed partial class Dungeon
 		string? description,
 		string? notes)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
@@ -205,8 +202,7 @@ public sealed partial class Dungeon
 		string name,
 		string? description)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
@@ -235,24 +231,14 @@ public sealed partial class Dungeon
 		Guid floorId,
 		Guid areaId)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		var outcome = floor.RemoveArea(areaId);
-
-		if (outcome is not MutationOutcome.Success)
-		{
-			return outcome;
-		}
-
-		Touch();
-
-		return MutationOutcome.Success;
+		return TouchOnSuccess(floor.RemoveArea(areaId));
 	}
 
 	/// <summary>
@@ -283,28 +269,18 @@ public sealed partial class Dungeon
 		string? description,
 		string? notes)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		var outcome = floor.UpdateArea(
+		return TouchOnSuccess(floor.UpdateArea(
 			areaId,
 			name,
 			description,
-			notes);
-
-		if (outcome is not MutationOutcome.Success)
-		{
-			return outcome;
-		}
-
-		Touch();
-
-		return MutationOutcome.Success;
+			notes));
 	}
 
 	/// <summary>
@@ -328,26 +304,16 @@ public sealed partial class Dungeon
 		Guid areaId,
 		IReadOnlyList<PathSegment> outline)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		var outcome = floor.UpdateAreaOutline(
+		return TouchOnSuccess(floor.UpdateAreaOutline(
 			areaId,
-			outline);
-
-		if (outcome is not MutationOutcome.Success)
-		{
-			return outcome;
-		}
-
-		Touch();
-
-		return MutationOutcome.Success;
+			outline));
 	}
 
 	/// <summary>
@@ -378,8 +344,7 @@ public sealed partial class Dungeon
 		Floors.ObjectRotation rotation,
 		float scale)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
@@ -414,24 +379,14 @@ public sealed partial class Dungeon
 		Guid floorId,
 		Guid objectId)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		var outcome = floor.RemoveObject(objectId);
-
-		if (outcome is not MutationOutcome.Success)
-		{
-			return outcome;
-		}
-
-		Touch();
-
-		return MutationOutcome.Success;
+		return TouchOnSuccess(floor.RemoveObject(objectId));
 	}
 
 	/// <summary>
@@ -463,20 +418,47 @@ public sealed partial class Dungeon
 		Floors.ObjectRotation newRotation,
 		float newScale)
 	{
-		var floor = _floors.FirstOrDefault(floor =>
-			floor.Id == floorId);
+		var floor = FindFloor(floorId);
 
 		if (floor is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		var outcome = floor.UpdateObject(
+		return TouchOnSuccess(floor.UpdateObject(
 			objectId,
 			newPosition,
 			newRotation,
-			newScale);
+			newScale));
+	}
 
+	/// <summary>
+	///		Finds the floor with the specified identifier.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor to find.
+	/// </param>
+	/// <returns>
+	///		The matching <see cref="Floors.Floor"/>, or <see langword="null"/> when no floor on this dungeon carries that identifier. An absent floor is an expected failure that each caller translates into its own vocabulary, not a defect: eight callers return <see cref="MutationOutcome.NotFound"/> and <see cref="AddArea"/> and <see cref="AddPlacedObject"/> return <see langword="null"/>.
+	/// </returns>
+	private Floors.Floor? FindFloor(Guid floorId) => _floors.FirstOrDefault(floor =>
+		floor.Id == floorId);
+
+	/// <summary>
+	///		Marks the dungeon as modified when an inner floor mutation succeeded, and leaves it untouched otherwise.
+	/// </summary>
+	/// <param name="outcome">
+	///		The outcome reported by the inner <see cref="Floors.Floor"/> mutation.
+	/// </param>
+	/// <returns>
+	///		<paramref name="outcome"/>, unchanged.
+	/// </returns>
+	/// <remarks>
+	///		The guard is the behaviour, not a formality: a failed inner mutation must not advance
+	///		<see cref="Entity.LastModified"/>, which is a mapped column on every configuration and is surfaced to the UI.
+	/// </remarks>
+	private MutationOutcome TouchOnSuccess(MutationOutcome outcome)
+	{
 		if (outcome is not MutationOutcome.Success)
 		{
 			return outcome;
