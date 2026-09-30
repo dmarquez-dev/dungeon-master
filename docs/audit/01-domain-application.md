@@ -930,11 +930,11 @@ category: dead-code
 authority: practice
 citation: Fowler, Refactoring 2e, ch. 3 "Dead Code"
 locations:
-  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:323-333
+  - src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:371-381 # corrected 6b-xiii; position at b39a65d, deleted since -- see the amendment below
   - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:10-14
   - src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:96-113
   - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:13-18
-  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:62-63
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:69-71 # corrected 6b-xiii; position at b39a65d, deleted since -- see the amendment below
   - src/DungeonMaster.Domain/AssemblyInfo.cs:3
 effort: S
 risk: low
@@ -962,6 +962,104 @@ paths require, and a reader cannot tell from the code which overload is the inte
 `ObjectScale.Default` explicitly -- the tests then document the default rather than depending on an
 otherwise unused API. If the convenience overloads are wanted for readability, keep exactly one level
 of defaulting (an optional parameter) rather than a parallel overload chain at three types.
+
+**[AMENDED 6b-xiii, 2026-09-29 -- two of this entry's six `locations:` citations were stale when
+re-measured at `b39a65d`, and this session introduced a third stale range of its own before catching
+it. Classification: DRIFT.** The entry's substance stands and was acted on in full: all five scale-less
+overloads are deleted. As with `CORE-005` above, the `What.`, `Why it matters.` and
+`Suggested direction.` paragraphs are left exactly as written -- they record how the code then stood.
+Only the two stale citations are corrected in place, which is this register's documented exception to
+leaving an entry's original text standing (the `MASTER-167` closure in `00-master-index.md` records the
+same exception for `UIKIT-004`'s range).
+
+*Correction 1 -- `Dungeon.AddPlacedObject`.* Previous wording, verbatim:
+`src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:323-333`. That range does not hold
+`AddPlacedObject` at any arity. It holds **`UpdateAreaOutline`** -- its doc-comment tail, its signature
+and its opening body. Verified after this session's deletions, which removed only lines *after* `:333`
+in that file and so left this range unshifted: `grep -n "UpdateAreaOutline"
+src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs` returns the declaration at `:326`, and
+`sed -n '320,335p'` shows `:320-325` to be the tail of its `<param>` / `<returns>` block. The scale-less
+four-parameter `AddPlacedObject` was at **`:371-381`** at `b39a65d`.
+
+*Correction 2 -- `PlacedObject.Update`.* Previous wording, verbatim:
+`src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:62-63`. That range holds the **`Rotation`
+property's doc comment**, not `Update` of either arity. The scale-less two-parameter `Update` was at
+**`:69-71`** at `b39a65d`. Stated precisely, because it was derived rather than read: this record's
+author could not read `b39a65d` directly, and located the doc comment at `:55` in the post-deletion
+file, which is `:63` once the eight lines the four-parameter constructor and its blank separator
+occupied are added back -- a shift independently confirmed by the `Scale` field initializer, recorded
+at `:67` at `b39a65d` and now read at `:59`. On that arithmetic `:62` is the blank line above the doc
+comment and the `Rotation` declaration itself sat at `:64`. The qualitative claim does not turn on the
+arithmetic: no `Update` overload of either arity was within ten lines of `:62-63`.
+
+**The drift has a named cause, and a direction.** Neither stale citation was caused by any work on
+`MASTER-047`; nothing had been done to this entry between its authorship and this session. Both were
+caused by the **ObjectScale feature work**, which inserted the scale-carrying overloads above and
+beside the scale-less ones in all three files, leaving the interleaved doc-comment / dead-overload /
+doc-comment / live-overload layout the deletions had to pick apart. The direction corroborates
+insertion rather than movement: `AddPlacedObject` drifted **downward** by 48 lines, from the cited
+`:323` to the measured `:371`, which is what content added above a member does to it. This is the same
+mechanism `6b-xii` recorded immediately above, when `CORE-006`'s fix silently falsified four of
+`CORE-005`'s claims: **a fix aimed at one entry falsifies its neighbours, in prose, at lines that may
+never move.** Nothing in this audit process re-measures an entry when the code around it changes, so
+these two citations sat wrong until a session convened to act on them read them.
+
+**All three of this entry's code ranges are historical positions at `b39a65d` and are NOT navigable at
+`HEAD`.** That covers the two corrected `locations:` entries above and the entry's one in-prose
+citation, `FloorObjectMethods.cs:109` for the surviving production call to the two-parameter
+`PlacedObject.Update` -- which **was correct at `b39a65d`**, the one in-prose citation this session's
+measurement checked and found sound. All three now point at code this session deleted. **The durable
+address is the symbol name**, and in this entry's case even that is gone: every one of the five members
+it names has been removed. The four `locations:` entries left uncorrected -- `FloorObjectMethods.cs`
+`:10-14` and `:96-113`, `PlacedObject.cs:13-18` and `AssemblyInfo.cs:3` -- were sound at `b39a65d`; the
+first three addressed code now deleted, and `AssemblyInfo.cs:3` is **still current and still standing**
+(`cat -n src/DungeonMaster.Domain/AssemblyInfo.cs`: 3 lines, the grant on `:3`). That grant was never
+part of what this entry directed removing: it is how the rest of `DungeonMaster.Tests` reaches `Domain`
+internals.
+
+**A THIRD STALE RANGE, AND THIS SESSION AUTHORED IT.** Recorded here rather than only in the session
+artifacts, because this entry's own subject is citations that no longer address what they claim, and a
+session that repaired two while quietly introducing a third would leave in place exactly the defect it
+convened to remove -- which is what `6b-xii` recorded of itself when it introduced two stale citations
+into its own correction record. (a) The four-parameter `Dungeon.AddPlacedObject` spans
+`src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:371-381` at `b39a65d`, **not `:371-377`**:
+`:371-377` cuts off mid-expression, after `=> AddPlacedObject(` and `floorId,`. The signature is
+`:371-375`, the delegating body `:376-381`, the doc comment `:353-370`. (b) `:371-377` was authored by
+**this session's own orchestrator at Gate 1**, by inferring the span's end from two `grep` hits instead
+of reading the range, and it propagated from `measurement.md` section 3 into the frozen acceptance
+criteria `B1` and `C2` before anyone noticed. (c) It was caught by **`T2`'s implementer**, which
+measured the range before deleting it, and was corrected by escalation `E2` before `T3` was dispatched
+-- so the corrected `:371-381` is what reached this record. (d) The other four members' ranges were
+verified line-for-line by `T2` and are exact.
+
+**A SECOND UNMEASURED MECHANISM CLAIM, ALSO THIS SESSION'S OWN.** Recorded here because a reader of
+this entry is precisely the reader most likely to reach for the member in question while working on
+`PlacedObject`. (a) `PlacedObject`'s `Scale` field initializer, `= ObjectScale.Default`, is **not** what
+sets `Scale` when EF Core materializes a `PlacedObject` from the database. EF invokes the private
+parameterless constructor and **then assigns `Scale` from its mapped column**
+(`PlacedObjectConfiguration.cs:34`, `builder.Property(obj => obj.Scale).HasColumnType("REAL")`), so the
+initializer is overwritten on every load and is not the setter on that path. (b) Removing the
+initializer is therefore **completely inert**, measured rather than argued: `T2`'s reviewer deleted it
+and ran the full solution suite -- **975 passed, 0 failed, 0 skipped**. (c) The in-repo proof was
+available the whole time at
+`src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs:48`,
+which commits and reloads through real SQLite and asserts `reloaded.Scale` equals the **parameterised**
+scale -- a `[Theory]` whose three `[InlineData]` rows are `0.25f`, `2.5f` and `4.0f`, none of them
+`ObjectScale.Default` -- with `:63-64` asserting the property is ordinary data
+(`TryGetDefaultValue` false, `ValueGenerated.Never`). Neither could pass if the initializer were the
+setter on that path. (d) The initializer **nonetheless remains in the code**, as a defence-in-depth
+default for non-EF construction paths, and **no test in the suite catches its removal** -- which is now
+measured, by (b), rather than assumed. The claim that it was load-bearing on the EF path was authored
+in `measurement.md` section 6 and reached frozen criterion `B6` unmeasured.
+
+**The generalisation, which is this session's most portable finding.** The rule inherited from `6b-xii`
+was *run the claim about the tool*. **That is too narrow: it is any claim about a mechanism.** Both
+findings above are the same error in different clothing -- an assertion about how something behaves,
+stated confidently at Gate 1, propagated into frozen criteria, and never run. One was about a line
+range, which is a claim about a file; the other about EF Core's materialization path, which is a claim
+about a library. Neither was a claim about a tool, and the narrower rule would have caught neither.
+
+The record's severity, category, effort and risk are unchanged.**]**
 
 ### CORE-020 -- Common/Map holds three geometry types that no command, query or handler in the layer uses
 
