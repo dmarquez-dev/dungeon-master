@@ -13,8 +13,21 @@ command for section 2. **Re-run it rather than trusting section 2** — and read
 
 ## 0. The one thing to carry forward, if you read nothing else
 
-**Nine errors were caught this session. Five were the orchestrator's. The two that cost real work were both
-PREDICATE failures, not arithmetic failures — and in both cases the total was correct.**
+**Nine errors were caught this session. EIGHT were the orchestrator's — six in its own prose and dispatches
+(rows 1, 3, 4, 5, 6, 7) and two in criteria its own Gate 2 consistency check passed (rows 2, 8) — and one was
+`dir-git`'s (row 9). The two that cost real work were both PREDICATE failures, not arithmetic failures — and
+in both cases the total was correct.**
+
+> **CORRECTED before the push: this paragraph first read "Five were the orchestrator's", and that figure was
+> false.** It was carried over from an earlier tally whose population was different — one that counted T2's
+> wrong comparer name, T3's stale `DbUpdateException` framing and T4's `137`-versus-`142` line-count slip as
+> rows, and did not list rows 2, 6, 7 and 8 separately. **The table was rewritten and the count was not
+> re-derived from it.** Counting the nine rows below by attribution gives eight and one.
+>
+> **That is this section's own corollary, committed inside the document that asserts it** — a figure carried
+> from a population it no longer describes, where the arithmetic was never wrong because it was never
+> redone. Found by auditing the committed file against its own table, which is the only reason it is not
+> still there. **Re-derive a count when you rewrite what it counts.**
 
 | # | The claim | What is true | Who caught it |
 |---|---|---|---|
@@ -256,6 +269,36 @@ false.** See §5 item 6 for what would actually close it.
 - **`grep -v '/obj/|/bin/'` without `-E` filters NOTHING** — the alternation is literal. Two frozen criteria
   carried this form and were fixed before the freeze; proved against a two-line fixture rather than asserted.
 - **`CA1507` under `TreatWarningsAsErrors`** turns a hard-coded-string injection into a build error. See §4.
+
+### An inherited finding is WRONG: storage is not uniformly LF
+
+6b-xiv recorded *"Storage: always LF. Every artifact blob is stored LF."* **That is false for one file, and it
+is the file every session appends to.** Measured with `git cat-file -p <commit>:<path>` piped through a byte
+census:
+
+| Blob at `53c00d2` | crlf | lf | lone CR |
+|---|---|---|---|
+| `HANDOFF-session-6b-xvi.md` | 0 | 428 | 0 |
+| `state.json` | 0 | 116 | 0 |
+| `src/.../CanvasPoint.cs` — **tracked source** | 0 | 110 | 0 |
+| **`.dir-sdlc/backlog.md`** | **453** | 453 | **8** |
+
+**`backlog.md` is stored CRLF and nothing else is.** All three paths report identically under
+`git check-attr text eol` (`text: auto`, `eol: unspecified`), `core.autocrlf` is `true`, and `backlog.md` is
+treated as text — `git diff --numstat` returns `2 0` rather than `-`. **So the difference is not
+configuration.**
+
+**Its history, measured:** at creation (`bd63eb9`) the blob was **LF**, 7 lines, 0 lone CR. By `e5d1398` it was
+**CRLF** with 8 lone CRs, and it has been CRLF at every commit since — 431, 439, 439, 441, and now 453.
+
+> **The practical rule, which is what matters: APPEND TO `backlog.md` AS CRLF.** Both of 6b-xv's appends did,
+> and both asserted the lone-CR count before and after and would have failed hard if it moved. **An LF append
+> would make the file mixed; a normalization pass over it would rewrite every line and destroy the 8 lone
+> CRs** — which are 6b-iv's, not yours, and which ten sessions have now deliberately preserved.
+>
+> **The mechanism is inferred and NOT run:** most likely git's `text=auto` declines to re-normalize a path
+> whose indexed blob already contains CRLF. Stated as a hypothesis, because this session did not test it — and
+> the practical rule above holds either way.
 
 **Confirmed again, and these are stable rather than intermittent:**
 
