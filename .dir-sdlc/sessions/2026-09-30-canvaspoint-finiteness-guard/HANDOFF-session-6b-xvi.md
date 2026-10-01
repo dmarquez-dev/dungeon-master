@@ -240,7 +240,27 @@ unreviewed task when T3's commit was made.
 
 **But `f886737`'s body miscounted two figures, and one of them was handed over verbatim.** 6b-xiv concluded
 the handed-figure remedy held and located the exposure in diff-derived claims only. **That conclusion is now
-false.** See §5 item 6 for what would actually close it.
+false.** See §5 item 6.
+
+**The re-derive remedy was then tried twice in this session, and the result splits cleanly.** Told to derive
+every figure from the staged index and report each with its command, `dir-git` produced **correct figures both
+times** — `53c00d2` (verified independently: three paths, 431 insertions, one deletion) and `27ec38f` (one
+path, 45 insertions, two deletions). **Every derived figure was right.**
+
+> **And `27ec38f`'s body still carried two prose defects.** It wrote *"Six rows were **caught by** orchestrator
+> prose"* where the artifact says *"six **in** its own prose and dispatches"* — inverting the attribution,
+> since those six were caught by T3, T2's reviewer, T2, T4, T5 and T5. And it said *"ten sessions since
+> 6b-iv"* in one paragraph and *"six earlier sessions"* in the next, contradicting itself inside one body.
+>
+> **So the remedy works on derived figures and does nothing for narrative prose, which is where the errors
+> moved.** That is the refinement: the exposure is not counting, it is **paraphrase**. A body that restates an
+> artifact in its own words can invert a relation or contradict itself while every number in it is correct.
+> **For a commit whose whole subject is a correction, supply the body text verbatim and forbid rewording** —
+> that is what was done for the commit carrying this paragraph, and it is the cheapest form of the fix.
+>
+> **Five consecutive sessions now: the repository writes are right and the prose is not.** `a116b2c`,
+> `66a0b73`, `f886737`, `27ec38f`. History is never rewritten here, so all four stand as written — which is
+> precisely the gap the deferred `git notes` item exists to close, and it now has **four** candidates.
 
 ### The structural limits, unchanged and re-confirmed
 
