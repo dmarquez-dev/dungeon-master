@@ -79,14 +79,7 @@ public static class MauiProgram
 #if WINDOWS
 				if (handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox tb)
 				{
-					tb.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-					tb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					ApplyDmNativeStyle(tb);
 				}
 #elif MACCATALYST
 				// On macCatalyst the Entry platform view is a UITextField.
@@ -106,14 +99,7 @@ public static class MauiProgram
 #if WINDOWS
 				if (handler.PlatformView is Microsoft.UI.Xaml.Controls.TextBox tb)
 				{
-					tb.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
-					tb.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-					tb.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+					ApplyDmNativeStyle(tb);
 				}
 #elif MACCATALYST
 				// On macCatalyst the Editor platform view is a UITextView.
@@ -207,4 +193,35 @@ public static class MauiProgram
 
 		return app;
 	}
+
+#if WINDOWS
+	/// <summary>
+	///		Applies the <c>DmNativeStyle</c> chrome removal to one WinUI text box.
+	///		It strips the native border, focus ring and background so the themed MAUI
+	///		<c>Border</c> wrapper is the only visible frame.
+	/// </summary>
+	/// <remarks>
+	///		One body, two callers: the <c>EntryHandler</c> and <c>EditorHandler</c>
+	///		<c>DmNativeStyle</c> mappings in <see cref="CreateMauiApp"/> set the same eight values,
+	///		and a key added to only one copy would leave an <c>Entry</c> and an <c>Editor</c> that
+	///		no longer look alike. Each caller has already narrowed its handler's platform view to
+	///		<see cref="Microsoft.UI.Xaml.Controls.TextBox"/>, which is what makes this parameter
+	///		type correct; this method performs no narrowing of its own. Windows-only, so both the
+	///		declaration and its call sites sit inside <c>#if WINDOWS</c>.
+	/// </remarks>
+	/// <param name="textBox">
+	///		The already-narrowed WinUI platform view to restyle.
+	/// </param>
+	private static void ApplyDmNativeStyle(Microsoft.UI.Xaml.Controls.TextBox textBox)
+	{
+		textBox.BorderThickness = new Microsoft.UI.Xaml.Thickness(0);
+		textBox.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+		textBox.Resources["TextControlBorderBrush"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+		textBox.Resources["TextControlBorderBrushPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+		textBox.Resources["TextControlBorderBrushFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+		textBox.Resources["TextControlBackground"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+		textBox.Resources["TextControlBackgroundPointerOver"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+		textBox.Resources["TextControlBackgroundFocused"] = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+	}
+#endif
 }

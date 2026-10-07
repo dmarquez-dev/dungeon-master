@@ -178,8 +178,8 @@ category: duplication
 authority: practice
 citation: Fowler, Refactoring 2e, ch. 3 "Duplicated Code"
 locations:
-  - src/DungeonMaster.App/MauiProgram.cs:59-84
-  - src/DungeonMaster.App/MauiProgram.cs:86-113
+  - src/DungeonMaster.App/MauiProgram.cs:75-100
+  - src/DungeonMaster.App/MauiProgram.cs:102-129
 effort: S
 risk: low
 independent: true
@@ -187,7 +187,8 @@ independent: true
 
 **What.** The `EntryHandler` and `EditorHandler` mappers each contain a `#if WINDOWS` block that sets the
 same eight properties and resource keys on a `Microsoft.UI.Xaml.Controls.TextBox`. The two blocks are
-byte-identical apart from the local variable's declaration site; only the `#elif MACCATALYST` halves differ.
+byte-identical outright, the local variable's declaration site included; only the `#elif MACCATALYST`
+halves differ.
 
 **Why it matters.** Fowler's first bad smell: the same expression in more than one place has to be changed
 in more than one place. On Windows both handlers already resolve to the same platform type, so the next
@@ -196,6 +197,73 @@ an `Entry` and an `Editor` that no longer look alike.
 
 **Suggested direction.** Extract the Windows body into one private static method taking the `TextBox` and
 call it from both mappers, leaving only the genuinely platform-divergent macCatalyst arms inline.
+
+**[AMENDED 6b-xvi, 2026-10-07 -- both of this entry's `locations:` citations were stale when re-measured
+at `fe90bed`, and one specific in the `What.` paragraph was measurably FALSE. Classification: DRIFT for
+the citations, ERROR for the specific.** The entry's substance stands and was acted on in full: the eight
+assignments now live in one `private static ApplyDmNativeStyle` method and both mappers call it. Unlike
+the `AMENDED 6b-xiii` block on `CORE-019` in `01-domain-application.md`, which is this block's model and
+which corrected citations only, this amendment also corrects a sentence in the `What.` paragraph. **That
+model is cited for its form and not as a clean exemplar:** `AMENDED 6b-xiv`, at
+`01-domain-application.md:1293`, records that the 6b-xiii block *"carries three defects of its own: one
+false claim, one causal attribution that is impossible on dates, and one sentence a backlog item wrongly
+calls unsound"*. Its structure is worth copying; its contents are not, and a reader who follows the
+pointer should arrive already knowing that. The correction here is deliberate and it is narrow: the
+claim corrected is a *measurement* the entry got wrong, not a record of
+how the code then stood, and leaving a false measurement standing would make the entry's own evidence
+unciteable. The `Why it matters.` and `Suggested direction.` paragraphs are left exactly as written.
+
+*Correction 1 -- both `locations:` ranges, corrected in place.* Previous wording, verbatim:
+`src/DungeonMaster.App/MauiProgram.cs:59-84` and `src/DungeonMaster.App/MauiProgram.cs:86-113`. The true
+ranges at `fe90bed` are **`:75-100`** and **`:102-129`** -- the two `AppendToMapping` calls, opening
+paren to closing `});`, read directly from the file. What the stale ranges actually held, also read
+directly: `:59-84` **straddles** the tail of the `ConfigureFonts` lambda (three `fonts.AddFont` calls and
+its closing `});` at `:71`) and the head of the `EntryHandler` mapping, ending *inside* the Entry
+`TextBox` body -- its last line, `:84`, is `tb.Resources["TextControlBorderBrush"] = ...`. `:86-113`
+straddles the tail of the Entry `TextBox` body -- it opens *inside* that body, on `:86`,
+`tb.Resources["TextControlBorderBrushFocused"] = ...` -- then the whole Entry `#elif MACCATALYST` arm,
+and it ends *inside* the Editor `TextBox` body, on `:113`, which is the Editor copy's own
+`tb.Resources["TextControlBorderBrushFocused"] = ...`. **Each boundary is named by its line number and
+its content rather than by a count derived from the range, and that form is deliberate:** this block's
+first revision described the first boundary with a subtraction-derived count of assignments and got it
+wrong, and described the second merely as "the head of the Editor mapping" when the range in fact
+reaches well into that body -- an understatement rather than a false figure, but the same class of
+error the block exists to repair. A named anchor cannot be miscounted, and if the line moves the
+citation fails loudly instead of going quietly stale. **The evidence that this is drift and not a
+re-identification of a different defect is that each cited span's own LENGTH is right and both are
+shifted by the SAME constant.** `59-84` is 26 lines and the true `75-100` is 26 lines; `86-113` is 28
+lines and the true `102-129` is 28 lines; `75 - 59 = 16` and `102 - 86 = 16`. Arithmetic over the four
+ranges, stated so it can be rechecked. Equal lengths plus one constant offset is the signature of content
+inserted above the first citation after the entry was written -- sixteen lines of it. **This session did
+not locate the inserting commit**, so the offset is measured and the cause is inferred from its shape,
+not read from history.
+
+*Correction 2 -- the `What.` paragraph's qualifier, which was false.* Previous wording, verbatim: the two
+blocks are *"byte-identical apart from the local variable's declaration site"*. They are byte-identical
+**outright**; there is nothing to except, because the declaration site is identical too and sits inside
+the compared span. Measured at `fe90bed` over `:80-90` and `:107-117`, the two `if (handler.PlatformView
+is Microsoft.UI.Xaml.Controls.TextBox tb)` narrowings and their braced bodies: `cmp` reports no
+difference, `wc -c` gives **1021 bytes** each, and both sha256 to
+`8d0fa963fe1c4fe2227fa2bcc957ff44f395849db41b0420e3a175ce151104a7`. The narrowing line is line one of
+each compared span, which is exactly why the qualifier cannot stand. The sentence now reads
+"byte-identical outright, the local variable's declaration site included".
+
+**One of this entry's claims was LEFT UNMEASURED, and is recorded as unmeasured rather than resolved.**
+The `Why it matters.` paragraph asserts that *"on Windows both handlers already resolve to the same
+platform type"*. This session neither confirmed nor refuted it. What is established: the cross-platform
+handler surface types the platform view as `object` -- `IElementHandler.PlatformView` is declared
+`public object? PlatformView { get; }` and `IEntryHandler.PlatformView` as `public object PlatformView
+{ get; }` ([Microsoft Learn, `IElementHandler.PlatformView`](https://learn.microsoft.com/dotnet/api/microsoft.maui.ielementhandler.platformview?view=net-maui-10.0)),
+which is why this code pattern-matches rather than casts. What is not established: `Editor`'s native
+Windows type. Nothing read in this session names it, and it was not derived from the running
+application. **The remedy does not rest on the claim.** Both call sites narrow with
+`is Microsoft.UI.Xaml.Controls.TextBox tb` before calling, so the extracted method runs only when the
+platform view genuinely is a `TextBox`, whatever `EditorHandler` resolves to in general; if it ever
+resolves to something else, the narrowing fails closed exactly as the inline copy did. A verdict either
+way would be a guess dressed as a measurement, which is the failure mode these blocks exist to prevent.
+**Both corrected ranges, and the `:80-90` / `:107-117` spans above, are historical positions at
+`fe90bed` and are NOT navigable at `HEAD`** -- this session's own remedy deleted one of the two bodies
+and moved the other into a method, which shifts everything below it.]
 
 ### UI-004 -- DungeonDetailViewModel discards the Result of every dispatched command
 
