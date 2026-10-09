@@ -1639,6 +1639,87 @@ handlers and repository interfaces; rename `obj` to `placedObject` (which the su
 already use); and consider `Clockwise90` / `Clockwise180` / `Clockwise270` for the rotation members,
 noting that persisted values are unaffected because only the names change.
 
+**[AMENDED 6b-xvii, 2026-10-09 -- this entry's `Suggested direction.` contains a claim about persistence
+that is measurably FALSE and would have rewritten stored data if acted on, and three of its `locations:`
+citations are stale. Classification: ERROR for the persistence claim, DRIFT and a PROJECT MOVE for the
+citations. The entry's substance -- that the three abbreviations are used throughout both layers --
+stands, and two of the three were acted on in full.** The register row is `MASTER-130` at
+`00-master-index.md:318`, closed **part done**. This block follows the form of the `AMENDED 6b-xvi` block
+on `UI-003` at `03-app-shell-and-views.md:171-266`, which is cited **for its form only**: `AMENDED 6b-xiv`
+at `:1293` of this file records that the block that one was modelled on *"carries three defects of its
+own"*, and a reader following the pointer should arrive already knowing that. **Nothing below deletes any
+previous wording.**
+
+*Correction 1 -- the persistence claim in `Suggested direction.`, which is false.* Previous wording,
+verbatim: *"and consider `Clockwise90` / `Clockwise180` / `Clockwise270` for the rotation members, noting
+that persisted values are unaffected because only the names change."* **`ObjectRotation` is persisted by
+member NAME, so renaming the members rewrites every stored value.** Read directly from
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs`, the `Rotation`
+configuration chain occupies three lines and each is named by its content rather than by a count derived
+from the range: `:30` is `builder.Property(obj => obj.Rotation)`, `:31` is `.IsRequired()`, and `:32` is
+`.HasConversion<string>();`. The sibling `Kind` chain's own `.HasConversion<string>();` sits at `:28`, so
+`grep -n 'HasConversion<string>()'` on that file returns two lines and **only the second belongs to this
+claim** -- stated here because a reader re-running that grep would otherwise have to guess which. The
+column is `TEXT`: `measurement.md` section 3 records `b.Property<string>("Rotation")` with
+`.HasColumnType("TEXT")` at `AppDbContextModelSnapshot.cs:141`, attributed rather than re-measured here
+because that file was not read in this task. **The rename is therefore the same blocker class as the
+`PathSegmentKind` row this register already parks as blocked**, and it was excluded by user decision; a
+backlog item covers both renames with real migrations. The members are confirmed unchanged at
+`src/DungeonMaster.Domain/Entities/Floors/ObjectRotation.cs` -- `None` `:11`, `CW90` `:16`, `CW180` `:21`,
+`CW270` `:26`, located by `grep -nE 'None|CW90|CW180|CW270'` with `///` lines filtered out. The `:5-8`
+range this entry cites for `ObjectRotation` was exact at the session base per `measurement.md` section 3 and has
+since moved, because `CORE-025`'s remedy inserted a type summary and four member summaries above and
+between those members.
+
+*Correction 2 -- the two repository-interface citations, stale by PROJECT PATH rather than by line.*
+Previous wording, verbatim: `src/DungeonMaster.Application/Features/Dungeons/IDungeonWriteRepository.cs:22-24`
+and `src/DungeonMaster.Application/Features/Dungeons/IDungeonReadRepository.cs:20`. **Neither directory
+holds either file.** Both interfaces now live at `src/DungeonMaster.Application/Common/Interfaces/`, where
+`ls` returns exactly four entries -- `IDungeonReadRepository.cs`, `IDungeonWriteRepository.cs`,
+`IUnitOfWork.cs` and `IUnitOfWorkFactory.cs`. That move is **`CORE-029`'s remedy**, and the same move is
+what falsified `CORE-028` outright; the two corrections share one cause. The line numbers inside those
+files are not restated here, because this session renamed the very parameter the citations point at and a
+re-derived line would be a position in a file this entry no longer describes correctly.
+
+*Correction 3 -- the `obj` citation, which points at a BLANK LINE.* Previous wording, verbatim:
+`src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs:40`. **Line 40 of that file holds no
+`obj`; it holds nothing at all.** Read CR-safely with `cat -A` piped through `awk` -- `sed -n` and `awk`
+patterns both strip CR in this shell and cannot be trusted for this -- `:40` is exactly `^M$`, a bare CRLF
+separator line. Its neighbours anchor it by content: `:38` is `_objects.Add(placedObject);`, `:39` is
+`Touch();`, `:41` is `return placedObject;`. **This citation is one of the four this session treats as
+stable**, because the only edit the file received in 6b-xvii was a local rename that changed no line count,
+so `:40` was a blank line at the session base too and the entry's figure was wrong when written rather than
+drifted since. The real `obj` occurrences at the session base were nine, at `:31, :38, :41, :56, :59, :64, :95,
+:98, :103` across three distinct locals, per `measurement.md` section 3. **All of them are now gone**:
+`grep -nw 'obj'` on that file returns **0 lines**, and that zero discriminates rather than passing
+vacuously -- the three replacement names `placedObject`, `objectToRemove` and `objectToUpdate` all
+*contain* the substring `obj` and correctly fail `-w`. The replacements are at `:31` (`var placedObject`),
+`:56` (`var objectToRemove`) and `:95` (`var objectToUpdate`), with `placedObject` as the lambda parameter
+at `:57` and `:96`, all located by `grep -nE 'placedObject|objectToRemove|objectToUpdate'`.
+
+*What was done, and what the residue is.* `ct` is renamed to `cancellationToken` throughout
+`DungeonMaster.Application` and `DungeonMaster.Infrastructure`.
+`grep -rn 'CancellationToken ct\b' src --include=*.cs`, with `/obj/` and `/bin/` excluded, returns **28**
+declaration sites on the post-change tree, in **18** files by `grep -rl` -- **17** under
+`src/DungeonMaster.Tests/` and **1** under `src/DungeonMaster.App/`, and **zero** in either layer this
+entry is filed against. Those 28 were excluded by escalation E2's scope decision and go to the backlog.
+**One measured fact about the residue changes what a future reader should do with it.**
+`grep -rn 'param name="ct"' src --include=*.cs` returns **15** tags, all under `src/DungeonMaster.Tests/`,
+and pairing the two commands per file shows **1 tag against 1 live `ct` declaration in each of the 15
+files**. So those tags are *correct documentation of the code as it stands today*, not stale residue from a
+half-finished sweep: renaming them on their own would make the documentation wrong, and they must move
+with their parameters. **The authorities are verified exact**, read directly from
+`dm-conventions/backend/dotnet-format.md`: `:36` gives the parameter example as `cancellationToken`, and
+`:42` requires descriptive lambda and local names.
+
+**The `Why it matters.` paragraph is left exactly as written**, and so is `What.` -- the latter describes
+how the code stood when the audit ran and is a record rather than a live claim. **No commit hash appears
+in this block and no placeholder for one:** a DIR task cannot invoke git, so a hash here would be copied
+rather than verified. **Every line number in this block except the attributed pre-change figures was
+re-derived against the post-change worktree by content search**, and the positions quoted from
+`measurement.md` are historical positions at the session base that are **NOT navigable at `HEAD`**. The record's
+severity, category, effort and risk are unchanged.**]**
+
 ### CORE-025 -- Six public Domain types carry no XML documentation
 
 ```yaml
@@ -1676,6 +1757,100 @@ characters, `SnapAnchor`'s members do not explain what a "North" anchor snaps to
 `ObjectScale`. `ObjectKind`'s 37 members can reasonably keep their grouping comments with a type-level
 summary that points at the grouping.
 
+**[AMENDED 6b-xvii, 2026-10-09 -- `ObjectKind`'s member count is wrong in two places in this entry, and
+the entry's central claim is not true of `ObjectKind`. Classification: ERROR for the count, PARTIALLY
+FALSIFIED for the claim; the entry's substance holds for the other five types and was acted on in full.**
+The register row is `MASTER-131` at `00-master-index.md:319`, closed **done**. This block follows the form
+of the `AMENDED 6b-xvi` block on `UI-003` at `03-app-shell-and-views.md:171-266`, cited **for its form
+only** -- `AMENDED 6b-xiv` at `:1293` of this file records that the block that one was modelled on
+*"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the member count, which appears twice.* Previous wording, verbatim: *"`ObjectKind` (37
+members)"* in the `What.` paragraph, and *"`ObjectKind`'s 37 members can reasonably keep their grouping
+comments"* in `Suggested direction.`. **The true count is 38.** **Both independent predicates agreed on
+38, and both were re-run against the post-change tree** rather than taken from `measurement.md`:
+`grep -cE '^[[:space:]]+[A-Za-z][A-Za-z0-9]*,?$'` on
+`src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs` returns **38**, and the comma-required form
+`grep -cE '^[[:space:]]+[A-Za-z][A-Za-z0-9]*,$'` also returns **38**. A third form, tab-anchored, agrees:
+with `TAB=$(printf '\t')`, `grep -cE "^${TAB}[A-Za-z][A-Za-z0-9]*,?$"` returns **38**. **That third form
+is written with a shell-expanded tab deliberately: `\t` inside `grep -E` in this shell matches a literal
+`t`, not a tab, and the naive `^\t...` form returns 0** -- a confident wrong number rather than an error,
+and it is on this project's standing instrument-trap list. **The predicate was validated before its total
+was trusted**, by naming one case that must match and three near-misses that must not: `None,` at `:13`
+matches; `public enum ObjectKind` at `:7`, every `/// <summary>` line, and the five box-drawing grouping
+comments all correctly do not. **The total was then reached a fourth time by an instrument that could not
+share the line-shape predicates' mistake** -- arithmetic over the groups those comments delimit, which
+counts boundaries rather than line shapes: 1 (`None`, `:13`) + 5 (doors, `:16-20`) + 12 (furniture,
+`:23-34`) + 8 (storage, `:37-44`) + 5 (lighting, `:47-51`) + 7 (decoration, `:54-60`) = **38**. The five
+grouping comments are at `:15`, `:22`, `:36`, `:46` and `:53`. The first member is `None` at `:13` and the
+last is `WeaponRack` at `:60`. The discrepancy is consistent with `None` having been added by the
+enum-zero work after this audit was written, which `CORE-035` records.
+
+*Correction 2 -- the `What.` paragraph's claim that `ObjectKind` has no documentation, which is false of
+that file.* Previous wording, verbatim: *"`ObjectKind` (37 members), `ObjectRotation`, `SnapAnchor`,
+`RotationDirection` and `ScaleDirection` have no `<summary>` on the type or on any member."* **`ObjectKind`
+already documented its `None` member before this session touched it.** `grep -c '<summary>'` on that file
+returns **2** now; `measurement.md` section 3 records **1** at the session base, with the `None` member's summary
+at `:5` and the type declaration at `:3` undocumented. So the clause was correct about the *type* and
+wrong about *"or on any member"* for this one file; it holds for the other four named types, each of which
+`measurement.md` section 3 measured at **0**. Post-change, the pre-existing summary block sits at `:9-12`
+with its member at `:13`, and the type declaration is at `:7` by
+`grep -n 'public enum ObjectKind'` -- the `+4` is the type summary this session's remedy inserted above
+it. **That pre-existing text was preserved byte-for-byte**, not rewritten: the reviewer compared it with
+`cmp` against the pre-change blob and got identity at **176 bytes**, with an offset control that differed,
+so the comparison was not vacuous. **The scope of the remedy on this file is therefore narrower than the
+entry's `Suggested direction.` reads:** `ObjectKind` received a **type-level summary only**, no per-member
+summaries, and its grouping comments were kept, which is the one disposition the entry does explicitly
+allow.
+
+*Correction 3 -- `ObjectScale` is not an enum, and its two methods needed more than summaries.* Previous
+wording, verbatim: *"`ObjectScale` documents neither the class nor its four constants nor its two
+methods"* in `What.`, and *"constant/method summaries to `ObjectScale`"* in `Suggested direction.`. The
+`What.` sentence is right about what is missing and right to call it a class; the correction is to the
+remedy. `grep -n 'public static class ObjectScale'` puts the declaration at `:6` of
+`src/DungeonMaster.Domain/Entities/Floors/ObjectScale.cs`; it holds four `public const float` members --
+`Min` `:11`, `Max` `:16`, `Step` `:21`, `Default` `:26` -- and two static methods, `StepUp` `:37` and
+`StepDown` `:48`, each taking one `float current`. **Because `dotnet-format.md:372` covers PARAMETERS as
+well as types and members, those two methods required `<param name="current">` and `<returns>` tags**,
+which "constant/method summaries" understates. Both were added. **The authority is verified exact**, read
+directly from `dm-conventions/backend/dotnet-format.md:372`: "All public types, members, and parameters
+must have XML documentation comments."
+
+*One shape fact that changed the remedy for two of the five enums, recorded because it is not visible from
+the entry.* `ScaleDirection` and `RotationDirection` were each declared as a **single-line body** --
+`measurement.md` section 3 reads `ScaleDirection.cs:3` as `public enum ScaleDirection { Up, Down }` -- so
+documenting their members required expanding both bodies to a braced multi-line form rather than merely
+inserting comments. The entry's `Suggested direction.` does not mention that, and it is the reason those
+two files grew from 3-line bodies to 17 lines each.
+
+**A PRE-EXISTING deviation inside this entry's own preserved text is filed separately rather than folded
+in here.** `ObjectKind.cs:10` breaks a sentence across two `///` lines -- `:10` ends
+`is a <see cref="PlacedObject"/>,` and the sentence finishes on `:11` -- violating
+`dotnet-format.md:378`. **It could not have been fixed by this entry's remedy without breaking that
+remedy's own byte-for-byte preservation requirement**, so it is filed as `MASTER-180` at
+`00-master-index.md:368`, with `CORE-036` in this file as its source entry.
+
+**The `Why it matters.` paragraph is left exactly as written.** **No commit hash appears in this block and
+no placeholder for one:** a DIR task cannot invoke git, so a hash here would be copied rather than
+verified. **Every line number in this block except the attributed pre-change figures was re-derived against
+the post-change worktree by content search**, and the positions quoted from `measurement.md` -- `:3`, `:5`
+and `:5-8` for `ObjectKind`, `:3` for `ScaleDirection` -- are historical positions at the session base that are
+**NOT navigable at `HEAD`**, because this session's own remedy inserted documentation above them. **All six
+`locations:` ranges in the YAML block are stale for the same reason, and here that universal is MEASURED
+rather than asserted**, each type's declaration located at `HEAD` by
+`grep -nE '^(public|internal) (enum|static class|class|readonly struct|struct) '` on its own file, run over
+all six in one pass against the post-change worktree. **Every one of the six cites `:3` and not one of them
+is at `:3` any longer:** `ObjectKind.cs:3` is now `:7`, and `ObjectRotation.cs:3`, `ObjectScale.cs:3-11`,
+`SnapAnchor.cs:3`, `RotateDirection.cs:3` and `ScaleDirection.cs:3` are each now `:6`. `sed -n '3p'` on each
+of the six returns `/// <summary>` -- the first line of the documentation this session inserted -- which is
+what makes the shared reason a reading of the files rather than an inference from one of them.
+**The displacement is NOT a single constant, which is why it is enumerated:** `ObjectKind` moved +4 and the
+other five +3, because its inserted type summary runs to four lines where theirs run to three. The fifth
+range, `RotateDirection.cs:3`, is additionally stale by **file name**: `CORE-023`'s remedy renamed that file
+to `RotationDirection.cs` in this same session, which is why the grep above had to be run against
+`RotationDirection.cs` for that one. The record's severity, category, effort and risk are
+unchanged.**]**
+
 ### CORE-026 -- Two files indent XML documentation continuation lines with spaces instead of two tabs
 
 ```yaml
@@ -1708,6 +1883,132 @@ different editors.
 **Suggested direction.** Re-indent the affected comment blocks to the two-tab form and expand the
 single-line `<summary>` and `<param>` tags in `PlacedObject.cs` and `PlacedObjectDto.cs` to the
 multi-line shape the rest of both layers uses.
+
+**[AMENDED 6b-xvii, 2026-10-09 -- this entry's title UNDERSTATES its own population by a factor of four,
+its single-line-tag census was wrong in three ways, and a second deviation against the same conventions
+section was found while reading the authority for it. Classification: the TITLE is FALSE as a population
+claim; the census figures are ERRORS, two of them from a BLIND PREDICATE rather than a miscount; the
+entry's substance stands and was acted on in full for the files it names.** The register row is
+`MASTER-112` at `00-master-index.md:300`, closed **done** on the files this entry names, with the
+remainder filed as `MASTER-181` at `00-master-index.md:369`. This block follows the form of the
+`AMENDED 6b-xvi` block on `UI-003` at `03-app-shell-and-views.md:171-266`, cited **for its form only** --
+`AMENDED 6b-xiv` at `:1293` of this file records that the block that one was modelled on *"carries three
+defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the title's population claim.* Previous wording, verbatim: *"**Two** files indent XML
+documentation continuation lines with spaces instead of two tabs"*, repeated in `What.` as *"`CanvasPoint.cs`
+and `PlacedObjectDto.cs` write `///     Represents...` with five spaces where every other file writes
+`///` followed by two tabs."* **The clause "every other file" is the false half, and the two named files
+were 2 of 8.** One command over the tree,
+`grep -rnE '^[[:space:]]*/// {2,}' src --include=*.cs` with `/bin/` and `/obj/` excluded: the orchestrator
+ran it at the session base and measured **163 lines across 8 files**; this task re-ran the identical command on
+the post-change tree and measured **159 lines across 6 files**. **The two censuses reconcile exactly**,
+163 - 4 = 159 and 8 - 2 = 6, so the whole delta is the four lines in the two named files and the figures
+are one measurement rather than two assertions. **The predicate is not blind in either direction:** it
+returns **0** on the conforming control
+`src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeons/GetDungeonsQueryHandler.cs` and
+non-zero on each of the six survivors. The six, with per-file line counts from the same run:
+`src/DungeonMaster.App/Graphics/FloorMapDrawable.cs` **116**,
+`src/DungeonMaster.Infrastructure/Migrations/20260818232300_UtcDateTimeTimestampsAndScaleWithoutStoreDefault.cs`
+**35**, `src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs` **3**,
+`src/DungeonMaster.App/Assets/ObjectAssets/ObjectAssetCatalogue.cs` **2**,
+`src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs` **2**, and
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs` **1**. **None is
+in the CORE layer**, which is why they are filed to a new row instead of widening this `XS` one.
+`measurement.md` section 3 marks the repo-wide count **NOT MEASURED** at decomposition time, the per-file
+census having timed out at 120 seconds; the single tree-wide `grep -r` above is the form that completes,
+and the figure stops being unmeasured here.
+
+*Correction 2 -- `PlacedObjectDto.cs`'s single-line tag positions.* Previous wording: this entry's
+`locations:` block cites the range `:6-15`, and `MASTER-112`'s own working note named the four tags at
+`:9, :10, :13, :14`. **The true positions at the session base were `:9, :10, :14, :15`.** `:13` is the
+`/// </param>` **closer** of the `Position` tag that was already in conforming three-line form spanning
+`:11-13`, so it was never a single-line tag; and `:15` was omitted. **The count of 4 was right and two of
+the four positions were wrong**, which is the signature of a range read by eye rather than by predicate.
+
+*Correction 3 -- `PlacedObject.cs`'s single-line summary count, wrong because the PREDICATE was wrong.*
+Previous wording: *"as does `PlacedObject.cs` for several of its summaries"*, quantified in
+`MASTER-112`'s working note as **5**. **The true count at the session base was 6, at `:12, :37, :40, :49, :52,
+:55`**, with a seventh single-line tag, a `<param>`, at `:81`. The first predicate was
+`<summary>[^<]+</summary>`, whose character class **cannot cross a nested tag**, so it silently skipped
+`:12` -- whose summary contains `<see cref="PlacedObject"/>`. **This is the row worth carrying out of this
+block: the count was wrong because the predicate was wrong, and re-running it would have returned 5 every
+time.** A census validates its predicate, not only its total. The predicate that gets it right is
+`grep -nE '///[[:space:]]*<(param|summary|returns)[^>]*>.*</(param|summary|returns)>'`, which returns
+**0** on the conforming control `GetDungeonsQueryHandler.cs`.
+
+*Correction 4 -- three single-line tags in `CanvasPoint.cs` that this entry does not mention at all.*
+Previous wording: the `locations:` block cites only `CanvasPoint.cs:3-8`. **Three further single-line tags
+sat at `:34`, `:35` and `:84`** at the session base, unenumerated because only the file's first 16 lines were
+read before it was reported as censused. **All three sit OUTSIDE the file's type-level `<remarks>` block**,
+which closed at `:33`, so expanding them did not disturb the block this session left deliberately
+untouched -- the partition was checked by set membership rather than by subtracting one count from
+another.
+
+*The state after the remedy.* Both predicates return **0** on all three files --
+`src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs`,
+`src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/PlacedObjectDto.cs` and
+`src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs` -- re-run by this task against the post-change
+worktree. **Both zeros were shown able to be non-zero**: the space-indent predicate returns 159 over the
+rest of the tree in the same run, and the single-line-tag predicate returns **1** on a hand-written
+`/// <summary>Whole thing.</summary>` CRLF fixture. **The authority is verified exact**, read directly
+from `dm-conventions/backend/dotnet-format.md:375`: "Tag descriptions go on a **new line**, indented with
+**two tabs** from the `///` marker".
+
+**A SECOND deviation against the same conventions section was found while reading the authority for this
+entry, and its status has since changed -- which is recorded here rather than glossed.** `dotnet-format.md:378`
+also requires "**Line breaks occur only at sentence boundaries.** Never break a sentence across multiple
+`///` lines." `CanvasPoint.cs` breaks sentences mid-clause across `///` lines, on **both sides** of its
+type-level `<remarks>` block, and so does `PlacedObject.cs`. **At decomposition this was surfaced as an
+UNFILED finding and deliberately not acted on**, so that an `XS` row's scope would not quietly absorb a
+second deviation. **It is no longer unfiled:** by user decision at Gate 2 it became `MASTER-180` at
+`00-master-index.md:368`, with `CORE-036` in this file as its source entry, and the enumerated line list
+and the predicate behind it live there. It was still **not fixed** -- only filed. **The reason it needed
+its own row rather than a note is that the deviation is wider than the single `<remarks>` block it was
+first scoped to**, which the T3 review raised as a `contradicts` finding, and **the census behind it is
+predicate-dependent: four predicates produced four different totals for one population**, which is why
+`MASTER-180` carries an enumerated line list and no total at all.
+
+**The `Why it matters.` and `Suggested direction.` paragraphs are left exactly as written**, including
+`Why it matters.`'s parenthetical that T6 owns the `.editorconfig` record. **No commit hash appears in
+this block and no placeholder for one:** a DIR task cannot invoke git, so a hash here would be copied
+rather than verified. **The line positions in corrections 2, 3 and 4 are historical positions at the session base
+and are NOT navigable at `HEAD`**: this session's own remedy expanded every one of those tags from one
+line to three, which displaces everything below each of them, and the post-change state of those files is
+recorded above as a pair of zeros rather than as a new set of positions, because the constructs those
+numbers named no longer exist. **The four `locations:` ranges in the YAML block are NOT all stale, and they
+are NOT stale "for the same reason" -- the previous wording here, verbatim, was *"All four `locations:`
+ranges in the YAML block are stale for the same reason"*, attributing all four to this session's expansion
+of every tag from one line to three displacing everything below.** That reason cannot reach two of them, so
+the four are enumerated below, each boundary named by its line **and by what sits on that line at `HEAD`**
+rather than by any count derived from a range. The contents were read directly from the post-change
+worktree with `sed -n` ranges over each file, plus `cat -A` on `CanvasPoint.cs` so the indentation is
+visible rather than inferred. **A line number that moved and a construct that changed shape are different
+facts, and this entry no longer collapses them.**
+
+*(1) `PlacedObjectDto.cs:6-15` -- end boundary stale, start boundary UNMOVED.* `:6` is still
+`/// <summary>`. `:15` is now `/// <param name="Position">`, which is mid-block: the doc block's true end at
+`HEAD` is `:23`, a `/// </param>`, with the declaration `public record PlacedObjectDto(` at `:24`. So the
+range no longer bounds the construct, but nothing displaced its first line.
+
+*(2) `PlacedObject.cs:43-59` -- displaced, which is the one range the original reason does fit.* `:43` is
+now blank and the summary block there begins at `:44`, so the range's start no longer sits on a tag at all.
+
+*(3) `CanvasPoint.cs:3-8` -- UNMOVED, and nothing in this file could have displaced it.* At `HEAD` `:3` is
+`/// <summary>`, `:6` is `/// </summary>`, `:7` is `/// <remarks>` and `:8` is `///` followed by two tabs
+and `<para>`. The orchestrator compared the same lines against the session-base blob and found the two
+boundaries and everything between them identical, the only change being the indentation of `:4-5` from five
+spaces to two tabs, with **no change in line count**; that comparison needs git history, which a DIR task
+may not invoke, so it is attributed to the orchestrator rather than claimed as measured here. **Correction
+4 above puts this file's three expanded tags at `:34`, `:35` and `:84` -- all BELOW `:3-8`** -- so the
+displacement this block offered as the reason runs in the wrong direction for this range.
+
+*(4) `PlacedObject.cs:12` -- number UNMOVED, construct CHANGED SHAPE.* `:12` is still `/// <summary>`: it
+is the first expanded tag in the file, so there was nothing above it to push it down. What changed is the
+shape of what it opens -- the summary now runs `:12-14` in the conforming three-line form, closing at `:14`
+with `/// </summary>` above the `internal PlacedObject(` declaration at `:15`. The citation is therefore
+still navigable and still lands on a `<summary>`, while the single-line tag the row was describing no
+longer exists. The record's severity, category, effort and risk are unchanged.**]**
 
 ### CORE-027 -- Five files indent with four spaces and two column-align assignments where the rest use tabs
 
@@ -1786,6 +2087,68 @@ intended, and the redundant line implies a dependency that does not exist.
 **Suggested direction.** Remove the twelve redundant directives so all sixteen handlers read the same
 way.
 
+**[AMENDED 6b-xvii, 2026-10-09 -- this entry is FALSIFIED. The directive it is about exists nowhere under
+`src`, so neither the twelve nor the four is a real population and there is nothing to remove.
+Classification: FALSIFIED, by a sibling remedy rather than by an error in the original reading. No code
+changed.** The register row is `MASTER-113` at `00-master-index.md:301`, closed **FALSIFIED**. This block
+follows the form of the `AMENDED 6b-xvi` block on `UI-003` at `03-app-shell-and-views.md:171-266`, cited
+**for its form only** -- `AMENDED 6b-xiv` at `:1293` of this file records that the block that one was
+modelled on *"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the `What.` paragraph, both halves.* Previous wording, verbatim: *"Twelve handlers declare
+`using DungeonMaster.Application.Features.Dungeons;` even though their own file-scoped namespace is nested
+beneath it, so the repository interfaces are already in scope. The four object-related handlers
+(`AddPlacedObject`, `RemovePlacedObject`, `UpdatePlacedObject`, `UpdateAreaOutline`) omit it and compile
+identically."* **Zero of the sixteen handlers carry that directive, and it appears nowhere under `src`.**
+Three commands, all run against the post-change worktree:
+
+1. **Anchored, per handler.**
+   `grep -rln '^using DungeonMaster.Application.Features.Dungeons;$' src/DungeonMaster.Application/Features/Dungeons --include=*Handler.cs | wc -l`
+   returns **0**. The denominator is **16**, from
+   `find src/DungeonMaster.Application/Features/Dungeons -name '*Handler.cs'` with `/obj/` and `/bin/`
+   pruned, piped to `wc -l` -- so the ratio is 0 of 16, and **the 16 is measured here rather than carried
+   from this entry**, which is the one figure the entry happened to get right.
+2. **Unanchored, repository-wide.**
+   `grep -rn 'using DungeonMaster.Application.Features.Dungeons;' src --include=*.cs`, with `/bin/` and
+   `/obj/` excluded, returns **0**. This exists to exclude the possibility that the `^...$` anchor is what
+   missed, which the per-handler form alone could not rule out.
+3. **POSITIVE CONTROL.** `grep -c '^using DungeonMaster.Application.Common.Dispatch;$'` on
+   `src/DungeonMaster.Application/Features/Dungeons/Commands/AddArea/AddAreaCommandHandler.cs` returns
+   **1**.
+
+**The control is what makes the two zeros measurements rather than a blind predicate**, and it is the only
+reason the falsification can be stated as a fact: the same anchored form, applied to the same files,
+demonstrably sees a `using` directive that is present. Without it, `0` and `0` are indistinguishable from
+a predicate reading nothing -- the failure mode this register keeps meeting, most recently where `grep -P`
+errored in this locale **and printed `0` in the same breath**, and in `CORE-026`'s own corrected census,
+where a character class that could not cross a nested tag returned a confident wrong total every time it
+was run.
+
+*The cause, read from the tree rather than inferred.* The repository interfaces now live at
+`src/DungeonMaster.Application/Common/Interfaces/`, where `ls` returns exactly four entries --
+`IDungeonReadRepository.cs`, `IDungeonWriteRepository.cs`, `IUnitOfWork.cs` and `IUnitOfWorkFactory.cs`.
+**That move is `CORE-029`'s remedy**, the very next entry in this file, and it took the interfaces out of
+`Features/Dungeons` along with the only reason the directive existed. The same move is what stranded two
+of `CORE-024`'s citations; the two findings share one cause. **This entry was therefore resolved by a
+sibling change before 6b-xvii reached it, and it closes on evidence with no code change** -- which also
+means the `Suggested direction.` has no work left in it, rather than having work that was declined.
+
+*What this entry got right, recorded so the falsification is not read as a blanket dismissal.* The
+`Why it matters.` paragraph's belief that this is "dead syntax rather than a defect" is consistent with
+everything measured: the solution builds with **`0 Warning(s)`** and **`0 Error(s)`**, read from those two
+summary lines of `dotnet build src/DungeonMaster.sln` (and deliberately not from
+`grep -icE "warning|error"`, which returns **2** on a clean build because the summary lines contain the
+words). And the four-handler asymmetry it describes is the kind of thing worth filing even when the
+specific directive has since gone: a reader adding a handler still has no in-file signal about which form
+is intended.
+
+**The `Why it matters.` and `Suggested direction.` paragraphs are left exactly as written**, including
+`Why it matters.`'s parenthetical that T6 owns the analyzer record. **All twelve `locations:` citations are
+stale**, for a reason stronger than drift: the lines they name do not hold the directive they were cited
+for, in any of the twelve files. **No commit hash appears in this block and no placeholder for one** -- a
+DIR task cannot invoke git -- **and none is owed, because no code changed for this entry.** The record's
+severity, category, effort and risk are unchanged.**]**
+
 ### CORE-029 -- Repository interfaces sit under Features/Dungeons rather than the conventions' Common/Interfaces
 
 ```yaml
@@ -1852,6 +2215,102 @@ rule violation.
 **Suggested direction.** Cache the wrapper in a `readonly` field initialised beside the backing list
 (`private readonly ReadOnlyCollection<Floor> _floorsView;`) and return it, or expose the property as
 `IReadOnlyList<T>` returning `_floors` directly, which is already read-only through the interface.
+
+**[AMENDED 6b-xvii, 2026-10-09 -- two of this entry's five `locations:` citations are stale by a constant
+offset and a third is stale by project, and the remedy the `Suggested direction.` prescribes FAILS at one
+of the five sites. Classification: DRIFT for the two `Floor.cs` ranges, a PROJECT MOVE for the fifth
+citation, and an ERROR in the suggested remedy. The entry's substance stands and was acted on at all five
+sites.** The register row is `MASTER-114` at `00-master-index.md:302`, closed **done**. This block follows
+the form of the `AMENDED 6b-xvi` block on `UI-003` at `03-app-shell-and-views.md:171-266`, cited **for its
+form only** -- `AMENDED 6b-xiv` at `:1293` of this file records that the block that one was modelled on
+*"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the two `Floor.cs` ranges, which are DRIFT and not mis-identification.* Previous wording,
+verbatim: `src/DungeonMaster.Domain/Entities/Floors/Floor.cs:65-66` and
+`src/DungeonMaster.Domain/Entities/Floors/Floor.cs:71-72`. `measurement.md` section 3 measured the true
+positions at the session base as **`:74-75`** and **`:80-81`**. **The arithmetic, stated so it can be rechecked:**
+`74 - 65 = 9` and `80 - 71 = 9`, and each cited span's own length is right -- `65-66` is 2 lines and
+`74-75` is 2 lines, `71-72` is 2 lines and `80-81` is 2 lines. **Equal-length spans displaced by ONE
+SHARED CONSTANT is the signature of content inserted above the first citation after the entry was written,
+not of a different defect being re-identified** -- nine lines of it -- and it is the same signal behind
+`CORE-022`'s stale line counts, which `MASTER-110` carries. **This session did not locate the inserting
+commit**, so the offset is attributed and its cause inferred from its shape rather than read from history.
+**The pre-change halves of that arithmetic were NOT re-measured here**: establishing them needs git history
+and a DIR task may not invoke git, so they are attributed to `measurement.md` section 3 and written out in
+full for whoever can. The other two citations, `Dungeon.cs:48-49` and `Area.cs:60-61`, were **exact** at
+the session base per the same section.
+
+*Correction 2 -- the fifth citation, stale by PROJECT.* Previous wording, verbatim:
+`src/DungeonMaster.Application/Common/Map/MapDrawingSession.cs:37-38`. **No such directory exists:** `ls`
+on `src/DungeonMaster.Application/Common/Map/` reports `No such file or directory`, and
+`find src -name 'MapDrawingSession.cs'` with `/obj/` and `/bin/` pruned returns **exactly one** path,
+`src/DungeonMaster.App.Core/Map/MapDrawingSession.cs`. **That is outside the CORE layer this entry is
+filed under**, so one of the five sites this CORE-layer entry covers is not a CORE-layer site at all. The
+move is consistent with `CORE-020`, which records `Common/Map` as holding three geometry types with no
+caller inside the Application layer.
+
+*Correction 3 -- the `Suggested direction.`'s first option, which FAILS at `Area.Outline`.* Previous
+wording, verbatim: *"Cache the wrapper in a `readonly` field initialised beside the backing list
+(`private readonly ReadOnlyCollection<Floor> _floorsView;`) and return it."* **That form makes
+`Area.Outline` read back EMPTY FOREVER.** EF Core installs the outline value converter's list onto
+`_outline` **after** `private Area()` has run, so a wrapper built in the constructor wraps the
+pre-materialisation list and never sees the materialised one. The remedy is correct at the other four
+sites and was used there; `Area.Outline` uses a **lazy** field instead. The second option the paragraph
+offers -- "expose the property as `IReadOnlyList<T>` returning `_floors` directly" -- is not what was
+built either: all five properties already declared `IReadOnlyList<T>`, so returning the bare `List<T>`
+would have handed out a mutable list behind a read-only interface. **This correction is recorded because
+the remedy as written is wrong for one of the five sites the entry itself enumerates**, and a future
+reader following it would reintroduce the bug.
+
+*The five sites as they now stand, every line re-derived against the post-change worktree.* Located by
+`grep -rn 'AsReadOnly()' src --include=*.cs` with `/obj/` and `/bin/` excluded, plus a `grep -n` on each
+property's and each field's own declaration text:
+
+| Property | Wrapper field | Built at | Property | Body |
+|---|---|---|---|---|
+| `Dungeon.Floors`, `Entities/Dungeons/Dungeon.cs` | `_floorsView` `:14` | `:17`, in `private Dungeon()` | `:56` | `:57` |
+| `Floor.Areas`, `Entities/Floors/Floor.cs` | `_areasView` `:17` | `:22` | `:86` | `:87` |
+| `Floor.Objects`, same file | `_objectsView` `:18` | `:23` | `:92` | `:93` |
+| `MapDrawingSession.Vertices`, `App.Core/Map/MapDrawingSession.cs` | `_verticesView` `:43` | `:49` | `:54` | `:55` |
+| `Area.Outline`, `Entities/Areas/Area.cs` | `_outlineView` `:25`, nullable | lazily, `:76` | `:75` | `:76` |
+
+The four `readonly` sites return a bare field read, so reference equality across two reads is a language
+guarantee visible in the declaration rather than a behaviour needing a test to establish; the regression
+guard for all five is `src/DungeonMaster.Tests/Domain/CollectionWrapperCachingTests.cs`.
+
+*Two residuals, recorded rather than closed.* The lazy `_outlineView ??= ...` form is **not thread-safe**,
+so two concurrent first reads can each build a wrapper and break reference equality between them; nothing
+in `src` reads `Outline` concurrently and the domain entities are not documented as thread-safe, so this
+is a wording hazard rather than a live defect. And the lazy cache **goes permanently stale if `_outline` is
+ever reassigned after a first read** -- demonstrated by reflection, not reasoned: swapping `_outline` for a
+new list after a read left `Outline` returning the wrapper over the old one. It is unreachable today, since
+`grep -rn '\.Reload()\|CurrentValues.SetValues'` over `src` returns no hits and
+`grep -rnE '_(vertices|floors|areas|objects|outline)\s*=[^=]'` returns only the five field initialisers,
+but no existing guard would see it if a future `Entry.Reload()` introduced it. **The invariant the comment
+at `Area.cs` depends on is "`_outline` is assigned at most once per instance", and that is precisely what
+such a call would break.** A read-mutate-reread assertion would pin it; there is none, and the gap is
+carried to the backlog rather than claimed covered.
+
+*One structural consequence worth recording, because it inverts an earlier finding.* `OutlineComparer`'s
+role has flipped. Before this change, its absence caused **spurious writes**; after it, its absence
+**silently drops outline edits**, because EF compares the same cached wrapper instance against itself and
+sees no change. The comparer is therefore load-bearing in a new way and must not be removed as redundant.
+It is declared at
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:37` and wired at `:110`,
+both re-derived here by `grep -n 'OutlineComparer'` on that file. **Those two lines are stated because the
+implementing task's own report named them as `:28` and `:101`, which is wrong against the post-change
+tree** -- the same drift class this entry's own citations suffer, caught in a report this time rather than
+in a register cell.
+
+**The `Why it matters.` paragraph is left exactly as written**, including its explicit framing of the
+allocation concern as a belief rather than a rule violation, which this session did not test and does not
+endorse either way: no allocation measurement was taken, and the change was made for the shape rather than
+for a measured frame cost. **No commit hash appears in this block and no placeholder for one:** a DIR task
+cannot invoke git, so a hash here would be copied rather than verified. **The the session base positions quoted
+above are historical and NOT navigable at `HEAD`** -- this session's own remedy added a wrapper field and
+a constructor assignment to four of the five files, which displaces everything below each insertion -- and
+all five `locations:` ranges in the YAML block are stale for that reason on top of the three defects
+corrected above. The record's severity, category, effort and risk are unchanged.**]**
 
 ### CORE-031 -- The hand-rolled dispatcher is 233 lines replacing a mediator library and earns its keep
 
@@ -1960,6 +2419,83 @@ and scale bounds rather than exposing setters.
 **Suggested direction.** Nothing required. If the concession is ever worth removing, EF Core can
 construct via the full constructor for these shapes; a one-line comment on each private constructor
 naming its purpose would be cheaper and would stop a future reader deleting them as dead code.
+
+**[AMENDED 6b-xvii, 2026-10-09 -- two of this entry's figures are wrong and one of its two `= default!`
+citations is stale, but its CONCLUSION -- that domain purity holds -- is CORRECT and is corroborated by
+the conventions. Classification: ERROR for both counts, DRIFT for the citation; the entry's substance and
+its verdict both stand. No code changed.** The register row is `MASTER-146` at `00-master-index.md:334`,
+closed **done** as an evidence-only close. This block follows the form of the `AMENDED 6b-xvi` block on
+`UI-003` at `03-app-shell-and-views.md:171-266`, cited **for its form only** -- `AMENDED 6b-xiv` at
+`:1293` of this file records that the block that one was modelled on *"carries three defects of its own"*.
+**Nothing below deletes any previous wording.**
+
+*Correction 1 -- there are THREE `= default!` properties, not two.* Previous wording, verbatim: *"and two
+non-nullable reference properties are initialised with `= default!` (`Area.Name`, `PlacedObject.Position`)"*,
+with the same figure implied by `Why it matters.`'s *"`= default!` silences the nullable analyser at
+exactly the two places where a materialisation bug would be hardest to see"*.
+`grep -rn '= default!' src/DungeonMaster.Domain --include=*.cs` returns **three** lines, every one
+re-derived against the post-change worktree: `Area.Name` at
+`src/DungeonMaster.Domain/Entities/Areas/Area.cs:60`, **`Dungeon.Name`** at
+`src/DungeonMaster.Domain/Entities/Dungeons/Dungeon.cs:41`, and `PlacedObject.Position` at
+`src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:53`. **`Dungeon.Name` is not cited anywhere in
+this entry**; `measurement.md` section 3 puts it at `Dungeon.cs:33` at the session base. The count 6 in
+`Why it matters.`'s *"These six lines"* is 4 constructors + 2 properties and becomes **7** under the
+corrected figure.
+
+*Correction 2 -- one of the two cited `= default!` lines was stale, and it is now accidentally RIGHT,
+which is why it needs saying out loud.* Previous wording, verbatim:
+`src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:53`. `measurement.md` section 3 measured the true
+line at the session base as **`:47`**, so the citation was wrong by 6 when written. **`CORE-026`'s remedy in this
+same session then expanded that file's doc comments and pushed the property down to `:53`** -- the exact
+line the entry had guessed. A reader checking the entry against `HEAD` would therefore find the citation
+correct and conclude it always had been. The other cited line drifted the opposite way in the same
+session: `Area.cs:45` is now `:60`, and the uncited `Dungeon.cs:33` is now `:41`, both displaced by
+`CORE-030`'s added wrapper fields and constructor bodies. **None of the three session-base figures is
+navigable at `HEAD`**, and the agreement at `:53` is coincidence rather than correctness.
+
+*Correction 3 -- the Domain holds 21 `.cs` files, not 20.* Previous wording, verbatim: *"Nothing else in
+the 20 Domain files references a framework type beyond the BCL"*, with the same figure in the
+`Layer verdict` section's *"on reading all twenty files"*.
+`find src/DungeonMaster.Domain -name '*.cs'` with `/obj/` and `/bin/` pruned, piped to `wc -l`, returns
+**21**.
+
+*The conclusion is CORRECT, and neither corrected figure disturbs it.* Three `= default!` properties across
+21 files is the same kind of fact as two across 20. The four private parameterless constructors remain the
+only other concession and are confirmed by
+`grep -rnE 'private (Area|Dungeon|Floor|PlacedObject)\(\)'`: `Area.cs:27`, `Dungeon.cs:16`, `Floor.cs:20`,
+`PlacedObject.cs:10`. **The conventions corroborate the verdict directly rather than merely permitting
+it**, which this entry does not note: the canonical entity example in `dm-conventions/backend/dotnet-format.md`
+contains **both** concessions within fifteen lines of each other -- `private Dungeon() { }` at **`:574`**
+and `public string Name { get; private set; } = default!;` at **`:584`** -- both read directly from that
+file. So the shape this entry records as a concession is the shape the conventions prescribe, and the
+`Suggested direction.`'s "Nothing required" is the right call for a stronger reason than the entry gives.
+
+*One divergence from that canonical example, new in this session and measured rather than assumed.*
+`Dungeon.cs:16` now reads `private Dungeon() =>` rather than the empty `private Dungeon() { }` of `:574`,
+because `CORE-030`'s remedy gave that constructor a body: it assigns the cached `_floorsView` wrapper. The
+constructor is still private and still parameterless, so the concession is unchanged **in kind**, but it is
+no longer empty and no longer byte-matches the example -- which matters for the `Suggested direction.`'s
+closing idea of "a one-line comment on each private constructor naming its purpose", since one of the four
+now has a purpose beyond materialisation.
+
+**The `Why it matters.` and `Suggested direction.` paragraphs are left exactly as written** apart from the
+figures corrected above, which are measurements rather than records of how the code then stood. **No
+commit hash appears in this block and no placeholder for one** -- a DIR task cannot invoke git -- **and
+none is owed, because no code changed for this entry.** **FOUR of the six `locations:` citations are stale
+at `HEAD` and TWO are correct there.** The split is enumerated rather than totalled, which is the form
+`MASTER-180` and `CORE-036` use and for this same reason: the universal this block first carried -- *"All
+six `locations:` citations in the YAML block are stale at `HEAD`"* -- was false for the two that happen to
+be right, and it contradicted the grep printed four paragraphs above it and the whole of Correction 2. The
+two locating commands are the two already in this block, both re-run against the post-change worktree:
+`grep -rnE 'private (Area|Dungeon|Floor|PlacedObject)\(\)' src/DungeonMaster.Domain --include=*.cs` for the
+four private constructors and `grep -rn '= default!' src/DungeonMaster.Domain --include=*.cs` for the
+properties. **Stale -- cited line, then the line the command returns at `HEAD`:** `Area.cs:12` is now
+`:27`; `Dungeon.cs:10` is now `:16`; `Floor.cs:13` is now `:20`; `Area.cs:45` is now `:60`. **Correct at
+`HEAD`:** `PlacedObject.cs:10`, which is exactly where the first command puts `private PlacedObject() { }`,
+and `PlacedObject.cs:53`, which is exactly where the second puts `PlacedObject.Position`. The second of
+those two is correct **by coincidence** and not because the citation was right when written, which is the
+point Correction 2 above establishes and the reason the two cannot simply be folded into the stale four.
+The record's severity, category, effort and risk are unchanged.**]**
 
 ### CORE-034 -- default(MutationOutcome) was Success, and ToResult's `_ =>` arm passed it through instead of catching it
 
@@ -2185,6 +2721,100 @@ need their three comparison sites reconsidered before a zero member is worth add
 needs a persistence decision first. (`SnapAnchor`, now class C, is no longer in this list.) The cheapest
 durable fix for `PathSegmentKind` is to register a `JsonStringEnumConverter` and migrate the stored outlines to names, after
 which its ordinals stop being load-bearing and a zero member becomes free; that is a session of its own.
+
+### CORE-036 -- CanvasPoint's remarks block breaks sentences mid-clause across /// lines
+
+```yaml
+id: CORE-036
+layer: CORE
+severity: S4
+category: docs
+authority: conventions
+citation: backend/dotnet-format.md:378
+locations:
+  # Enumerated, NOT compressed into ranges: a range here would silently include
+  # conforming lines. CanvasPoint.cs:16-30 as a range, for instance, would sweep in
+  # :19, :22, :25, :26 and :27, none of which violates the rule.
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:4
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:9,10,11,12
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:16,17,18,20,21,23,24,28,29,30
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:41,42,43
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:60,61,62,63,64
+  - src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs:92
+  - src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:50,97,98,102
+  - src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs:10
+effort: XS
+risk: low
+independent: true
+```
+
+**Found by session 6b-xvii on 2026-10-09 while reading the authority for `CORE-026`, not by the 2026-08-17
+audit.** The register row is `MASTER-180` at `00-master-index.md:368`, filed **open**. It was deliberately
+**not fixed**: `CORE-026` is an `XS` row and folding a second deviation into it would have taken it past
+the scope it was estimated against, so this is surfaced as its own entry instead.
+
+**What.** `src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs` breaks sentences mid-clause across `///`
+lines, in its type-level `<summary>`, throughout its type-level `<remarks>` block, and in three member
+comments below it. `src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs` does the same at four lines,
+and `src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs` at one. **The deviation is deliberately NOT
+scoped to the type-level `<remarks>` block it was first noticed in** -- it falls on **both sides** of that
+block in `CanvasPoint.cs`, as the inside/outside partition below sets out, and in **two further files
+entirely**. This is why the `locations:` list above is wider than `MASTER-180`'s title, which names only
+`CanvasPoint`'s `<remarks>` block: the title records where the finding was first seen and this list records
+the population, and the T3 review raised the discrepancy between them as a `contradicts` finding.
+
+**Why it matters.** `dm-conventions/backend/dotnet-format.md:378` states, read directly from that file:
+"**Line breaks occur only at sentence boundaries.** Never break a sentence across multiple `///` lines.
+Each new `///` continuation line begins a new sentence." This is a rule in the same numbered section
+`CORE-026` cites, and it is **not** what `CORE-026` filed -- that entry is about *indentation* of
+continuation lines, this one about *where they fall*. A file can satisfy one and violate the other, and
+`CanvasPoint.cs` now does exactly that: `CORE-026`'s remedy made every continuation line two-tab indented
+while leaving every sentence boundary where it was.
+
+**The population is PREDICATE-DEPENDENT, so this entry carries an enumerated line list and deliberately
+carries NO TOTAL.** Four predicates produced four different totals for it -- `measurement.md`'s review
+record for T3 tabulates all four, returning 25, 15, 9 and 24 for `CanvasPoint.cs` -- and **a figure written
+here would be a fact about a predicate masquerading as a fact about the code.** The predicate behind the
+`locations:` list, stated so it can be re-run: *a `///` line counts when its text after `///` is non-empty
+and is not a tag-only line, does not end in `.`, `!`, `?` or `>`, and the next line is also a `///` line
+with non-empty non-tag text.* It was implemented as an `awk` program and **validated before its output was
+trusted**, on a hand-written CRLF fixture carrying one case that must match -- a description line ending
+`,` whose sentence finishes on the next `///` line -- and three near-misses that must not: an opening
+tag-only line, a closing tag-only line, and a period-terminated description. It returned the one matching
+line and nothing else.
+
+The lines, repeated here grouped by whether they fall inside or outside the type-level `<remarks>` block,
+which the `locations:` block above does not record: `CanvasPoint.cs` **inside** its type-level
+`<remarks>` block, which spans `:7-33` --
+`grep -n '<remarks>\|</remarks>'` on that file returns **six** lines, three opener/closer pairs at
+`:7`/`:33`, `:59`/`:66` and `:76`/`:78`, and the type-level block is the first pair; the other two are
+member-level and are named here so the citation cannot be mistaken for the whole grep's output -- **`9, 10, 11, 12, 16, 17, 18, 20, 21, 23, 24, 28, 29, 30`**;
+`CanvasPoint.cs` **outside** that block -- **`4, 41, 42, 43, 60, 61, 62, 63, 64, 92`**; `PlacedObject.cs`
+-- **`50, 97, 98, 102`**; and
+`src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/PlacedObjectDto.cs` -- **none**,
+which is worth recording as a measured negative because that file is one of the two `CORE-026` names and a
+reader might reasonably expect it here too. The partition between inside and outside was checked by set
+membership, not by subtracting one count from another.
+
+**The ten lines outside the block are the only part of this census that reproduced independently**, reached
+separately by the T3 implementer and the orchestrator; this task's own run then reproduced all four lists
+line-for-line, which is a third party agreeing rather than one party re-running its own command. **A
+re-run cannot catch a wrong predicate** -- it reproduces the wrong answer exactly -- which is why the
+agreement across parties, and the fixture validation, are what the list rests on.
+
+**One of the listed lines is PRE-EXISTING and could not have been fixed by the session that read it.**
+`ObjectKind.cs:10` ends `is a <see cref="PlacedObject"/>,` with the sentence finishing on `:11`. That text
+sits inside the `None` member summary **`CORE-025`'s remedy was required to preserve verbatim**, and it was
+preserved -- byte-identical at 176 bytes against the pre-change blob, verified with `cmp` against an offset
+control that differed. So `CORE-025` could not have repaired it without violating its own preservation
+requirement, and it is recorded here rather than left as an apparent oversight in that entry.
+
+**Suggested direction.** Re-break each listed line at a sentence boundary, changing no words. The
+indentation is already conforming after `CORE-026`'s remedy, so this is a pure line-break change and the
+predicate above doubles as its verification: it should return no lines in all three files afterwards. Note
+that `dotnet-format.md:377` explicitly allows multi-sentence descriptions, so the fix is to move the
+breaks, not to split the prose into more tags. `ObjectKind.cs:10` is only safe to touch once `CORE-025` is
+closed, which it now is.
 
 ## Layer verdict
 
