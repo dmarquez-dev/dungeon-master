@@ -9,7 +9,9 @@ public sealed class PlacedObject : Entity
 {
 	private PlacedObject() { }
 
-	/// <summary>Initializes a new <see cref="PlacedObject"/> with an explicit scale.</summary>
+	/// <summary>
+	///		Initializes a new <see cref="PlacedObject"/> with an explicit scale.
+	/// </summary>
 	internal PlacedObject(
 		Guid floorId,
 		ObjectKind kind,
@@ -34,10 +36,14 @@ public sealed class PlacedObject : Entity
 		Scale = scale;
 	}
 
-	/// <summary>Gets the unique identifier of the floor this object belongs to.</summary>
+	/// <summary>
+	///		Gets the unique identifier of the floor this object belongs to.
+	/// </summary>
 	public Guid FloorId { get; private set; }
 
-	/// <summary>Gets the kind of game object this represents.</summary>
+	/// <summary>
+	///		Gets the kind of game object this represents.
+	/// </summary>
 	public ObjectKind Kind { get; private set; }
 
 	/// <summary>
@@ -46,13 +52,19 @@ public sealed class PlacedObject : Entity
 	/// </summary>
 	public CanvasPoint Position { get; private set; } = default!;
 
-	/// <summary>Gets the rotation applied to this object.</summary>
+	/// <summary>
+	///		Gets the rotation applied to this object.
+	/// </summary>
 	public ObjectRotation Rotation { get; private set; }
 
-	/// <summary>Gets the scale multiplier applied to this object. Default is 1.0.</summary>
+	/// <summary>
+	///		Gets the scale multiplier applied to this object. Default is 1.0.
+	/// </summary>
 	public float Scale { get; private set; } = ObjectScale.Default;
 
-	/// <summary>Updates the position, rotation, and scale of this object.</summary>
+	/// <summary>
+	///		Updates the position, rotation, and scale of this object.
+	/// </summary>
 	/// <param name="newPosition">
 	///		The new canvas-space position (bounding-box center, floor-absolute pixels).
 	/// </param>
@@ -78,7 +90,9 @@ public sealed class PlacedObject : Entity
 	/// <summary>
 	///		Throws if <paramref name="scale"/> is non-finite or outside the permitted range.
 	/// </summary>
-	/// <param name="scale">The candidate scale multiplier.</param>
+	/// <param name="scale">
+	///		The candidate scale multiplier.
+	/// </param>
 	/// <param name="paramName">
 	///		The caller's parameter name, reported as the thrown exception's
 	///		<see cref="ArgumentException.ParamName"/>. Passed in rather than taken from
