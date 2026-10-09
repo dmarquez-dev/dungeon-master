@@ -16,12 +16,12 @@ public sealed class RemoveFloorCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		RemoveFloorCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
 					dungeon
 						.RemoveFloor(command.FloorId)
 						.ToResult($"Floor {command.FloorId} not found."),
-				ct);
+				cancellationToken);
 }

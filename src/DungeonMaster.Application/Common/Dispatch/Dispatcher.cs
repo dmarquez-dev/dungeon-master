@@ -26,7 +26,7 @@ public sealed class Dispatcher(
 	/// <inheritdoc/>
 	public Task<Result> SendAsync(
 		ICommand command,
-		CancellationToken ct = default)
+		CancellationToken cancellationToken = default)
 	{
 		var invoker = (CommandInvoker)Invokers.GetOrAdd(
 			command.GetType(),
@@ -37,13 +37,13 @@ public sealed class Dispatcher(
 		return invoker.InvokeAsync(
 			serviceProvider,
 			command,
-			ct);
+			cancellationToken);
 	}
 
 	/// <inheritdoc/>
 	public Task<Result<TResult>> SendAsync<TResult>(
 		ICommand<TResult> command,
-		CancellationToken ct = default)
+		CancellationToken cancellationToken = default)
 	{
 		var invoker = (CommandInvoker<TResult>)Invokers.GetOrAdd(
 			command.GetType(),
@@ -56,13 +56,13 @@ public sealed class Dispatcher(
 		return invoker.InvokeAsync(
 			serviceProvider,
 			command,
-			ct);
+			cancellationToken);
 	}
 
 	/// <inheritdoc/>
 	public Task<TResult> QueryAsync<TResult>(
 		IQuery<TResult> query,
-		CancellationToken ct = default)
+		CancellationToken cancellationToken = default)
 	{
 		var invoker = (QueryInvoker<TResult>)Invokers.GetOrAdd(
 			query.GetType(),
@@ -75,7 +75,7 @@ public sealed class Dispatcher(
 		return invoker.InvokeAsync(
 			serviceProvider,
 			query,
-			ct);
+			cancellationToken);
 	}
 
 	/// <summary>
@@ -85,7 +85,7 @@ public sealed class Dispatcher(
 		IServiceProvider serviceProvider,
 		TRequest request,
 		Func<Task<TResponse>> handler,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 			where TRequest : IRequest<TResponse>
 	{
 		var behaviors = serviceProvider
@@ -102,7 +102,7 @@ public sealed class Dispatcher(
 				behavior.HandleAsync(
 					request,
 					next,
-					ct);
+					cancellationToken);
 		}
 
 		return pipeline;
@@ -113,7 +113,7 @@ public sealed class Dispatcher(
 		public abstract Task<Result> InvokeAsync(
 			IServiceProvider serviceProvider,
 			ICommand command,
-			CancellationToken ct);
+			CancellationToken cancellationToken);
 	}
 
 	private sealed class TypedCommandInvoker<TCommand>
@@ -123,7 +123,7 @@ public sealed class Dispatcher(
 		public override Task<Result> InvokeAsync(
 			IServiceProvider serviceProvider,
 			ICommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			var typed = (TCommand)command;
 
@@ -136,8 +136,8 @@ public sealed class Dispatcher(
 				() =>
 					handler.HandleAsync(
 						typed,
-						ct),
-				ct)();
+						cancellationToken),
+				cancellationToken)();
 		}
 	}
 
@@ -146,7 +146,7 @@ public sealed class Dispatcher(
 		public abstract Task<Result<TResult>> InvokeAsync(
 			IServiceProvider serviceProvider,
 			ICommand<TResult> command,
-			CancellationToken ct);
+			CancellationToken cancellationToken);
 	}
 
 	private sealed class TypedCommandInvoker<TCommand, TResult>
@@ -156,7 +156,7 @@ public sealed class Dispatcher(
 		public override Task<Result<TResult>> InvokeAsync(
 			IServiceProvider serviceProvider,
 			ICommand<TResult> command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			var typed = (TCommand)command;
 
@@ -169,8 +169,8 @@ public sealed class Dispatcher(
 				() =>
 					handler.HandleAsync(
 						typed,
-						ct),
-				ct)();
+						cancellationToken),
+				cancellationToken)();
 		}
 	}
 
@@ -179,7 +179,7 @@ public sealed class Dispatcher(
 		public abstract Task<TResult> InvokeAsync(
 			IServiceProvider serviceProvider,
 			IQuery<TResult> query,
-			CancellationToken ct);
+			CancellationToken cancellationToken);
 	}
 
 	private sealed class TypedQueryInvoker<TQuery, TResult>
@@ -189,7 +189,7 @@ public sealed class Dispatcher(
 		public override Task<TResult> InvokeAsync(
 			IServiceProvider serviceProvider,
 			IQuery<TResult> query,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			var typed = (TQuery)query;
 
@@ -202,8 +202,8 @@ public sealed class Dispatcher(
 				() =>
 					handler.HandleAsync(
 						typed,
-						ct),
-				ct)();
+						cancellationToken),
+				cancellationToken)();
 		}
 	}
 }

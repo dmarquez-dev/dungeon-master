@@ -16,7 +16,7 @@ public sealed class UpdateDungeonCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		UpdateDungeonCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.Id,
 				dungeon =>
@@ -28,5 +28,5 @@ public sealed class UpdateDungeonCommandHandler(
 
 					return Result.Success();
 				},
-				ct);
+				cancellationToken);
 }

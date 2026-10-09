@@ -16,7 +16,7 @@ public sealed class RemovePlacedObjectCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		RemovePlacedObjectCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -25,5 +25,5 @@ public sealed class RemovePlacedObjectCommandHandler(
 							command.FloorId,
 							command.ObjectId)
 						.ToResult($"Placed object {command.ObjectId} not found."),
-				ct);
+				cancellationToken);
 }

@@ -13,6 +13,6 @@ public sealed class GetDungeonsQueryHandler(
 	/// <inheritdoc/>
 	public async Task<IReadOnlyList<DungeonSummaryDto>> HandleAsync(
 		GetDungeonsQuery query,
-		CancellationToken ct)
-		=> await readRepository.GetSummariesAsync(ct);
+		CancellationToken cancellationToken)
+		=> await readRepository.GetSummariesAsync(cancellationToken);
 }

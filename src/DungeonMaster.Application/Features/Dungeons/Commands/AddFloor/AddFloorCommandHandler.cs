@@ -16,7 +16,7 @@ public sealed class AddFloorCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result<Guid>> HandleAsync(
 		AddFloorCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -24,5 +24,5 @@ public sealed class AddFloorCommandHandler(
 						dungeon
 							.AddFloor(command.Name)
 							.Id),
-				ct);
+				cancellationToken);
 }

@@ -16,7 +16,7 @@ public sealed class UpdateFloorCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		UpdateFloorCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -27,5 +27,5 @@ public sealed class UpdateFloorCommandHandler(
 							command.Description,
 							command.Notes)
 						.ToResult($"Floor {command.FloorId} not found."),
-				ct);
+				cancellationToken);
 }

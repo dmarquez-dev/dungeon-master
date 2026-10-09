@@ -15,12 +15,12 @@ public interface IUnitOfWork
 	/// <summary>
 	///		Writes every change tracked by this unit of work to the store.
 	/// </summary>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
 	///		The number of state entries written to the store.
 	///		Returns zero when nothing was tracked as changed.
 	/// </returns>
-	Task<int> CommitAsync(CancellationToken ct);
+	Task<int> CommitAsync(CancellationToken cancellationToken);
 }

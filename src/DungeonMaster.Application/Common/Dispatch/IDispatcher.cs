@@ -13,7 +13,7 @@ public interface IDispatcher
 	/// <param name="command">
 	///		The command to dispatch.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -21,7 +21,7 @@ public interface IDispatcher
 	/// </returns>
 	Task<Result> SendAsync(
 		ICommand command,
-		CancellationToken ct = default);
+		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	///		Sends a command through the pipeline and returns the result.
@@ -32,7 +32,7 @@ public interface IDispatcher
 	/// <param name="command">
 	///		The command to dispatch.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -40,7 +40,7 @@ public interface IDispatcher
 	/// </returns>
 	Task<Result<TResult>> SendAsync<TResult>(
 		ICommand<TResult> command,
-		CancellationToken ct = default);
+		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	///		Sends a query to its handler and returns the result.
@@ -51,7 +51,7 @@ public interface IDispatcher
 	/// <param name="query">
 	///		The query to dispatch.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -59,5 +59,5 @@ public interface IDispatcher
 	/// </returns>
 	Task<TResult> QueryAsync<TResult>(
 		IQuery<TResult> query,
-		CancellationToken ct = default);
+		CancellationToken cancellationToken = default);
 }

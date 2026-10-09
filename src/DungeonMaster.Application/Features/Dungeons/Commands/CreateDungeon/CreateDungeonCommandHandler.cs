@@ -15,9 +15,9 @@ public sealed class CreateDungeonCommandHandler(
 	/// <inheritdoc/>
 	public async Task<Result<Guid>> HandleAsync(
 		CreateDungeonCommand command,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
-		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(ct);
+		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(cancellationToken);
 
 		var dungeon = new Dungeon(
 			command.Name,
@@ -25,7 +25,7 @@ public sealed class CreateDungeonCommandHandler(
 
 		unitOfWork.Dungeons.Add(dungeon);
 
-		await unitOfWork.CommitAsync(ct);
+		await unitOfWork.CommitAsync(cancellationToken);
 
 		return Result<Guid>.Success(dungeon.Id);
 	}

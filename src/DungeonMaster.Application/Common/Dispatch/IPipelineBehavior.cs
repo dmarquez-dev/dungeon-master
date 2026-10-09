@@ -21,7 +21,7 @@ public interface IPipelineBehavior<in TRequest, TResponse>
 	/// <param name="next">
 	///		A delegate that invokes the next stage in the pipeline.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -30,5 +30,5 @@ public interface IPipelineBehavior<in TRequest, TResponse>
 	Task<TResponse> HandleAsync(
 		TRequest request,
 		Func<Task<TResponse>> next,
-		CancellationToken ct);
+		CancellationToken cancellationToken);
 }

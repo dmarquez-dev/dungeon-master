@@ -17,7 +17,7 @@ public interface ICommandHandler<in TCommand>
 	/// <param name="command">
 	///		The command to handle.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -25,7 +25,7 @@ public interface ICommandHandler<in TCommand>
 	/// </returns>
 	Task<Result> HandleAsync(
 		TCommand command,
-		CancellationToken ct);
+		CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -46,7 +46,7 @@ public interface ICommandHandler<in TCommand, TResult>
 	/// <param name="command">
 	///		The command to handle.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -54,5 +54,5 @@ public interface ICommandHandler<in TCommand, TResult>
 	/// </returns>
 	Task<Result<TResult>> HandleAsync(
 		TCommand command,
-		CancellationToken ct);
+		CancellationToken cancellationToken);
 }

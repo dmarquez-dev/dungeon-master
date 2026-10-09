@@ -14,9 +14,9 @@ public sealed class DungeonReadRepository(
 		: IDungeonReadRepository
 {
 	/// <inheritdoc/>
-	public async Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken ct)
+	public async Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken cancellationToken)
 	{
-		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 		await using var dbContextScope = dbContext.ConfigureAwait(false);
 
 		var summaries = dbContext.Dungeons
@@ -30,15 +30,15 @@ public sealed class DungeonReadRepository(
 					dungeon.CreatedAt,
 					dungeon.LastModified));
 
-		return await summaries.ToListAsync(ct).ConfigureAwait(false);
+		return await summaries.ToListAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
 	public async Task<DungeonDetailDto?> GetDetailAsync(
 		Guid id,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
-		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 		await using var dbContextScope = dbContext.ConfigureAwait(false);
 
 		var detail = dbContext.Dungeons
@@ -85,6 +85,6 @@ public sealed class DungeonReadRepository(
 									.ToList()))
 						.ToList()));
 
-		return await detail.FirstOrDefaultAsync(ct).ConfigureAwait(false);
+		return await detail.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

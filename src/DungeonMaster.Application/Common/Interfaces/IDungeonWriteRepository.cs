@@ -14,7 +14,7 @@ public interface IDungeonWriteRepository
 	/// <param name="id">
 	///		The unique identifier of the dungeon to load.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -22,7 +22,7 @@ public interface IDungeonWriteRepository
 	/// </returns>
 	Task<Dungeon?> LoadAsync(
 		Guid id,
-		CancellationToken ct);
+		CancellationToken cancellationToken);
 
 	/// <summary>
 	///		Marks a newly created dungeon aggregate for insertion.
@@ -46,7 +46,7 @@ public interface IDungeonWriteRepository
 	/// <param name="id">
 	///		The unique identifier of the dungeon to remove.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -55,5 +55,5 @@ public interface IDungeonWriteRepository
 	/// </returns>
 	Task<bool> RemoveAsync(
 		Guid id,
-		CancellationToken ct);
+		CancellationToken cancellationToken);
 }

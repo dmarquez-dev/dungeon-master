@@ -16,7 +16,7 @@ public sealed class AddPlacedObjectCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result<Guid>> HandleAsync(
 		AddPlacedObjectCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -34,5 +34,5 @@ public sealed class AddPlacedObjectCommandHandler(
 							ErrorCategory.NotFound)
 						: Result<Guid>.Success(placedObject.Id);
 				},
-				ct);
+				cancellationToken);
 }

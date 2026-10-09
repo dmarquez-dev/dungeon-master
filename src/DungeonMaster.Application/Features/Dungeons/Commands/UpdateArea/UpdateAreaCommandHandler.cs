@@ -16,7 +16,7 @@ public sealed class UpdateAreaCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		UpdateAreaCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -28,5 +28,5 @@ public sealed class UpdateAreaCommandHandler(
 							command.Description,
 							command.Notes)
 						.ToResult($"Area {command.AreaId} not found."),
-				ct);
+				cancellationToken);
 }

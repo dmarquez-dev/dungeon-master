@@ -11,13 +11,13 @@ public interface IDungeonReadRepository
 	/// <summary>
 	///		Returns a summary projection of all dungeons.
 	/// </summary>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
 	///		A read-only list of <see cref="DungeonSummaryDto"/> instances.
 	/// </returns>
-	Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken ct);
+	Task<IReadOnlyList<DungeonSummaryDto>> GetSummariesAsync(CancellationToken cancellationToken);
 
 	/// <summary>
 	///		Returns the full detail projection of a dungeon, or <see langword="null"/> if not found.
@@ -25,7 +25,7 @@ public interface IDungeonReadRepository
 	/// <param name="id">
 	///		The unique identifier of the dungeon to retrieve.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -33,5 +33,5 @@ public interface IDungeonReadRepository
 	/// </returns>
 	Task<DungeonDetailDto?> GetDetailAsync(
 		Guid id,
-		CancellationToken ct);
+		CancellationToken cancellationToken);
 }

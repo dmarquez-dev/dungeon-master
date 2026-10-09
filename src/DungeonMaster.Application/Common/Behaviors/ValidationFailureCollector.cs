@@ -20,7 +20,7 @@ internal static class ValidationFailureCollector
 	/// <param name="command">
 	///		The command instance to validate.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -29,7 +29,7 @@ internal static class ValidationFailureCollector
 	public static async Task<IReadOnlyList<ValidationError>> CollectAsync<TCommand>(
 		IEnumerable<IValidator<TCommand>> validators,
 		TCommand command,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
 		var context = new ValidationContext<TCommand>(command);
 		var errors = new List<ValidationError>();
@@ -38,7 +38,7 @@ internal static class ValidationFailureCollector
 		{
 			var validationResult = await validator.ValidateAsync(
 				context,
-				ct);
+				cancellationToken);
 
 			errors.AddRange(
 				validationResult.Errors.Select(failure =>

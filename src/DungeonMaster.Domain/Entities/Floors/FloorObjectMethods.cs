@@ -28,17 +28,17 @@ public sealed partial class Floor
 		ObjectRotation rotation,
 		float scale)
 	{
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			Id,
 			kind,
 			position,
 			rotation,
 			scale);
 
-		_objects.Add(obj);
+		_objects.Add(placedObject);
 		Touch();
 
-		return obj;
+		return placedObject;
 	}
 
 	/// <summary>
@@ -53,15 +53,15 @@ public sealed partial class Floor
 	/// </returns>
 	internal MutationOutcome RemoveObject(Guid objectId)
 	{
-		var obj = _objects.FirstOrDefault(placedObject =>
+		var objectToRemove = _objects.FirstOrDefault(placedObject =>
 			placedObject.Id == objectId);
 
-		if (obj is null)
+		if (objectToRemove is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		_objects.Remove(obj);
+		_objects.Remove(objectToRemove);
 		Touch();
 
 		return MutationOutcome.Success;
@@ -92,15 +92,15 @@ public sealed partial class Floor
 		ObjectRotation newRotation,
 		float newScale)
 	{
-		var obj = _objects.FirstOrDefault(placedObject =>
+		var objectToUpdate = _objects.FirstOrDefault(placedObject =>
 			placedObject.Id == objectId);
 
-		if (obj is null)
+		if (objectToUpdate is null)
 		{
 			return MutationOutcome.NotFound;
 		}
 
-		obj.Update(
+		objectToUpdate.Update(
 			newPosition,
 			newRotation,
 			newScale);
