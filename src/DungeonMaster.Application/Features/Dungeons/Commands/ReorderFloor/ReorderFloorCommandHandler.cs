@@ -17,7 +17,7 @@ public sealed class ReorderFloorCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		ReorderFloorCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -28,5 +28,5 @@ public sealed class ReorderFloorCommandHandler(
 						.ToResult(
 							$"Floor {command.FloorId} not found.",
 							$"Floor number {command.NewNumber} is out of range for this dungeon."),
-				ct);
+				cancellationToken);
 }

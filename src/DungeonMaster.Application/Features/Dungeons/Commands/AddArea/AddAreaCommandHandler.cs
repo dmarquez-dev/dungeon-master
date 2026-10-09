@@ -16,7 +16,7 @@ public sealed class AddAreaCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result<Guid>> HandleAsync(
 		AddAreaCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -32,5 +32,5 @@ public sealed class AddAreaCommandHandler(
 							ErrorCategory.NotFound)
 						: Result<Guid>.Success(area.Id);
 				},
-				ct);
+				cancellationToken);
 }

@@ -11,9 +11,9 @@ public sealed class UnitOfWorkFactory(
 		: IUnitOfWorkFactory
 {
 	/// <inheritdoc/>
-	public async Task<IUnitOfWork> CreateAsync(CancellationToken ct)
+	public async Task<IUnitOfWork> CreateAsync(CancellationToken cancellationToken)
 	{
-		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 
 		return new UnitOfWork(dbContext);
 	}

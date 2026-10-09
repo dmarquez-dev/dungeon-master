@@ -36,11 +36,23 @@ public sealed class MapDrawingSession
 {
 	private readonly List<TilePoint> _vertices = [];
 
+	// MASTER-114. The read-only wrapper over _vertices is built once and reused, so Vertices hands
+	// back the same instance on every read instead of allocating a fresh wrapper per call. A C# field
+	// initializer cannot reference another instance field (CS0236), so the wrapper is constructed in
+	// the constructor.
+	private readonly IReadOnlyList<TilePoint> _verticesView;
+
+	/// <summary>
+	///		Initializes a new, empty <see cref="MapDrawingSession"/>.
+	/// </summary>
+	public MapDrawingSession() =>
+		_verticesView = _vertices.AsReadOnly();
+
 	/// <summary>
 	///		Gets the ordered list of tile-grid vertices placed so far.
 	/// </summary>
 	public IReadOnlyList<TilePoint> Vertices =>
-		_vertices.AsReadOnly();
+		_verticesView;
 
 	/// <summary>
 	///		Gets a value indicating whether at least one vertex has been placed.

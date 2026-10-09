@@ -21,7 +21,7 @@ public static class DungeonMutationExtensions
 	/// <param name="mutate">
 	///		The mutation to apply to the loaded aggregate.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -31,13 +31,13 @@ public static class DungeonMutationExtensions
 		this IUnitOfWorkFactory unitOfWorkFactory,
 		Guid dungeonId,
 		Func<Dungeon, Result> mutate,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
-		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(ct);
+		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(cancellationToken);
 
 		var dungeon = await unitOfWork.Dungeons.LoadAsync(
 			dungeonId,
-			ct);
+			cancellationToken);
 
 		if (dungeon is null)
 		{
@@ -55,7 +55,7 @@ public static class DungeonMutationExtensions
 
 		unitOfWork.Dungeons.Update(dungeon);
 
-		await unitOfWork.CommitAsync(ct);
+		await unitOfWork.CommitAsync(cancellationToken);
 
 		return result;
 	}
@@ -75,7 +75,7 @@ public static class DungeonMutationExtensions
 	/// <param name="mutate">
 	///		The mutation to apply to the loaded aggregate.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -85,13 +85,13 @@ public static class DungeonMutationExtensions
 		this IUnitOfWorkFactory unitOfWorkFactory,
 		Guid dungeonId,
 		Func<Dungeon, Result<TResult>> mutate,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
-		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(ct);
+		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(cancellationToken);
 
 		var dungeon = await unitOfWork.Dungeons.LoadAsync(
 			dungeonId,
-			ct);
+			cancellationToken);
 
 		if (dungeon is null)
 		{
@@ -109,7 +109,7 @@ public static class DungeonMutationExtensions
 
 		unitOfWork.Dungeons.Update(dungeon);
 
-		await unitOfWork.CommitAsync(ct);
+		await unitOfWork.CommitAsync(cancellationToken);
 
 		return result;
 	}

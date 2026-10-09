@@ -13,7 +13,7 @@ public sealed class DungeonWriteRepository(
 		: IDungeonWriteRepository
 {
 	/// <inheritdoc/>
-	public async Task<Dungeon?> LoadAsync(Guid id, CancellationToken ct)
+	public async Task<Dungeon?> LoadAsync(Guid id, CancellationToken cancellationToken)
 	{
 		var query = dbContext.Dungeons
 			.Include(dungeon =>
@@ -28,7 +28,7 @@ public sealed class DungeonWriteRepository(
 			.Where(dungeon =>
 				dungeon.Id == id);
 
-		return await query.FirstOrDefaultAsync(ct).ConfigureAwait(false);
+		return await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -47,9 +47,9 @@ public sealed class DungeonWriteRepository(
 	/// <inheritdoc/>
 	public async Task<bool> RemoveAsync(
 		Guid id,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
-		var dungeon = await dbContext.Dungeons.FindAsync([id], ct).ConfigureAwait(false);
+		var dungeon = await dbContext.Dungeons.FindAsync([id], cancellationToken).ConfigureAwait(false);
 
 		if (dungeon is null)
 		{

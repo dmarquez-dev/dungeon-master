@@ -22,12 +22,12 @@ public sealed class ValidationBehavior<TCommand>(
 	public async Task<Result> HandleAsync(
 		TCommand command,
 		Func<Task<Result>> next,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
 		var errors = await ValidationFailureCollector.CollectAsync(
 			validators,
 			command,
-			ct);
+			cancellationToken);
 
 		if (errors.Count > 0)
 		{
@@ -59,12 +59,12 @@ public sealed class ValidationBehavior<TCommand, TResult>(
 	public async Task<Result<TResult>> HandleAsync(
 		TCommand command,
 		Func<Task<Result<TResult>>> next,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
 		var errors = await ValidationFailureCollector.CollectAsync(
 			validators,
 			command,
-			ct);
+			cancellationToken);
 
 		if (errors.Count > 0)
 		{

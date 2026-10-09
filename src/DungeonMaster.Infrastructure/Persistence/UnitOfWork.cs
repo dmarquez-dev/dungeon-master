@@ -15,8 +15,8 @@ public sealed class UnitOfWork(
 	public IDungeonWriteRepository Dungeons { get; } = new DungeonWriteRepository(dbContext);
 
 	/// <inheritdoc/>
-	public Task<int> CommitAsync(CancellationToken ct) =>
-		dbContext.SaveChangesAsync(ct);
+	public Task<int> CommitAsync(CancellationToken cancellationToken) =>
+		dbContext.SaveChangesAsync(cancellationToken);
 
 	/// <inheritdoc/>
 	public ValueTask DisposeAsync() =>

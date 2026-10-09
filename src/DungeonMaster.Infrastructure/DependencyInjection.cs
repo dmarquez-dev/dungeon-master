@@ -42,7 +42,7 @@ public static class InfrastructureServiceCollectionExtensions
 	/// <param name="services">
 	///		The application service provider used to resolve the database context factory.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the migration.
 	/// </param>
 	/// <returns>
@@ -50,12 +50,12 @@ public static class InfrastructureServiceCollectionExtensions
 	/// </returns>
 	public static async Task MigrateDatabaseAsync(
 		this IServiceProvider services,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
 		var dbContextFactory = services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-		var dbContext = await dbContextFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+		var dbContext = await dbContextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
 		await using var dbContextScope = dbContext.ConfigureAwait(false);
 
-		await dbContext.Database.MigrateAsync(ct).ConfigureAwait(false);
+		await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

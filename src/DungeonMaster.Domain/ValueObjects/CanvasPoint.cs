@@ -1,8 +1,8 @@
 namespace DungeonMaster.Domain.ValueObjects;
 
 /// <summary>
-///     Represents a position in canvas-space pixels. Used for placed object positions,
-///     stored relative to the containing area's origin vertex.
+///		Represents a position in canvas-space pixels. Used for placed object positions,
+///		stored relative to the containing area's origin vertex.
 /// </summary>
 /// <remarks>
 ///		<para>
@@ -31,8 +31,12 @@ namespace DungeonMaster.Domain.ValueObjects;
 ///			not a <see cref="float.NaN"/>, as <c>CanvasPointNonFinitePersistenceTests.cs</c> requires.
 ///		</para>
 /// </remarks>
-/// <param name="X">Horizontal pixel offset from the area origin. Must be finite.</param>
-/// <param name="Y">Vertical pixel offset from the area origin. Must be finite.</param>
+/// <param name="X">
+///		Horizontal pixel offset from the area origin. Must be finite.
+/// </param>
+/// <param name="Y">
+///		Vertical pixel offset from the area origin. Must be finite.
+/// </param>
 /// <exception cref="ArgumentOutOfRangeException">
 ///		<paramref name="X"/> or <paramref name="Y"/> is <see cref="float.NaN"/>,
 ///		<see cref="float.PositiveInfinity"/> or <see cref="float.NegativeInfinity"/>. The
@@ -81,7 +85,9 @@ public record CanvasPoint(float X, float Y)
 	/// <summary>
 	///		Returns <paramref name="value"/> when it is finite, and throws otherwise.
 	/// </summary>
-	/// <param name="value">The coordinate being assigned.</param>
+	/// <param name="value">
+	///		The coordinate being assigned.
+	/// </param>
 	/// <param name="paramName">
 	///		The positional name of the coordinate, so that the reported
 	///		<see cref="ArgumentException.ParamName"/> is the name a caller wrote.

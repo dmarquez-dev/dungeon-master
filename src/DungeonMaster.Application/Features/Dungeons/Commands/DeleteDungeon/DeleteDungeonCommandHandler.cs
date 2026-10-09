@@ -15,13 +15,13 @@ public sealed class DeleteDungeonCommandHandler(
 	/// <inheritdoc/>
 	public async Task<Result> HandleAsync(
 		DeleteDungeonCommand command,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 	{
-		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(ct);
+		await using var unitOfWork = await unitOfWorkFactory.CreateAsync(cancellationToken);
 
 		var removed = await unitOfWork.Dungeons.RemoveAsync(
 			command.Id,
-			ct);
+			cancellationToken);
 
 		if (!removed)
 		{
@@ -30,7 +30,7 @@ public sealed class DeleteDungeonCommandHandler(
 				ErrorCategory.NotFound);
 		}
 
-		await unitOfWork.CommitAsync(ct);
+		await unitOfWork.CommitAsync(cancellationToken);
 
 		return Result.Success();
 	}

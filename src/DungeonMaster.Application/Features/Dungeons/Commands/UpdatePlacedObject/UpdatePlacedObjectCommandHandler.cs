@@ -16,7 +16,7 @@ public sealed class UpdatePlacedObjectCommandHandler(
 	/// <inheritdoc/>
 	public Task<Result> HandleAsync(
 		UpdatePlacedObjectCommand command,
-		CancellationToken ct) =>
+		CancellationToken cancellationToken) =>
 			unitOfWorkFactory.MutateAsync(
 				command.DungeonId,
 				dungeon =>
@@ -28,5 +28,5 @@ public sealed class UpdatePlacedObjectCommandHandler(
 							command.NewRotation,
 							command.NewScale)
 						.ToResult($"Placed object {command.ObjectId} not found."),
-				ct);
+				cancellationToken);
 }

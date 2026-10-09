@@ -10,7 +10,18 @@ public sealed partial class Floor : Entity
 	private readonly List<Areas.Area> _areas = [];
 	private readonly List<PlacedObject> _objects = [];
 
-	private Floor() { }
+	// MASTER-114. The read-only wrappers over _areas and _objects are built once and reused, so Areas
+	// and Objects hand back the same instance on every read instead of allocating a fresh wrapper per
+	// call. A C# field initializer cannot reference another instance field (CS0236), so the wrappers
+	// are constructed in the parameterless constructor that every other constructor chains through.
+	private readonly IReadOnlyList<Areas.Area> _areasView;
+	private readonly IReadOnlyList<PlacedObject> _objectsView;
+
+	private Floor()
+	{
+		_areasView = _areas.AsReadOnly();
+		_objectsView = _objects.AsReadOnly();
+	}
 
 	/// <summary>
 	///		Initializes a new <see cref="Floor"/> belonging to the specified dungeon with its assigned number and optional name.
@@ -29,6 +40,7 @@ public sealed partial class Floor : Entity
 		Guid dungeonId,
 		int number,
 		string? name)
+		: this()
 	{
 		if (number < 1)
 		{
@@ -72,11 +84,11 @@ public sealed partial class Floor : Entity
 	///		Gets the read-only list of areas belonging to this floor.
 	/// </summary>
 	public IReadOnlyList<Areas.Area> Areas =>
-		_areas.AsReadOnly();
+		_areasView;
 
 	/// <summary>
 	///		Gets the read-only list of objects placed on this floor.
 	/// </summary>
 	public IReadOnlyList<PlacedObject> Objects =>
-		_objects.AsReadOnly();
+		_objectsView;
 }

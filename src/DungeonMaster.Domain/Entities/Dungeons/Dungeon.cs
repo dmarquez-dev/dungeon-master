@@ -7,7 +7,14 @@ public sealed partial class Dungeon : Entity
 {
 	private readonly List<Floors.Floor> _floors = [];
 
-	private Dungeon() { }
+	// MASTER-114. The read-only wrapper over _floors is built once and reused, so Floors hands back
+	// the same instance on every read instead of allocating a fresh wrapper per call. A C# field
+	// initializer cannot reference another instance field (CS0236), so the wrapper is constructed in
+	// the parameterless constructor that every other constructor chains through.
+	private readonly IReadOnlyList<Floors.Floor> _floorsView;
+
+	private Dungeon() =>
+		_floorsView = _floors.AsReadOnly();
 
 	/// <summary>
 	///		Initializes a new <see cref="Dungeon"/> with the given name and optional description.
@@ -21,6 +28,7 @@ public sealed partial class Dungeon : Entity
 	public Dungeon(
 		string name,
 		string? description = null)
+		: this()
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name);
 		Name = name;
@@ -46,5 +54,5 @@ public sealed partial class Dungeon : Entity
 	///		Gets the read-only list of floors belonging to this dungeon.
 	/// </summary>
 	public IReadOnlyList<Floors.Floor> Floors =>
-		_floors.AsReadOnly();
+		_floorsView;
 }
