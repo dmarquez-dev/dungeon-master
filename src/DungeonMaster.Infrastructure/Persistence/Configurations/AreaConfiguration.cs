@@ -15,11 +15,25 @@ public sealed class AreaConfiguration
 {
 	private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.General);
 
-	// INFRA-004 / MASTER-015. Without this comparer EF falls back to reference equality for the
-	// converted reference type, and Area.Outline returns _outline.AsReadOnly() -- a fresh wrapper on
-	// every read -- so DetectChanges marked Outline modified on every SaveChanges for every tracked
-	// Area. PathSegment is a record, so its compiler-generated structural equality and GetHashCode
-	// are what SequenceEqual and the aggregated hash compose here.
+	// INFRA-004 / MASTER-015, revised for MASTER-114. Area.Outline no longer allocates a fresh
+	// AsReadOnly() wrapper on every read: it caches the wrapper on first read and hands back that same
+	// instance thereafter. The original symptom this comparer was filed for -- DetectChanges marking
+	// Outline modified on every SaveChanges for every tracked Area, because reference equality on the
+	// converted reference type never saw the same wrapper twice -- is therefore gone.
+	//
+	// The comparer is still required, and caching is precisely why: it is now load-bearing in the
+	// opposite direction. Area.SetOutline mutates the _outline list IN PLACE, so after caching the
+	// wrapper is reference-equal to itself across a genuine outline edit. Under reference equality EF
+	// would see no change and silently drop the edit. Measured: with OutlineComparer removed from the
+	// HasConversion call below, `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj
+	// --filter FullyQualifiedName~AreaOutlineChangeTrackingTests` reports 1 failed of 3 --
+	// LoadAsync_AfterAnOutlineEdit_ReturnsTheEditedOutline, which reloads and finds the edit missing.
+	// Note that CommitAsync_AfterAGenuineOutlineEdit_StillWritesTheArea does NOT catch this: Touch()
+	// dirties LastModified, so the row is written regardless and only the Outline column is stale.
+	// Structural comparison is what keeps the edit detectable.
+	//
+	// PathSegment is a record, so its compiler-generated structural equality and GetHashCode are what
+	// SequenceEqual and the aggregated hash compose here.
 	private static readonly ValueComparer<IReadOnlyList<PathSegment>> OutlineComparer = new(
 		// EF declares the equality lambda over the nullable form of the property type, so the two
 		// null cases are handled here rather than by SequenceEqual, which rejects a null argument.
