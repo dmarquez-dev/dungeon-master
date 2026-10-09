@@ -1,5 +1,9 @@
 namespace DungeonMaster.Domain.Entities.Floors;
 
+/// <summary>
+///		Identifies the kind of object placed on a floor.
+///		The members are grouped by category, and the comments within this file name each group.
+/// </summary>
 public enum ObjectKind
 {
 	/// <summary>
