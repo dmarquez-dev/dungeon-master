@@ -1,8 +1,5 @@
 namespace DungeonMaster.App.Behaviors;
 
-/// <summary>Cursor shape options for <see cref="HandCursorBehavior"/>.</summary>
-public enum BehaviorCursorShape { Hand, IBeam, Arrow }
-
 /// <summary>
 ///		A MAUI behavior that changes the mouse cursor when hovering over the attached view.
 ///		Defaults to <see cref="BehaviorCursorShape.Hand"/>. Use <see cref="Shape"/> to select IBeam for text inputs.
@@ -11,6 +8,11 @@ public enum BehaviorCursorShape { Hand, IBeam, Arrow }
 /// </summary>
 public class HandCursorBehavior : Behavior<View>
 {
+	/// <summary>
+	///		Selects which system cursor is shown while the pointer is over the attached view.
+	///		Defaults to <see cref="BehaviorCursorShape.Hand"/>; set <see cref="BehaviorCursorShape.IBeam"/>
+	///		for text inputs or <see cref="BehaviorCursorShape.Arrow"/> to show the ordinary arrow.
+	/// </summary>
 	public BehaviorCursorShape Shape { get; set; } = BehaviorCursorShape.Hand;
 
 	private View? _view;
@@ -65,7 +67,9 @@ public class HandCursorBehavior : Behavior<View>
 	private void OnHandlerChanged(object? sender, EventArgs e)
 	{
 		if (_view?.Handler?.PlatformView is not UIKit.UIView nativeView)
+		{
 			return;
+		}
 
 		// Remove any previously attached hover recognizer to avoid duplicates on handler recycling.
 		if (_hoverRecognizer is not null)
@@ -152,7 +156,9 @@ public class HandCursorBehavior : Behavior<View>
 		// The ProtectedCursor lookup failed once, at type initialization. There is nothing to set and
 		// nothing to retry, so every later pointer event leaves the cursor alone.
 		if (ProtectedCursorProperty is null)
+		{
 			return;
+		}
 
 		if (_view?.Handler?.PlatformView is Microsoft.UI.Xaml.UIElement element)
 		{
