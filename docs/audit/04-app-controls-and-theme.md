@@ -925,6 +925,85 @@ obvious.
 
 **Suggested direction.** Add braces at all twelve sites. Mechanical, no behavioural change.
 
+**[AMENDED 6b-xviii, 2026-10-09 -- this entry's POPULATION is overstated by two sites and one file, all
+eight of its `FloorMapDrawable.cs` citations are stale, two of the three files it names were already
+clean when it was filed, and a real site it never cited was found. Classification: the ENTRY's
+substance stands -- the convention is real and was being violated -- but its TITLE, its `locations:`
+block and its count are all FALSE as stated; NARROWED, not falsified.** The register row is
+`MASTER-121` at `00-master-index.md:309`, closed **done**. This block follows the form of the
+`AMENDED 6b-xvii` block on `CORE-028` at `01-domain-application.md:2156-2216`, cited **for its form
+only** -- `AMENDED 6b-xiv` at `01-domain-application.md:1293` records that the block that one was in
+turn modelled on *"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the population, in the title and in the `What.` paragraph.* Previous wording, verbatim,
+the title: *"Single-statement control flow omits braces at twelve sites"*, and from `What.`: *"Eleven
+`if` bodies and one `foreach` body are written without braces."* **The live population was 10 braceless
+sites across 2 files, not twelve across three.** Measured on the post-change tree with a detector that
+resolves the **matching** close parenthesis of a control-flow header rather than the first one:
+
+| File | Braceless sites, post-change | Note |
+|---|---|---|
+| `src/DungeonMaster.App/Graphics/FloorMapDrawable.cs` | **0** | 8 remedied, re-derived at `:208`, `:274`, `:283`, `:597`, `:655`, `:660`, `:770`, `:813` |
+| `src/DungeonMaster.App/Behaviors/HandCursorBehavior.cs` | **0** | 2 remedied, re-derived at `:69`, `:158` |
+| `src/DungeonMaster.App/Behaviors/CanvasLongPressDetector.cs` | **0** | cited `:20-22`; **already clean at 0 when filed** |
+| `src/DungeonMaster.App/Behaviors/HoverOrLongPressBehavior.cs` | **0** | cited `:60-62`; **already clean at 0 when filed** |
+
+**POSITIVE CONTROL beside those four zeros**, without which they are indistinguishable from a predicate
+reading nothing: the identical detector, in the same run, returns **21** on
+`src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs`. **And the detector was
+validated against the defect class that defeats naive versions of it**, in both directions: exactly
+**3** on a fixture holding three braceless forms, two of which have nested-parenthesis headers
+(`if (a.Foo(b) && c.Bar(d)) return;` and a `foreach` over a `.Where(i => i.Ok(i.Id))`), beside three
+**braced** nested-paren forms that must NOT be flagged and are not; and **0** on an all-braced fixture
+including a braced `else`. This class has now defeated three independently written detectors in this
+session's record -- one by paren-balance arithmetic, one by a `)` + non-space tail test matching the
+inner `) &&`, and the braced-nested-paren direction is why the control file must contain both.
+
+*Correction 2 -- the eight `FloorMapDrawable.cs` citations.* Previous wording, verbatim, the
+`locations:` block's first eight entries: `:188-191`, `:210-211`, `:219-220`, `:233-234`, `:288-289`,
+`:323-327`, `:434-435`, `:475-476`. **Every one is stale and none of them holds braceless control flow.**
+They assume a **534**-line file. The file measured **882** lines at the session base and **898**
+post-change (`wc -l`), the +16 being the eight brace pairs this session added -- the leading-tab count
+moves **706 -> 722** across the same edit, so the two figures reconcile rather than being asserted
+separately. Anchored on the line and on what is on it, not derived by subtraction from any span.
+
+*Correction 3 -- the two files that were already clean.* Previous wording, verbatim, from
+`Why it matters.`: *"`CanvasLongPressDetector.cs:20-22` and `HoverOrLongPressBehavior.cs:60-62` wrap
+multi-line lambda invocations in a braceless `if`, where the extent of the body is not visually
+obvious."* **Both files return 0 braceless sites and did so before this session touched anything** --
+no task owns either file. So the entry's two "riskier form" examples are, between them, one real site
+(`FloorMapDrawable.cs:188-191`, itself a stale citation) and two that had already been fixed.
+
+*Correction 4 -- a real site this entry never cited.* **`HandCursorBehavior.cs:154`, inside
+`#if WINDOWS`, was a braceless site and appears nowhere in the `locations:` block**, which cites only
+`:67-68` for that file. It is now braced, re-derived at `:158`. An entry that overstates its count by
+two while omitting a member is not merely imprecise: the count and the enumeration disagreed, and only
+the enumeration was ever checked.
+
+*Correction 5 -- A CLAIM MADE IN THIS SESSION, NOT AN ORIGINAL ERROR IN THIS ENTRY, recorded because a
+correction is new prose and gets no exemption from measurement.* The orchestrator initially recorded,
+and told the architect inside a decomposition dispatch, that `HandCursorBehavior.cs:67` *"does not
+compile on this machine, so an edit there cannot be verified by a build"*. **That is false, and it was
+inferred from the `#if` guard without running a build.** Measured here, post-change:
+
+1. **The guards.** `grep -nE '^#(if|elif|else|endif)'` on `HandCursorBehavior.cs` returns **three**
+   `#if MACCATALYST` regions, at `:31-36`, `:50-52` and `:64-111`, and **two** `#if WINDOWS` regions, at
+   `:113-151` and `:155-167`. The braced site at `:69` is in the **third** MACCATALYST region and the one
+   at `:158` is in the **second** WINDOWS region. Earlier spans reported in this session for these two
+   regions were each off by a constant `+1`, the signature of arithmetic over base figures rather than a
+   read of the command's output; these are read from the output above.
+2. **All three target frameworks are declared.** `DungeonMaster.App.csproj:9` reads
+   `<TargetFrameworks>net10.0;net10.0-windows10.0.19041.0;net10.0-maccatalyst</TargetFrameworks>`.
+3. **The maccatalyst target is actually built here.** `dotnet build src/DungeonMaster.sln` in this
+   worktree wrote `src/DungeonMaster.App/bin/Debug/net10.0-maccatalyst/maccatalyst-x64/DungeonMaster.App.dll`,
+   **530944 bytes** by `ls -l`, alongside the `net10.0` and `net10.0-windows10.0.19041.0` outputs.
+
+**So both sites are build-verifiable and this entry's `risk: low` rating stands.** The general lesson is
+the transferable part: **a `grep` for a preprocessor guard establishes that a guard exists and
+establishes nothing about whether the toolchain defines the symbol.** It was caught only because the
+baseline build printed the maccatalyst target. The record's severity, category and risk are unchanged;
+effort is unchanged at `XS`.**]**
+
 ### UIKIT-022 -- FloorMapDrawable is space-indented, and four files indent doc-comment bodies with spaces
 
 ```yaml
@@ -961,6 +1040,113 @@ across unrelated lines.
 space-indented doc bodies, and consider adding an `.editorconfig` -- though that is repository-wide
 and belongs to T6.
 
+**[AMENDED 6b-xviii, 2026-10-09 -- this entry's FILE-INDENTATION CLAIM IS FALSE, its title is wrong in
+its first clause, its own census figures describe a file that no longer exists in that form, two of its
+four cited locations were already clean, and its doc-comment population was four times what it names.
+Classification: the FILE-LEVEL half is FALSIFIED; the DOC-COMMENT half's substance stands and was acted
+on in full, with its population WIDENED; `MASTER-181` is merged into this row.** The register row is
+`MASTER-122` at `00-master-index.md:310`, closed **done**, with `MASTER-181` at
+`00-master-index.md:369` closed **AS A DUPLICATE** of it under the user's Gate 1 decision. This block
+follows the form of the `AMENDED 6b-xvii` block on `CORE-028` at `01-domain-application.md:2156-2216`,
+cited **for its form only** -- `AMENDED 6b-xiv` at `01-domain-application.md:1293` records that the
+block that one was in turn modelled on *"carries three defects of its own"*. **Nothing below deletes any
+previous wording.**
+
+*Correction 1 -- the title's first clause and the file-level census, both FALSE.* Previous wording,
+verbatim, the title: *"FloorMapDrawable is space-indented, and four files indent doc-comment bodies with
+spaces"*, and from `What.`: *"A leading-whitespace census across the layer's 19 `.cs` files returns 429
+space-indented lines and 0 tab-indented lines in `FloorMapDrawable.cs`; every other file in the layer is
+tab-indented with zero space-indented lines."* **The file is tab-indented, and the census is inverted.**
+Measured on the post-change tree:
+
+| | Measured | Command |
+|---|---|---|
+| Total lines | **898** | `wc -l` |
+| Leading-SPACE lines | **0** | `grep -c '^ '` |
+| Leading-TAB lines | **722** | `grep -c "^$TAB"` with `TAB=$(printf '\t')` |
+
+The orchestrator measured **0 / 706 / 882** on the same three commands at the session base, so the
+post-change figures differ by exactly the **+16** brace lines this session added for `MASTER-121` and the
+two measurements reconcile rather than standing as two separate assertions. **POSITIVE CONTROL for the
+leading-space predicate**, so the `0` is a measurement and not a blind predicate: the identical
+`grep -c '^ '` returns **110** on
+`src/DungeonMaster.Infrastructure/Migrations/20260818232300_UtcDateTimeTimestampsAndScaleWithoutStoreDefault.cs`.
+**NOT MEASURED BY THIS SESSION: which session converted the file from spaces to tabs.** That needs git
+archaeology nobody ran, and no row claims it; it is stated here rather than guessed.
+
+*Correction 2 -- the two cited locations that were already clean, and both cited at the wrong path.*
+Previous wording, verbatim, from the `locations:` block:
+*"src/DungeonMaster.App/Controls/AreaSidebarItem/AreaSidebarItem.xaml.cs:28-36"* and
+*"src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs:91-109"*, and from `What.`:
+*"`AreaSidebarItem.xaml.cs:28-36` and four doc comments in `FloorSidebarItem.xaml.cs:91-109` use the same
+space form while the rest of each file uses tabs."* **Both files return 0 for the space predicate and
+needed no `MASTER-122` change**, confirmed on both sides of the session rather than only after. Both also
+live one directory deeper than `What.`'s prose implies -- `Controls/AreaSidebarItem/` and
+`Controls/FloorSidebarItem/`, not `Controls/` -- which the `locations:` block happens to get right while
+the prose does not.
+
+*Correction 3 -- the remedied population, with its command and its controls.* Previous wording, verbatim,
+from `Suggested direction.`: *"fix the six space-indented doc bodies"*. **The population was 124 lines
+across 5 files, not six bodies.** Per-file, `grep -cE '^[[:space:]]*/// {2,}'`, measured by the architect
+at the session base and re-run on the post-change tree:
+
+| File | Base | Post-change | Tab form, post-change |
+|---|---|---|---|
+| `src/DungeonMaster.App/Graphics/FloorMapDrawable.cs` | 116 | **0** | **116** |
+| `src/DungeonMaster.App/Assets/ObjectAssets/ObjectAssetCatalogue.cs` | 2 | **0** | **2** |
+| `src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs` | 2 | **0** | **2** |
+| `src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs` | 1 | **0** | **1** |
+| `src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs` | 3 | **0** | **3** |
+| **Total** | **124** | **0** | **124** |
+
+The tab column is `grep -cE "^[[:space:]]*///${TAB}"` with `TAB=$(printf '\t')`, and it is what makes the
+five zeros a **conversion** rather than a deletion: the same 124 lines are present in the conforming
+form. **THREE CONTROLS accompany those zeros.** (1) **POSITIVE CONTROL on the space predicate:** it
+returns **35** on the excluded EF migration named in Correction 4, a file known to still hold the form.
+(2) **POSITIVE CONTROL on the tab predicate, against a known-lying spelling:** the `TAB` form returns
+**21** on `src/DungeonMaster.App/Controls/NotebookAffordance.cs` while
+`grep -cE '^[[:space:]]*///\t'` returns a false **0** on that same file, because `\t` inside `grep -E`
+matches a literal `t`. (3) **PREDICATE VALIDATED IN BOTH DIRECTIONS** on a purpose-built CRLF fixture:
+a line with ONE space after `///` must not match and does not; lines with two and with five must and do,
+2 of 4. **And one whole-tree pass closes the arithmetic:**
+`grep -rnE '^[[:space:]]*/// {2,}' src --include=*.cs --exclude-dir=bin --exclude-dir=obj` returns
+**35 matching lines in 1 file** post-change against **159 lines in 6 files** at the base, and
+`159 - 124 = 35`. Note the `--exclude-dir` form: applying the `bin`/`obj` filter to the matched TEXT
+instead of to PATHS is what produced this session's discarded artefact figure of 167.
+
+*Correction 4 -- THE EF MIGRATION IS A STANDING EXEMPTION OF THIS REPOSITORY, NOT WORK THIS SESSION
+SKIPPED. This is a convention this register now carries, and it is the answer to a question
+`MASTER-181`'s own row text raised and declined to settle.* Previous wording, verbatim, from
+`MASTER-181` at `00-master-index.md:369`: *"the migration's 35 lines also need a judgment call this row
+does not make, since migrations are generated artefacts and may be exempt"*. **The user decided at
+Gate 2 that generated EF scaffolder output is EXEMPT from `dotnet-format.md` section 9's two-tab rule, as
+a standing convention of this repository.** The evidence it rests on, measured here:
+
+- **`src/DungeonMaster.Infrastructure/Migrations/20260818232300_UtcDateTimeTimestampsAndScaleWithoutStoreDefault.cs`
+  carries 35 lines of the same space form** -- `grep -cE '^[[:space:]]*/// {2,}'` returns **35** -- and
+  of those, **14 are at 5 spaces and 21 at 9 spaces**, the nested `<para>` width. **ALL 21 of the
+  9-space lines in the whole measured population of 159 sit in this one file**, which is why the
+  in-scope 124 were uniformly 5-space and one conversion rule covered them. The distribution is
+  `grep -ohE '/// {2,}'` piped through an indent-width count: `14 5` and `21 9`.
+- **The repository leaves scaffolder output in the generator's style, measured across the whole
+  directory and not inferred from one file.** All **7** files under `Migrations/` are space-indented with
+  **0** leading tabs, by `grep -c '^ '` and `grep -c "^$TAB"` per file with `TAB=$(printf '\t')`:
+  `InitialCreate.Designer.cs` 154/0, `InitialCreate.cs` 116/0, `AddFloorDescription.Designer.cs` 157/0,
+  `AddFloorDescription.cs` 21/0, this migration's `.Designer.cs` 155/0, this migration 110/0, and
+  `AppDbContextModelSnapshot.cs` 153/0. Every space figure is non-zero, so the uniform `0` in the tab
+  column is a measurement rather than a blind predicate.
+- **Editing it is PROHIBITED, not merely out of scope.** `disciplines/database.md:15` states:
+  *"Migrations are forward-only. A released migration is never edited; a mistake is corrected by a new
+  migration."* A whitespace reflow of a released migration is exactly the edit that rule forbids, and no
+  new migration can "correct" a doc-comment indent.
+- **This resolved at inference rung 1 and was never escalated**, because the repository's own uniform
+  practice and a discipline rule both answered it directly.
+
+**The arithmetic, stated explicitly: 124 remedied + 35 exempt = 159, the full measured population.**
+**NO OPEN ROW COVERS THE 35 LINES AFTER THIS SESSION, AND THAT IS DELIBERATE** -- nothing is owed, so no
+row stays open for them. A future census that returns 35 for this predicate is reading the exemption,
+not a regression. The record's severity, category, effort and risk are unchanged.**]**
+
 ### UIKIT-023 -- Four public types are declared in files named for a different type
 
 ```yaml
@@ -994,6 +1180,65 @@ code-behind partial, which makes it the least discoverable place in the layer to
 **Suggested direction.** Move each to its own file beside the type that uses it:
 `Controls/NotebookView/NotebookKind.cs`, `NotebookTarget.cs`, `NotebookSaveArgs.cs`, and
 `Behaviors/BehaviorCursorShape.cs`.
+
+**[AMENDED 6b-xviii, 2026-10-09 -- this entry is CONFIRMED and acted on in full, its four destinations
+are recorded as they actually exist, and the mechanism the session brief recommended for it DOES NOT
+APPLY. Classification: CONFIRMED, the only one of this session's eight selected rows whose substance
+and count were both correct as filed; the `locations:` line numbers were nonetheless stale.** The
+register row is `MASTER-123` at `00-master-index.md:311`, closed **done**. This block follows the form
+of the `AMENDED 6b-xvii` block on `CORE-028` at `01-domain-application.md:2156-2216`, cited **for its
+form only** -- `AMENDED 6b-xiv` at `01-domain-application.md:1293` records that the block that one was
+in turn modelled on *"carries three defects of its own"*. **Nothing below deletes any previous
+wording.**
+
+*Correction 1 -- the destinations, recorded as they exist rather than as proposed.* Previous wording,
+verbatim, from `Suggested direction.`: *"Move each to its own file beside the type that uses it:
+`Controls/NotebookView/NotebookKind.cs`, `NotebookTarget.cs`, `NotebookSaveArgs.cs`, and
+`Behaviors/BehaviorCursorShape.cs`."* **All four were created at exactly those paths**, re-derived by
+content search on the post-change tree with
+`grep -nE '^[[:space:]]*public ' <file>`, which returns exactly one line for each:
+
+| Type | File, as it exists | Declared at |
+|---|---|---|
+| `BehaviorCursorShape` | `src/DungeonMaster.App/Behaviors/BehaviorCursorShape.cs` | `:4` |
+| `NotebookKind` | `src/DungeonMaster.App/Controls/NotebookView/NotebookKind.cs` | `:6` |
+| `NotebookTarget` | `src/DungeonMaster.App/Controls/NotebookView/NotebookTarget.cs` | `:15` |
+| `NotebookSaveArgs` | `src/DungeonMaster.App/Controls/NotebookView/NotebookSaveArgs.cs` | `:14` |
+
+Each source file now declares only the type it is named for: `HandCursorBehavior.cs:9` and
+`NotebookView.xaml.cs:14`, by the same predicate. `grep -rn 'enum BehaviorCursorShape' src --include=*.cs`
+with `bin` and `obj` excluded **by path** returns exactly **1** line, so the enum is declared nowhere
+else. **The predicate was validated against the near-misses it must exclude**, since a one-type-per-file
+census is worthless if it cannot distinguish access modifiers: a widened form admitting any run of
+modifiers before the type keyword returns the same single `public` declaration per source file, and the
+two private declarations that must NOT match are present in `NotebookView.xaml.cs` at `:17`
+(`private enum NotebookPane`) and `:80` (`private sealed class RibbonBrushes`). A narrower spelling used
+earlier in this session matched only `public [sealed] [partial] (class|record|enum|struct|interface)` and
+would miss a `public static` or `public abstract` form; it is adequate here and **must not be reused as
+an "any public type" census elsewhere.**
+
+*Correction 2 -- the `locations:` line numbers.* Previous wording, verbatim, the `locations:` block:
+`NotebookView.xaml.cs:9-19`, `:33-39`, `:52-58` and `HandCursorBehavior.cs:3-4`. **All four were stale
+at the session base**, where the orchestrator located the declarations at `NotebookView.xaml.cs:8`,
+`:32`, `:51` and `HandCursorBehavior.cs:4`. They are now stale in a second and permanent way: the types
+no longer live in those files at all. The citations are superseded by the table above rather than
+corrected in place.
+
+*Correction 3 -- THE RECOMMENDED MECHANISM DOES NOT APPLY TO THIS ROW, and no rename was recorded.* The
+session brief advised reusing 6b-xvii's fix for `MASTER-111` -- *"a byte-identical `git mv` committed
+alone so git records `R100`"*. **That works for a file whose single type is misnamed; it does not
+describe this row.** Here each source file keeps its own correctly-named type and the extra types are
+**extracted** into new files, so there is no rename for `git mv` to express and **no `R100` to produce**.
+Stating it plainly because the alternative -- an entry that leaves a recommended mechanism unmentioned --
+invites the next reader to assume it was used and to look for a rename in the history that is not there.
+
+*On controls: NO correction in this block rests on an absence or a zero, which is why none carries a
+POSITIVE CONTROL.* Every figure above is a positive count -- one `public` declaration per file, one
+tree-wide declaration of the enum, four destinations that exist -- and **a command that returns a hit
+has demonstrated its own non-blindness.** What a count-based predicate needs instead is proof it does
+not over-match, and that is supplied above by the two private near-misses at `NotebookView.xaml.cs:17`
+and `:80`, which are present in the file and correctly excluded. The record's severity, category,
+effort and risk are unchanged.**]**
 
 ### UIKIT-024 -- Public types, members and parameters across the behaviors lack XML documentation
 
@@ -1036,6 +1281,71 @@ what thread `LongPressed` is raised on.
 **Suggested direction.** Add the missing `<summary>` and `<param>` tags, following section 9's
 two-tab body indentation and complete-sentence rules.
 
+**[AMENDED 6b-xviii, 2026-10-09 -- SIX of this entry's EIGHT locations were already dead when this
+session opened, one of them because the member it names NO LONGER EXISTS, and the entry's effort rating
+no longer described the work. Classification: OVERTAKEN -- the entry's substance was correct when filed
+and four of its gaps were closed by other sessions without being recorded here; the two that survived
+are remedied. Effort corrected `S` -> `XS`.** The register row is `MASTER-136` at
+`00-master-index.md:324`, closed **done**, and that row's effort cell now reads `XS`. This block follows
+the form of the `AMENDED 6b-xvii` block on `CORE-028` at `01-domain-application.md:2156-2216`, cited
+**for its form only** -- `AMENDED 6b-xiv` at `01-domain-application.md:1293` records that the block that
+one was in turn modelled on *"carries three defects of its own"*. **Nothing below deletes any previous
+wording.**
+
+*Correction 1 -- the live scope was 2 of 8, and the effort rating.* Previous wording, verbatim, the
+`effort:` key: *"effort: S"*, on eight `locations:` entries. **Two locations were live.** Both are
+remedied, re-derived by content on the post-change tree:
+
+- **`HandCursorBehavior.Shape`** now carries a `<summary>` at `:11-15` above the member at `:16`, with
+  every continuation line in the `///` + two-tabs form section 9 prescribes. The entry cited it at
+  `:14`, which was **exact** at the session base -- the one citation in this entry that was not stale.
+- **`FloorSidebarItem.SetAreaEditing`** now carries `<param name="areaId">` at `:296-298` and
+  `<param name="editing">` at `:299-301`, above the signature at `:302`. Both `name=` values match the
+  declared `(Guid areaId, bool editing)`. **The pre-existing `<summary>` at `:290-295` is unchanged.**
+
+*Correction 2 -- the four locations that "document nothing at all" and in fact document everything.*
+Previous wording, verbatim, from `What.`: *"`HoverOrLongPressBehavior` documents nothing at all -- not
+the type, its three public events, or its two overrides. `CanvasLongPressDetector` documents nothing --
+not the type, the `LongPressed` event, `TouchStarted`, `TouchEnded` or `Dispose`."* **Both files are
+fully documented and were before this session began** -- no task owns either. Measured post-change:
+`grep -c '///'` returns **42** on `HoverOrLongPressBehavior.cs` (159 lines) and **38** on
+`CanvasLongPressDetector.cs` (101 lines), and a detector for a `public` declaration whose nearest
+preceding non-blank line is not a `///` line returns **0 undocumented public members** on each.
+**POSITIVE CONTROL beside those zeros:** the identical detector returns **1** on
+`src/DungeonMaster.App/Assets/ObjectAssets/ObjectAssetCatalogue.cs`, flagging
+`public static IReadOnlyDictionary<ObjectKind, string> Paths => _paths;` at `:14` -- and the detector was
+controlled to flag an undocumented member and NOT a documented one on a purpose-built fixture.
+
+*Correction 3 -- the `FloorMapDrawable.cs:23` citation, stale twice over.* Previous wording, verbatim,
+from `What.`: *"`FloorMapDrawable`'s public constructor is undocumented."* **The constructor is at
+`:132` and IS documented**, by a `<summary>` at `:129-131`; the same detector returns **0** undocumented
+public members on that file. And `:23` is not a constructor: it now holds `///` + two tabs + `<para>`,
+a doc-comment line inside the type-level `<remarks>` block.
+
+*Correction 4 -- a cited member that NO LONGER EXISTS ANYWHERE.* Previous wording, verbatim, from
+`What.`: *"`AreaSidebarItem.SetEditing(bool editing)` and
+`FloorSidebarItem.SetAreaEditing(Guid areaId, bool editing)` have `<summary>` but no `<param>` tags for
+their three parameters."* **`SetEditing` does not exist anywhere in `DungeonMaster.App`.**
+`grep -rn 'SetEditing' src/DungeonMaster.App --include=*.cs`, with `bin` and `obj` excluded by path,
+returns **0**. **POSITIVE CONTROL beside that zero, because an absence reported by an uncontrolled grep
+is not a measurement:** the same command shape for `SetAreaEditing` returns **3** --
+`FloorSidebarItem.xaml.cs:302` (the declaration), `FloorSidebarItem.xaml.cs:319` (a `<see cref=>` in a
+neighbouring doc comment) and `DungeonDetailPage.xaml.cs:2213` (the single call site). Note also that
+`SetEditing` is not a substring of `SetAreaEditing`, so the zero is not an artefact of the longer name
+shadowing the shorter. The entry's *"their three parameters"* is therefore a count over a population of
+two members where one was already gone.
+
+*The layer-wide `<param>` figure, recorded AS A BOUND and not as a population.* This session's
+`<param>`-coverage detector reports **14** public members across all 58 `.cs` files of
+`DungeonMaster.App` that take parameters and carry a doc block with no `<param>` tag. **That figure is
+an UPPER BOUND, not the genuine population, and it has at least two known false positives:**
+`FloorSidebarItem.ContainsKeyboardFocus => HasFocusedDescendant(this)`, where an expression body's
+parentheses are mistaken for a parameter list, and `EventHandler<(Guid, int)>? ReorderRequested`, where a
+generic event type resembles one. **THE EXACT GENUINE FIGURE WAS NOT MEASURED BY THIS SESSION.** It is
+recorded here only so the bound is not mistaken for a count by a later reader who finds it in this
+session's artifacts; **only `SetAreaEditing` was ever inside this row's scope**, either way. The
+record's severity, category and risk are unchanged; **effort is corrected from `S` to `XS`.**]**
+
 ### UIKIT-025 -- Blank-line and trailing-line formatting deviations
 
 ```yaml
@@ -1064,6 +1374,70 @@ rest of the layer follows consistently.
 **Suggested direction.** Insert the blank line at `FloorSidebarItem.xaml.cs:259`, delete the blank
 line at `AreaSidebarItem.xaml.cs:154`.
 
+**[AMENDED 6b-xviii, 2026-10-09 -- this entry is FALSIFIED. Both of its locations are clean, the defect
+CLASS is absent from both files, and the entry MISREADS the section it cites -- so its premise did not
+follow from its authority even on the day it was filed. Classification: FALSIFIED, on two independent
+grounds, one of them an ORIGINAL ERROR rather than drift. NO CODE CHANGED for this row.** The register
+row is `MASTER-124` at `00-master-index.md:312`, closed **FALSIFIED**. This block follows the form of
+the `AMENDED 6b-xvii` block on `CORE-028` at `01-domain-application.md:2156-2216`, cited **for its form
+only** -- `AMENDED 6b-xiv` at `01-domain-application.md:1293` records that the block that one was in
+turn modelled on *"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- location 1, where the blank line this entry asks for is already present.* Previous
+wording, verbatim, from `What.`: *"In `OnCardTapped`, the `SelectRequested?.Invoke(...)` at line 259
+directly follows the closing brace of a multi-line `if` block with no blank line between them."*
+**It does not.** Re-derived by content on the post-change tree -- `grep -n 'OnCardTapped'` puts the
+method at `:423` of a **554**-line file, not at `:255-259` of the file this entry assumed -- the body
+reads:
+
+```
+:425  if (_suppressCardTap)
+:426  {
+:427      _suppressCardTap = false;
+:428      return;
+:429  }
+:430  (blank)
+:431  IsExpanded = true;
+:432  SelectRequested?.Invoke(this, EventArgs.Empty);
+```
+
+**The blank line is at `:430`**, between the `if` block's closing brace at `:429` and the statement at
+`:431`. Anchored on the lines and on what is on them, not derived by offset from the entry's `:255-259`.
+
+*Correction 2 -- location 2, where the stray blank line does not exist.* Previous wording, verbatim,
+from `What.`: *"Separately, `AreaSidebarItem.xaml.cs` carries a stray blank line at 154 before the
+type's closing brace."* **It does not.** The file is **261** lines and its final four are
+`:258 command.Execute(area);`, `:259 }`, `:260 }`, `:261 }` -- **no blank line before the type's closing
+brace.** The entry's `:153-155` citation now lands inside a documented property, so the citation is
+stale as well as the claim being false. No task in this session owns this file, so this is its state at
+the session base too.
+
+*Correction 3 -- THE DEFECT CLASS IS ABSENT FROM BOTH FILES, not merely the two instances.* Closing a
+formatting row on two re-read locations would leave open whether the form simply moved elsewhere in the
+same files, so the class was censused rather than the instances. A detector for **a line that is only a
+closing brace, immediately followed at the same indentation by a statement, with no blank line
+between** returns **0** on both files. **The detector was controlled in three directions**, and the
+third one mattered: exactly **1** on a fixture with one such case; **0** on a fixture where the same
+pair is blank-separated; and on a fixture containing a legal `}`-then-`else` continuation it returns
+**1**, flagging only the genuine case and skipping the `else`. **That third control caught a real false
+positive in this detector's first version**, which flagged `FloorSidebarItem.xaml.cs:266` -- a `}`
+followed by `else` at the same indent, which is correct C# and not the defect class. Without it this
+block would have reported a defect that is not one. **POSITIVE CONTROL beside the two zeros:** the
+corrected detector returns **13** on
+`src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` in the same tree, so the zeros
+are measurements and not a blind predicate.
+
+*Correction 4 -- THE ENTRY MISREADS ITS OWN AUTHORITY, and this is an ORIGINAL ERROR, not drift.*
+Previous wording, verbatim, from `What.`: *"Section 5 requires a blank line "before a statement when ...
+the preceding statement spans multiple lines"."* **Section 5 requires one when the preceding statement
+spans multiple lines DUE TO METHOD CHAINING OR 2+ WRAPPED ARGUMENTS.** The closing brace of an `if`
+block is neither of those. **So even with the blank line genuinely absent, section 5 would not have
+required it**, and this entry's premise did not follow from its citation when it was filed. This is the
+half worth carrying: the two locations becoming clean makes the row closable, but the misread
+authority is what makes it FALSIFIED rather than merely overtaken -- the same entry filed today against
+the same code would still be wrong. The record's severity, category, effort and risk are
+unchanged.**]**
+
 ### UIKIT-026 -- FloorMapDrawable declares a redundant empty public constructor
 
 ```yaml
@@ -1089,6 +1463,69 @@ than from markup. It also sits between the field declaration and the properties,
 file's member ordering.
 
 **Suggested direction.** Delete the line.
+
+**[AMENDED 6b-xviii, 2026-10-09 -- EVERY CLAUSE of this entry is now false, and ITS STATED REMEDY IS
+DESTRUCTIVE: following "Delete the line" WOULD BREAK THE BUILD AND SIX TESTS. Classification:
+FALSIFIED, and flagged as a HARMFUL SUGGESTED DIRECTION rather than merely an inaccurate one. NO CODE
+CHANGED for this row.** The register row is `MASTER-125` at `00-master-index.md:313`, closed
+**FALSIFIED**. This block follows the form of the `AMENDED 6b-xvii` block on `CORE-028` at
+`01-domain-application.md:2156-2216`, cited **for its form only** -- `AMENDED 6b-xiv` at
+`01-domain-application.md:1293` records that the block that one was in turn modelled on *"carries three
+defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- all four clauses of the `What.` and `Why it matters.` paragraphs.* Previous wording,
+verbatim, from `What.`: *"`public FloorMapDrawable() { }` declares a parameterless constructor identical
+to the implicit one the compiler would emit, on a class with no other constructor."* And from
+`Why it matters.`: *"I believe it is simply dead: it carries no initialisation, no documentation and no
+XAML requirement I could identify"*. **Four separate claims, each false, each re-derived by content on
+the post-change tree:**
+
+| Claim | Measured | Command |
+|---|---|---|
+| The constructor is empty | **FALSE** -- it chains `: this(FloorMapPalette.FromTheme)` at `:133` | `grep -n -B6 -A3 'public FloorMapDrawable()'` |
+| It is undocumented | **FALSE** -- `:129-131` is a `<summary>`: "Initializes a new instance that reads its colours from `DmTheme`." | same |
+| The class has no other constructor | **FALSE** -- **three** constructors, at `:132`, `:148`, `:175` | `grep -n 'public FloorMapDrawable'` |
+| It is dead | **FALSE** -- **7 live call sites** | the census below |
+| It is at `:23` | **stale** -- it is at `:132`; `:23` is a doc-comment line inside the type-level `<remarks>` | same |
+
+*Correction 2 -- the call-site census, with the predicate stated so the figure is reproducible.*
+**7 call sites require a parameterless constructor.** The raw predicate returns a larger number and
+that is recorded deliberately, so a later reader who reproduces it does not conclude the 7 was
+invented: `grep -rn 'new FloorMapDrawable' src --include=*.cs`, with `bin` and `obj` excluded **by
+path**, returns **13 lines**. Of those, **7 require the parameterless constructor**:
+
+- `src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:63` --
+  `_drawable = new FloorMapDrawable();`, **production code**;
+- `src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableExecutionTests.cs:37`, and
+  `src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs:69`, `:87`, `:105`, `:123`,
+  `:141` -- six object-initializer uses, each confirmed by reading the following line, which is `{` in
+  every case. **The `new FloorMapDrawable { ... }` form requires a parameterless constructor.**
+
+**And 6 are NEAR-MISSES that must NOT count**, named because a census that cannot exclude them is not a
+measurement: five are parameterised constructions --
+`FloorMapDrawableDisposalTests.cs:43`, `:88`, `:102`, `:116` and `FloorMapDrawableStateTests.cs:187` --
+and one is **not a call site at all**, `FloorMapDrawableNonFiniteTests.cs:9`, a doc-comment line that
+names the form in `<c>` tags. `7 + 6 = 13`, so the filtered figure and the raw predicate reconcile.
+
+*Correction 3 -- THE SUGGESTED DIRECTION IS DESTRUCTIVE AND MUST NOT BE FOLLOWED.* Previous wording,
+verbatim: *"Delete the line."* **Deleting the parameterless constructor would remove the only
+constructor that `new FloorMapDrawable()` and `new FloorMapDrawable { ... }` can bind to, breaking one
+production call site and six test call sites.** The class's two remaining constructors both take
+parameters, so no implicit parameterless constructor would be emitted to take its place -- the C#
+compiler emits one only for a class that declares no constructor at all, which this class does not. The
+build in this worktree reports `Build succeeded.` with **0 Warning(s)** and **0 Error(s)** across all
+three `DungeonMaster.App` target frameworks, and the suite reports **1038 passed, 0 failed, 0
+skipped**, with this row's code untouched. **This is the entry worth reading twice:** it is not merely
+stale, it is an instruction that would have been carried out mechanically by a session trusting the
+register's specifics, and the only thing standing between it and a broken build was re-measurement.
+
+*On controls: NO correction in this block rests on an absence or a zero, which is why none carries a
+POSITIVE CONTROL.* Every clause above is falsified by something **present** -- a chained constructor
+initializer at `:133`, a `<summary>` at `:129-131`, three declarations, thirteen matched lines -- rather
+than by something missing, and **a command that returns a hit has demonstrated its own non-blindness.**
+The one risk a positive census carries is over-counting, and that is why the 13 matched lines are
+partitioned above into 7 that count and 6 named near-misses that must not, rather than being reported
+as a single number. The record's severity, category, effort and risk are unchanged.**]**
 
 ### UIKIT-027 -- DmConfirmPopup and NotebookView expose no bindable surface at all
 
@@ -1157,6 +1594,86 @@ nothing would report it.
 that `DmConfirmButton`'s `PointerOver` and `Pressed` opacity values match `DmButtonBase`'s would
 close the silent-drift gap. T5 owns the theme suite that would house it.
 
+**[AMENDED 6b-xviii, 2026-10-09 -- this entry is CONFIRMED and its judgment is upheld: the duplication
+is DELIBERATE and no structural change was made. Its citation of the comment block that justifies the
+duplication is wrong at both ends, and its named owner is a STALE TASK ID from an earlier session.
+Classification: CONFIRMED and closed DELIBERATELY UNCHANGED; the `locations:` span is EXACT, the
+in-prose citation is DRIFT, the owner is an ORIGINAL ERROR.** The register row is `MASTER-151` at
+`00-master-index.md:339`, closed **DELIBERATELY UNCHANGED**. This block follows the form of the
+`AMENDED 6b-xvii` block on `CORE-028` at `01-domain-application.md:2156-2216`, cited **for its form
+only** -- `AMENDED 6b-xiv` at `01-domain-application.md:1293` records that the block that one was in
+turn modelled on *"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the comment block's span, WRONG AT BOTH ENDS, and corrected at review rather than
+first measurement.* Previous wording, verbatim, from `Why it matters.`: *"The file's comment at lines
+10-16 says exactly this and records the regression that proved it."* **The block is
+`src/DungeonMaster.App/Resources/Theme/Controls.Semantic.xaml:6-29`.** Re-derived by content: a
+`grep -n` for the XML comment delimiters returns the opener at **`:6`** and the closer at **`:29`**;
+`:5` is blank, `:10` is a prose line *inside* the block, `:30` is blank, and `:31` opens the
+`DmConfirmButton` style. The file is **81** lines, 81 CRLF, and is byte-identical to its state at the
+session base. **The span was ALSO wrong in this session's own evidence file**, which recorded `:10-30`
+-- likewise wrong at both ends -- and from there the figure reached `manifest.json`'s frozen `T8`
+acceptance criteria in two places before being caught at `T8`'s review and corrected in
+`measurement.md` as its `CORRECTION 6`. **No verdict anywhere depended on the bounds**, and every
+substantive claim attributed to the block is present at `:6-29`. It is recorded here with its
+provenance so the next session's criteria do not inherit it a third time; what caught it was the frozen
+criteria's own instruction to re-derive rather than carry forward.
+
+*Correction 2 -- the entry's judgment, UPHELD, with the block's load-bearing sentences located.*
+Previous wording, verbatim: *"I believe this is a genuine constraint of MAUI's style system rather than
+an avoidable duplication: a derived style replaces the base group wholesale rather than merging into it,
+so inheriting would drop the `Disabled` treatment the confirm button needs."* **Confirmed, and the file
+says so itself.** At `:13-14` the block states that a derived style replaces the base group wholesale;
+at `:15-16` it records the regression that proved it -- the disabled CREATE button in
+`CreateDungeonPopup` turning from grey-brown back to green at 0.45 opacity; and at `:25-28` it warns in
+capitals that **`DmDestructiveButton` MUST NOT GAIN A `CommonStates` GROUP OF ITS OWN**. The structure
+is as the entry describes: `DmConfirmButton` at `:31` with `BasedOn="{StaticResource DmButtonBase}"`, its
+own `CommonStates` group under a `Setter` spanning `:35-66` with states `Normal` `:38`, `PointerOver`
+`:45`, `Pressed` `:50`, `Disabled` `:57`; and `DmDestructiveButton` at `:69` and `DmNeutralButton` at
+`:75`, both `BasedOn` with no group of their own. **This entry's `locations:` span of `:35-66` is EXACT**
+-- it is the `Setter` element, opening at `:35` and closing at `:66`. It is therefore one of only **two**
+of this session's eight selected rows whose `locations:` survived unchanged, the other being
+`MASTER-148`'s; an earlier figure in this session's artifacts called `MASTER-148`'s the only one, and
+that is corrected here by measurement.
+
+*Correction 3 -- the named owner is a STALE TASK ID.* Previous wording, verbatim, from
+`Suggested direction.`: *"T5 owns the theme suite that would house it."* **"T5" is a task id from an
+earlier session and names nothing in this one.** The suite is **`src/DungeonMaster.Tests/App/Theme/`**,
+which holds **21** files, of which **11** read the theme XAML off disk post-change, with
+`ThemeSource.cs` as the shared reader. Across all four test projects the same predicate returns **13**
+files post-change and therefore **12** at the base. **A caution on that figure's command**, because the
+spelling matters: the form recorded in this session's evidence file uses `grep -rln` with a `|`
+alternation and **no `-E`**, in which `|` is a literal and which returns **0** here -- the figure is
+right but that spelling could not have produced it. The `-E` form is what measures it.
+
+*Correction 4 -- the gap was real, and it was unguarded because nothing in the suite named either
+style.* Previous wording, verbatim: *"The observation worth recording is only that the duplication
+*exists* and is invisible to `ThemeDictionaryTests` -- if `DmButtonBase`'s hover or press opacity is
+ever retuned, this copy will silently not move, and nothing would report it."* **Confirmed, and now
+closed by a test rather than a refactor.** Before this session, **no file in any of the four test
+projects named `Controls.Semantic` or `DmConfirmButton`**; the count is now **1**, the new
+`src/DungeonMaster.Tests/App/Theme/ConfirmButtonStateParityTests.cs`. **POSITIVE CONTROL beside that
+prior zero:** the same grep shape for `DmButtonBase` returns **4** files, so the grep is not silently
+empty and the 0 was a measurement. The guard is **3 facts**, at `:86`, `:123` and `:148`, and it is
+scoped deliberately:
+
+- **`PointerOver` and `Pressed` only**, each comparing the semantic style's parsed opacity to the base
+  style's parsed opacity -- **no literal appears in either assertion.** Exactly one literal `0.82`
+  appears anywhere in the file, at **`:117`**, inside a doc comment explaining why it is *not* asserted.
+  The precise true statement is **"no literal appears in any assertion"**, not "no literal appears in
+  the file": an earlier universal of the latter form was recorded in this session and is false.
+- **`Disabled` is EXCLUDED ON PURPOSE because it diverges on purpose** -- measured from the XAML,
+  `Opacity` is **`0.6`** at `Controls.Semantic.xaml:61` against the base's **`0.45`** at
+  `Controls.Base.xaml:85`. A parity fact over `Disabled` would be wrong, not merely redundant.
+- **`Normal` is EXCLUDED** because it sets `BackgroundColor` and `TextColor` rather than opacity alone,
+  which is the mechanism the block at `:18-23` explains.
+- A **positive-control fact** at `:86` proves the scan reaches both styles in both compared states, so a
+  parity assertion cannot pass by resolving against nothing on both sides.
+
+**Neither theme dictionary was modified**: `Controls.Base.xaml` is 157 lines and `Controls.Semantic.xaml`
+81, both byte-identical to the session base. The record's severity, category, effort and risk are
+unchanged.**]**
+
 ### UIKIT-029 -- BookmarkTabShape's notch clamp permits the degenerate case its comment describes
 
 ```yaml
@@ -1188,6 +1705,77 @@ kind of gap that matters if the shape is ever reused at a smaller size.
 **Suggested direction.** If touched for another reason, tighten to
 `Math.Min(NotchDepth, bounds.Height * 0.5)` or clamp against `bounds.Height - 1`. Not worth a
 dedicated change.
+
+**[AMENDED 6b-xviii, 2026-10-09 -- this entry is CONFIRMED with its citation EXACT, the first of its two
+suggested clamps was adopted and THE SECOND IS REJECTED AS WORSE THAN THE DEFECT IT FIXES, and the
+unreachability argument it rests on is NOT CONFIRMED because the figures it cites are not in the file it
+cites. Classification: CONFIRMED and remedied; the `locations:` span was EXACT at the session base; the
+"40 or 60 units tall" premise is MIS-LOCATED.** The register row is `MASTER-148` at
+`00-master-index.md:336`, closed **done**. This block follows the form of the `AMENDED 6b-xvii` block on
+`CORE-028` at `01-domain-application.md:2156-2216`, cited **for its form only** -- `AMENDED 6b-xiv` at
+`01-domain-application.md:1293` records that the block that one was in turn modelled on *"carries three
+defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the clamp, and the citation that was exact.* Previous wording, verbatim, from `What.`:
+*"The clamp is `Math.Min(NotchDepth, bounds.Height)`, which permits `notch == bounds.Height` exactly"*.
+**The clamp is now `Math.Min(NotchDepth, bounds.Height * 0.5)`**, re-derived by content at
+`src/DungeonMaster.App/Controls/BookmarkTabShape.cs:42`, with its explanatory comment at `:34-41` in a
+**54**-line file. **This entry's `locations:` citation of `:34-36` was EXACT at the session base** --
+comment `:34-35`, clamp `:36` -- and it is one of only **two** of this session's eight selected rows
+whose line numbers survived unchanged there, the other being `MASTER-151`'s `:35-66`. It is now stale by
+this session's own edit, the comment having grown by six lines, which is why the positions above are
+re-derived rather than carried.
+
+*Correction 2 -- THE SECOND SUGGESTED CLAMP IS REJECTED, and the reason is not cosmetic.* Previous
+wording, verbatim, from `Suggested direction.`: *"tighten to `Math.Min(NotchDepth, bounds.Height * 0.5)`
+or clamp against `bounds.Height - 1`."* **`bounds.Height - 1` was rejected and is absent from the file**
+(`grep -c 'Height - 1'` returns **0**). **POSITIVE CONTROL beside that zero:** the identical
+`grep -c` form returns **1** for `Height \* 0.5` and **2** for `bounds.Height` on the same file, so the
+predicate demonstrably sees text that is present. Two independent reasons for the rejection:
+
+1. **For `bounds.Height < 1` it yields a NEGATIVE notch.** At `Height = 0.5`, `Height - 1 = -0.5`, so
+   `bottom - notch` places the notch apex **0.5 units BELOW `bounds.Bottom`** -- outside the bounds
+   entirely, inverting the notch into a spike. **That is a worse artefact than the degeneracy it is
+   meant to fix:** the degenerate case renders as nothing, which reads as a missing control, while the
+   inverted case renders geometry outside the shape's own rectangle.
+2. **`1` is an absolute floor in device-independent units and does not scale.** `* 0.5` keeps a strictly
+   positive band of ribbon above the apex at every positive height and scales with the ribbon, which is
+   the invariant the comment at `:34-35` was always claiming.
+
+*Correction 3 -- the change is invisible to today's rendering, stated as arithmetic rather than as a
+claim about the running app.* Both consumers pass `NotchDepth="10"`, re-derived at
+`src/DungeonMaster.App/Controls/NotebookView/NotebookView.xaml:195` and `:222`, and
+`Math.Min(10, H * 0.5) == 10` for every `H >= 20` -- so for any ribbon at least 20 units tall the
+computed notch is bit-identical under the old clamp and the new one. `NotchDepth` is a plain CLR
+property at `:16` (`public double NotchDepth { get; set; } = 10;`) and `grep -c 'BindableProperty'`
+returns **0** on the file, so nothing can bind it to a smaller value at runtime. **POSITIVE CONTROL
+beside that second zero, and the first candidate for it FAILED, which is why two were tried:** the
+identical command returns **6** on `src/DungeonMaster.App/Controls/DmCard/DmCard.xaml.cs`, a control
+that works -- but it returns **0** on `src/DungeonMaster.App/Controls/NotebookAffordance.cs`, which was
+tried first and is therefore **no control at all**. A control file has to be one the predicate is known
+to fire on, verified rather than assumed. **The guard added is
+3 test facts comprising 7 cases**, at `src/DungeonMaster.App.UnitTests/Controls/BookmarkTabShapeNotchTests.cs`:
+a default-depth premise fact at `:59`, `ApexStaysStrictlyBelowTheTopEdge_AtHeightsUnderTwiceTheNotchDepth`
+at `:79` over heights 10, 15 and 19, and
+`NotchIsExactlyTheNotchDepth_AtHeightsOfAtLeastTwiceTheNotchDepth` at `:109` over 20, 40 and 60 -- the
+second of which is a positive control proving the production geometry did not move.
+
+*Correction 4 -- THE UNREACHABILITY ARGUMENT IS NOT CONFIRMED, AND ITS FIGURES ARE NOT WHERE THIS ENTRY
+PUTS THEM.* Previous wording, verbatim, from `Why it matters.`: *"the only consumer is
+`NotebookView.xaml`, whose ribbons are 40 or 60 units tall against the default `NotchDepth` of 10"*.
+**`NotebookView.xaml` declares no height on either ribbon.** The file says so itself, at `:181-186`:
+*"NO HeightRequest HERE, ON EITHER RIBBON. Both heights are owned by SelectedRibbonHeight /
+UnselectedRibbonHeight in the code-behind ... The XAML used to declare 60 and 40 as well -- values that
+never survived to the screen and could drift from the consts without any symptom until someone edited
+the wrong one."* The figures live in the **code-behind**: `private const double SelectedRibbonHeight =
+60;` at `NotebookView.xaml.cs:27` and `private const double UnselectedRibbonHeight = 40;` at `:30`,
+assigned at `:363` and `:367`. **So the 40 and 60 are right in value and wrong in location**, and this
+session's standing "ribbon heights NOT MEASURED" item is answered in a different file from the one it
+names. **What remains genuinely unconfirmed is the step from the consts to the pixels:** these are
+*requested* heights, and no command run in this session observes a rendered ribbon. The clamp binds only
+below `H = 20`, and both consts are far above it, so the argument is sound on the evidence available --
+but it rests on a static proxy for a layout property, and **it was NOT confirmed by observation.** The
+record's severity, category, effort and risk are unchanged.**]**
 
 ## Layer verdict
 
