@@ -3,8 +3,8 @@ using DungeonMaster.Domain.Entities.Floors;
 namespace DungeonMaster.App.Assets.ObjectAssets;
 
 /// <summary>
-///     Holds the asset paths for the currently active object pack.
-///     Updated by <see cref="ObjectPaletteView"/> when the user selects a pack.
+///		Holds the asset paths for the currently active object pack.
+///		Updated by <see cref="ObjectPaletteView"/> when the user selects a pack.
 /// </summary>
 public static class ObjectAssetCatalogue
 {
