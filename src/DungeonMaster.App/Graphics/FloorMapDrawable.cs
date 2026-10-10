@@ -11,20 +11,20 @@ using Microsoft.Maui.Storage;
 namespace DungeonMaster.App.Graphics;
 
 /// <summary>
-///     The colours and the one font size a single map frame is painted with, resolved together
-///     rather than read one at a time from the draw path.
+///		The colours and the one font size a single map frame is painted with, resolved together
+///		rather than read one at a time from the draw path.
 /// </summary>
 /// <remarks>
-///     LIFETIME: <see cref="FromTheme"/> reads <see cref="DmTheme"/>, so it must not be called
-///     before <c>Application.Current.Resources</c> exists. <see cref="FloorMapDrawable"/> holds it
-///     as a method group and invokes it at the top of <see cref="FloorMapDrawable.Draw"/> — inside
-///     the draw path — never at construction time. See the remarks on <see cref="DmTheme"/> and the
-///     guard test <c>DmThemeKeysResolveTests.NoEagerDmThemeRead</c>.
-///     <para>
-///     The four dimmed and tinted variants are materialised HERE, once per frame, because
-///     <c>Color.WithAlpha</c> allocates: computing them at their use sites allocated one Color per
-///     area and per phantom-segment label on every frame (MASTER-097 / UIKIT-009).
-///     </para>
+///		LIFETIME: <see cref="FromTheme"/> reads <see cref="DmTheme"/>, so it must not be called
+///		before <c>Application.Current.Resources</c> exists. <see cref="FloorMapDrawable"/> holds it
+///		as a method group and invokes it at the top of <see cref="FloorMapDrawable.Draw"/> — inside
+///		the draw path — never at construction time. See the remarks on <see cref="DmTheme"/> and the
+///		guard test <c>DmThemeKeysResolveTests.NoEagerDmThemeRead</c>.
+///		<para>
+///		The four dimmed and tinted variants are materialised HERE, once per frame, because
+///		<c>Color.WithAlpha</c> allocates: computing them at their use sites allocated one Color per
+///		area and per phantom-segment label on every frame (MASTER-097 / UIKIT-009).
+///		</para>
 /// </remarks>
 /// <param name="Grid">The tile grid stroke.</param>
 /// <param name="AreaOutline">The area outline stroke at full opacity.</param>
@@ -51,12 +51,12 @@ public readonly record struct FloorMapPalette(
 	float DistanceLabelFontSize)
 {
 	/// <summary>
-	///     The opacity every area that is not the highlighted one renders at.
+	///		The opacity every area that is not the highlighted one renders at.
 	/// </summary>
 	public const float DimmedAlpha = 0.3f;
 
 	/// <summary>
-	///     Reads the live theme. Call this only from the draw path; see the remarks on this type.
+	///		Reads the live theme. Call this only from the draw path; see the remarks on this type.
 	/// </summary>
 	public static FloorMapPalette FromTheme()
 	{
@@ -84,16 +84,16 @@ public readonly record struct FloorMapPalette(
 }
 
 /// <summary>
-///     Renders the tile grid, area outlines, in-progress draw vertices, and phantom segment
-///     for the currently selected dungeon floor.
+///		Renders the tile grid, area outlines, in-progress draw vertices, and phantom segment
+///		for the currently selected dungeon floor.
 /// </summary>
 /// <remarks>
-///     The drawable owns its own draw state. Callers do not reach into a collection on it; they ask
-///     it to change — <see cref="SetInProgressVertices"/>, <see cref="AddGhostArea"/> and the rest —
-///     and every one of those members raises <see cref="RedrawRequested"/>. That is the answer to
-///     UIKIT-008 / MASTER-059: a mutation made through a handed-out <c>List</c> or
-///     <c>Dictionary</c> is invisible to the drawable, so a caller that forgot to call
-///     <c>Invalidate()</c> afterwards left a stale frame with nothing to catch it.
+///		The drawable owns its own draw state. Callers do not reach into a collection on it; they ask
+///		it to change — <see cref="SetInProgressVertices"/>, <see cref="AddGhostArea"/> and the rest —
+///		and every one of those members raises <see cref="RedrawRequested"/>. That is the answer to
+///		UIKIT-008 / MASTER-059: a mutation made through a handed-out <c>List</c> or
+///		<c>Dictionary</c> is invisible to the drawable, so a caller that forgot to call
+///		<c>Invalidate()</c> afterwards left a stale frame with nothing to catch it.
 /// </remarks>
 public sealed class FloorMapDrawable : IDrawable, IDisposable
 {
@@ -127,7 +127,7 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	private string _distanceLabelText = string.Empty;
 
 	/// <summary>
-	///     Initializes a new instance that reads its colours from <see cref="DmTheme"/>.
+	///		Initializes a new instance that reads its colours from <see cref="DmTheme"/>.
 	/// </summary>
 	public FloorMapDrawable()
 		: this(FloorMapPalette.FromTheme)
@@ -135,14 +135,14 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Initializes a new instance that reads its colours from <paramref name="paletteSource"/> and
-	///     loads its object images from the app package.
+	///		Initializes a new instance that reads its colours from <paramref name="paletteSource"/> and
+	///		loads its object images from the app package.
 	/// </summary>
 	/// <param name="paletteSource">
-	///     Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
-	///     resolve a theme at a call site. Tests pass a fixed palette because <see cref="DmTheme"/>
-	///     needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
-	///     host, cannot create.
+	///		Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
+	///		resolve a theme at a call site. Tests pass a fixed palette because <see cref="DmTheme"/>
+	///		needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
+	///		host, cannot create.
 	/// </param>
 	/// <exception cref="ArgumentNullException"><paramref name="paletteSource"/> is null.</exception>
 	public FloorMapDrawable(Func<FloorMapPalette> paletteSource)
@@ -151,25 +151,25 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Initializes a new instance from all three of its seams. The palette source is invoked once
-	///     per <see cref="Draw"/> call; the other two are invoked once per kind by
-	///     <see cref="PreloadObjectImagesAsync"/>.
+	///		Initializes a new instance from all three of its seams. The palette source is invoked once
+	///		per <see cref="Draw"/> call; the other two are invoked once per kind by
+	///		<see cref="PreloadObjectImagesAsync"/>.
 	/// </summary>
 	/// <param name="paletteSource">
-	///     Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
-	///     resolve a theme at a call site. Tests pass a fixed palette because <see cref="DmTheme"/>
-	///     needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
-	///     host, cannot create.
+	///		Supplies the frame's colours. Declared here and immutable thereafter, so nothing has to
+	///		resolve a theme at a call site. Tests pass a fixed palette because <see cref="DmTheme"/>
+	///		needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
+	///		host, cannot create.
 	/// </param>
 	/// <param name="streamSource">
-	///     Takes an app-package-relative asset path and yields the stream to decode. Defaults to
-	///     <c>FileSystem.OpenAppPackageFileAsync</c>.
+	///		Takes an app-package-relative asset path and yields the stream to decode. Defaults to
+	///		<c>FileSystem.OpenAppPackageFileAsync</c>.
 	/// </param>
 	/// <param name="imageFactory">
-	///     Decodes an open stream into an image the drawable then owns. Defaults to
-	///     <c>PlatformImage.FromStream</c>. Together with <paramref name="streamSource"/> this is what
-	///     makes disposal observable without a MAUI host: a real <c>PlatformImage</c> cannot be asked
-	///     whether it was disposed, and it cannot be decoded at all outside a host.
+	///		Decodes an open stream into an image the drawable then owns. Defaults to
+	///		<c>PlatformImage.FromStream</c>. Together with <paramref name="streamSource"/> this is what
+	///		makes disposal observable without a MAUI host: a real <c>PlatformImage</c> cannot be asked
+	///		whether it was disposed, and it cannot be decoded at all outside a host.
 	/// </param>
 	/// <exception cref="ArgumentNullException">Any argument is null.</exception>
 	public FloorMapDrawable(
@@ -183,30 +183,32 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     True once <see cref="Dispose"/> has run. Never returns to false.
+	///		True once <see cref="Dispose"/> has run. Never returns to false.
 	/// </summary>
 	/// <remarks>
-	///     Public, rather than a private field, because the owner that disposes this drawable is not
-	///     the type that can observe it: the page teardown path (UIKIT-001 / MASTER-013) needs a
-	///     disposal signal it can assert on from outside.
+	///		Public, rather than a private field, because the owner that disposes this drawable is not
+	///		the type that can observe it: the page teardown path (UIKIT-001 / MASTER-013) needs a
+	///		disposal signal it can assert on from outside.
 	/// </remarks>
 	public bool IsDisposed { get; private set; }
 
 	/// <summary>
-	///     Releases every cached object image. This is the teardown half of UIKIT-001 / MASTER-013:
-	///     the handles this drawable decoded are owned by it, and nothing else releases them.
+	///		Releases every cached object image. This is the teardown half of UIKIT-001 / MASTER-013:
+	///		the handles this drawable decoded are owned by it, and nothing else releases them.
 	/// </summary>
 	/// <remarks>
-	///     Idempotent, and never throws. After it runs the drawable stays usable in the degraded sense
-	///     the framework needs: <see cref="Draw"/> paints the missing-object placeholder and
-	///     <see cref="PreloadObjectImagesAsync"/> loads nothing. Neither raises
-	///     <see cref="ObjectDisposedException"/> — the framework can drive a drawable after the page
-	///     that owned it is gone, and turning that into an exception would convert a leak into a crash.
+	///		Idempotent, and never throws. After it runs the drawable stays usable in the degraded sense
+	///		the framework needs: <see cref="Draw"/> paints the missing-object placeholder and
+	///		<see cref="PreloadObjectImagesAsync"/> loads nothing. Neither raises
+	///		<see cref="ObjectDisposedException"/> — the framework can drive a drawable after the page
+	///		that owned it is gone, and turning that into an exception would convert a leak into a crash.
 	/// </remarks>
 	public void Dispose()
 	{
 		if (IsDisposed)
+		{
 			return;
+		}
 
 		IsDisposed = true;
 
@@ -216,26 +218,26 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Raised when a change to this drawable's state means the painted frame is now out of
-	///     date. The host subscribes once and calls <c>Invalidate()</c> on the view it is drawn
-	///     into; nothing else has to remember to.
+	///		Raised when a change to this drawable's state means the painted frame is now out of
+	///		date. The host subscribes once and calls <c>Invalidate()</c> on the view it is drawn
+	///		into; nothing else has to remember to.
 	/// </summary>
 	/// <remarks>
-	///     The scalar rendering properties on this type deliberately do NOT raise it. Those are
-	///     plain assignments, visible in the diff at the site that makes them, and each is already
-	///     paired with an invalidation there. What UIKIT-008 named was the mutation made THROUGH a
-	///     handed-out collection, which the drawable could not see at all — that class of mutation
-	///     is what this event covers, and after MASTER-059 it is the only way to make one.
+	///		The scalar rendering properties on this type deliberately do NOT raise it. Those are
+	///		plain assignments, visible in the diff at the site that makes them, and each is already
+	///		paired with an invalidation there. What UIKIT-008 named was the mutation made THROUGH a
+	///		handed-out collection, which the drawable could not see at all — that class of mutation
+	///		is what this event covers, and after MASTER-059 it is the only way to make one.
 	/// </remarks>
 	public event EventHandler? RedrawRequested;
 
 	/// <summary>
-	///     Disposes every cached object image and clears the cache so assets reload from the active pack.
+	///		Disposes every cached object image and clears the cache so assets reload from the active pack.
 	/// </summary>
 	/// <remarks>
-	///     This is the pack-change release; <see cref="Dispose"/> is the teardown release. It does not
-	///     set <see cref="IsDisposed"/>: the cache may be refilled afterwards, which is the whole point
-	///     of calling it on a pack change. Calling it after <see cref="Dispose"/> is a no-op.
+	///		This is the pack-change release; <see cref="Dispose"/> is the teardown release. It does not
+	///		set <see cref="IsDisposed"/>: the cache may be refilled afterwards, which is the whole point
+	///		of calling it on a pack change. Calling it after <see cref="Dispose"/> is a no-op.
 	/// </remarks>
 	public void ClearObjectImageCache()
 	{
@@ -257,27 +259,31 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Loads and decodes every image named by <see cref="ObjectAssetCatalogue.Paths"/> into the cache.
-	///     Must be called on the UI thread. Safe to call repeatedly; entries already cached are not reloaded.
+	///		Loads and decodes every image named by <see cref="ObjectAssetCatalogue.Paths"/> into the cache.
+	///		Must be called on the UI thread. Safe to call repeatedly; entries already cached are not reloaded.
 	/// </summary>
 	/// <remarks>
-	///     Every write to _imageCache happens on the thread that called this method. The awaits deliberately
-	///     carry no ConfigureAwait(false), so each continuation resumes on the caller's UI context, and no
-	///     work is offloaded to a Task.Run, a thread or a Parallel call. _imageCache is a plain Dictionary
-	///     that Draw reads on the UI thread; it must never be written from another one.
+	///		Every write to _imageCache happens on the thread that called this method. The awaits deliberately
+	///		carry no ConfigureAwait(false), so each continuation resumes on the caller's UI context, and no
+	///		work is offloaded to a Task.Run, a thread or a Parallel call. _imageCache is a plain Dictionary
+	///		that Draw reads on the UI thread; it must never be written from another one.
 	/// </remarks>
 	public async Task PreloadObjectImagesAsync()
 	{
 		// Not an ObjectDisposedException: see the remarks on Dispose.
 		if (IsDisposed)
+		{
 			return;
+		}
 
 		foreach (var (kind, path) in ObjectAssetCatalogue.Paths)
 		{
 			// A cached non-null image is already decoded. A cached null is a previous failed attempt
 			// (e.g. the Win2D resource creator was not ready yet) and is retried on the next call.
 			if (_imageCache.TryGetValue(kind, out var cached) && cached is not null)
+			{
 				continue;
+			}
 
 			// MASTER-160: decoded into a LOCAL, and only assigned into the cache once the stream is
 			// closed. The old shape was `using var stream = ...; cache[kind] = factory(stream);`,
@@ -325,35 +331,35 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     The floor whose areas are rendered. When null only the grid is drawn.
+	///		The floor whose areas are rendered. When null only the grid is drawn.
 	/// </summary>
 	public FloorItem? Floor { get; set; }
 
 	/// <summary>
-	///     When set, this area renders at full opacity and all others render dimmed.
-	///     Purely a view filter — it never affects what the user is allowed to place or move.
+	///		When set, this area renders at full opacity and all others render dimmed.
+	///		Purely a view filter — it never affects what the user is allowed to place or move.
 	/// </summary>
 	public Guid? ActiveAreaId { get; set; }
 
 	/// <summary>
-	///     When set, this area renders highlighted and all others render dimmed. It outranks
-	///     <see cref="ActiveAreaId"/>.
+	///		When set, this area renders highlighted and all others render dimmed. It outranks
+	///		<see cref="ActiveAreaId"/>.
 	/// </summary>
 	public Guid? HoveredAreaId { get; set; }
 
 	/// <summary>
-	///     The area currently being dragged. Its live delta is added on top of any pending offset.
+	///		The area currently being dragged. Its live delta is added on top of any pending offset.
 	/// </summary>
 	public Guid? DragPreviewAreaId { get; set; }
 
 	/// <summary>
-	///     The live drag delta for <see cref="DragPreviewAreaId"/>. Null when no drag is in progress.
+	///		The live drag delta for <see cref="DragPreviewAreaId"/>. Null when no drag is in progress.
 	/// </summary>
 	public TilePoint? DragPreviewDelta { get; set; }
 
 	/// <summary>
-	///     Records a committed move offset for one area (not yet saved to the database), so the
-	///     area keeps rendering at its new position while the write completes.
+	///		Records a committed move offset for one area (not yet saved to the database), so the
+	///		area keeps rendering at its new position while the write completes.
 	/// </summary>
 	/// <param name="areaId">The area the offset applies to.</param>
 	/// <param name="offset">The offset in tiles.</param>
@@ -367,7 +373,7 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Drops every pending move offset, so areas render at the position the floor reports.
+	///		Drops every pending move offset, so areas render at the position the floor reports.
 	/// </summary>
 	public void ClearPendingMoveOffsets()
 	{
@@ -376,8 +382,8 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Adds a newly drawn outline that has not yet been persisted, so it is visible from the
-	///     moment it is closed rather than from the reload that follows the write.
+	///		Adds a newly drawn outline that has not yet been persisted, so it is visible from the
+	///		moment it is closed rather than from the reload that follows the write.
 	/// </summary>
 	/// <param name="outline">The closed outline polygon, in tile coordinates.</param>
 	/// <exception cref="ArgumentNullException"><paramref name="outline"/> is null.</exception>
@@ -390,8 +396,8 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Drops every unpersisted outline, normally because the reload that now carries them has
-	///     completed.
+	///		Drops every unpersisted outline, normally because the reload that now carries them has
+	///		completed.
 	/// </summary>
 	public void ClearGhostAreas()
 	{
@@ -400,7 +406,7 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Replaces the confirmed vertices of the in-progress draw with <paramref name="vertices"/>.
+	///		Replaces the confirmed vertices of the in-progress draw with <paramref name="vertices"/>.
 	/// </summary>
 	/// <param name="vertices">The vertices, in the order they were placed.</param>
 	/// <exception cref="ArgumentNullException"><paramref name="vertices"/> is null.</exception>
@@ -416,7 +422,7 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Drops the confirmed vertices of the in-progress draw.
+	///		Drops the confirmed vertices of the in-progress draw.
 	/// </summary>
 	public void ClearInProgressVertices()
 	{
@@ -425,13 +431,13 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Current pointer position for the phantom segment preview.
-	///     Only rendered when the in-progress draw has at least one confirmed vertex.
+	///		Current pointer position for the phantom segment preview.
+	///		Only rendered when the in-progress draw has at least one confirmed vertex.
 	/// </summary>
 	public PointF? PhantomEnd { get; set; }
 
 	/// <summary>
-	///     Size of one tile in pixels. Defaults to 40.
+	///		Size of one tile in pixels. Defaults to 40.
 	/// </summary>
 	public float TileSize { get; set; } = 40f;
 
@@ -448,9 +454,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	public Guid? DraggingObjectId { get; set; }
 
 	/// <summary>
-	///     Target position for the object being drag-moved, in canvas-space pixels (same coordinate space as
-	///     the bounding-box center stored on <see cref="PlacedObjectItem.Position"/>: absolute floor pixels).
-	///     Null when no drag is in progress.
+	///		Target position for the object being drag-moved, in canvas-space pixels (same coordinate space as
+	///		the bounding-box center stored on <see cref="PlacedObjectItem.Position"/>: absolute floor pixels).
+	///		Null when no drag is in progress.
 	/// </summary>
 	public PointF? DraggingObjectTargetCanvas { get; set; }
 
@@ -523,14 +529,14 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     Draws every area on the floor, then the unpersisted ghost outlines.
+	///		Draws every area on the floor, then the unpersisted ghost outlines.
 	/// </summary>
 	/// <remarks>
-	///     One loop, where MASTER-035 found two byte-identical ones differing only in the alpha
-	///     expression. The rule both encoded is the same rule: ONE area renders at full opacity and
-	///     the rest render dimmed, and which one it is is the hovered area when there is one and
-	///     the active area otherwise — that is exactly <c>HoveredAreaId ?? ActiveAreaId</c>. When
-	///     neither is set, nothing is singled out and every area renders at full opacity.
+	///		One loop, where MASTER-035 found two byte-identical ones differing only in the alpha
+	///		expression. The rule both encoded is the same rule: ONE area renders at full opacity and
+	///		the rest render dimmed, and which one it is is the hovered area when there is one and
+	///		the active area otherwise — that is exactly <c>HoveredAreaId ?? ActiveAreaId</c>. When
+	///		neither is set, nothing is singled out and every area renders at full opacity.
 	/// </remarks>
 	private void DrawAreas(ICanvas canvas, in FloorMapPalette palette)
 	{
@@ -553,8 +559,8 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     The total tile offset an area renders at: its committed pending move plus, if it is the
-	///     one being dragged, the live drag delta. (0, 0) when neither applies.
+	///		The total tile offset an area renders at: its committed pending move plus, if it is the
+	///		one being dragged, the live drag delta. (0, 0) when neither applies.
 	/// </summary>
 	private (int Col, int Row) GetEffectiveOffset(Guid areaId)
 	{
@@ -567,16 +573,16 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     The pixel position of a tile point shifted by a whole number of tiles.
+	///		The pixel position of a tile point shifted by a whole number of tiles.
 	/// </summary>
 	/// <remarks>
-	///     This is <see cref="TileCoordinateHelper.ToPixel"/> with the shift folded in, and
-	///     <c>FloorMapDrawableGeometryTests.OffsetPixelPositionMatchesTileCoordinateHelper</c> pins
-	///     the two together. It exists because the helper takes a <see cref="TilePoint"/>, which is
-	///     a record and therefore a heap allocation: building the shifted point cost one allocation
-	///     per segment and two more per curve, on every frame (MASTER-097 / UIKIT-009). The
-	///     addition stays INSIDE the multiplication, exactly where the old code put it, so the
-	///     float result is bit-for-bit what it was.
+	///		This is <see cref="TileCoordinateHelper.ToPixel"/> with the shift folded in, and
+	///		<c>FloorMapDrawableGeometryTests.OffsetPixelPositionMatchesTileCoordinateHelper</c> pins
+	///		the two together. It exists because the helper takes a <see cref="TilePoint"/>, which is
+	///		a record and therefore a heap allocation: building the shifted point cost one allocation
+	///		per segment and two more per curve, on every frame (MASTER-097 / UIKIT-009). The
+	///		addition stays INSIDE the multiplication, exactly where the old code put it, so the
+	///		float result is bit-for-bit what it was.
 	/// </remarks>
 	private (float X, float Y) ToPixel(TilePoint tile, int offsetCol, int offsetRow) =>
 		((tile.Col + offsetCol) * TileSize, (tile.Row + offsetRow) * TileSize);
@@ -589,7 +595,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 		int offsetRow = 0)
 	{
 		if (outline.Count == 0)
+		{
 			return;
+		}
 
 		canvas.StrokeColor = stroke;
 		canvas.StrokeSize = 1.5f;
@@ -630,14 +638,14 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 			(screen.Y - PanOffset.Y) / ZoomLevel);
 
 	/// <summary>
-	///     Reads an already-decoded object image out of the cache. This is a pure dictionary lookup:
-	///     it opens no file, decodes nothing and starts no task, because it runs on the Draw path and
-	///     Draw runs on the UI thread for every frame.
+	///		Reads an already-decoded object image out of the cache. This is a pure dictionary lookup:
+	///		it opens no file, decodes nothing and starts no task, because it runs on the Draw path and
+	///		Draw runs on the UI thread for every frame.
 	/// </summary>
 	/// <remarks>
-	///     The cache is filled by PreloadObjectImagesAsync. A miss, or a cached null left by a load that
-	///     failed, renders as the missing-object placeholder via DrawMissingObjectFallback — the same
-	///     fallback a failed decode produced before the load moved off this path.
+	///		The cache is filled by PreloadObjectImagesAsync. A miss, or a cached null left by a load that
+	///		failed, renders as the missing-object placeholder via DrawMissingObjectFallback — the same
+	///		fallback a failed decode produced before the load moved off this path.
 	/// </remarks>
 	private Microsoft.Maui.Graphics.IImage? LoadOrGetImage(ObjectKind kind) =>
 		_imageCache.TryGetValue(kind, out var cached) ? cached : null;
@@ -645,10 +653,14 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	private void DrawPlacedObjects(ICanvas canvas, in FloorMapPalette palette)
 	{
 		if (Floor is null)
+		{
 			return;
+		}
 
 		foreach (var obj in Floor.Objects)
+		{
 			DrawPlacedObject(canvas, obj, in palette);
+		}
 	}
 
 	private void DrawPlacedObject(ICanvas canvas, PlacedObjectItem obj, in FloorMapPalette palette)
@@ -756,7 +768,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	private void DrawGhostObject(ICanvas canvas, Color placeholder)
 	{
 		if (GhostObjectKind is not ObjectKind kind || GhostCanvasPosition is not PointF pos)
+		{
 			return;
+		}
 
 		var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(kind);
 		var boxW = wTiles * TileSize * GhostScale;
@@ -797,7 +811,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	private void DrawInProgressOverlay(ICanvas canvas, in FloorMapPalette palette)
 	{
 		if (_inProgressVertices.Count == 0)
+		{
 			return;
+		}
 
 		if (_inProgressVertices.Count >= 2)
 		{
@@ -867,7 +883,7 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	}
 
 	/// <summary>
-	///     The distance label for a whole number of feet, formatted only when the number changes.
+	///		The distance label for a whole number of feet, formatted only when the number changes.
 	/// </summary>
 	private string DistanceLabelFor(int feet)
 	{
