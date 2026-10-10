@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 namespace DungeonMaster.Tests.Infrastructure.Persistence.Repositories;
 
 /// <summary>
-///     Round-trip coverage for floor metadata through the real write repository
-///     and EF mapping. Confirms that a second update supplying the existing
-///     description and notes preserves those values across a reload.
+///		Round-trip coverage for floor metadata through the real write repository
+///		and EF mapping. Confirms that a second update supplying the existing
+///		description and notes preserves those values across a reload.
 /// </summary>
 public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 {
