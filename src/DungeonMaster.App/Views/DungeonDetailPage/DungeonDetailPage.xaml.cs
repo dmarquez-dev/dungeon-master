@@ -353,7 +353,9 @@ public partial class DungeonDetailPage : ContentPage
 	private bool IsPageInteractive()
 	{
 		if (Navigation?.ModalStack.Count > 0)
+		{
 			return false;
+		}
 
 		var current = Shell.Current?.CurrentPage;
 		return current is null || ReferenceEquals(current, this);
@@ -362,10 +364,14 @@ public partial class DungeonDetailPage : ContentPage
 	private async void OnKeyDown(object? sender, KeyPressedEventArgs e)
 	{
 		if (!IsPageInteractive())
+		{
 			return;
+		}
 
 		if (IsTextInputActive())
+		{
 			return;
+		}
 
 		// async void: an escaping exception is UNOBSERVED and is rethrown on the
 		// synchronisation context, which takes the process down. The try opens before the
@@ -398,9 +404,13 @@ public partial class DungeonDetailPage : ContentPage
 			{
 				case 'd':
 					if (_viewModel.Canvas.ActiveTool == MapTool.Draw && _editor.DrawState == DrawState.Drawing)
+					{
 						AbortInProgressDraw();   // pressing D while drawing cancels in-progress vertices
+					}
 					else
+					{
 						ToggleOrSetTool(MapTool.Draw);
+					}
 					break;
 				case 'm': ToggleOrSetTool(MapTool.Move); break;
 				case 'h': ToggleOrSetTool(MapTool.Pan); break;
@@ -422,7 +432,9 @@ public partial class DungeonDetailPage : ContentPage
 							// Rotate selected or hovered placed object.
 							_editor.SelectedObjectId ??= _editor.HoveredObjectId;
 							if (_editor.SelectedObjectId is not null)
+							{
 								await RotateObjectAsync(clockwise: true);
+							}
 						}
 					}
 					break;
@@ -466,7 +478,9 @@ public partial class DungeonDetailPage : ContentPage
 					break;
 				case '0':
 					if (e.Modifiers.HasFlag(KeyboardModifiers.Control))
+					{
 						ResetViewport();
+					}
 					break;
 			}
 		}
@@ -480,9 +494,13 @@ public partial class DungeonDetailPage : ContentPage
 	private void ToggleOrSetTool(MapTool tool)
 	{
 		if (_viewModel.Canvas.ActiveTool == tool)
+		{
 			SetActiveTool(MapTool.Pan);
+		}
 		else
+		{
 			SetActiveTool(tool);
+		}
 	}
 
 	// ─── Zoom controls ──────────────────────────────────────────────────────────
@@ -496,7 +514,9 @@ public partial class DungeonDetailPage : ContentPage
 	private void ApplyZoom(float raw)
 	{
 		if (Math.Abs(raw - 1.0f) < ZoomSnapThreshold)
+		{
 			raw = 1.0f;
+		}
 		_drawable.ZoomLevel = Math.Clamp(raw, 0.25f, 4.0f);
 		ZoomPercentLabel.Text = $"{(int)Math.Round(_drawable.ZoomLevel * 100)}%";
 		MapCanvas.Invalidate();
@@ -1309,7 +1329,10 @@ public partial class DungeonDetailPage : ContentPage
 	// through a null-forgiving read of Dungeon.
 	private async Task RefreshFloorAsync()
 	{
-		if (_editor.SelectedFloorId is null) return;
+		if (_editor.SelectedFloorId is null)
+		{
+			return;
+		}
 		await _viewModel.ReloadAsync();
 		_drawable.Floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
 	}
@@ -1362,15 +1385,25 @@ public partial class DungeonDetailPage : ContentPage
 				var relX = touchPoint.X - popupBounds.X;
 				var zoneW = popupBounds.Width / 5f;
 				if (relX < zoneW)
+				{
 					await RotateObjectAsync(clockwise: false);
+				}
 				else if (relX < zoneW * 2)
+				{
 					await RotateObjectAsync(clockwise: true);
+				}
 				else if (relX < zoneW * 3)
+				{
 					await ScaleObjectAsync(down: true);
+				}
 				else if (relX < zoneW * 4)
+				{
 					await ScaleObjectAsync(down: false);
+				}
 				else
+				{
 					await DeleteSelectedObjectAsync();
+				}
 				return;
 			}
 
@@ -2170,7 +2203,9 @@ public partial class DungeonDetailPage : ContentPage
 		SetMapToolbarShown(_editor.SelectedFloorId is not null);
 
 		if (_editor.SelectedFloorId is not null && _editor.DrawState == DrawState.Idle)
+		{
 			SetActiveTool(MapTool.Pan);
+		}
 
 		UpdateToolbarButtonState();
 		MapCanvas.Invalidate();
@@ -2206,7 +2241,9 @@ public partial class DungeonDetailPage : ContentPage
 		foreach (var child in FloorListContainer.Children)
 		{
 			if (child is not FloorSidebarItem floorItem || floorItem.Floor is not { } floor || floor.Id != _editor.SelectedFloorId)
+			{
 				continue;
+			}
 
 			foreach (var area in floor.Areas)
 			{
@@ -2461,13 +2498,19 @@ public partial class DungeonDetailPage : ContentPage
 		foreach (var child in FloorListContainer.Children)
 		{
 			if (ReferenceEquals(child, _dragPlaceholder))
+			{
 				continue;
+			}
 
 			if (ReferenceEquals(child, _draggingItem))
+			{
 				sourceIdx = n;
+			}
 
 			if (ReferenceEquals(child, target))
+			{
 				targetIdx = n;
+			}
 
 			n++;
 		}
