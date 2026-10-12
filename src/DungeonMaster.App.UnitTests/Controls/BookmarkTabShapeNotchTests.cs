@@ -64,10 +64,13 @@ public class BookmarkTabShapeNotchTests
 	}
 
 	/// <summary>
-	///		At a height of 10, 15 or 19 with the default notch depth of 10 the unclamped notch
-	///		would reach or overshoot the top edge; the apex must stay strictly below it. Height 10
-	///		is the case MASTER-148 is about: there the old clamp yielded a notch of exactly 10,
-	///		equal to the height, and the apex landed exactly on <c>bounds.Top</c>.
+	///		At every height below twice the default notch depth of 10 the half-height clamp binds,
+	///		and the apex must stay strictly below the top edge. Height 10 is the case MASTER-148 is
+	///		about, and the only one of these three the old clamp reached: there it yielded a notch
+	///		of exactly 10, equal to the height, and the apex landed exactly on <c>bounds.Top</c>.
+	///		At 15 and 19 the old clamp yielded 10 as well, leaving the apex at 5 and at 9, both
+	///		strictly below the top edge, so neither of those cases discriminates against it. Only
+	///		height 10 does.
 	/// </summary>
 	/// <param name="height">
 	///		The ribbon height, positive and strictly smaller than twice the default notch depth.
