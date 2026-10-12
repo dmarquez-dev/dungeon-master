@@ -9,7 +9,9 @@ namespace DungeonMaster.App.ViewModels;
 /// <summary>
 ///		Provides data and commands for the create-dungeon popup.
 /// </summary>
-public partial class CreateDungeonViewModel(AppDispatcher dispatcher) : ObservableObject
+public partial class CreateDungeonViewModel(
+	AppDispatcher dispatcher)
+		: ObservableObject
 {
 	/// <summary>
 	///		Gets or sets the dungeon name entered by the user. Required.

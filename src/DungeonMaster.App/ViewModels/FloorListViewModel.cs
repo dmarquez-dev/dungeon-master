@@ -21,7 +21,10 @@ namespace DungeonMaster.App.ViewModels;
 ///		The dungeon-detail composition root, which owns the loaded dungeon identifier, the error
 ///		channel, and the reload.
 /// </param>
-public partial class FloorListViewModel(AppDispatcher dispatcher, IDungeonEditingContext context) : ObservableObject
+public partial class FloorListViewModel(
+	AppDispatcher dispatcher,
+	IDungeonEditingContext context)
+		: ObservableObject
 {
 	/// <summary>
 	///		Gets the floors of the loaded dungeon, in the control kit's own presentation shape.
@@ -203,20 +206,3 @@ public partial class FloorListViewModel(AppDispatcher dispatcher, IDungeonEditin
 		await context.ReloadAsync();
 	}
 }
-
-/// <summary>
-///		Arguments for renaming or re-describing a floor. All three text fields are written as
-///		supplied, so a caller editing only one of them passes the current values of the other two.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor to update.</param>
-/// <param name="Name">The floor's new name.</param>
-/// <param name="Description">The floor's new description.</param>
-/// <param name="Notes">The floor's new notes.</param>
-public sealed record UpdateFloorArgs(Guid FloorId, string? Name, string? Description, string? Notes);
-
-/// <summary>
-///		Arguments for moving a floor to a new position in the stack.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor to move.</param>
-/// <param name="NewNumber">The floor's new display number.</param>
-public sealed record ReorderFloorArgs(Guid FloorId, int NewNumber);

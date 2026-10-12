@@ -16,7 +16,10 @@ namespace DungeonMaster.App.ViewModels;
 ///		The dungeon-detail composition root, which owns the loaded dungeon identifier, the error
 ///		channel, and the reload.
 /// </param>
-public partial class DungeonHeaderViewModel(AppDispatcher dispatcher, IDungeonEditingContext context) : ObservableObject
+public partial class DungeonHeaderViewModel(
+	AppDispatcher dispatcher,
+	IDungeonEditingContext context)
+		: ObservableObject
 {
 	/// <summary>
 	///		Gets or sets the editable name of the dungeon.

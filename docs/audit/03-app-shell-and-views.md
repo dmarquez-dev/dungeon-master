@@ -503,6 +503,86 @@ been settled.
 constants that both the registration and the navigation call read, and settle a single casing convention
 for them.
 
+**[AMENDED 6b-xix, 2026-10-12 -- this entry is CONFIRMED IN SUBSTANCE and was acted on in full. One
+citation is stale, its "written twice" count is three textual occurrences and two functional ones, and its
+casing suggestion carries NO AUTHORITY and was deliberately not followed. Classification: CONFIRMED;
+DRIFT for one citation; NARROWED for the "twice" clause.** Form follows the `AMENDED 6b-xvi` block on
+`UI-003` in this file at `:201`. Every line below was re-derived by content search on the post-change tree.
+
+**The substance stands and is now centralised.** The route name and the query-parameter key are each
+declared once, in a new `internal static class ShellRoutes` with one type per file and the file named for
+the type per section 2 at `dotnet-format.md:56` and `:57`, in a folder mirroring the namespace per `:58`.
+Post-change, located by content search: **`Services/Navigation/ShellRoutes.cs:13`**
+`internal const string DungeonDetail = "dungeondetail";` and **`:19`**
+`internal const string IdQueryKey = "id";`, with `namespace DungeonMaster.App.Services.Navigation;` at
+`:1` and the type at `:7`. Both live sites read them: the registration at **`AppShell.xaml.cs:17-18`**,
+where `:17` is `Routing.RegisterRoute(` and `:18` is `ShellRoutes.DungeonDetail,`; and the navigation call
+at **`ViewModels/DungeonListViewModel.cs:107`**, now
+`await navigation.GoToAsync($"{ShellRoutes.DungeonDetail}?{ShellRoutes.IdQueryKey}={id}");`. The key is
+read back at **`ViewModels/DungeonDetailViewModel.cs:115`**, inside `ApplyQueryAttributes`.
+
+*Correction 1 -- one `locations:` citation, stale by four lines.* Previous wording, verbatim:
+`src/DungeonMaster.App/ViewModels/DungeonListViewModel.cs:103`. **`:103` holds the `<param>` description
+for the dungeon identifier, not the construct**; the navigation call was and remains at **`:107`**, cited
+by its content rather than by an offset.
+
+*Correction 2 -- "written twice" is three textual occurrences and two functional ones.* Previous wording,
+verbatim: "`"dungeondetail"` is written twice". **There were THREE textual occurrences and only two
+functional ones.** The third is **illustrative doc prose at
+`Services/Navigation/INavigationService.cs:11`**, which describes the wire format a caller may pass:
+`///` then `a query, e.g. <c>"dungeondetail?id={guid}"</c>.` **Nothing compiles that into a route match**,
+it is outside the ownership set of the task that acted on this row, and it was deliberately left alone.
+**It is recorded as a live documentation-drift risk**: it restates the route's shape in prose that no
+compiler checks, which is the same mechanism behind every stale citation in this row set, and it is carried
+to `.dir-sdlc/backlog.md`. Post-change the repo-wide census returns **exactly two** occurrences of the
+quoted literal -- `grep -rn '"dungeondetail' src --include=*.cs --include=*.xaml` with `/obj/` and `/bin/`
+excluded gives `ShellRoutes.cs:13` and that prose line -- **with both former call sites gone.** The
+predicate's near-miss class is named rather than assumed: the case-insensitive superset is dominated by the
+`DungeonDetailPage` and `DungeonDetailViewModel` identifiers, and **the leading double quote is what
+excludes them** -- `MauiProgram.cs:148`'s `AddTransient<DungeonDetailViewModel>()` correctly does not
+match.
+
+**A POPULATION THE ENTRY'S `What.` NEVER MENTIONS, AND WHICH ITS REMEDY NONETHELESS COVERS -- so the
+remedy's query-key clause is independently validated rather than decorative.** The query-parameter key
+`"id"` was duplicated across the same producer/consumer pair as the route name. The **raw census** of the
+quoted `"id"` over the App project is **7 lines**, and the figure that matters is **n = 1** key literal.
+**The six near-misses are enumerated rather than asserted, and all six are `<param>` or `<paramref>` doc
+text**: `DungeonDetailViewModel.cs:162` and `:165`, `DungeonListViewModel.cs:77`, `:79`, `:100` and `:102`.
+All six are unchanged by this work and were deliberately left untouched; **the single key literal is now
+the constant at `ShellRoutes.cs:19`**, which is where the raw 7 still resolves post-change.
+
+**BOTH LITERAL VALUES ARE DELIBERATELY UNCHANGED, and the entry's casing suggestion was NOT followed.**
+Previous wording, verbatim: "settle a single casing convention for them." **That suggestion has no
+authority behind it.** This entry carries `authority: judgment` and `citation: n/a` -- **stated explicitly:
+no convention text supports or contradicts this row** -- and **MAUI Shell route matching is by exact
+string**, so changing a literal's value is a **behavioural change to navigation rather than a formatting
+change.** Both constants are `const string`, so the compiler inlines the same bytes at every use, and the
+three before-and-after values are byte-identical: `"dungeondetail"` at registration,
+`dungeondetail?id=<guid>` at the call site, and `"id"` read back.
+
+**THE DISPOSITION OF `AppShell.xaml:15`, per the architect's escalation, with the measured reason.**
+`Route="DungeonListPage"` is confirmed at **`:15`** -- `grep -rn 'Route="' src --include=*.xaml` returns
+**exactly one hit** solution-wide -- and the entry is right that it is a third route name in a third place
+with different casing. **It is OUT OF SCOPE by an explicit Gate 2 decision, and the reason is measured
+rather than asserted: XAML `Route="..."` CANNOT read a C# constant without `{x:Static}` plus a namespace
+mapping, and `{x:Static}` has ZERO occurrences in this repository's XAML.** By
+`grep -rn 'x:Static' src --include=*.xaml` with `/obj/` excluded, the search **exits 1 with no output**.
+**That zero is CONTROLLED: the same machinery finds `clr-namespace:` mappings at `App.xaml:4` and
+`Views/DungeonListPage/DungeonListPage.xaml:7`**, so the search reaches this repository's XAML and the
+absence is real. **And `DungeonListPage` is a different route from the one centralised here, so leaving it
+literal duplicates nothing** -- which is why a literal reading of the remedy's "both the registration and
+the navigation call" correctly leaves `:15` untouched, even though it means the entry's third-place clause
+survives the fix.
+
+**KNOWN DEVIATION in this session's own new prose, recorded rather than silently carried.** The three XML
+documentation blocks in `ShellRoutes.cs` each **break a sentence across two `///` lines**, which section 9
+at `dotnet-format.md:378` forbids -- "Never break a sentence across multiple `///` lines." The acceptance
+criterion governing those blocks enumerated `:372`, `:375` and `:376` and **omitted `:378`**, so review
+classified this advisory rather than blocking: the implementer satisfied what it was given, and **the
+enumeration gap was the orchestrator's own, asymmetrically against a sibling task whose equivalent
+criterion did cite `:378`.** The same violation exists in pre-existing prose elsewhere in this layer. **It
+is carried forward to `.dir-sdlc/backlog.md` rather than repaired here.**]
+
 ### UI-011 -- DungeonListPage injects IServiceProvider and resolves the popup from it
 
 ```yaml
@@ -977,6 +1057,151 @@ secondary palette is shown.
 by `ToolTileView.xaml.cs`, giving the nullable event payloads and the call-order requirement on `Populate`
 explicit prose.
 
+**[AMENDED 6b-xix, 2026-10-12 -- the defect is REAL and was acted on in full, but this entry MIS-STATES IT
+IN FOUR WAYS, one of its cited locations DOES NOT EXIST, and its layer-wide universal is FALSE.
+Classification: CONFIRMED in substance; ERROR for the nonexistent span, for the event count, for the
+"no doc comments at all" claim and for the layer-wide universal; DRIFT for two further spans. The
+folder-level universal, by contrast, HOLDS.** Form follows the `AMENDED 6b-xvi` block on `UI-003` at
+`:201`. Every line below was re-derived by content search on the post-change tree.
+
+*Correction 1 -- a cited span that does not exist.* Previous wording, verbatim:
+`src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs:372-382`. **Those lines did not
+exist: the file was 370 lines at this session's base.** The file is **412** lines post-change.
+
+*Correction 2 -- the other three spans: one exact, two stale.* `ControlsPaletteView.xaml.cs:6-21` was
+**CONFIRMED exact** -- type at `:6`, last public member `ResetScale` at `:21`.
+`SecondaryPaletteView.xaml.cs:7-20` was **STALE to `:5-18`**, because the type declaration sat at `:5`,
+outside the cited span. `ObjectPaletteView.xaml.cs:7-21` was **STALE**: the type declaration at `:7` was
+right, but the span ended on the summary **opener** of the one event that was already documented, where the
+public surface ran `:7` to `:358`.
+
+*Correction 3 -- the event count, and the arithmetic that explains the mistake.* Previous wording,
+verbatim: `ObjectPaletteView` has "five public events". **It has SIX.** Post-change they are at `:25, :30,
+:36, :41, :46` and `:53`. **The sixth is the one that WAS documented**, which is why the entry's figure is
+five: it appears to have counted the *undocumented* events and reported the figure as the event total.
+
+*Correction 4 -- "carry no `///` comments at all", which is FALSE for one of the three files.* Previous
+wording, verbatim: all three "carry no `///` comments at all." **FALSIFIED for `ObjectPaletteView`**, and
+CONFIRMED for the other two. That file carried **ten** doc-marker lines at base, in two blocks: `:21-25`
+documenting the `LoadFailed` event, and `:275-279` on a private member. **This created a real clobbering
+risk, and it is the specific failure the acceptance criteria for this work were written to prevent** -- a
+fresh block per member would have overwritten the existing `LoadFailed` summary. **That block was preserved
+byte for byte**, snapshotted before the first edit and compared after, with `md5sum` identical on both
+sides and `diff` empty, confirmed independently against the base blob.
+
+**The two zeros on the other two files were CONTROLLED.** The doc-marker count returned 0 on
+`ControlsPaletteView.xaml.cs` and `SecondaryPaletteView.xaml.cs` while the same predicate returned
+non-zero on the five other files in the same folder -- the figures 10 / 20 / 45 / 57 / 103 are ATTRIBUTED
+to this session's `measurement.md` section 6. **A zero with no control is indistinguishable from a blind
+predicate; these were not.** Post-change, measured here with `grep -c '///'` over every `.cs` file in
+`Views/DungeonDetailPage/`: `ControlsPaletteView` **21**, `DrawSessionResultGuard` **20**,
+`DungeonDetailPage` **103**, `ObjectPaletteView` **46**, `PaletteThumb` **57**, `SecondaryPaletteView`
+**24**, `ToolTileView` **45**.
+
+**THE POST-CHANGE DOCUMENTED-SITE COUNT, with its predicate and both its validation cases.** The public-site
+predicate `grep -cE '^[[:space:]]*public[[:space:]]'` returns **11 / 5 / 6 = 22** public sites across the
+three files; **22 minus the one already-documented `LoadFailed` event = 21 newly documented sites**, split
+10 + 5 + 6. **The site total is 21 and not 20, because this session's own `measurement.md` section 6
+OMITTED THE PUBLIC CONSTRUCTOR** from its enumeration of one property, six events and two methods; the
+constructor is public, was undocumented, and is now at `ObjectPaletteView.xaml.cs:59`. **The omission was
+internal inconsistency rather than a different convention**, since that same section's
+`SecondaryPaletteView` enumeration does include that type's constructor. The predicate is validated in both
+directions on the same run: **must-match**, `ObjectAssetCatalogue.cs:14` `Paths` is an undocumented public
+member and is counted; **near-miss**, `ObjectPaletteView.xaml.cs:19` `ActiveObject` is documented -- its
+immediately preceding line is `</summary>` -- and the three palette views return **0** undocumented sites
+each under an undocumented-site predicate, so documented members are correctly not counted.
+
+**THE LAYER-WIDE UNIVERSAL IS FALSIFIED, AND IT IS RECORDED HERE AS FALSE RATHER THAN REPEATED.** Previous
+wording, verbatim: "These are the only public API surfaces in the layer that do not comply."
+**FALSE.** At this session's base there were **33 undocumented public sites across 9 files** in
+`src/DungeonMaster.App`, of which **12 were OUTSIDE the three cited views -- so the universal was false by
+12 sites.** Those figures are ATTRIBUTED to `measurement.md` section 6; **this block did not reproduce them
+and says so**, because its own validated predicate is not the same instrument. What this block measures
+post-change, with the predicate and controls described above, is **11 undocumented public sites across 5
+files**: `Assets/ObjectAssets/ObjectKindInfo.cs` 4 (`:5`, `:24`, `:76`, `:118`),
+`Assets/ObjectAssets/ObjectPackRegistry.cs` **4** (`:6`, `:8`, `:11`, `:54`),
+`Assets/ObjectAssets/ObjectAssetCatalogue.cs` 1 (`:14`), `Controls/NotebookView/NotebookView.xaml.cs` 1
+(`:85`), and `Platforms/MacCatalyst/Program.cs` 1 (`:6`). **Either way the universal is false and the
+direction is the same: public sites in this layer remain undocumented outside the three views, and no row
+covers them.** They are carried to `.dir-sdlc/backlog.md`.
+
+**A CORRECTION TO THIS BLOCK'S OWN PREDICATE, and the defect is worth the words because the predicate's
+whole purpose is that no undocumented public member is lost from the record.** An earlier draft returned
+**10 across 5 files** with `ObjectPackRegistry.cs` at **3**, and it **dropped a real undocumented public
+method**: `ObjectPackRegistry.cs:11`,
+`public static async Task<PackLoadResult?> LoadPackAsync(string packId, CancellationToken ct = default)`.
+**The cause was the attribute test.** The predicate skips a `public` line whose nearest preceding non-blank
+line opens with `[`, so as not to count a member documented above its attributes -- but `:11`'s preceding
+non-blank line is `:9`, `[("2_Minute_Tabletop", "2 Minute Tabletop")];`, a **collection-expression
+continuation of the property initialiser at `:8`**, which opens with `[` and was therefore **misread as an
+attribute**. **The fix is to require a COMPLETE attribute**, `^[[:space:]]*\[.*\][[:space:]]*$`: a real
+attribute line closes its `]` and ends there, while the continuation ends `];` and is a statement. **This
+class of error is why the validation cases matter more than the figure.** The earlier draft's two stated
+cases -- a must-match on `ObjectAssetCatalogue.cs:14` and a near-miss on a documented member -- **both
+passed, and NEITHER exercised this shape**, so the controls could not have caught it: a control that does
+not match the defect class licenses nothing. **The corrected predicate is validated on four cases in the
+same run**, the first of which is now the defect shape itself: **must-match** `ObjectPackRegistry.cs:11`,
+the `public` line preceded by that collection-expression continuation, counted; **must-match**
+`ObjectPackRegistry.cs:8`, a `public` line preceded by a bare `{`, counted; **near-miss**
+`CreateDungeonViewModel.cs:21`, preceded by the genuine attribute
+`[NotifyCanExecuteChangedFor(nameof(CreateCommand))]` at `:20`, **not** counted; **near-miss** every
+`public` member in that same file, each preceded by a `///` line, **none** counted. **And the
+`ObjectPackRegistry.cs` figure of 4 is corroborated by a second route that could not share the first's
+mistake**, since it never looks at a preceding line at all: `grep -nE '^[[:space:]]*public[[:space:]]'`
+returns exactly `:6`, `:8`, `:11` and `:54`, and `grep -cE '^[[:space:]]*///'` returns **0** on that file,
+so all four `public` members are undocumented and the two routes agree at 4.
+
+**THE FOLDER-LEVEL UNIVERSAL, by contrast, HOLDS, and it held at n = 5 when the entry was written.**
+Previous wording, verbatim: "Every other public type in this scope -- including `ToolTileView` in the same
+folder -- is fully documented." There were five public types in `Views/DungeonDetailPage/`, and
+`DungeonDetailPage` and `ToolTileView` each returned zero undocumented sites from a predicate that returned
+six on `ControlsPaletteView`. **Post-change the whole folder returns zero undocumented public sites on all
+seven of its `.cs` files**, by this block's own validated predicate.
+
+**NOTHING HERE IS COMPILER-CHECKED, and that is measured rather than assumed.** A recursive search for
+`GenerateDocumentationFile` across `*.csproj`, `*.props` and `*.targets`, with `obj` and `bin` excluded,
+**exits 1 with no output**, while the **CONTROL** search for `TargetFramework` over the same file set
+returns **9** files. **So the search reaches the build files and the absence is real: a missing tag raises
+no warning, and a malformed `cref` raises none either, in both directions.** One figure corrected in
+passing: this session's evidence base records the control as "9 of the 10 build files that exist"; **the
+denominator is 11**, enumerated here by `find` with the same exclusions -- the two `Directory.*.props`
+files are the two without a `TargetFramework`.
+
+**THE THREE PROSE PREMISES THE NEW DOCUMENTATION RESTS ON, all three measured, because NO COMMAND CAN
+VERIFY THAT PROSE IS TRUE.** That is why this row's criteria named a party with authority over the prose's
+accuracy rather than leaving it to a predicate: 6b-xviii committed a known-false sentence in a new XML
+summary and had to repair it, and review classified that advisory rather than blocking -- correctly,
+because no acceptance criterion covered whether a doc comment was true.
+
+- **`ActiveObjectChanged` carries `null` to mean cleared, and it arrives by TWO paths, not one.** Of its
+  three invoke sites, `:394` passes the kind while **`:403` and `:409` both pass `null`** -- the first from
+  `ClearActiveObject` at `:400`, the second from the `OnClosePalette` handler -- each after setting
+  `ActiveObject = null`. **The prose names both.** The consumer reads it as cleared at
+  `DungeonDetailPage.xaml.cs:1239`, `ControlsPalette.IsVisible = kind is not null`. **The entry's own
+  wording implied a single path, and the criterion governing this work cited that consumer at `:1219`,
+  which had already drifted to `:1239` under a peer's edit during this very session** -- the citation went
+  stale inside the session that wrote it, which is this row set's finding reproduced in miniature.
+- **`Populate`'s call-order requirement is REAL BUT SOFT, and this is the trap the entry walks into.**
+  Previous wording, verbatim: "nothing states that ... `Populate` **must** be called before the secondary
+  palette is shown." **There is no throw and no guard.** Skipping the call renders a blank, untitled panel.
+  **So a doc comment saying `Populate` "must" be called, in a way implying an exception, would be FALSE**,
+  and the prose therefore states it as a **consequence rather than an obligation** -- the word "must"
+  appears nowhere in it. `Populate` is declared at `SecondaryPaletteView.xaml.cs:43` and its **sole caller
+  is `ObjectPaletteView.xaml.cs:380`**, two lines before the `SecondaryPaletteRequested` invoke at `:382`.
+- **`Populate` is RE-ENTRANT across repeat opens**, because it clears the grid's children and row
+  definitions on entry -- `ObjectGrid.Children.Clear()` at `SecondaryPaletteView.xaml.cs:46` and
+  `ObjectGrid.RowDefinitions.Clear()` at `:47`, before anything is added. **True, useful, and absent from
+  the entry.**
+
+**TWO DEVIATIONS ARE RECORDED RATHER THAN FIXED.** The preserved `LoadFailed` block **itself breaks one
+sentence across `///` lines, contrary to section 9 at `dotnet-format.md:378`**; byte-for-byte preservation
+was required, so this work could not repair it, and it is flagged here so a later conventions sweep does
+not attribute it to this change. And one new sentence is **true only through a non-local chain** --
+"lists every object of a single category" holds because `ObjectPackRegistry` builds its categories by
+grouping the asset-paths dictionary, so no kind in a category is missing from `Paths` -- which was verified
+and judged sound, **while noting the sentence becomes false the day that derivation changes, and nothing
+local to the file would reveal it.**]
+
 ### UI-025 -- MapTool's enum members use single-line summary comments
 
 ```yaml
@@ -1006,6 +1231,102 @@ at lines 3-5 already follows that form, so the file is internally inconsistent a
 
 **Suggested direction.** Expand the six member comments to the three-line form the file's own type comment
 already uses.
+
+**[AMENDED 6b-xix, 2026-10-12 -- the core defect is CONFIRMED 6 of 6 and was acted on in full; the file
+path is STALE BY PROJECT; one authority gloss is overstated; and the remedy's own wording would have
+UNDER-INDENTED all six edits. Classification: CONFIRMED in substance, DRIFT by project for the citation,
+ERROR for the "every worked example is three lines" gloss, and ERROR for the remedy's mechanical
+instruction.** Form follows the `AMENDED 6b-xvi` block on `UI-003` at `:201`.
+
+*Correction 1 -- the `locations:` path, stale BY PROJECT rather than by line.* Previous wording, verbatim:
+`src/DungeonMaster.App/ViewModels/MapTool.cs:8-24`. **That path does not exist.**
+`find src -name 'MapTool*'` with `obj` and `bin` pruned returns **exactly one path**,
+**`src/DungeonMaster.App.Core/Editor/MapTool.cs`**, and the type was moved there by `3d34a69`
+("refactor(app): extract editor logic to App.Core layer"); it was originally added at the cited path by
+`3b52377`. The cited span `8-24` was correct at the new path before this session's work. **The row stays
+filed under UI**, following this arc's own precedent in both directions: **this file's `UI-037` already
+cites an `App.Core` path in its `locations:` block, at `:2426`,
+`src/DungeonMaster.App.Core/Map/MapDrawingSession.cs:8-24`** -- a pre-existing citation rather than
+amendment prose, which is what makes it a precedent for a `locations:` path; and `MASTER-114`, filed under
+CORE, records one of its own citations as stale by project into `App.Core` without refiling the row.
+**An earlier draft of this sentence cited `:1393` for that precedent, and the anchor was wrong while the
+claim was true** -- `:1393` holds no path at all. Both the corrected anchor and the entry that owns it were
+re-derived by content search on the post-change tree, after this session's own insertions had landed, by
+searching the file for `DungeonMaster.App.Core/` and mapping each hit back to its nearest preceding
+`### UI-0` heading. **A second instance exists inside this session's own prose**, `UI-026`'s block at
+`:1425` citing `App.Core/Editor/DrawState.cs:6`, but it is deliberately not offered as the precedent: prose
+this session wrote cannot establish the arc's prior practice.
+
+*Correction 2 -- the "every worked example" gloss, which is overstated.* Previous wording, verbatim:
+"every worked example in that section places `<summary>`, the description, and `</summary>` on three
+separate lines." **Two of the three examples are three lines; the example at `dotnet-format.md:399-402` is
+FOUR**, because `:378` requires a line break at each sentence boundary and that example's description is
+two sentences -- `:400` and `:401` each carry one, read directly from the conventions file. **This does not
+weaken the row**, and the reason is worth stating so the correction is not mistaken for a retraction: **all
+six `MapTool` descriptions are single sentences**, so `:378` permits no break in any of them and the
+three-line form is the right target here.
+
+**The entry's authority citation is CONFIRMED VERBATIM.** `dotnet-format.md:375` reads "Tag descriptions go
+on a **new line**, indented with **two tabs** from the `///` marker", read directly from the conventions
+file. The entry's observation that the file was internally inconsistent is also confirmed: the type-level
+summary was already in the three-line form, with `:4` carrying `///` followed by exactly two tabs.
+
+*Correction 3 -- the remedy's mechanical instruction, which would have broken all six edits, and the
+correct BYTE FORM.* Previous wording, verbatim: expand them "to the three-line form the file's own type
+comment already uses." **Pattern-matching the type comment UNDER-INDENTS all six**, because the type
+comment sits at column 0 while the members sit one tab inside the enum body. **The correct byte form is one
+leading TAB, then the `///` marker, then TWO tabs, then the description** -- that is, section 9's two tabs
+are measured **from the marker**, and inside a type body the marker itself is already one tab in.
+**This session's own evidence base compressed that into the phrase "three tabs of leading whitespace",
+which reads as three tabs BEFORE the marker and is wrong; the arithmetic was right and the summary phrase
+was the wrong compression.** The authority is the byte form, not the phrase. The in-repo worked example of
+the correct member form is **`ViewModels/CreateDungeonViewModel.cs:16-18`** -- `:16` `/// <summary>`, `:17`
+`///` followed by exactly two tabs and then the description, `:18` `/// </summary>`, with one leading tab on
+each. Located by `grep -nE "^${TAB}///${TAB}${TAB}"` with `TAB` interpolated from `printf`, which returns
+`:17` as the first hit in that file; `:16` and `:18` were then read directly rather than derived by
+subtracting from a span.
+**A CORRECTION TO AN ANCHOR THIS SESSION ITSELF MOVED, recorded because it is the cleanest example in the
+row set of the very drift this entry is about.** An earlier draft of this paragraph cited `:14-16`, taken
+from this session's evidence base, where it was measured **before** the session's own work landed. It was
+correct then. **It is wrong now because a SIBLING TASK of this same session wrapped that type's constructor
+and added two lines above the comment**: `:12` now opens
+`public partial class CreateDungeonViewModel(`, `:13` carries `AppDispatcher dispatcher)`, `:14` carries
+`: ObservableObject` and `:15` is the opening `{` -- so the member comment moved from `:14-16` to `:16-18`,
+a **+2** shift. **This is intra-session drift, not inherited staleness:** the span was accurate at the
+session base and was invalidated by a change made in parallel beside it, which is the one case a
+"re-derive against the base" habit does not catch and only a re-derivation against the POST-change tree
+does.
+
+**The post-change state, measured with predicates validated in both directions.** The six members are now
+at **`:11, :16, :21, :26, :31, :36`**, re-derived by
+`grep -nE "^[[:space:]]*(Draw|Move|Pan|Place|Select|Erase),"`, and the file is **37 lines**. The
+single-line-form census, `grep -cE '///[[:space:]]*<summary>.*</summary>'`, returns **0** on this file --
+**and that zero is CONTROLLED: the same predicate returns 3 on `App.Core/Editor/DrawState.cs`**, an
+independent unedited file, so it is a measured negative rather than a blind predicate. The correct byte
+form returns **6** by `grep -cE "^${TAB}///${TAB}${TAB}"` with `TAB=$(printf '\t')`, while **three tabs
+after the marker returns 0**, so the one wrong reading that mattered is excluded by the bytes.
+
+**THE TAB-IN-GREP HAZARD WAS REPRODUCED LIVE ON THIS VERY FILE**, which is why every tab predicate above
+uses the interpolated form: with the backslash-escaped `\t`, `grep -E` matches a **literal `t`** and the
+same intended predicate returns **0** where the interpolated form returns 6. **Same file, same intended
+predicate, 6 versus 0, and the wrong one fails silently with a plausible number.**
+
+**The six descriptions were re-indented, not re-authored**, and the six em dashes survive: a high-byte
+census over the file -- `od -An -tx1 -v` piped to a count of bytes at or above `0x80` -- returns **18**,
+exactly six em dashes at three bytes each. **That instrument replaced a wrong one found in this session:**
+`grep -c '[^ -~]'`, used elsewhere as a non-ASCII census, counts **tabs**, because the tab is outside the
+printable-ASCII range, so in a tab-indented repository it catches every indented line and can return a
+spurious *presence*. It is the first instrument in this arc's register whose failure mode is a false
+positive confirming a false claim.
+
+**SCOPE THE ROW DOES NOT ADDRESS, recorded as a population rather than folded into this row.** The same
+validated single-line-form predicate over all of `src/`, with `obj` and `bin` excluded, returned **76**
+such comments across four projects at this session's base -- `DungeonMaster.App` 35, `App.Core` 9,
+`App.Tests` 7, `App.UiTests` 25. **Post-change it returns 70: 35 / 3 / 7 / 25**, and the two figures
+reconcile exactly, because `App.Core` went from 9 to 3 and **this row's six are the difference.** So
+`MapTool`'s six were a fraction of the population: **the row scopes itself to one file while the convention
+it cites is project-wide, and 70 comments across four projects remain.** That remainder is carried to
+`.dir-sdlc/backlog.md` rather than claimed as closed here.]
 
 ### UI-026 -- A public record and a private enum are nested inside larger types
 
@@ -1041,6 +1362,195 @@ state is easy to miss when reading `OpenSecondaryPalette`.
 own file or leave it private and grouped with the other field declarations, and gather each type's fields
 into one block at the top.
 
+**[AMENDED 6b-xix, 2026-10-12 -- this entry is FALSIFIED, and was RE-SCOPED by user escalation E1 to the
+whole measured nine-record population. Three of its four factual claims are false, ALL FOUR of its cited
+locations are wrong or stale, and one clause of its remedy is IMPOSSIBLE -- it would have broken the build
+of `DungeonMaster.App`. Classification: ERROR throughout the specifics; the underlying section 2 concern is real
+for exactly one of the four locations, and WIDENED from one record to nine by explicit decision.** Form
+follows the `AMENDED 6b-xvi` block on `UI-003` at `:201`. Both constructs the entry describes were moved
+out from under it by `c5b5ccf` ("refactor(app): split DungeonDetailViewModel into a composition root") and
+`3d34a69` ("refactor(app): extract editor logic to App.Core layer"). Every line below was re-derived by
+content search on the post-change tree.
+
+*Correction 1 -- ALL FOUR cited locations are wrong or stale.* Previous wording, verbatim:
+`DungeonDetailViewModel.cs:317` and `DungeonDetailPage.xaml.cs:40-41`. **`DungeonDetailViewModel.cs:317`
+is past the end of a file that is 202 lines.** `DungeonDetailPage.xaml.cs:40-41` holds floor-drag fields
+and a comment, **not an enum**. Previous wording, verbatim: `DungeonDetailViewModel.cs:75` as the
+`_dungeonId` declaration -- **`_dungeonId` is at `:34`**, and `:75` is inside the `ErrorMessage` property
+region.
+
+**The FOURTH citation, which an earlier draft of this block left standing uncorrected.** Previous wording,
+verbatim: `ObjectPaletteView.xaml.cs:333-335`, described in the `What.` paragraph as "three fields at line
+333, between two methods and 320 lines below its other fields". **The three fields are real and the
+reading is right; the line numbers are stale.** At this session's base `:333` is `};`, `:334` is `}` and
+`:335` is `else if (_secondaryPaletteHandler is not null)` -- the tail of a lambda and the start of a
+branch, not a field in sight. **The three fields are at `:313-315`**, located by content on their
+declarations: `:313` `private SecondaryPaletteView? _secondaryPalette;`, `:314`
+`private EventHandler<ObjectKind>? _secondaryPaletteHandler;`, `:315`
+`private string? _currentSecondaryCategory;`. **The entry's structural observation is CONFIRMED by those
+anchors:** the type's other field declarations are `:9` `private IReadOnlyList<string> _categoryOrder = [];`
+and `:10`, a wrapped declaration opening
+`private IReadOnlyDictionary<string, IReadOnlyList<ObjectKind>> _categories =`; the three sit far below both
+and between the methods at `:283` and `:317`, exactly as the entry describes. **All of those lines are
+cited, and the distance between them deliberately is not** -- the entry's own "320 lines below" is a
+subtraction, and this block anchors on the boundary lines instead. **The field census is enumerated rather
+than counted by predicate:** `grep -nE '^<TAB>(private|public|internal|protected)'` with the tab
+interpolated lists every modifier-opening member line of the type, and the five field declarations among
+them -- `:9`, `:10`, `:313`, `:314`, `:315` -- were identified by eye from that listing. **An earlier draft of this paragraph called `:9` the only other field**, which
+`:10` falsifies; the first predicate written for this census returned **0** on a file that plainly has five
+fields, and was discarded as blind rather than believed.
+Post-change the same three fields are at **`:346-348`** with the other at **`:12`**, re-derived by the same
+content search on the post-change tree. **ATTRIBUTION, stated because it bounds the claim:** the base
+positions were read from the orchestrator's base snapshot of this file rather than from history, which a
+task that cannot run git could not re-derive; the snapshot is corroborated as unchanged at this session's
+base by its file length of **370** lines, the figure `UI-024`'s block independently carries for the base,
+and by its `foreach` at `:33`, the anchor `UI-028`'s block independently carries for the base.
+
+*Correction 2 -- `PlaceObjectArgs` was never nested, and the page's reference to it was never qualified.*
+Previous wording, verbatim: "`PlaceObjectArgs` is a public record declared inside `DungeonDetailViewModel`
+and referenced from the page as `DungeonDetailViewModel.PlaceObjectArgs`." **It was top-level, in a
+DIFFERENT FILE** -- `ViewModels/MapCanvasViewModel.cs`, where `cat -A` showed the declaration line
+beginning `public` with **no leading tab** -- and **the page's reference was UNQUALIFIED.** So the breach
+was real but **not for the stated reason**: it was a public type co-located in a differently-named file,
+never a nested type. **The nested-type census returns 0 on BOTH cited files**, by
+`grep -cE "^<TAB>+(public|private|internal|protected).*(class|record|enum|struct|interface)[[:space:]]"`
+with the tab interpolated via `TAB=$(printf '\t')`, because `\t` inside `grep -E` matches a literal `t`.
+**Those two zeros are CONTROLLED: the same predicate returns non-zero where nested types genuinely exist**
+-- `Controls/NotebookView/NotebookView.xaml.cs:17` `private enum NotebookPane` and `:80`
+`private sealed class RibbonBrushes`.
+
+*Correction 3 -- `DrawState` is STRUCK AS ALREADY SATISFIED, and one clause of the remedy is impossible.*
+Previous wording, verbatim: "`DrawState` is an enum declared mid-class in the page", and the remedy's "move
+`DrawState` to its own file **or leave it private**". **`DrawState` is a top-level, fully documented
+`public enum` in its own correctly-named file in a different project**, `App.Core/Editor/DrawState.cs:6`.
+So it is **already compliant on all three of section 2's rules**, and the remedy clause has nothing to act
+on: **`private` is NOT EXPRESSIBLE for a top-level type**, and narrowing it to `internal` would break
+**`DungeonMaster.App`**.
+**A CRITERION-PREMISE CORRECTION, because a correction is new prose and gets no exemption:** the frozen
+criterion mandated that `internal` would break "two projects and 26 test assertions", and an earlier draft
+of this paragraph wrote that verbatim. **It breaks ONE project, and the 26 assertions still compile.**
+`DrawState` is declared in `DungeonMaster.App.Core`, and
+`src/DungeonMaster.App.Core/AssemblyInfo.cs:3` is `[assembly: InternalsVisibleTo("DungeonMaster.Tests")]`,
+read directly -- **so `DungeonMaster.Tests` already sees that project's `internal` types** and the **26**
+assertions in `src/DungeonMaster.Tests/AppCore/Editor/MapEditorStateTests.cs` would be unaffected. The
+consumers are two projects by file count -- `grep -rn 'DrawState'` over `src` with `/obj/` excluded returns
+19 lines in `DungeonMaster.App`, 12 in `DungeonMaster.App.Core` and 26 in `DungeonMaster.Tests` -- but
+**only `DungeonMaster.App` has no `InternalsVisibleTo` grant from `App.Core`**, and it is therefore the sole
+breakage. **The remedy clause is still impossible and the direction of the finding is unchanged**; what
+changes is the blast radius, and it changes DOWNWARD, which is the direction a reader is least likely to
+check. **The 26 is a real figure about a real file and is kept** -- it is simply not evidence of breakage.
+**This is the same
+shape as 6b-xviii's "Delete the line": an instruction that reads as a one-liner and breaks the build and
+the tests.** The correct action was to strike the clause, which is what was done.
+
+*Correction 4 -- `_dungeonId` was already in the state the remedy asks for.* Previous wording, verbatim:
+"`DungeonDetailViewModel` declares `_dungeonId` at line 75, after all its properties." Its fields sit at
+`:22, :26, :30, :32, :34`, its constructor at `:47`, and its first property at `:67`. **The field block was
+already gathered at the top, ahead of the constructor and every property -- the state the remedy asks for
+already existed.** The entry's "320 lines below its other fields" figure for the `ObjectPaletteView` block
+**was not reproduced, because it is a subtraction**; both positions were instead measured directly.
+**Section 2 covers exactly ONE of the four locations.** The `ObjectPaletteView` field ordering and
+`_dungeonId` are **not section 2 matters at all** -- the entry's own hedge, "a readability cost rather than
+a rule breach," is correct, and **the section 2 citation does not belong on them. The field-ordering point
+is recorded here as a READABILITY NOTE CARRYING NO SECTION 2 CITATION.**
+
+**ALL NINE co-located records were extracted, not just the one the entry names, and that was an explicit
+decision rather than scope creep.** `PlaceObjectArgs` sat with **six sibling records** in
+`MapCanvasViewModel.cs` and two more in `FloorListViewModel.cs`; **extracting only `PlaceObjectArgs` would
+have left six identical section 2 breaches in the same file and made it LESS consistent, not more.** Either
+all or none, and the user chose all. The nine new files, each re-derived by content search on its own
+declaration and each holding exactly one type named for its file:
+
+- `ViewModels/AddAreaWithOutlineArgs.cs:10` · `ViewModels/MoveAreaOutlineArgs.cs:11`
+- `ViewModels/PlaceObjectArgs.cs:14` · `ViewModels/RemoveAreaArgs.cs:8`
+- `ViewModels/RemovePlacedObjectArgs.cs:9` · `ViewModels/ReorderFloorArgs.cs:8`
+- `ViewModels/UpdateAreaArgs.cs:12` · `ViewModels/UpdateFloorArgs.cs:11`
+- `ViewModels/UpdatePlacedObjectArgs.cs:20`
+
+**Each of the nine names resolves to exactly one declaration in `src`**, by
+`grep -rlE "record[[:space:]]+<Name>([^A-Za-z0-9_]|\$)"` -- **and the trailing `|$` is load-bearing rather
+than decorative.** Without it the predicate returns 0 for a type whose declaration line **ends at the type
+name**, because `grep -E` has already stripped the CR and the trailing character class has nothing left to
+match. That is the **exact mirror** of this arc's catalogued `[^.]`-consumes-the-CR trap, and it was found
+in this session by the party whose own predicate was wrong.
+
+**The blast radius was measured, with its near-miss partition, and the extraction cost was zero call-site
+edits.** `PlaceObjectArgs` post-change resolves to **3 lines in `src`**, all compiled: the declaration at
+`PlaceObjectArgs.cs:14`, the consumer at `MapCanvasViewModel.cs:283`, and the page at
+`DungeonDetailPage.xaml.cs:1226`. **Zero call-site edits were needed and none were made** -- that outcome is
+verified, and the reason is not the one the frozen criterion gave.
+**A CRITERION-PREMISE CORRECTION, because a correction is new prose and gets no exemption:** the criterion
+mandated the reason "because declaration and usages share the namespace". **They do not all share it.** The
+declaration is `namespace DungeonMaster.App.ViewModels;` at `PlaceObjectArgs.cs:4`, and the consumer at
+`MapCanvasViewModel.cs:21` does share it -- but **the page does not**: `DungeonDetailPage.xaml.cs:20` is
+`namespace DungeonMaster.App.Views;` and reaches the type through `using DungeonMaster.App.ViewModels;` at
+`:12`. All four lines read directly. **The correct reason is that the extraction did not change the
+namespace:** the record moved to a new FILE inside the namespace it already had, so the page's existing
+`using` kept resolving it and the one same-namespace consumer needed nothing either. **The distinction
+matters for the next extraction**, because the stated reason would license moving a type across namespaces
+with no call-site edits, and that is false. **`PlaceObjectArgs` has
+ZERO test references** -- the same command over all four test projects exits 1 with no output -- **and that
+zero is CONTROLLED, because the identical command shape finds 26 `DrawState` hits in
+`MapEditorStateTests.cs`, so it does reach test code.**
+
+**ONE CORRECTION THIS BLOCK MAKES TO ITS OWN SESSION'S FROZEN CRITERIA, because a correction is new prose
+and gets no exemption.** A frozen acceptance criterion for the task that did this work asserted "ZERO test
+references" **of all nine records**. That was measured on `PlaceObjectArgs` alone and **is FALSE of
+`ReorderFloorArgs`, which has four references across TWO test projects** -- one compiled at
+`src/DungeonMaster.App.Tests/Views/FloorReorderCommandArgsTests.cs:112`, and three in prose at `:23`,
+`:109` and `src/DungeonMaster.Tests/AppCore/FloorReorderDropTests.cs:78`. **The outcome is unaffected**,
+because the namespace was preserved and that test file already carries the `using`, so zero edits were
+still needed. **But the clause generalised from a population of one to a population of nine**, which is
+this arc's own catalogued "a survey answers the population you scope it to" failure, reproduced inside a
+frozen artefact rather than in the register.]
+
+**[AMENDED 6b-xix, 2026-10-12 -- a SECOND observation on this entry, recorded as a second block because it
+is a second observation: THREE CORRECTIONS to the carried type-versus-filename backlog item this row
+overlaps, and the newly measured SECTION 3 SIDE-EFFECT of the extraction.** The item is in
+`.dir-sdlc/backlog.md`; these corrections are recorded here because this row is where they were measured.
+
+**Correction A -- the population figure.** The item states **14**. At this session's base the population was
+**11** by a modifier-agnostic predicate and **10** by the item's own gapped one. **The item's 14 was
+measured before `MASTER-123` closed the four UIKIT rows.** Post-change the population is **2**, measured
+here with a predicate that strips all modifiers and the `record struct` compound before taking the type
+name, and validated in both directions on the same run: **2 mismatches against 58 correctly matching
+declarations**, the matching class being the near-miss that must not count. **The two survivors are
+`Assets/ObjectAssets/ObjectPackRegistry.cs:54` `PackLoadResult` and `Graphics/FloorMapDrawable.cs:40`
+`FloorMapPalette`.** **11 minus the 9 extracted equals 2, so the figures reconcile exactly.**
+
+**Correction B -- "8 are in `ViewModels/`" is STALE to 9, and is now 0.** It was 9 at this session's base;
+**all nine were the extracted records**, so the same predicate now returns **zero** mismatches anywhere in
+`ViewModels/`.
+
+**Correction C -- THE GAP THE ITEM NAMES IS NOT THE GAP THAT BITES, and this is the correction that
+matters.** The item warns that its predicate drops `public static` and `public abstract` declarations.
+Measured here: **there are no `public abstract` types in the layer at all** --
+`grep -rnE '^public abstract'` over `src/DungeonMaster.App` exits 1 with no output -- and **every
+`public static` type in the layer matches its filename and contributes ZERO mismatches**:
+`ObjectAssetCatalogue`, `ObjectKindInfo`, `ObjectPackRegistry`, `MauiProgram` and `DmTheme`, found by
+`grep -rnE '^public static (class|partial class)'`. **That is FIVE such types, not the two this session's
+own evidence base recorded**, and the correction is made here with the command rather than carried.
+**The modifier that actually hides a mismatch is `readonly`**, at `Graphics/FloorMapDrawable.cs:40`, whose
+line reads `public readonly record struct FloorMapPalette(` -- and a predicate that takes the word after
+`record` captures `struct` as the type name, which is how this block's own first predicate went wrong
+before it was corrected and re-validated.
+
+**And the membership question the row raises: `PlaceObjectArgs` IS inside that population, and `DrawState`
+IS NOT and never could be, because its filename matches its type.**
+
+**THE EXTRACTION MOVED EIGHT SECTION 3 BREACHES INTO EIGHT NEW FILES, DELIBERATELY AND VISIBLY.** Eight of
+the nine extracted records declare their positional parameters **INLINE**, violating section 3 at
+`dotnet-format.md:68` -- **the very rule the other half of this session's work enforces on `UI-027`.** The
+8-and-1 split is taken from the report of the task that did the work, which counted it with two
+complementary predicates that partition the nine, and is independently reproduced here by content search
+on the nine declaration lines: **the eight inline are `RemoveAreaArgs.cs:8`, `ReorderFloorArgs.cs:8`,
+`RemovePlacedObjectArgs.cs:9`, `AddAreaWithOutlineArgs.cs:10`, `MoveAreaOutlineArgs.cs:11`,
+`UpdateFloorArgs.cs:11`, `UpdateAreaArgs.cs:12` and `PlaceObjectArgs.cs:14`; the one already wrapped is
+`UpdatePlacedObjectArgs.cs:20`.** They were **NOT reformatted**, and the reason is recorded rather than
+left implicit: they are a different population, were never measured as part of either row, and **silently
+widening that diff is exactly what leaves a later register task unable to describe what happened.** The
+eight are carried to `.dir-sdlc/backlog.md` as their own item.]
+
 ### UI-027 -- Primary constructor parameters and base lists are inline on all three view models
 
 ```yaml
@@ -1072,6 +1582,133 @@ the App layer's view models are the outliers.
 
 **Suggested direction.** Reformat the three declarations to the section 3 and section 6 shape: declaration,
 parameter at +1 tab, base list at +2 tabs.
+
+**[AMENDED 6b-xix, 2026-10-12 -- this entry is FALSIFIED AS WRITTEN and was RE-SCOPED to the measured
+four-site population. Following its remedy verbatim would have BROKEN THE BUILD. Classification: ERROR for
+the quoted declaration, which does not exist in the tree, ERROR for two of its three cited locations, DRIFT
+for the third, and CONFIRMED for its one universal -- which inverts this arc's usual pattern, since the
+universal is the clause that survived testing while every specific collapsed.** Form follows the
+`AMENDED 6b-xvi` block on `UI-003` at `:201`. Every line below was re-derived by content search on the
+post-change tree.
+
+*Correction 1 -- the quoted declaration, which is not in the tree.* Previous wording, verbatim: each view
+model is declared as `public partial class DungeonDetailViewModel(AppDispatcher dispatcher) :
+ObservableObject, IQueryAttributable` on a single line. **No such line exists.** The real declaration, read
+directly, is at **`:20`**: `public partial class DungeonDetailViewModel : ObservableObject,
+IQueryAttributable, IDungeonEditingContext` -- **it has no parameter list at all, and it carries a THIRD
+interface the entry omits.** That class's constructor is a **regular** one at **`:47`**, taking
+`AppDispatcher dispatcher, INavigationService navigation`. **So `DungeonDetailViewModel` has no primary
+constructor, and "the correct form for these three is a three-line declaration" has no referent for it.**
+
+*Correction 2 -- the three cited locations: one confirmed, one stale by one line, two falsified.* Previous
+wording, verbatim: `DungeonDetailViewModel.cs:27`, `DungeonListViewModel.cs:13`,
+`CreateDungeonViewModel.cs:11`. **`DungeonDetailViewModel.cs:27` is FALSIFIED** -- it is a string argument
+inside a static field initialiser, not a declaration. **`DungeonListViewModel.cs:13` is FALSIFIED twice
+over**: `:13` is a doc comment, and that type **was already correctly wrapped under section 3 before this
+session touched anything** -- `:15` opens the primary constructor, `:16` carries `AppDispatcher
+dispatcher,` and `:17` carries `INavigationService navigation) : ObservableObject`.
+**`CreateDungeonViewModel.cs:11` is STALE to `:12`**, `:11` being the closing `</summary>`; and `:12` is
+**the only one of the three cited locations where the defect actually existed.**
+
+*Correction 3 -- "all three view models" and "the App layer's view models are the outliers".* Previous
+wording, verbatim: both clauses. **1 of the 3 cited files exhibited the defect, and the real population was
+FOUR, three of them uncited.** The four, each located by content search on its declaration:
+`ViewModels/CreateDungeonViewModel.cs:12`, `ViewModels/DungeonHeaderViewModel.cs:19`,
+`ViewModels/FloorListViewModel.cs:24`, and `ViewModels/MapCanvasViewModel.cs:34`. **The three the entry
+never names are the WORSE ones: all three take two parameters, which is where section 3's "regardless of
+count" bites hardest.** The "outliers" clause is directionally true but misidentifies which -- two cited
+outliers were not outliers, and two real outliers went unnamed. There is also **n = 1 outside the App
+project**, `src/DungeonMaster.App.Tests/Graphics/FakeAssetSource.cs:86`, a private nested test helper with
+the same deviation, **deliberately left untouched** as outside this row's layer.
+
+**The population was derived twice by two independently built predicates that agree, with one positive and
+TWO negative controls -- and the two negatives are the two confusable shapes that actually occur in this
+tree, which is what makes them worth running.** The predicate is an inline-primary-constructor one, and the
+**modifier alternation is load-bearing** rather than decorative:
+
+```
+grep -cE '^[[:space:]]*(public|private|internal|protected).*class.*\(.*\)[[:space:]]*:'
+```
+
+Post-change it returns **0** on each of the four owned files -- `CreateDungeonViewModel.cs`,
+`DungeonHeaderViewModel.cs`, `FloorListViewModel.cs` and `MapCanvasViewModel.cs`. The **POSITIVE CONTROL**
+returns **1** at `FakeAssetSource.cs:86`, on
+`private sealed class LabelledStream(string path, bool throwOnDispose) : MemoryStream`, and **that line is
+the only instance in the whole of `src`** -- the same predicate run recursively over `src` with `obj` and
+`bin` excluded returns exactly that one line. **Negative control 1** is the already-wrapped
+primary-constructor shape, `DungeonListViewModel.cs:15-17`, where `:15` opens
+`public partial class DungeonListViewModel(` and `:17` carries
+`INavigationService navigation) : ObservableObject`; **negative control 2** is the inline-base-list shape
+with no primary constructor, `DungeonDetailViewModel.cs:20`. Both return **0** against the positive
+control's 1 in the same run, so **both confusable shapes are discriminated in both directions.**
+
+**A CORRECTION TO THE INSTRUMENT AS THIS BLOCK FIRST PRINTED IT, recorded because a wrong instrument in the
+permanent record is worse than no instrument.** An earlier draft printed the predicate with `public` alone
+in place of the alternation, while claiming the positive control returned 1 on a `private` declaration.
+**Those two statements cannot both be true, and the predicate is the half that was wrong:** the narrow form
+returns **0** at `FakeAssetSource.cs:86` and **exits 1 with no output across the whole of `src`**, because
+the only instance in the tree is `private`. **A predicate that returns 0 on every input discriminates
+nothing**, so as printed the positive control was dead and neither negative control could mean anything
+either -- every file returned 0 for the same reason. **The four zeros survive intact under the widened
+form**, which is why this is an instrument correction and not a retraction: re-run with the alternation, the
+four owned files are still 0, the positive control is 1, and both negatives are 0. **Widening rather than
+swapping the control was forced:** there is **no `public` instance of this shape anywhere in `src`**, by the
+widened predicate's single repo-wide hit being the `private` one, so no `public` positive control exists to
+be found. **This is the dead-positive-control failure class, and it is the second instance in this session**
+-- a control can pass review by being *stated* while never having been *run*, and the only defence is
+printing the predicate beside the figure so the two can be checked against each other, which is what the
+block now does.
+
+**The entry's one UNIVERSAL is CONFIRMED, 16 of 16.** All 16 handler declarations in
+`src/DungeonMaster.Application` are in the wrapped form -- `grep -rnE '^[[:space:]]*public.*class.*Handler\($'`
+returns 16 -- and that figure is **corroborated by the OPPOSITE PREDICATE returning 0** for the same
+project, so the 16 is not an artefact of a predicate that can only match one shape.
+
+**WHY FOLLOWING THE REMEDY VERBATIM WOULD HAVE BROKEN THE BUILD.** An implementer who trusted the entry's
+quoted line and reformatted *it* into three lines would write a primary constructor that does not exist,
+**drop the third interface `IDungeonEditingContext`**, and introduce a parameter `dispatcher` colliding
+with the private readonly `_dispatcher` field and with the real constructor at `:47`. **This is marked NOT
+MEASURED as a compiler error**: it is a static argument from the name collision, not an observed build
+failure, because no build was run for this row. **This is the second row in two sessions with that
+property**, by the same mechanism as 6b-xviii's `MASTER-125`: the entry quotes a declaration line that is
+not in the tree and then instructs an implementer to reformat it.
+
+**THREE DEVIATIONS IN THE TWO FALSIFIED FILES ARE REAL BUT BELONG TO DIFFERENT RULES, and are recorded
+here so they are neither lost nor silently folded into this row.** All three are outside this row's scope
+and outside the ownership set of the task that acted on it:
+
+- **`DungeonDetailViewModel.cs:20`** -- base and interface list inline with three interfaces. Violates
+  **section 6 at `dotnet-format.md:240`**, and is not a primary-constructor defect.
+- **`DungeonDetailViewModel.cs:47`** -- a two-parameter **regular** constructor inline. Violates
+  **section 3 at `dotnet-format.md:70`**, "one per line when there are 2 or more" -- a rule this entry
+  never cites.
+- **`DungeonListViewModel.cs:17`** -- a FOURTH deviation, and the one most likely to be lost, because this
+  file is otherwise recorded as already correct. Its base list shares the last parameter line rather than
+  sitting on its own at +2 tabs: `:17` reads `INavigationService navigation) : ObservableObject`. Violates
+  **section 6 at `dotnet-format.md:240`**. **So this file is correctly wrapped under section 3 and NOT
+  under section 6, and must not be recorded as clean.**
+
+**Both convention citations were CONFIRMED VERBATIM**, read directly from
+`C:/Users/dmarq/Development/Repos/dm-conventions/backend/dotnet-format.md`: section 3 at `:68` --
+"**Primary constructor parameters**: always one per line, regardless of count" -- with its one-parameter
+worked example at `:73-76`, and section 6 at `:240`, which puts base classes and interface implementations
+each on their own line at +1 tab from the previous element. **`CreateDungeonViewModel` has ONE parameter
+and is wrapped anyway**, which is what "regardless of count" means and the half of the rule most likely to
+be skipped. **This wave's pattern, stated because it is the finding rather than an aside: all three rows'
+citations into `dotnet-format.md` were accurate, while 7 of the 7 cited SOURCE line numbers were wrong or
+stale. The register was reliable about authority and unreliable about location.** The seven are `UI-026`'s
+four and `UI-027`'s three, enumerated so the denominator is not a bare figure: `UI-026`'s
+`DungeonDetailViewModel.cs:317` past the end of a 202-line file, `DungeonDetailPage.xaml.cs:40-41` holding
+floor-drag fields rather than an enum, `ObjectPaletteView.xaml.cs:333-335` stale to `:313-315`, and
+`DungeonDetailViewModel.cs:75` for a `_dungeonId` that is at `:34`; and `UI-027`'s
+`DungeonDetailViewModel.cs:27` falsified, `DungeonListViewModel.cs:13` falsified twice over, and
+`CreateDungeonViewModel.cs:11` stale by one to `:12`. **An earlier draft of this sentence said 5 of 7, and
+it undercounted on two separate grounds:** it omitted `ObjectPaletteView.xaml.cs:333-335`, which no block
+had yet corrected, and it counted only the outright-wrong ones while excluding the stale-by-one `:11`.
+**The predicate is "wrong or stale", because for an implementer following a citation the two are the same
+failure**, and under it the figure is 7 of 7. `UI-025`'s single citation is deliberately NOT in this
+denominator: it is stale by PROJECT rather than by line, and is classified separately in that entry's own
+block.]
 
 ### UI-028 -- Braces are omitted on single-statement control flow in roughly twenty places
 
@@ -1115,6 +1752,153 @@ guard -- silently detaches it from its condition.
 
 **Suggested direction.** Add braces at every listed site. This is mechanical and behaviour-preserving; it
 would be caught automatically if the repository gained an `.editorconfig`, which is T6's to decide.
+
+**[AMENDED 6b-xix, 2026-10-12 -- NEARLY EVERY CLAUSE OF THIS ENTRY WAS STALE, with only 1 of its 15 cited
+spans still containing a braceless site, and yet its substantive claim -- "roughly twenty places" -- is
+CONFIRMED and the population reconciles arithmetically. Classification: DRIFT for ten spans, ERROR for five
+that name eliminated sites, DRIFT for the `for` clause, ERROR for the discard clause, and NARROWED for the
+entry's universal, which holds for its own file and is FALSE as a project-wide generalisation. One of the
+ten drifted spans, `DungeonDetailPage.xaml.cs:401-406`, nevertheless still contains a live braceless site,
+so 14 of the 15 point at nothing rather than all 15.** Form follows the
+`AMENDED 6b-xvi` block on `UI-003` at `:201`. The row was acted on in full and the scope was deliberately
+extended beyond it; see the reconciliation below.
+
+*Correction 1 -- 14 of the 15 `locations:` spans point at nothing.* **A CRITERION-PREMISE CORRECTION,
+because a correction is new prose and gets no exemption:** the frozen criterion for this block mandated
+"0 of 15 cited spans valid", and an earlier draft of this paragraph wrote that as "ZERO of the measured
+braceless sites fell inside any of the 15 cited spans". **It is 1 of 15.** The exception is
+`DungeonDetailPage.xaml.cs:401-406`: at this session's base `:402` is a braceless `else` with its body at
+`:403`, both inside the cited span, and `:400` is a braceless `if` whose body at `:401` is inside it too.
+Read from the base blob and classified by this block's own detector, which places braceless sites at `:400`
+and `:402`. **So 14 of the 15 spans point at nothing and one is still live** -- which is a materially
+different statement for an implementer, because it means the spans cannot be discarded wholesale either.
+**The per-span classification is unchanged and still sums to 15:** ten had drifted by a **NON-UNIFORM**
+offset and five named sites that refactors had already eliminated. `:401-406` is one of the **ten drifted**
+-- the site it was written to name had moved -- and it is live only because the span is six lines wide and
+two base sites happen to fall inside it. **Whether the entry meant either of them is not measurable**, so
+it is recorded as a drifted span that still contains a site, not as a span that was right.
+The ten drifts, in the order the entry lists them, were **+47, +74, +74, +79, +79, +153, +150,
++135, +135 and +354**. **A single constant-offset remap would have been wrong at 8 of the 10** -- a second
+CRITERION-PREMISE CORRECTION, since the frozen criterion mandated the figure "9 of the 10" verbatim and it
+is one high: three of the ten values recur -- 74, 79 and 135 each appear **twice** -- so the best single
+constant is right at two of the ten rather than at one, leaving **8** wrong. The ten values are printed
+above precisely so this is checkable by eye rather than by subtraction. The direction of the finding is
+unchanged, and it remains the clearest demonstration in the row set of why every site must be relocated by
+content search rather than by arithmetic. Of the five eliminated, two were removed by `3c22647`
+("refactor(app): extract the shared WinUI handler-mapper body to one method"), and the span cited at
+`DungeonDetailViewModel.cs:302-303` points past the end of a file that is now **202** lines, with **zero
+braceless sites in it**.
+
+**The entry was EXACT WHEN WRITTEN, which is what makes this drift rather than carelessness.** It was
+authored at `b2a7383`, when `DungeonDetailPage.xaml.cs` was **2226** lines against 2594 at this session's
+base, and `DungeonDetailViewModel.cs` was **397** against 202. **The mapping reconciles arithmetically:**
+the surviving cited sites totalled **20**, plus **one site the register never cited at all**, gives **21**
+-- exactly the count measured in that file. So the 15 spans covered 25 of the 26 sites present when the
+entry was written, and **one was missed at authoring time**, falling between two spans. The pre-change
+figures in this paragraph are ATTRIBUTED to this session's `measurement.md` section 10 and to task `T5`'s
+report; they rest on reading historical blobs for content, which a task that cannot run git could not
+re-derive here.
+
+*Correction 2 -- the `for` clause has DRIFTED, and the discard clause is FALSIFIED.* Previous wording,
+verbatim: "Single-statement `if`, `else`, and `for` bodies are written without `{ }` at these sites."
+**There was no unbraced `for` anywhere in `DungeonMaster.App` at this session's base** -- the narrower
+clause, which stands as measured. **But the population was NOT all `if` or `else`, and an earlier draft of
+this block asserted that it was while quoting the counter-example nine paragraphs below.** The keyword
+census over the 27 base sites, by the matching-paren detector described later in this block reporting the
+keyword of each site it classifies, is **23 `if`, 3 `else` and 1 `foreach`** -- per file,
+`DungeonDetailPage.xaml.cs` 15 `if` / 3 `else if` / 3 `else`, `ObjectKindInfo.cs` 3 `if`,
+`ObjectPackRegistry.cs` 2 `if`, and `ObjectPaletteView.xaml.cs` 1 `foreach`, with `else if` counted as an
+`if` header. **The one `foreach` is `ObjectPaletteView.xaml.cs:33`**, which this block already quotes as a
+`foreach` in its hazard paragraph, so the false universal was contradicted by its own evidence. **And the
+`for` clause itself is DRIFT, not ERROR:** at the authoring commit `b2a7383` there **was** an unbraced
+`for`, at `:1756`, with its body at `:1757` inside `PolygonArea` at `:1752` -- read from the historical blob
+and classified by the same detector, which returns census 177 / braced 151 / braceless **26** on that file
+at that commit and names `:1756` as a braceless `for`. **So the entry's `for` clause was EXACT WHEN
+WRITTEN**, which is the classification this block's own "EXACT WHEN WRITTEN" paragraph above already
+implies, and an earlier draft marked it `ERROR` against that. And previous
+wording, verbatim: the densest site is "a five-branch `if/else if` chain in which every branch is an
+unbraced `_ =` discard". The five-branch chain is real and its every body was unbraced, **but the bodies
+are `await` expressions, not `_ =` discards** -- that was true at `b2a7383` and had ceased to be true by
+this session's base. Previous wording, verbatim: "`PolygonArea` at lines 1756-1757, whose `for` body is
+unbraced." **`PolygonArea` does not exist in `src/` at all**; its sole hit is a test method name. Its
+successors live in `App.Core/Map/AreaOutlineGeometry.cs` and **both relocated `for` loops are braced**,
+with the census as positive control -- the detector sees 8 control-flow sites in that file and finds all 8
+braced.
+
+*Correction 3 -- the entry's universal, NARROWED rather than struck.* Previous wording, verbatim: "The same
+file uses full braces everywhere else, so the deviation is local rather than a house style." **As a
+statement about `DungeonDetailPage.xaml.cs` this holds as a ratio and the ratio is worth having: that file
+was 155 braced of 176, an 88 per cent ratio, so the deviation genuinely was local to it. As a project-wide
+generalisation it is FALSE**: `Assets/ObjectAssets/ObjectKindInfo.cs` was **3 braceless of 3, 100 per cent
+unbraced**, and it is outside every one of this row's cited locations. **That caveat travels with the scope
+extension:** closing `ObjectKindInfo.cs` took it from wholly unbraced to wholly braced, which is the right
+outcome, but **the entry's "local rather than a house style" framing is a `DungeonDetailPage.xaml.cs`
+observation and does not transfer to it.**
+
+**"Roughly twenty places" is CONFIRMED at 21 in the entry's own file, and 27 across the layer.** Taken by
+file, which is the figure a task can act on, the population was `DungeonDetailPage.xaml.cs` **21** (cited by
+14 of the entry's 15 spans), `DungeonDetailViewModel.cs` **0** (cited by one span, and empty),
+`ObjectKindInfo.cs` **3**, `ObjectPackRegistry.cs` **2**, and `ObjectPaletteView.xaml.cs` **1** -- the last
+three **cited by no row at all**. So 21 of 27 were inside the row's intended file and 6 of 27 were in three
+files the row never names. **The work was scoped to all 27**, which closes this row and the carried
+37-site backlog item together; the 26 in the first four files were done under this row and
+`ObjectPaletteView.xaml.cs:33` under `UI-024`'s task.
+
+**THE POST-CHANGE ZEROS, AND THE INSTRUMENT THAT LICENSES THEM.** Measured on the post-change tree with a
+matching-paren detector built independently for this block, each zero paired with a non-zero census from
+the same file in the same run:
+
+- `Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` -- **census 176, braced 176, braceless 0**
+- `Assets/ObjectAssets/ObjectKindInfo.cs` -- **census 3, braced 3, braceless 0**
+- `Assets/ObjectAssets/ObjectPackRegistry.cs` -- **census 3, braced 3, braceless 0**
+- `Views/DungeonDetailPage/ObjectPaletteView.xaml.cs` -- **census 19, braced 19, braceless 0**
+- `ViewModels/DungeonDetailViewModel.cs` -- **census 2, braced 2, braceless 0**, the controlled zero on the
+  file the row cites and where the count was already zero before the work
+
+**And the layer-wide zero: running the same detector over every `.cs` file in `src/DungeonMaster.App`,
+with `obj` and `bin` excluded, returns no file with a braceless count above zero.** Every one of those
+zeros sits beside a non-zero census from the same run, so none is a blind predicate.
+
+**A GREP CANNOT DO THIS JOB, and that is measured rather than asserted.** Three implementations disagreed
+on `DungeonDetailPage.xaml.cs` at **21, 15 and 32**. The 21 and the 15 are independently reproduced;
+**the 32 is ATTRIBUTED AND UNREPRODUCED** -- the implementer that rebuilt that route reported it returns 0
+everywhere rather than 32 and declined to claim the inherited figure, and the reviewer that read its source
+established why, namely that it appends a hit only when no brace exists anywhere later in the file and so
+is **structurally inert on essentially any input**. Two independent parties failed to reproduce the 32 and
+one explained why its own attempt could not. **The conclusion is unaffected and in fact strengthened**: the
+other naive route was shown wrong in both directions, with four misses plus a genuine false positive on a
+multi-line header that is in fact braced. **Only the specific figure 32 is unreproduced.**
+
+**The detector was shown NON-BLIND IN BOTH DIRECTIONS before any count on real code was trusted.** It masks
+the contents of strings, chars and both comment forms while preserving byte positions, then locates the
+**matching** close paren by a depth walk across newlines, and only then inspects what follows. On a fixture
+holding a multi-line nested-paren braceless header beside a **byte-identical correctly braced twin**, plus
+a brace-inside-the-header site in both braced and braceless form, plus `if` decoys inside a string literal
+and a comment, it returns **census 6, braced 4, braceless 2** -- flagging exactly the two real defects,
+**classifying rather than ignoring the braced twins, and counting neither decoy.**
+
+**Two hazards in this file are why the instrument had to be built rather than grepped, and both are live
+instances rather than hypotheticals.** `ObjectPaletteView.xaml.cs:33` is itself an instance of the defect
+class -- `foreach (var (_, displayName) in ObjectPackRegistry.AvailablePacks)` -- a nested-paren header on
+which one naive route false-negatives and the other reports it with the wrong class while also
+false-positiving a second line. And one of the sites in `DungeonDetailPage.xaml.cs` carries
+`is not { } floor`, an **empty property pattern that puts a literal open brace INSIDE the header text** --
+a brace that opens no block. **Every hazard in this arc's inherited instrument list concerns nested PARENS;
+this is a brace in the header, a distinct route to the same confident wrong answer**, and a detector keying
+on "the first open brace after the header" reads that site as already braced and silently drops it.
+
+**"Mechanical and behaviour-preserving" is CONFIRMED, and the one body form that would change scope when
+wrapped is absent.** All bodies were extracted **by content**, never by offset, and classified: 8
+return-family, 2 `continue;`, 6 method call, 6 `await` of a call, and 4 assignment to an existing variable
+or indexer -- **and ZERO declarations**, which is the single case that genuinely changes scope when braced.
+No `else if (cond)` was rewritten as `else { if (cond) }`. No comment sits between any header and its body;
+the one trailing comment stays inside the new braces with its text and its internal spacing byte-identical.
+`out var` and pattern variables in conditions are safe, because they scope to the enclosing block
+regardless of bracing. **The entry's `citation` was also confirmed verbatim and carries NO carve-out:**
+`dotnet-format.md:154` is the entire normative text, read directly -- "All control flow statements (`if`,
+`else`, `for`, `foreach`, `while`, `do`, `using`, `lock`) must use full brace notation `{ }`, even when the
+body is a single statement. Never omit braces." -- and it contains no "unless", no "except", no "may" and
+no `.editorconfig` escape.]
 
 ### UI-029 -- Two files indent with spaces where the rest of the layer's C# uses tabs
 
@@ -1259,6 +2043,139 @@ files is coincidence rather than a shared value, since nothing links them.
 notebook margin with a layout relationship rather than a measured offset. The token set itself is T4's, so
 the token names would have to be agreed with that work.
 
+**[AMENDED 6b-xix, 2026-10-12 -- this entry is RE-ANCHOR ONLY WITH NO MARKUP CHANGE, per user escalation
+E2. Its DIAGNOSIS survives measurement intact in every particular; its COORDINATES and its DEPENDENCY do
+not. Classification: DRIFT for three of its seven citations, ERROR for the carve-out span's end and for the
+`T4` dependency.** Form follows the `AMENDED 6b-xvi` block on `UI-003` at `:201`. **Authority, stated
+first because it bounds everything below:** this entry carries `authority: judgment` and `citation: n/a`,
+so there is no convention text to verify, **every clause rests on the entry author's judgment rather than
+on a rule, and nothing in it is adjudicable as a convention violation.** All seven citations were
+re-derived by content search on the post-change tree.
+
+*Correction 1 -- three of the seven `locations:` citations, corrected in place, by NON-UNIFORM offsets.*
+Previous wording, verbatim: `DungeonDetailPage.xaml:34`, `:137` and `:638`. The true positions, each cited
+by the content that identifies it rather than by a count: `Padding="16,12,16,0"` is at **`:64`**, on the
+`<Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="0" ...>` line; the `300` sidebar column is at
+**`:186`**, `ColumnDefinitions="*,300"`; and `Margin="32,158,0,0"` is at **`:746`**, the last attribute of
+the `NotebookView`. **What the stale lines actually hold now, read directly: `:34` is comment prose about
+the back-button behaviour, `:137` is a comment about a decorative crossed-sword icon, and `:638` is
+blank.** An implementer following the citations literally would edit comment prose at two of the three.
+**The offsets are +30, +49 and +108 -- they DIFFER, so this is not a constant-offset drift and a single
+shift would be wrong at all three.** The three were exact when written: at `50e3572` ("chore(theme): close
+out the design-system cleanup", 2026-08-12) all three read exactly 34 / 137 / 638, which is why this is
+drift from insertions landing between the anchors rather than carelessness. **This session did not locate
+the inserting commits**, so the offsets are measured and the cause is inferred from their shape rather than
+read from history.
+
+**The four palette citations are EXACT and need no correction**, which is worth recording because it makes
+the three stale ones an isolated cluster rather than a pattern across the entry:
+`ObjectPaletteView.xaml:12` is `WidthRequest="220"`, `:52` carries `HeightRequest="280"`,
+`ControlsPaletteView.xaml:34` is `WidthRequest="220"`, and `SecondaryPaletteView.xaml:10` is
+`WidthRequest="272"`.
+
+*Correction 2 -- the zoom carve-out span's END, which is 53 lines short and whose shortfall is the one
+clause that could have caused damage.* Previous wording, verbatim: "the zoom-stepper geometry at lines
+333-378 is derived". `:333` opens the stepper stack correctly, on `<VerticalStackLayout`. The real end of
+that stack is **`:431`**, cited by content as the `</VerticalStackLayout>` that closes it.
+**A CRITERION-PREMISE CORRECTION, because a correction is new prose and gets no exemption:** the frozen
+criterion for this block, and an earlier draft of this paragraph, said the cited end "lands mid-attribute".
+**It does not.** `:378` reads `ToolTipProperties.Text="Zoom in">` -- a **complete** attribute, and its `>`
+**closes the opening tag** of the `<Grid` begun at `:375`. What the span truncates is the **element**: that
+`Grid` runs on to its `</Grid>` at `:430`, inside the `<VerticalStackLayout` that does not close until
+`:431`. All five boundaries were read directly. **The distinction is worth the words, because a reader told
+the span ends mid-attribute would look for a broken attribute and find a well-formed one**, and would then
+have no reason to distrust the span at all. **The shortfall matters because of what it leaves outside the
+carve-out:** `StrokeThickness="1.25"` at **`:393`**, `StrokeThickness="1.45"` at **`:426`**, and the second
+`42`/`36` stepper cell at **`:408`** would all look like unprotected bare literals to an implementer
+treating `:379-431` as fair game -- **when the 33-line derivation comment at `:340-372` says in terms that
+"correcting" those weights is wrong.** The comment is where the entry says it is, and `:340` opens it and
+`:372` closes it, read directly. **The FIRST `42`/`36` cell, at `:375`, is deliberately NOT in that list**,
+and an earlier draft wrongly included it: `:375` falls **inside** the cited span `333-378`, so the entry's
+own carve-out already protects it. Only the literals from `:379` on are exposed by the short end, which is
+what makes `:393`, `:408` and `:426` the exposed set and `:375` a near-miss.
+
+**The five-part token universal is CONFIRMED on four of the five categories and confirmed with a named
+qualification on the fifth.** Colours, spacings, radii and font sizes all come from `StaticResource` tokens
+across all four files -- `DmSpace` 8 / 2 / 4 / 3, `DmRadius` 9 / 1 / 5 / 1, `DmFontSize` 8 / 2 / 3 / 1, and
+**zero bare numeric `FontSize` anywhere in the four**. Stroke weights are the qualified one: `DmStroke` 4 /
+1 / 5 / 1, and the only bare non-zero values are the `"1.25"` at `:393` and `"1.45"` at `:426`, **both
+inside the entry's own carve-out**. Every other bare value is `StrokeThickness="0"`, which is "no stroke"
+rather than a weight choice.
+
+**A universal can only be falsified by finding a bare literal, so the counter-census is what makes it
+mean anything.** The raw census of bare numeric values on the five named categories -- colour, spacing,
+radius, stroke weight, font size -- across the four files returns **17 lines; the figure that matters is
+2.** The predicate is printed so the figure can be reproduced:
+`grep -nE '(StrokeThickness|CharacterSpacing|[A-Za-z]*Spacing|CornerRadius|FontSize)="[0-9]|="#[0-9A-Fa-f]{3,8}"'`
+over the four files. The fifteen near-misses are enumerated rather than asserted: **six**
+`StrokeThickness="0"` (`DungeonDetailPage.xaml:525`, `:542`, `:548` and `ControlsPaletteView.xaml:154`,
+`:184`, `:190`), **six** `CharacterSpacing` -- letter-spacing, not one of the five named categories --
+(`DungeonDetailPage.xaml:100`, `:647`, `ObjectPaletteView.xaml:26`, `ControlsPaletteView.xaml:46`, `:127`,
+`SecondaryPaletteView.xaml:24`), **two** zero-valued `Spacing` (`DungeonDetailPage.xaml:688`,
+`ControlsPaletteView.xaml:39`), and `:64` itself matching on its own `RowSpacing="0"`.
+**A CRITERION-PREMISE CORRECTION, recorded because a correction is new prose and gets no exemption:** the
+frozen criterion for this block mandated "the counter-census of 16 lines ... with its fourteen enumerated
+near-misses", and **both figures are one low**. The single cause is the `CharacterSpacing` family, which is
+**6 and not 5** -- `grep -c 'CharacterSpacing'` returns 2 / 1 / 2 / 1 across the four files, and all six
+lines are enumerated above so the count can be checked by eye rather than re-derived. Every other component
+of the census reproduced exactly. **There are zero hex colours anywhere in the four files**, by the hex half
+of the same predicate returning 0 on each -- **and that zero is CONTROLLED, because the identical hex
+predicate returns 87 on `Resources/Theme/Tokens.xaml`**, so it is a measured absence and not a blind
+pattern. The two real exceptions are the carved-out zoom thicknesses, which the entry already excludes.
+
+**The two `220`s are coincidence, and nothing links them.** `grep -rn '220'` over
+`Views/DungeonDetailPage` and `Resources/Theme` returns **exactly two lines**,
+`ControlsPaletteView.xaml:34` and `ObjectPaletteView.xaml:12` -- no shared token, no cross-reference, no
+`Style`. **The notebook margin's comment calls its own value an approximation**, confirmed at `:733-737`:
+the word is "approximates", and the sentence reads "The margin below approximates the map's on-screen
+resting position now that it is no longer computed relative to MapOverlay." So the entry's belief that the
+value will drift the next time the banner above it changes height rests on the file's own admission.]
+
+**[AMENDED 6b-xix, 2026-10-12 -- a SECOND observation on this entry, recorded as a second block because it
+is a second observation: the TOKEN-FAMILY finding, which decides whether this row is workable at all, and
+the fact that its `T4` dependency is REAL BUT MISDESCRIBED.** The entry's `Suggested direction.` says "The
+token set itself is T4's, so the token names would have to be agreed with that work." **Both halves need
+correcting, and in opposite directions: the token SET exists and is substantial, while the token NAMES this
+row needs do not exist at all.**
+
+**The `Dm*` token set is substantial: 127 unique `x:Key="Dm*"` definitions** across
+`src/DungeonMaster.App/Resources/Theme/`, counted at their DEFINITION sites rather than by markup
+references, by `grep -rhoE 'x:Key="Dm[A-Za-z0-9]*"'` over that directory piped through `sort -u`. Its
+layout-related families, by the same pipeline restricted per prefix: **`DmRadius` 3, `DmStroke` 3,
+`DmSpace` 6, `DmPadding` 6, `DmFontSize` 12, `DmIconSize` 6, and `DmTouchTargetMinimum` 1.** The
+`DmIconSize` family spans **12 to 22** -- `Tiny` 12, `Small` 14, `Medium` 16, `Large` 18, `XL` 20, `Tool`
+22 -- and `DmTouchTargetMinimum` is **44**, at `Tokens.xaml:715`.
+
+**THE DECISIVE MEASUREMENT IS ABOUT VALUE COVERAGE, NOT NAME SHAPES, AND THIS BLOCK CORRECTS ITS OWN
+SESSION'S INSTRUMENT ON THAT POINT.** This session's evidence base recorded that filtering the 127 keys for
+width, column, panel, sidebar or palette name shapes "returns nothing". **Re-run here, that filter returns
+THREE keys, so the claim as worded is FALSE** -- `DmSurfaceToolPanel` at `Tokens.xaml:297` and
+`DmTextToolPanel` at `:301`, both `<Color>` elements, and `DmPaddingPanel` at `:688`, a `<Thickness>` of
+`14,10`. **None of the three is a width or any other panel dimension**, so the conclusion survives, but it
+needed a predicate that measures the gap directly. That predicate is value coverage: **no `Dm*` key carries
+any of the values 220, 272, 280 or 300** -- `grep -rnE 'x:Key="Dm[A-Za-z0-9]*">(220|272|280|300)<'` exits 1
+with no output -- and **no `Dm*` key carries any bare numeric value of 100 or more**, by the same pipeline
+filtered on magnitude. **Both zeros are CONTROLLED by the same predicate finding a value that does exist**,
+`DmTouchTargetMinimum` at 44, so neither is a blind predicate.
+
+**So the conclusion is neither "dimension tokens are absent" nor "the names exist".** Dimension tokens
+exist as **a glyph-scale family of 12 to 22 plus one accessibility floor of 44**, and **nothing covers the
+values this row needs -- 220, 220, 272, 280, 300, or the composite `32,158`.** Those belong to a different
+semantic family, panel and container geometry, **which does not exist in this token set.**
+
+**Promoting a width therefore means OPENING A NEW TOKEN FAMILY**: choosing its naming scheme, and deciding
+whether `220` and `272` are one token with an override or two separate tokens. **That is materially more
+than editing seven attributes, and it is a plausible explanation for this row's `risk=medium` against an
+`S` effort** -- a mismatch the entry itself never explains. The naming decision has API-like consequences,
+because a token name added to a shared theme dictionary is read by every later call site.
+
+**And the `T4` dependency has no live counterparty.** `T4` belongs to an earlier, already-closed session of
+this arc, so **there is no concurrent task to agree names with**, and the `Suggested direction.`'s
+instruction to agree them with that work cannot be followed as written. **That is why this row was
+re-anchored and not acted on, and why the token-family design is carried to `.dir-sdlc/backlog.md` rather
+than decided inside a session scoped to formatting.** The `What.` and `Why it matters.` paragraphs are left
+exactly as written.]
+
 ### UI-033 -- Back navigation from the detail page depends entirely on a platform-supplied affordance
 
 ```yaml
@@ -1352,6 +2269,122 @@ somewhere and go looking.
 **Suggested direction.** No action needed. If the feature stays unbuilt for another cycle, consider
 dropping the two `CommandParameter` bindings, which are the one part of the markup that implies a binding
 target that does not exist.
+
+**[AMENDED 6b-xix, 2026-10-12 -- this entry is DELIBERATELY UNCHANGED WITH NO CODE CHANGE, per user
+escalation E3. Its LIST-page claims are confirmed in full, its DETAIL-page span is the WRONG REGION rather
+than drift, and three of its detail-page clauses are overstated. Classification: ERROR for the detail span
+and the three clauses; the entry's JUDGMENT is upheld and independently corroborated by a frozen contract
+from an earlier session of this programme.** This block follows the form of the `AMENDED 6b-xvi` block on
+`UI-003` in this file at `:201`, which is this file's only prior amendment block; the arc's `6b-xviii`
+blocks live in `04-app-controls-and-theme.md` and `01-domain-application.md`, not here. Every line number
+below was re-derived by content search on the post-change tree, never by arithmetic from a span.
+
+*Correction 1 -- the detail-page `locations:` citation is the wrong region, not a drifted one.* Previous
+wording, verbatim: `src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml:69-96`. The cited
+boundaries hold neither end of the construct: `:69` is back-button prose inside a comment, reading "present
+and working on this page even with Shell.NavBarIsVisible false, and it is", and `:96` is a bare `<Label`.
+The Start Session construct runs **`:106-154`** -- its explanatory comment opens at `:106`, `<Button` is at
+`:116`, `Text="Start Session"` at `:117`, `AutomationId="StartSessionButton"` at `:118`, and the enclosing
+`</Grid>` closes at `:154`. **Start +37 and end +58, so this is NOT a constant offset and cannot be
+corrected by one shift.** Each boundary is named by its line number and by what sits on it, never by a
+length subtracted from a range.
+
+*Correction 2 -- three detail-page clauses are overstated, and one of the three is the entry's own
+premise.* The `What.` paragraph says both views carry "an `AutomationId`, a tooltip, semantic properties, a
+`CommandParameter` binding, a `DataTrigger` dimming it, and a disabled-state tooltip overlay". For the
+DETAIL page three of those six do not hold as stated. **(a) There is no tooltip on the button**: the only
+`ToolTipProperties.Text` in the construct is on the transparent overlay at `:152`, which is visible only
+when the button is disabled. **(b) There are no semantic properties, and the omission is deliberate** --
+the comment at `:137-138` states the icon is decorative because "the button it sits on is already labelled
+`Start Session`". **(c) There is no `CommandParameter` on the detail page at all.** `CommandParameter`
+appears on exactly **four** XAML lines solution-wide, by `grep -rn 'CommandParameter' src --include=*.xaml`
+with `/obj/` excluded, and **all four are in `DungeonListPage.xaml`** -- `:61` Edit, `:77` comment prose,
+`:95` Start Session, `:129` Delete. So the entry's conditional action, "dropping the **two**
+`CommandParameter` bindings", **is not executable as written: there is one, not two.**
+
+**Every LIST-page claim is CONFIRMED, including the two the entry states exactly.** The comment opens at
+`:72` and closes at `:85`; `AutomationId="StartSessionButton"` is at `:96`; and
+`SemanticProperties.Hint` at `:98` reads verbatim "Sessions are not available yet; this button performs no
+action." The entry's `CommandParameter="{Binding Id}"` on **line 95** is exact.
+
+**The load-bearing absence is CONTROLLED in four directions, and the control is what licenses the zeros.**
+A predicate distinguishing `Command=` from `CommandParameter=` without `\b` -- a shell-quoted `\b` becomes a
+literal backspace byte and would have returned a plausible zero while still reporting a number -- gives
+`grep -cE 'Clicked=|[^r]Command='`: **0** inside the detail button span `:116-136`, **0** inside the list
+button span `:87-111`, against **10** on the whole of `DungeonDetailPage.xaml` and **3** on the whole of
+`DungeonListPage.xaml`. The control is decisive because it finds `Clicked` on the sibling Edit and Delete
+buttons **in the same `DataTemplate`, one line below their own `CommandParameter`s** -- so the predicate is
+reading the right region and discriminating the right token. A second controlled pair rules out wiring by
+gesture recognizer on a wrapper: **0** inside both spans against **12** and **6** on the whole files, by
+`grep -cE 'GestureRecognizers|TapGestureRecognizer|PointerGestureRecognizer'`.
+
+**This is an UNBUILT feature, not a feature wired elsewhere whose two sites are stale.** A case-insensitive
+recursive search for the phrase in any spelling, `grep -rniE 'start[ _-]?session' src --include=*.cs
+--include=*.xaml --include=*.csproj --include=*.json` with `obj` and `bin` excluded, returns **10 lines and
+zero executable wiring**. **POSITIVE CONTROL, same machinery, pattern `dungeon`: 407 files**, so the search
+reaches the solution and the 10 is not a path or include-filter artefact. Three corroborating negatives,
+each run separately: `grep -rn 'RegisterRoute'` over the App project returns **exactly one** call, at
+`AppShell.xaml.cs:17`, so **the only registered route is the detail route and there is no session route**;
+a search for `featureflag`, `feature_flag` or `IFeatureManager` over `src` exits 1 with no output, so there
+is **no feature-flag infrastructure anywhere in the solution**; and `StartSessionButton` over all four test
+projects restricted to `*.cs` exits 1 with no output, so **no test asserts on the `AutomationId`**. That
+last zero is controlled rather than bare: the same command shape over `src/DungeonMaster.App.UiTests`
+reaches live AutomationId assertions, among them
+`DungeonListPageInteractionTests.cs:50`. **One nuance the figure alone hides:** `StartSessionButton`
+does appear on **five** lines in `src` -- the two `AutomationId` declarations, `Implicit.xaml:222` and
+`:223`, and `src/DungeonMaster.App.UiTests/README.md:103`. **That README line is a documentation claim, not
+an assertion**, and it is recorded here so a later reader who reproduces five hits does not conclude the
+test zero was fabricated. **What that line documents, corrected here because an earlier draft of this block
+had it backwards:** the test is
+`TabbingFromTheDetailPageEntryReachesFloorExpandToggle`, and the id it asserts at **press 4 is
+`FloorExpandToggle`**, not `StartSessionButton`. `README.md:103-104` prints the whole sequence --
+`StartSessionButton`, `DungeonNotebookButton`, `AddFloorButton`, `FloorExpandToggle` -- in which
+**`StartSessionButton` is press 1**, read directly from those two lines. **That it is press 1 sharpens the
+row rather than softening it:** the unwired button is the FIRST element a keyboard user reaches on the
+detail page, and the test traverses past it to reach its real subject. The test still asserts nothing about
+`StartSessionButton`, so the four test projects' zero stands exactly as measured.
+
+**The disposition is corroborated by a FROZEN CONTRACT, which is what settles it.**
+`.dir-sdlc/sessions/2026-08-28-the-control-kit/manifest.json`, task **`T2`, acceptance criterion 6**, states
+as a frozen contract invariant that `AutomationId="EditDungeonButton"`, `"StartSessionButton"` and
+`"DeleteDungeonButton"` keep those exact strings, and that the Start-Session button stays unwired with the
+comment at `DungeonListPage.xaml:72-85` intact and unsoftened.
+**A CORRECTION THIS BLOCK MAKES TO ITS OWN SESSION'S FROZEN CRITERIA, because a correction is new prose and
+gets no exemption.** The frozen criterion for this row attributed that invariant to "acceptance criterion 5
+of task `T1`". **The invariant is task `T2`'s acceptance criterion 6.** Located by searching that manifest
+for the span itself rather than by trusting the attribution: the only acceptance string in the file
+containing `DungeonListPage.xaml:72-85` is the **sixth** entry of **`T2`**'s `acceptance` array, and `T1`'s
+fifth criterion is about converter tests under `src/DungeonMaster.App.Tests/Converters/` and names neither
+the button, the span, nor any `AutomationId`. **The corroboration itself is unaffected** -- the invariant
+exists, in that manifest, frozen by that session -- **only the task and criterion naming it were wrong**,
+which matters because a reader checking the citation would have looked at the wrong criterion and found
+nothing. **That span is still byte-exact**: `:72`
+opens "Start Session button." and `:85` closes "the same time as the handler, not before. -->", both read
+directly from the file. So the deliberate-unwired state is not merely annotated in a comment -- **it was
+ratified as a frozen invariant by an earlier session of this same audit programme**, and the
+`AutomationId` string is contractually frozen independently of this row.
+
+**Two things the entry never mentions, and they change what its own rationale implies.** First, **all three
+`CommandParameter`s in that `DataTemplate` are INERT**, not just `:95`. The Edit and Delete buttons at
+`:61` and `:129` each carry `CommandParameter="{Binding Id}"` *and* a `Clicked=` handler one line below,
+and a `Clicked` handler receives no `CommandParameter`. By the entry's own stated rationale -- that the
+parameter misleads a reader into assuming a `Command` exists -- **`:61` and `:129` mislead MORE**, because
+their buttons visibly work and carry no warning comment. Scoping the action to `:95` alone would leave the
+two more misleading instances three lines above and below. Second, **the `DataTrigger`s are LOAD-BEARING
+and must not be swept up as part of the dead markup.** `Implicit.xaml` deliberately omits a `Disabled`
+`VisualState`, and says so at `:215-218`, *because* a `VisualState` setter outranks both a `DataTrigger`
+and a local value; `:220-224` then names the three unstyled buttons that set their own `Opacity 0.35`,
+including both Start Session sites at `:222` and `:223`. Removing either `DataTrigger` would silently lose
+the disabled dimming with no compensating style. **That comment block is itself corroboration of this
+session's finding**, since `:226-228` records that its own line citations "were wrong on all three within
+one wave of being written" and that "a name survives an edit above it."
+
+**NOT MEASURED, and not inferred.** Both comments assert that clicking was "confirmed at runtime" to do
+nothing. **This session did not re-measure that** -- no build and no application were run, the build and
+suite result being attributed to the orchestrator -- because **the absence of four source constructs is not
+an observation of runtime behaviour.** The source evidence is strong and four-way controlled, and it is
+still evidence about source. **The entry's `authority` is `judgment` with `citation: n/a`**, so nothing in
+it is adjudicable as a convention violation either way, and "No action needed" stands as the disposition.]
 
 ### UI-036 -- launchSettings.json declares only a Windows profile for a two-platform app
 

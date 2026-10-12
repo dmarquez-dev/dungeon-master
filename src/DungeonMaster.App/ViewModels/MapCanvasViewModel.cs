@@ -31,7 +31,10 @@ namespace DungeonMaster.App.ViewModels;
 ///		The dungeon-detail composition root, which owns the loaded dungeon identifier, the error
 ///		channel, and the reload.
 /// </param>
-public partial class MapCanvasViewModel(AppDispatcher dispatcher, IDungeonEditingContext context) : ObservableObject
+public partial class MapCanvasViewModel(
+	AppDispatcher dispatcher,
+	IDungeonEditingContext context)
+		: ObservableObject
 {
 	/// <summary>
 	///		Gets or sets the active map tool.
@@ -383,75 +386,3 @@ public partial class MapCanvasViewModel(AppDispatcher dispatcher, IDungeonEditin
 		await context.ReloadAsync();
 	}
 }
-
-/// <summary>
-///		Arguments for removing an area from a floor.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor that owns the area.</param>
-/// <param name="AreaId">The unique identifier of the area to remove.</param>
-public sealed record RemoveAreaArgs(Guid FloorId, Guid AreaId);
-
-/// <summary>
-///		Arguments for renaming or re-describing an area. All three text fields are written as
-///		supplied, so a caller editing only one of them passes the current values of the other two.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor that owns the area.</param>
-/// <param name="AreaId">The unique identifier of the area to update.</param>
-/// <param name="Name">The area's new name.</param>
-/// <param name="Description">The area's new description.</param>
-/// <param name="Notes">The area's new notes.</param>
-public sealed record UpdateAreaArgs(Guid FloorId, Guid AreaId, string Name, string? Description, string? Notes);
-
-/// <summary>
-///		Arguments for creating an area and writing the outline the user has just drawn.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor that will receive the new area.</param>
-/// <param name="Outline">The outline drawn by the user, in canvas coordinates.</param>
-public sealed record AddAreaWithOutlineArgs(Guid FloorId, IReadOnlyList<PathSegment> Outline);
-
-/// <summary>
-///		Arguments for writing a moved area's translated outline.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor that owns the area.</param>
-/// <param name="AreaId">The unique identifier of the area that moved.</param>
-/// <param name="Outline">The translated outline, in canvas coordinates.</param>
-public sealed record MoveAreaOutlineArgs(Guid FloorId, Guid AreaId, IReadOnlyList<PathSegment> Outline);
-
-/// <summary>
-///		Arguments for placing a new object on a floor.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor that will receive the object.</param>
-/// <param name="Kind">The kind of object to place.</param>
-/// <param name="Position">The object's position, in canvas coordinates.</param>
-/// <param name="Rotation">The object's rotation.</param>
-/// <param name="Scale">The object's scale.</param>
-public sealed record PlaceObjectArgs(Guid FloorId, ObjectKind Kind, CanvasPoint Position, ObjectRotation Rotation, float Scale);
-
-/// <summary>
-///		Arguments for removing a placed object. There is no dungeon identifier: the editing
-///		context holds the one identifier that is correct.
-/// </summary>
-/// <param name="FloorId">The unique identifier of the floor that owns the object.</param>
-/// <param name="ObjectId">The unique identifier of the object to remove.</param>
-public sealed record RemovePlacedObjectArgs(Guid FloorId, Guid ObjectId);
-
-/// <summary>
-///		Arguments for moving, rotating, or rescaling a placed object. There is no dungeon
-///		identifier: the editing context holds the one identifier that is correct.
-/// </summary>
-/// <remarks>
-///		The two overloads this replaces differed only in whether a scale was supplied, so
-///		<paramref name="Scale"/> defaults to <see cref="ObjectScale.Default"/> and the second
-///		overload is deleted rather than reproduced.
-/// </remarks>
-/// <param name="FloorId">The unique identifier of the floor that owns the object.</param>
-/// <param name="ObjectId">The unique identifier of the object to update.</param>
-/// <param name="Position">The object's new position, in canvas coordinates.</param>
-/// <param name="Rotation">The object's new rotation.</param>
-/// <param name="Scale">The object's new scale; defaults to <see cref="ObjectScale.Default"/>.</param>
-public sealed record UpdatePlacedObjectArgs(
-	Guid FloorId,
-	Guid ObjectId,
-	CanvasPoint Position,
-	ObjectRotation Rotation,
-	float Scale = ObjectScale.Default);

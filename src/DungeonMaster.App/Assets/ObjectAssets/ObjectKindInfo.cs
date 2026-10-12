@@ -23,8 +23,14 @@ public static class ObjectKindInfo
 
 	public static SnapAnchor GetDefaultAnchor(ObjectKind kind)
 	{
-		if (WallObjects.Contains(kind)) return SnapAnchor.East;
-		if (WallAdjacentObjects.Contains(kind)) return SnapAnchor.South;
+		if (WallObjects.Contains(kind))
+		{
+			return SnapAnchor.East;
+		}
+		if (WallAdjacentObjects.Contains(kind))
+		{
+			return SnapAnchor.South;
+		}
 		return SnapAnchor.Center;
 	}
 
@@ -111,7 +117,10 @@ public static class ObjectKindInfo
 
 	public static string GetCategory(ObjectKind kind)
 	{
-		if (WallObjects.Contains(kind)) return "Doors";
+		if (WallObjects.Contains(kind))
+		{
+			return "Doors";
+		}
 		return kind switch
 		{
 			ObjectKind.TableRound or ObjectKind.TableRect or ObjectKind.TableEnd

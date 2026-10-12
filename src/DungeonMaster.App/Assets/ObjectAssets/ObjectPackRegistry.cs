@@ -16,13 +16,17 @@ public static class ObjectPackRegistry
 			await using var stream = await FileSystem.OpenAppPackageFileAsync(manifestPath);
 			var manifest = await JsonSerializer.DeserializeAsync<PackManifest>(stream, cancellationToken: ct);
 			if (manifest is null)
+			{
 				return null;
+			}
 
 			var paths = new Dictionary<ObjectKind, string>();
 			foreach (var entry in manifest.Objects)
 			{
 				if (Enum.TryParse<ObjectKind>(entry.Kind, out var kind))
+				{
 					paths[kind] = $"{packId}/Objects/{entry.Path}";
+				}
 			}
 
 			// Build category → kinds map from paths (category = third component: packId/Objects/category/file).
