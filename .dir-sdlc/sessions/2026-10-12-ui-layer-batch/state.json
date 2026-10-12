@@ -1,0 +1,129 @@
+{
+  "session": "2026-10-12-ui-layer-batch",
+  "updatedAt": "2026-10-12T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xix",
+  "branch": "dir/2026-10-12-ui-layer-batch",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c9d9b11",
+      "commit": "f5485212bf8d56cd3866a97d0b16a5616c4d17e0",
+      "note": "Review PASS 15/15 after B1 was WITHDRAWN. B1 was an orchestrator handover defect, not a defect in the work: the review dispatch relayed a summary of the implementer report rather than the report verbatim, dropping criteria 12, 13 and 14's records. The reviewer's own top-ranked option was to check the full report before spending a round; it was correct. No revision round dispatched, so revisionRounds stays 0 and reviewRounds stays 0, preserving the identity the framework requires between them. Advisory A1 stands: the three new doc blocks violate dotnet-format.md:378, real but outside criterion 6's enumeration, which was the orchestrator's authoring asymmetry against T4. Advisory A3: a one-character truncation in relayed command output, which originated in the implementer's own report rather than in the orchestrator's transcription."
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c9d9b11",
+      "commit": "5fc07cc428020a868d026d4c565d82094a383df0"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c9d9b11",
+      "commit": "6db81fe71fe011d9be584ff2a7739ac80f4c871c",
+      "note": "Review PASS 15/15, 8 advisory. TWO FROZEN CRITERIA CONTAINED FALSE CLAUSES, both the orchestrator's: criterion 9 asserted typographic apostrophes that do not exist (0 high bytes in both host files and all nine new files, against a control returning 18 on MapTool.cs), and criterion 8 asserted 'zero test references' of all nine records having measured it on one, ReorderFloorArgs having four references across two test projects with one compiled. Neither affected the outcome. Advisory A6 found a FOURTH deviation criterion 4 did not list, at DungeonListViewModel.cs:17, where the base list sits on the last parameter line rather than its own at +2 tabs -- so that file is wrapped under section 3 and not under section 6 and must not be recorded as clean. Advisory A7: the implementer described 'four new using directives' where there are 6 using lines across 4 files. A new instrument hazard was found by the reviewer in its own work and is recorded as FORM 11 in measurement.md section 12."
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c9d9b11",
+      "commit": "ecb01e76f7276d74a0abd96dee47de2256c33dbb",
+      "note": "Review PASS 14/14, 4 advisory. Criterion 7, the prose-truth criterion, WORKED: the reviewer declined to accept the 30-row assertion table -- noting it had only the orchestrator's relayed summary rather than the report -- and verified every assertion against sources it located itself. No row failed. It traced one sentence through a non-local chain in ObjectPackRegistry to confirm it. Advisory 3 records that the PRESERVED LoadFailed block itself violates dotnet-format.md:378, which criterion 3 forbade repairing. Both of this task's cited anchors into DungeonDetailPage.xaml.cs drifted under peer edits during the session: :2208 to :2243 and :1219 to :1239."
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c9d9b11",
+      "commit": "00c6ef83550424791f18759a84674a099588e911",
+      "note": "Review PASS 15/15, 4 advisory. The implementer independently reproduced the orchestrator's attributed base census of 155 braced of 176 exactly, and measured the 22 not-same-line bodies that criterion 14 had recorded as NOT MEASURED. Advisory A1: the implementer's own naive route 2 was shown STRUCTURALLY INERT by the reviewer reading its source -- it reports only when no brace exists anywhere later in the file -- so its fixture zero was vacuous; criterion 8 is still met because the real detector discriminates in both directions. NEITHER the implementer NOR the reviewer could reproduce the orchestrator's attributed naive-route-2 figure of 32; it is recorded as attributed and unreproduced in CORRECTION 5. Advisory A3 is the orchestrator's relay defect again, on criteria 1 and 15; both statements were confirmed present in the report."
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "ecb01e7",
+      "commit": "c7f1b96cebe15d97a94328751aa701a78f8e0234",
+      "note": "Review round 1 CHANGES REQUIRED with 2 blocking; round 2 PASS, both withdrawn. BOTH blocking findings were the orchestrator's defects, not the task's. B1: the cell cited CreateDungeonViewModel.cs:14-16, correct at the session base and :16-18 post-wave-1 because T3's own constructor wrap added two lines above it -- the orchestrator's measurement.md CORRECTION 1 carried the base-era span and handed it to this task and to T7, and both wrote it into the permanent record. B2: five attributed historical hashes against a criterion written as absolute; resolved by escalation E6 under a scoped reading, since the arc's own MASTER-155 cell carries four. Ten corrections to the session's evidence base recorded in the cells, three found independently by T7 as well. Two advisories open at Gate 3: a numeric collision inside the MASTER-154 cell, and a defect in measurement.md section 9 that this task passed through faithfully."
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "ecb01e7",
+      "commit": "41198bd95a9810a4d5eb79075aeb3a0fbe0b6825",
+      "note": "Review round 1 CHANGES REQUIRED with 4 blocking; round 2 PASS, all four withdrawn. Discovered that Edit normalises every EMBEDDED lone CR in a whole file, however far from the edit site -- the fourth destructive write mechanism and the second specific to Edit, reproduced by the orchestrator on a fixture and again live during this task's own revision round. Criteria 1 and 20 were mutually unsatisfiable as a result; resolved by escalation E5, the byte-surgical repair ratified and verified two ways. Caught two false premises in its own frozen criteria and corrected six more at the orchestrator's direction. Declined the orchestrator's suggested fix for B1b with a better one, on the ground that the suggested anchor was this session's own prose and cannot establish the arc's prior practice. Disclosed two self-inflicted errors including reproducing B1's failure mode while fixing B1. Four advisories open at Gate 3."
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-134 is falsified. PlaceObjectArgs is top-level in MapCanvasViewModel.cs rather than nested in DungeonDetailViewModel, DrawState is already compliant in its own correctly-named file in App.Core, and _dungeonId is already grouped with the other fields. One real section 2 breach survives. How should the row be scoped?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Extract the whole measured population rather than the single named record, so no sibling breach is left behind in the same file. The orchestrator then measured the population as NINE records, not the seven the option label said: MapCanvasViewModel.cs at :392, :403, :410, :418, :428, :436, :452 and FloorListViewModel.cs at :215, :222. The option's own description enumerated all nine, so nine is the faithful reading of the decision and the correction was disclosed to the user rather than absorbed. DrawState and _dungeonId are struck as already satisfied; the field-ordering point moves to a readability note carrying no section 2 citation."
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-141's diagnosis survives measurement intact, but the token names its remedy depends on do not exist: 127 Dm* keys are defined and zero match width, column, panel, sidebar or palette, while the nearest dimension tokens are a 12-22 glyph-scale family plus a single 44 touch-target floor. Nothing covers 220, 272, 280, 300 or the composite 32,158. Do the token work now, defer it, or exclude the row?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Re-anchor and defer. Do the measurable half now -- correct the three stale citations, whose offsets are non-uniform at +30, +49 and +108 so no single shift shift corrects them, and widen the zoom carve-out from the cited 333-378 to the measured 333-431. Carry the token-family design to the backlog with the enumerated gap. A new token family is a naming decision with API-like consequences and does not belong inside a session scoped to formatting."
+    },
+    {
+      "id": "E3",
+      "question": "MASTER-154's own Suggested direction is 'No action needed', and acceptance criterion 5 of task T1 in the frozen 2026-08-28-the-control-kit manifest requires the Start-Session button stay unwired with the comment at DungeonListPage.xaml:72-85 intact and unsoftened. Measurement also found all three CommandParameters in that DataTemplate are inert, not only the one the row names. Close unchanged, or take a narrow action?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Close as DELIBERATELY UNCHANGED with no code change. Record the measurement: the detail-page span is the wrong region at :106-154 rather than the cited :69-96, three of six detail-page clauses are overstated, the solution-wide search found no command, handler, route, feature flag or test anywhere, and the frozen contract independently corroborates the entry's judgement. Editing the markup would risk a frozen invariant for no functional gain."
+    },
+    {
+      "id": "E4",
+      "question": "Is `AppShell.xaml:15`'s `Route=\"DungeonListPage\"` in scope for MASTER-118? It is a third route name in a third place. XAML `Route=\"...\"` cannot read a C# constant without `{x:Static}`, which has ZERO occurrences anywhere in this repository's XAML (controlled: the same machinery finds `clr-namespace:` mappings at `App.xaml:4` and `DungeonListPage.xaml:7`). Raised by dir-architect, which excluded it and surfaced the exclusion rather than absorbing it, because a row's disposition is user-visible.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Excluded from code change. AppShell.xaml:15 stays a literal: {x:Static} has zero occurrences in this repository's XAML, DungeonListPage is a different route from the one being centralised so leaving it literal duplicates nothing, and MASTER-118's actual duplication -- the route name twice and the query key twice -- closes fully without it. Recorded as a carve-out in the register by T6 and T7."
+    },
+    {
+      "id": "E5",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T7 discovered that Edit preserves CRLF line terminators but normalises every EMBEDDED lone CR in the whole file, however far from the edit site -- measured 8 to 0 on backlog.md from an edit 220 lines away, and reproduced by the orchestrator on a purpose-built fixture at 2 to 0 from an edit six lines away. Criterion 1 permits only Edit on that file; criterion 20 requires the 8 lone CR preserved. The two are mutually unsatisfiable. T7 finished content with Edit then restored the 8 bytes with a byte-surgical binary write anchored on content.",
+      "answer": "RATIFIED as done. The repair stands. Criterion 1's ban is on sed -i and Write by name AND by mechanism, both of which convert whole-file CRLF to LF; the binary restore does the opposite and was byte-verified by two independent parties -- the reviewer establishing that the first byte divergence between the pre-change copy and the current file is at byte 160126, which is line 477, the first edit site, so every byte before it including all eight lone CR is identical. Clause 1(c)'s letter is recorded as deviated-from with its reason. The generalised carve-out goes to the backlog rather than being amended into the criterion on a single instance."
+    },
+    {
+      "id": "E6",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T6's eight status cells carry five commit hashes -- 3d34a69, 50e3572, b2a7383, 57b7eba, c9d9b11 -- all historical or base and each marked ATTRIBUTED. Criterion 15 as frozen reads 'NO COMMIT HASH APPEARS IN ANY CELL YOU WRITE', which is absolute. T6 disclosed and flagged this itself rather than hiding it.",
+      "answer": "RATIFIED under a scoped reading: criterion 15 prohibits THIS session's commit evidence, which the orchestrator adds at Gate 3, while permitting ATTRIBUTED historical and base references. That is the arc's own live convention -- the MASTER-155 cell in the same file carries 5347813, 413be78, 8bb2d79 and 1407090 -- so the frozen wording was stricter than the practice it was meant to encode. No cell is edited. The orchestrator's criterion was the defect, not the work."
+    },
+    {
+      "id": "E7",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "dotnet-format.md:378 forbids breaking a sentence across two /// lines. Four confirmed instances: three new blocks in ShellRoutes.cs written by T1, and the pre-existing LoadFailed block in ObjectPaletteView.xaml.cs that T4's criterion 3 required preserved byte-for-byte. Both reviewers independently refused to classify it blocking, because the orchestrator's T1 criterion 6 enumerated :372, :375 and :376 and omitted :378, while T4's equivalent criterion cited it.",
+      "answer": "CARRY TO BACKLOG, fix nothing now. Recorded with the criterion-enumeration reason the findings were advisory, distinguishing prose this session authored from prose it was ordered not to touch. Fixing ShellRoutes.cs would amend a frozen criterion for a task already committed, and the LoadFailed block cannot be fixed at all without retroactively unmeeting T4's criterion 3, which its review confirmed met."
+    }
+  ],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 7,
+    "reviewRounds": 2
+  },
+  "manifestFrozen": true
+}
