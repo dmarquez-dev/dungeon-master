@@ -4,18 +4,45 @@ using DungeonMaster.Domain.Entities.Floors;
 
 namespace DungeonMaster.App.Views.DungeonDetail;
 
+/// <summary>
+///		The primary object palette, which offers the available object packs in a picker and the objects of the loaded pack as rows of category chips.
+/// </summary>
 public partial class ObjectPaletteView : ContentView
 {
 	private IReadOnlyList<string> _categoryOrder = [];
 	private IReadOnlyDictionary<string, IReadOnlyList<ObjectKind>> _categories =
 		new Dictionary<string, IReadOnlyList<ObjectKind>>();
 
+	/// <summary>
+	///		Gets the object kind the palette currently has selected, or <see langword="null"/> when nothing is selected.
+	/// </summary>
 	public ObjectKind? ActiveObject { get; private set; }
 
+	/// <summary>
+	///		Raised whenever <see cref="ActiveObject"/> changes, carrying the new selection or <see langword="null"/> when the selection has been cleared.
+	///		The selection is cleared from two places: <see cref="ClearActiveObject"/> and the handler behind the palette's own close button.
+	/// </summary>
 	public event EventHandler<ObjectKind?>? ActiveObjectChanged;
+
+	/// <summary>
+	///		Raised when the palette's close button is tapped, after the active object has been cleared.
+	/// </summary>
 	public event EventHandler? CloseRequested;
+
+	/// <summary>
+	///		Raised when a category's expander chip is tapped, carrying the secondary palette the host should show.
+	///		That palette has already been populated for the category by the time this is raised.
+	/// </summary>
 	public event EventHandler<SecondaryPaletteView>? SecondaryPaletteRequested;
+
+	/// <summary>
+	///		Raised when the secondary palette should be hidden.
+	/// </summary>
 	public event EventHandler? SecondaryPaletteDismissed;
+
+	/// <summary>
+	///		Raised after an object pack has finished loading and its asset paths have been published to <see cref="ObjectAssetCatalogue"/>.
+	/// </summary>
 	public event EventHandler? PackChanged;
 
 	/// <summary>
@@ -25,13 +52,19 @@ public partial class ObjectPaletteView : ContentView
 	/// </summary>
 	public event EventHandler<string>? LoadFailed;
 
+	/// <summary>
+	///		Initialises a new instance of <see cref="ObjectPaletteView"/>, filling the pack picker with the display names of the known object packs.
+	///		Loading a pack's objects is deferred until the view is loaded.
+	/// </summary>
 	public ObjectPaletteView()
 	{
 		InitializeComponent();
 
 		// Populate the pack picker with known packs.
 		foreach (var (_, displayName) in ObjectPackRegistry.AvailablePacks)
+		{
 			PackPicker.Items.Add(displayName);
+		}
 
 		// Apply parchment theme overrides to platform-native controls.
 		// Windows: RequestedTheme + ResourceDictionary injection on the WinUI ComboBox/ScrollViewer.
@@ -349,12 +382,21 @@ public partial class ObjectPaletteView : ContentView
 		SecondaryPaletteRequested?.Invoke(this, _secondaryPalette);
 	}
 
+	/// <summary>
+	///		Makes the given object kind the active selection and raises <see cref="ActiveObjectChanged"/> with it.
+	/// </summary>
+	/// <param name="kind">
+	///		The object kind to select.
+	/// </param>
 	public void SelectObject(ObjectKind kind)
 	{
 		ActiveObject = kind;
 		ActiveObjectChanged?.Invoke(this, kind);
 	}
 
+	/// <summary>
+	///		Clears the active selection and raises <see cref="ActiveObjectChanged"/> with <see langword="null"/>.
+	/// </summary>
 	public void ClearActiveObject()
 	{
 		ActiveObject = null;
