@@ -104,5 +104,5 @@ public partial class DungeonListViewModel(
 	/// </param>
 	[RelayCommand]
 	private async Task NavigateToDetailAsync(Guid id) =>
-		await navigation.GoToAsync($"dungeondetail?id={id}");
+		await navigation.GoToAsync($"{ShellRoutes.DungeonDetail}?{ShellRoutes.IdQueryKey}={id}");
 }

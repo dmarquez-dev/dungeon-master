@@ -112,7 +112,7 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 	{
 		ClearError();
 
-		if (!query.TryGetValue("id", out var val) || !Guid.TryParse(val?.ToString(), out var id))
+		if (!query.TryGetValue(ShellRoutes.IdQueryKey, out var val) || !Guid.TryParse(val?.ToString(), out var id))
 		{
 			_dungeonId = Guid.Empty;
 
