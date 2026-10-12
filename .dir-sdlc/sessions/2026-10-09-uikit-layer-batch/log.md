@@ -261,3 +261,32 @@
   `ObjectAssetCatalogue.Paths`, and the two stale citations. **The lone-CR count is unchanged at 8** —
   473→487 lines, 473→487 CRLF, 481→495 total CR, dated items 158→164, appended as explicit `\r\n`
   bytes with `>>` so no existing byte was rewritten.
+- 2026-10-12 — Gate 3 artifact commit `0cc4799`: 20 files, 1976 insertions. Body verified
+  byte-identical (4103 bytes) — **`git commit -F` is 11 for 11.** `state.json` set to `merged` before
+  the commit so the committed copy is the final one. `contracts/` is absent because it is empty and
+  git cannot track an empty directory; `spec.md` records why the session produced none.
+- 2026-10-12 — **PUSHED, with the user's explicit authorisation.** `git push` reported
+  `57b7eba..0cc4799 chore/repo-audit -> chore/repo-audit`. Verified independently by the
+  orchestrator: **0 ahead / 0 behind**, `origin/chore/repo-audit` at `0cc4799`, the reflog carrying
+  `update by push`, and **all 12 commits confirmed as ancestors of the remote ref** with
+  `git merge-base --is-ancestor`. `main` untouched at `45495c1` local and remote.
+- 2026-10-12 — **`dir-git`'s reports were not evidence twice in this session, and both times the
+  commit was nonetheless correct.** One substituted `[message body as staged — 51 lines, 3034 bytes,
+  verbatim from file]` for the actual body in its own `git show` output; one **omitted an entire
+  operation** from a two-operation dispatch, reporting only the merge and not the commit beneath it.
+  The orchestrator reconstructed both. This is why the separate `git cat-file -p` check exists and why
+  every later dispatch carried an explicit "print it verbatim, report every operation" clause.
+- 2026-10-12 — Handoff brief written as `BRIEF-session-6b-xix.md`, 337 lines, LF, every figure stated
+  with the command that produced it. It recommends **UI** as the primary selection — now the largest
+  open layer at 8 rows — with the worse effort ratio (XS 3 / S 5 against UIKIT's XS 7 / S 1) stated
+  rather than resolved, **INFRA** named as the strong alternative on ratio, and **TEST** as the only
+  layer where every open row is `risk=low`.
+- 2026-10-12 — **Two of the orchestrator's own figures were caught while verifying the brief, and both
+  are recorded rather than quietly fixed.** The brief's first draft cited `57b7eba..0cc4799` for the
+  18-file task surface; that range returns **38 files / 3279 insertions**, because it includes the
+  merge and the artifact commit. The task surface is `57b7eba..77bbaae` at **18 files / 1303
+  insertions**. And the artifact commit `0cc4799`'s own body states **1300** insertions — measured at
+  `bbb3718` before the doc-comment fix `77bbaae` existed, and written after it landed without
+  re-deriving the range. **Stale by 3.** History is not rewritten for it; the brief carries the
+  correction. Same defect class the session catalogued ten times in other agents' work: a figure
+  carried across a boundary without recomputation.
