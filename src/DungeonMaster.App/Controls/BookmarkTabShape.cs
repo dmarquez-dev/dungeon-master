@@ -32,8 +32,14 @@ public sealed class BookmarkTabShape : IShape
 		var bottom = (float)bounds.Bottom;
 
 		// Never let the notch swallow the whole ribbon — a degenerate path renders
-		// as nothing at all, which reads as a missing control rather than a bug.
-		var notch = (float)Math.Min(NotchDepth, bounds.Height);
+		// as nothing at all, which reads as a missing control rather than a bug. The
+		// bound is HALF the height, not the whole height: at exactly bounds.Height the
+		// apex sits on the top edge and the ribbon collapses to two triangles meeting
+		// at a point, so the full height is itself the degenerate case rather than the
+		// safe limit. Half keeps a strictly positive band of ribbon above the apex at
+		// every positive height, and it scales with the ribbon instead of reserving a
+		// fixed number of device-independent units.
+		var notch = (float)Math.Min(NotchDepth, bounds.Height * 0.5);
 
 		var path = new PathF();
 		path.MoveTo(left, top);

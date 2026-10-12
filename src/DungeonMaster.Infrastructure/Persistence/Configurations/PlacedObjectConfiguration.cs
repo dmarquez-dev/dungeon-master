@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace DungeonMaster.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-///     Configures the EF Core entity mapping for <see cref="PlacedObject"/>.
+///		Configures the EF Core entity mapping for <see cref="PlacedObject"/>.
 /// </summary>
 public sealed class PlacedObjectConfiguration
 	: IEntityTypeConfiguration<PlacedObject>

@@ -2010,6 +2010,72 @@ with `/// </summary>` above the `internal PlacedObject(` declaration at `:15`. T
 still navigable and still lands on a `<summary>`, while the single-line tag the row was describing no
 longer exists. The record's severity, category, effort and risk are unchanged.**]**
 
+**[AMENDED 6b-xviii, 2026-10-09 -- `MASTER-181`, the row this entry's own remainder was filed to, is
+CLOSED AS A DUPLICATE rather than carried forward, and its recorded layer is wrong in its first
+element. Classification: the ROW is a DUPLICATE, merged by a user decision at Gate 1, not falsified;
+this ENTRY's substance stands and stays closed, and NO CODE IS ATTRIBUTED TO `MASTER-181`.** The
+register row is `MASTER-181` at `00-master-index.md:369`, closed **done AS A DUPLICATE of
+`MASTER-122`**; `MASTER-122` is at `00-master-index.md:310` and carries the remedy. This block follows
+the form of the `AMENDED 6b-xvii` block on `CORE-028`, re-derived by content search to **`:2156-2216`**
+of this file after this block's own insertion moved it (it was `:2090-2125` before), cited **for its
+form only** -- `AMENDED 6b-xiv` at `:1293` of this file records that the block that one was in turn
+modelled on *"carries three defects of its own"*. **Nothing below deletes any previous wording.**
+
+*Correction 1 -- the disposition of this entry's remainder.* Previous wording, verbatim, from the
+`AMENDED 6b-xvii` block above: *"remainder filed as `MASTER-181` at `00-master-index.md:369`."*
+**That remainder is not an independent row and never needed to be.** `MASTER-181` and `MASTER-122`
+name the same defect under the same authority, and **116 of `MASTER-181`'s 159 lines are
+`src/DungeonMaster.App/Graphics/FloorMapDrawable.cs`, which is `MASTER-122`'s own largest location** --
+73% of the population by one file. The user's Gate 1 decision was to merge into `MASTER-122`, widen
+that row to the measured population, and close this one as a duplicate. Measured on the post-change
+tree by this task, per file, with `grep -cE '^[[:space:]]*/// {2,}'`: **0** on each of
+`FloorMapDrawable.cs`, `src/DungeonMaster.App/Assets/ObjectAssets/ObjectAssetCatalogue.cs`,
+`src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs`,
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs` and
+`src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/FloorPersistenceTests.cs`, while the
+conforming tab form `grep -cE "^[[:space:]]*///${TAB}"` with `TAB=$(printf '\t')` returns
+**116 + 2 + 2 + 1 + 3 = 124** on the same five files -- a measured gain rather than a standing zero.
+**POSITIVE CONTROL beside those five zeros**, because five zeros with no control are indistinguishable
+from a blind predicate: the identical space predicate returns **35** on
+`src/DungeonMaster.Infrastructure/Migrations/20260818232300_UtcDateTimeTimestampsAndScaleWithoutStoreDefault.cs`,
+and the tab predicate returns **21** on `src/DungeonMaster.App/Controls/NotebookAffordance.cs` where the
+`\t`-inside-`grep -E` spelling returns a false **0** on that same file -- the instrument already in this
+register's inherited list, re-confirmed here by a third party. **The predicate was validated in both
+directions** on a purpose-built CRLF fixture: a line carrying ONE space after `///` does not match, and
+lines carrying two and five do, 2 of 4. **And one whole-tree pass closes the arithmetic**:
+`grep -rnE '^[[:space:]]*/// {2,}' src --include=*.cs --exclude-dir=bin --exclude-dir=obj` returns
+**35 matching lines in 1 file** post-change, the migration alone, against the orchestrator's **159 lines
+in 6 files** at the session base. `159 - 124 = 35`, so the census and the per-file figures are one
+measurement rather than two assertions. Note the `--exclude-dir` form: applying the `bin`/`obj` filter
+to the matched TEXT rather than to PATHS is what produced the discarded artefact figure of 167.
+
+*Correction 2 -- `MASTER-181`'s recorded layer.* Previous wording, verbatim, the layer cell of that row:
+*"UI, INFRA, TEST"*. **It is wrong in its first element, and only in its first element.** The merged
+population spans **UIKIT, INFRA and TEST**: three of the six files are in `DungeonMaster.App`'s control
+kit and graphics (`FloorMapDrawable.cs`, `ObjectAssetCatalogue.cs`, `ObjectKindInfo.cs`), which this
+register classifies `UIKIT` and not `UI`; two are `INFRA` (`PlacedObjectConfiguration.cs` and the
+migration) and one is `TEST` (`FloorPersistenceTests.cs`). The distinction is not cosmetic here: it is
+the whole reason the row belonged with the `UIKIT` batch this session selected by layer concentration,
+and a reader filtering the register on `UIKIT` would not have found it.
+
+*Correction 3 -- the judgment call this entry's remainder row raised and declined to make.* Previous
+wording, verbatim, from `MASTER-181`'s own row text: *"the migration's 35 lines also need a judgment
+call this row does not make, since migrations are generated artefacts and may be exempt"*. **That
+question is now answered, and the answer is a standing exemption rather than deferred work.** The user
+decided at Gate 2 that generated EF scaffolder output is **EXEMPT** from `dotnet-format.md` section 9's
+two-tab rule as a standing convention of this repository. The full statement of that convention, with
+its evidence, is recorded on `UIKIT-022` in `04-app-controls-and-theme.md`; recorded here because this
+is the entry whose remainder raised it. **`124 remedied + 35 exempt = 159`, the full measured
+population, and NO OPEN ROW COVERS THE 35 LINES AFTER THIS SESSION -- deliberately, because nothing is
+owed.**
+
+*What this block does NOT measure, stated so nothing downstream reads it as evidence.* **Which session
+converted `FloorMapDrawable.cs` from spaces to tabs is NOT MEASURED by this session.** The file is
+measured here at **0** leading-space lines against **722** leading-tab lines of **898**
+(`grep -c '^ '`, `grep -c "^$TAB"`, `wc -l`, post-change), which falsifies `MASTER-122`'s file-level
+census outright, but attributing the conversion to a session needs git archaeology nobody ran, and no
+row claims it.**]**
+
 ### CORE-027 -- Five files indent with four spaces and two column-align assignments where the rest use tabs
 
 ```yaml

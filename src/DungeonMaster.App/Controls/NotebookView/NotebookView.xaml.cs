@@ -3,60 +3,6 @@ using DungeonMaster.App.Theme;
 namespace DungeonMaster.App.Controls;
 
 /// <summary>
-///		Identifies which kind of entity a notebook is currently authoring metadata for.
-/// </summary>
-public enum NotebookKind
-{
-	/// <summary>The dungeon itself, which has no owning floor.</summary>
-	Dungeon,
-
-	/// <summary>A single floor of a dungeon.</summary>
-	Floor,
-
-	/// <summary>A single area on a floor.</summary>
-	Area
-}
-
-/// <summary>
-///		The entity a notebook has been opened on, together with the text it should display.
-/// </summary>
-/// <param name="Id">The identifier of the entity being authored.</param>
-/// <param name="FloorId">
-///		The owning floor identifier, or <see langword="null"/> for a dungeon-level notebook.
-///		An area needs this to address the update command that saves it.
-/// </param>
-/// <param name="Kind">The kind of entity being authored.</param>
-/// <param name="Name">The entity's display name.</param>
-/// <param name="Description">The player-facing read-aloud text, or <see langword="null"/> when unset.</param>
-/// <param name="Notes">The DM-only notes, or <see langword="null"/> when unset.</param>
-public record NotebookTarget(
-	Guid Id,
-	Guid? FloorId,
-	NotebookKind Kind,
-	string Name,
-	string? Description,
-	string? Notes);
-
-/// <summary>
-///		The payload of a notebook autosave, describing which entity to update and with what text.
-/// </summary>
-/// <param name="Id">The identifier of the entity to update.</param>
-/// <param name="FloorId">
-///		The owning floor identifier, or <see langword="null"/> for a dungeon-level notebook.
-/// </param>
-/// <param name="Kind">The kind of entity to update.</param>
-/// <param name="Name">The entity's name as edited.</param>
-/// <param name="Description">The read-aloud text, or <see langword="null"/> when blank.</param>
-/// <param name="Notes">The DM-only notes, or <see langword="null"/> when blank.</param>
-public record NotebookSaveArgs(
-	Guid Id,
-	Guid? FloorId,
-	NotebookKind Kind,
-	string Name,
-	string? Description,
-	string? Notes);
-
-/// <summary>
 ///		A draggable parchment notebook for authoring a dungeon, floor, or area's name,
 ///		read-aloud description, and DM-only notes.
 /// </summary>

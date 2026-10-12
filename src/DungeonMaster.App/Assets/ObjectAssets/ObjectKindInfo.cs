@@ -29,8 +29,8 @@ public static class ObjectKindInfo
 	}
 
 	/// <summary>
-	///     Logical bounding size of the object in tile units (W × H).
-	///     Used to scale assets proportionally at appropriate dungeon-map scale.
+	///		Logical bounding size of the object in tile units (W × H).
+	///		Used to scale assets proportionally at appropriate dungeon-map scale.
 	/// </summary>
 	public static (float W, float H) GetObjectSize(ObjectKind kind) => kind switch
 	{
