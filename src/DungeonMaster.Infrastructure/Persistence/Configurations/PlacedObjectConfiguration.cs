@@ -10,47 +10,65 @@ namespace DungeonMaster.Infrastructure.Persistence.Configurations;
 public sealed class PlacedObjectConfiguration
 	: IEntityTypeConfiguration<PlacedObject>
 {
-	/// <inheritdoc/>
+	/// <summary>
+	///		Applies the column mappings, constraints, value conversions, and owned-entity configuration for the PlacedObjects table.
+	/// </summary>
+	/// <param name="builder">
+	///		The builder used to configure the <see cref="PlacedObject"/> entity type.
+	/// </param>
 	public void Configure(EntityTypeBuilder<PlacedObject> builder)
 	{
 		builder.ToTable("PlacedObjects");
 
-		builder.HasKey(obj => obj.Id);
+		builder.HasKey(obj =>
+			obj.Id);
 
-		builder.Property(obj => obj.Id)
+		builder.Property(obj =>
+			obj.Id)
 			.ValueGeneratedNever();
 
-		builder.Property(obj => obj.FloorId)
+		builder.Property(obj =>
+			obj.FloorId)
 			.IsRequired();
 
-		builder.Property(obj => obj.Kind)
+		builder.Property(obj =>
+			obj.Kind)
 			.IsRequired()
 			.HasConversion<string>();
 
-		builder.Property(obj => obj.Rotation)
+		builder.Property(obj =>
+			obj.Rotation)
 			.IsRequired()
 			.HasConversion<string>();
 
-		builder.Property(obj => obj.Scale)
+		builder.Property(obj =>
+			obj.Scale)
 			.HasColumnType("REAL");
 
-		builder.Property(obj => obj.CreatedAt)
+		builder.Property(obj =>
+			obj.CreatedAt)
 			.IsRequired();
 
-		builder.Property(obj => obj.LastModified)
+		builder.Property(obj =>
+			obj.LastModified)
 			.IsRequired();
 
-		builder.OwnsOne(obj => obj.Position, position =>
-		{
-			position.Property(p => p.X)
-				.HasColumnName("Position_X")
-				.HasColumnType("REAL")
-				.IsRequired();
+		builder.OwnsOne(
+			obj =>
+				obj.Position,
+			position =>
+			{
+				position.Property(point =>
+					point.X)
+					.HasColumnName("Position_X")
+					.HasColumnType("REAL")
+					.IsRequired();
 
-			position.Property(p => p.Y)
-				.HasColumnName("Position_Y")
-				.HasColumnType("REAL")
-				.IsRequired();
-		});
+				position.Property(point =>
+					point.Y)
+					.HasColumnName("Position_Y")
+					.HasColumnType("REAL")
+					.IsRequired();
+			});
 	}
 }
