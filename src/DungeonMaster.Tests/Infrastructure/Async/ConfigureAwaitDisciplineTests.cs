@@ -27,7 +27,7 @@ public class ConfigureAwaitDisciplineTests
 	/// </summary>
 	private static readonly string[] ScopedFiles =
 	[
-		"DungeonMaster.Infrastructure/DependencyInjection.cs",
+		"DungeonMaster.Infrastructure/InfrastructureServiceCollectionExtensions.cs",
 		"DungeonMaster.Infrastructure/Persistence/UnitOfWorkFactory.cs",
 		"DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs",
 		"DungeonMaster.Infrastructure/Persistence/Repositories/DungeonWriteRepository.cs",
