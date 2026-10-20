@@ -156,6 +156,110 @@ is model metadata only, or add explicit `ToTable(t => t.HasCheckConstraint(...))
 the constraint exists where the data does. The former is probably right for a single-user local
 database; the point is to make the choice visible.
 
+**[AMENDED 6b-xx, 2026-10-16 -- this entry is CONFIRMED IN SUBSTANCE, WITH ITS COUNT WRONG AND ITS PREMISE
+FALSE, and it is the most consequential row in this file. Its core finding holds exactly: `HasMaxLength`
+reaches nothing in SQLite, and the bounds are model metadata only. But the population is NINE columns, not
+eleven, and the premise that the limits are "enforced today by exactly one thing -- the FluentValidation
+validators" is FALSE FOR SIX OF THE NINE, which are bounded by nothing in any layer -- not the database, not
+the Application layer, not the Domain. The entry UNDERSTATES its own severity: it describes a documented
+gap and the gap is twice as large as it says. Classification: CONFIRMED for the SQLite finding and for the
+remedy, ERROR for the count, and ERROR for the enforcement premise. The six-column gap is CARRIED TO THE
+BACKLOG, not closed here.** Form follows the `AMENDED 6b-xix` block on `UI-025` at
+`03-app-shell-and-views.md:1235`. Every line number below was re-derived by content search on the
+post-change tree, after this session's own four code tasks had landed.
+
+*Correction 1 -- the count is nine, not eleven.* Previous wording, verbatim, from this entry's own heading:
+"HasMaxLength is configured on eleven string columns but SQLite enforces none of them". **There are nine**,
+distributed 3 + 3 + 3 + 0 across the four configurations. Enumerated by
+`grep -rn 'HasMaxLength'` over `Persistence/Configurations/`, with the post-change line of each:
+
+| Entity | Property | Limit | Post-change site |
+|---|---|---|---|
+| `Dungeon` | `Name` | 100 | `DungeonConfiguration.cs:71` |
+| `Dungeon` | `Description` | 2000 | `DungeonConfiguration.cs:75` |
+| `Dungeon` | `Notes` | 4000 | `DungeonConfiguration.cs:79` |
+| `Floor` | `Name` | 100 | `FloorConfiguration.cs:79` |
+| `Floor` | `Description` | 2000 | `FloorConfiguration.cs:83` |
+| `Floor` | `Notes` | 2000 | `FloorConfiguration.cs:87` |
+| `Area` | `Name` | 100 | `AreaConfiguration.cs:118` |
+| `Area` | `Description` | 2000 | `AreaConfiguration.cs:122` |
+| `Area` | `Notes` | 2000 | `AreaConfiguration.cs:126` |
+
+`PlacedObjectConfiguration.cs` has **0**, which is why "all four configurations" is also loose: three of the
+four do. The drift on these sites is **+38, +39 and +40** by file against the spans the `locations:` block
+cites -- **non-uniform**, so no single constant offset remaps them.
+
+**THE NINE IS VALIDATED AGAINST TWO POPULATIONS THAT COULD NOT SHARE THE FIRST PREDICATE'S MISTAKE**, which
+is the check this count needed rather than a re-run of the same grep. First, the released migrations:
+`maxLength` occurrences are **8** in `20260805014736_InitialCreate.cs`, **1** in
+`20260805184106_AddFloorDescription.cs` and **0** in
+`20260818232300_UtcDateTimeTimestampsAndScaleWithoutStoreDefault.cs` -- **8 + 1 + 0 = 9**, counted per file
+so the arithmetic is checkable by eye rather than asserted. Second, the model snapshot:
+`grep -c 'HasMaxLength'` on `AppDbContextModelSnapshot.cs` returns **9**, at `:29, :40, :44, :67, :75, :79,
+:96, :106, :110`. **Three independent populations -- configurations, migration DDL, model snapshot -- all
+return nine**, and the two cross-checks are generated artefacts that could not inherit a mistake made in
+reading the configuration source.
+
+*Correction 2 -- the enforcement premise is FALSE for six of the nine columns, and this is the session's most
+consequential finding.* Previous wording, verbatim: "the length limits are enforced today by exactly one
+thing -- the FluentValidation validators in the Application layer". **Three of the nine columns are bounded
+by a validator. Six are bounded by nothing, in any layer.** Three commands establish it:
+
+- **`MaximumLength` scoped to validators returns six rules.** `grep -rc 'MaximumLength'` over
+  `--include=*Validator.cs` returns 1 in each of six files -- `AddArea`, `AddFloor`, `CreateDungeon`,
+  `UpdateArea`, `UpdateDungeon` and `UpdateFloor` command validators. **Every one of the six is
+  `MaximumLength(100)`** -- `grep -h 'MaximumLength'` over the same scope piped to `grep -c
+  'MaximumLength(100)'` returns **6 of 6** -- and **every one guards a `Name`**, confirmed by reading each
+  `RuleFor` target. **There is no `MaximumLength(2000)` or `MaximumLength(4000)` anywhere in the solution.**
+  A solution-wide census returns **10** hits rather than six; of the extra four, **three are comments this
+  session itself added** to the configuration files and **one is documentation prose** in
+  `NameOnlyValidatorTestBase.cs`, not a rule. The six is the validator-scoped figure, and the gap between
+  10 and 6 is recorded so the larger number is not later read as more enforcement than exists.
+- **`Description` and `Notes` appear in no validator at all.** `grep -rn 'Description\|Notes'` over
+  `--include=*Validator.cs`, across all **14** validator files in the solution, returns **0** hits.
+- **The Domain bounds nothing either.** `grep -rn 'Length'` over `DungeonMaster.Domain`, excluding the
+  geometry types, returns **0**. The Domain assigns `Description` and `Notes` by raw assignment.
+
+**So the three `Name` columns are bounded at 100 by a validator, and the six `Description` and `Notes`
+columns -- limits of 2000 and 4000 -- are bounded by nothing.** The entry's premise is not merely imprecise;
+it is false for two thirds of the columns it describes, and false in the direction that **understates the
+risk**. The entry's own stated worry -- that "anything writing through the repositories without passing a
+validator would persist over-length text silently" -- is in fact true for six columns **even when a
+validator IS passed**, because no validator rule exists for them.
+
+**What was done, and what was deliberately not done.** The user chose the **documentation branch** at
+Gate 1: each configuration now carries a comment recording that the length is model metadata only and that
+SQLite enforces nothing. No `HasCheckConstraint` was added and no migration was written. **The six-column
+enforcement gap is carried to the backlog rather than closed**, and this block is deliberately the only
+place it is written down in the register, since the entry's own prose remains as authored.
+
+**A note on the comments' own command annotations, recorded because it bites exactly here.** The comments
+added to the three configurations state the commands that produced their figures, and **two of those
+annotations no longer reproduce, because the comment contains the command it cites**:
+`grep -rn 'HasCheckConstraint' src` now returns **3** where the comment states 0, all three hits being the
+three comments' own text, and the solution-wide `MaximumLength` census is inflated from 7 to 10 the same
+way. **The substance is intact and was verified both ways**: real `HasCheckConstraint` call sites, excluding
+comment lines, is **0**, and the clause scoped to `Migrations/` still returns **0** because that population
+excludes the files the comments live in. The surviving clause and the falsified ones sit in the same
+sentence of the same comment, which is what makes the mechanism legible: **an annotation stating a
+present-tense command must be scoped to a population that excludes the file it lives in, or stated as of a
+named commit.**
+
+**WHY NOTHING CAUGHT THE PREMISE EARLIER, which is the governance finding and the reason this row is worth
+the length.** This entry's own front matter reads `authority: judgment` and `citation: n/a`. **A row that
+cites no authority has nothing to be checked against**, so its premise was never adjudicable and travelled
+three sessions as a hedge -- "My belief is..." -- that reads as appropriately cautious and was in fact
+false. The hedging language made the row look safer than it was: the uncertainty was flagged in the right
+register and aimed at the wrong clause, since the SQLite claim it hedges is the part that turned out to be
+exactly right, while the enforcement claim it states flatly is the part that is false. **The front matter is
+deliberately left unedited**, per this arc's practice, so that `authority: judgment` stays visible beside
+this correction as the explanation for it.
+
+**Scope, because a universal is a measurement with no digit in it.** The censuses above are scoped to the
+four entity configurations, the 14 validator files, `DungeonMaster.Domain` excluding geometry, and the three
+released migrations plus the model snapshot -- each named. Nothing here is asserted about the Infrastructure
+layer as a whole. Commit evidence for this session is added by the orchestrator at Gate 3.]
+
 ### INFRA-003 -- Every timestamp column is DateTimeOffset, a type the SQLite provider does not natively support
 
 ```yaml
@@ -259,6 +363,76 @@ reorder completes, or a reorder implementation that renumbers into a disjoint ra
 unique index becomes viable. If it does not matter, a one-line comment on the `HasIndex` call
 recording why unique was rejected would stop the next reader from "fixing" it.
 
+**[AMENDED 6b-xx, 2026-10-16 -- this entry is CONFIRMED in every particular, its citation is EXACT at
+`:58-59`, and BOTH halves of its history claim are verified rather than merely plausible. The entry's
+central hedge -- "I believe the reason was the floor-reorder command" -- is now a fact. Classification:
+CONFIRMED throughout, with NO correction and NO drift; the one substantive addition is that the entry's
+stated effort does not cover the remedy a reader would infer from it.** Form follows the
+`AMENDED 6b-xix` block on `UI-025` at `03-app-shell-and-views.md:1235`. Every line number below was
+re-derived by content search on the post-change tree, after this session's own four code tasks had landed.
+
+**The `:58-59` citation is recorded AS EXACT, and no correction is manufactured for it.** The span named
+the `HasIndex` call and its continuation line correctly at this session's base. It is one of only two exact
+citations among the six rows re-measured here, and the only one of the six whose prose needed nothing
+changed either. **Post-change the call has moved to `:135-136`** -- `grep -n 'HasIndex'` on
+`FloorConfiguration.cs` returns **`:135`**, with `new { floor.DungeonId, floor.Number });` on `:136` -- a
+**+77** shift caused by the comment block this session added above it. The original span is deliberately
+left in the `locations:` front matter, so that the exactness it had and the position it now has are both
+visible.
+
+**The history claim, both halves verified.** These figures are **ATTRIBUTED** to this session's measurement
+record, not measured here, because a DIR task cannot run git:
+
+- An `-S` search over the dropped index name across all refs returns **5** commits.
+- The migration `20260511120000_RemoveFloorNumberUniqueIndex.cs` was **added** by
+  `e402ed8 feat(app) Implement DungeonDetailPage with floor/area management and drag-and-drop reordering`.
+- It was **deleted** by `7a4bb2d chore(db): squash migrations to a single floor-level baseline`, dated
+  2026-08-04, in the baseline squash.
+
+**The unique index was dropped by the same commit that implemented drag-and-drop floor reordering**, which
+is what converts the entry's hedge into a fact and is the strongest evidence available for it. The
+migration body is unambiguous in the same direction: its `Up` dropped `IX_Floors_DungeonId_Number` and
+recreated it on `{ "DungeonId", "Number" }` with **no** `unique` argument, while its `Down` recreated it
+with `unique: true`. **So the index was unique and was deliberately made non-unique**, rather than having
+simply never been declared unique -- a distinction the entry gets right and that matters, because only the
+first reading makes the absence a decision. `7a4bb2d` and `e402ed8` are historical hashes quoted as history;
+no commit hash for this session's own work appears anywhere in this block, and commit evidence for this
+session is added by the orchestrator at Gate 3.
+
+**Re-derived in the post-change tree, confirming the squash left no trace.** `Migrations/` holds **7**
+files -- three migrations, their three designers, and `AppDbContextModelSnapshot.cs` -- and
+`grep -rl 'RemoveFloorNumberUniqueIndex'` over that directory returns **0** files, consistent with the
+entry. `grep -rc 'IsUnique'` over the four entity configurations returns **0** in each, so no uniqueness is
+declared anywhere in the EF model, not merely absent from this one index.
+
+**The reorder mechanism, named by construct rather than by line.** `Dungeon.ReorderFloor` -- at
+`src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:102`, located by
+`grep -rn 'ReorderFloor'` -- shifts a block of floors and *then* sets the moved floor. Moving floor 3 to
+position 1 therefore passes through the numbering **`{2, 3, 3}`** inside a single `SaveChanges`. There is
+exactly **one** `SaveChangesAsync` in `UnitOfWork`, at `UnitOfWork.cs:19`, so that transient state is not
+split across transactions and SQLite -- which has no deferrable unique index -- would reject it outright.
+The invariant is carried instead by `ReorderFloor`'s own range check,
+`if (newNumber < 1 || newNumber > _floors.Count)` at `DungeonMethods.cs:120`, together with the
+shift-then-set ordering.
+
+**THE ENTRY'S `effort: S` DOES NOT COVER MAKING THE INDEX UNIQUE**, and this is the one thing a reader
+would get wrong from the entry as written. The entry offers two directions and its stated effort fits only
+the second. Making the index unique requires renumbering the shifted block through a **disjoint range** so
+that no intermediate state collides, which is a redesign of the reorder command rather than an addition to
+this configuration file. **The comment branch is the only remedy the stated effort supports**, and it is the
+branch the user chose at Gate 1. The front matter is deliberately left as written; this paragraph is the
+correction. **No EF migration was needed**, since nothing about the mapping changed.
+
+**The absence now reads as a decision, which is the point of the row.** This project's database discipline
+states, under Indexing: "A uniqueness rule is enforced by a constraint, never by an application check
+alone." The non-unique index **departs from that rule**, and the departure is real rather than apparent --
+what holds the invariant is precisely an application check, which is what the rule forbids relying on
+alone. The comment added to `FloorConfiguration.cs` above the `HasIndex` call records that departure
+explicitly, together with the history and the reason uniqueness is not a one-line change, so the next
+reader finds a decision rather than an oversight and does not "fix" it. The gap itself is **not closed** by
+this session and is not claimed to be. Commit evidence for this session is added by the orchestrator at
+Gate 3.]
+
 ### INFRA-006 -- PlacedObjectConfiguration is formatted with spaces and inline lambdas unlike its three siblings
 
 ```yaml
@@ -291,6 +465,95 @@ touching this file will show whitespace churn the first time anyone reformats it
 lines to match the sibling files, and replace the `<inheritdoc/>` with the same `<summary>`/`<param>`
 pair the other three use. This is the file to fix, not the other three.
 
+**[AMENDED 6b-xx, 2026-10-16 -- this entry is CONFIRMED in substance and was acted on in full, but its
+FIRST CLAUSE IS FALSE and its lambda population was one short. The file was already tab-indented when this
+entry was written against it, so a third of the remedy had nothing to do. Classification: ERROR for the
+"indented with four spaces" clause, CORRECTED for the inline-lambda count -- 11 sites, not 10 -- and
+CONFIRMED for the inline-lambda defect itself, for the bare `<inheritdoc/>`, and for the remedy's other two
+thirds.** Form follows the `AMENDED 6b-xix` block on `UI-025` at `03-app-shell-and-views.md:1235`. Every
+line number below was re-derived by content search on the post-change tree, after this session's own four
+code tasks had landed.
+
+*Correction 1 -- the indentation clause is FALSE.* Previous wording, verbatim: "This file is indented with
+four spaces; `AreaConfiguration.cs`, `DungeonConfiguration.cs` and `FloorConfiguration.cs` are indented with
+tabs." **The file was already tab-indented.** Two censuses on the file as it stood at this session's base,
+each ATTRIBUTED to this session's measurement record because a pre-change count cannot be re-derived by a
+task that may not run git:
+
+| Census | Command | Result |
+|---|---|---|
+| four-space indent | `grep -c '^    '` | **0** |
+| leading-tab indent | `grep -c $'^\t'` | **34** |
+
+**Zero and thirty-four**, which is not drift in a coordinate but a false statement of fact about the file's
+bytes. The second half of the clause -- that the three siblings are tab-indented -- is true, and so the
+clause's conclusion that the four files read as though written to two different rulebooks was reached from a
+premise that was already false for the one axis it names most concretely. **The remedy's first instruction,
+"Reindent to tabs", was therefore a no-op**, and the only reason this did not produce a spurious diff is
+that it was measured before the work rather than after.
+
+**The tab census must be taken with an interpolated tab, and this is not pedantry.** In `grep -E` a
+backslash-escaped `\t` matches a **literal `t`**, not a tab, so the same intended predicate written
+`grep -cE '^\t'` reports a confidently wrong number. Every tab figure in this block was taken with
+`$'\t'` or with `TAB=$(printf '\t')`. A reviewer in this very session measured a tab property with the
+backslash form and was wrong toward a false finding.
+
+*Correction 2 -- the inline-lambda population is 11, not 10, and the mechanism is worth more than the
+number.* The count first taken for this row was **10**, by the predicate
+`grep -cE '\([a-zA-Z]+ => [^)]*\)'`. **That predicate requires its closing paren on the same line**, so it
+cannot match the file's one call site that spanned lines -- base line **43**, the two-argument `OwnsOne`
+call, which read:
+
+```
+                builder.OwnsOne(obj => obj.Position, position =>
+```
+
+Its `)` is several lines below, so the site is invisible to the predicate **and the predicate returns a
+clean figure with no error.** Counted a second way with a predicate that could not share that mistake,
+`grep -cE '=>[[:space:]]+[^[:space:]]'` returns **11** on the base file -- base lines 18, 20, 23, 26, 30,
+34, 37, 40, **43**, 45 and 50 -- and **0** on each of the three sibling configurations. Both figures are
+ATTRIBUTED to this session's measurement record. **It is the second predicate, not a second control, that
+caught this**: all three sibling files returned 0 under the *wrong* predicate too, because the blind spot --
+a call site spanning lines -- does not occur in the compliant files either. **A control can match the
+defect class under test and still be silent about a defect the predicate cannot express.** The three
+siblings are nonetheless the right control, because they are precisely the files the entry itself names as
+compliant.
+
+**CONFIRMED: the bare `<inheritdoc/>`.** It was at **`:13`**, exactly as the entry states, ATTRIBUTED to
+this session's measurement record. The entry's reading of the convention is also confirmed: the three
+siblings carry a full `<summary>`/`<param>` block and this file did not.
+
+**Post-change state, re-derived by content search.** The file is **74** lines by `wc -l`, up from 56:
+
+| Property | Command | Result |
+|---|---|---|
+| four-space indent | `grep -c '^    '` | **0** |
+| leading-tab indent | `grep -c "^${TAB}"`, `TAB=$(printf '\t')` | **52** |
+| inline lambdas | `grep -cE '=>[[:space:]]+[^[:space:]]'` | **0** |
+| bare `<inheritdoc/>` | `grep -c 'inheritdoc'` | **0** |
+
+The inline-lambda zero is the validated 11-form predicate returning zero on the file it previously returned
+11 on, which is the same population counted before and after rather than a fresh predicate chosen to agree.
+Every lambda now breaks after `=>` onto an indented continuation line: `grep -nE '=>[[:space:]]*$'` returns
+**12** such lines, and the figure is 12 rather than 11 because the two-argument `OwnsOne` call at base line
+43 was split into three lines, so its two lambda parameters -- now at `:57` and `:59` -- occupy separate
+lines where they previously shared one. **The 11 and the 12 count different things** -- sites before,
+continuation lines after -- and are printed together so that neither is mistaken for the other. The bare
+`<inheritdoc/>` was replaced with a `<summary>`/`<param>` pair at **`:13-18`**.
+
+**Controls on the post-change censuses.** All four predicates were run on the three sibling configurations
+as well: four-space **0 / 0 / 0**, inline-lambda **0 / 0 / 0**, `inheritdoc` **0 / 0 / 0**, and leading-tab
+**128 / 80 / 136** on `AreaConfiguration.cs` (154 lines), `DungeonConfiguration.cs` (101) and
+`FloorConfiguration.cs` (162). The leading-tab figures are the positive control that keeps the three zeros
+from being blind: the same instrument that returns 0 for the defect forms returns a large non-zero for a
+form these files certainly do have.
+
+**Scope, because a universal is a measurement.** Nothing here claims the Infrastructure layer is free of
+inline lambdas or of bare `<inheritdoc/>`. **It is not**: `DungeonReadRepository.cs` still carries two bare
+`/// <inheritdoc/>` comments, deliberately left and recorded under `INFRA-009`. Every figure above is scoped
+to the **four entity configuration files**, named individually, and to nothing else. Commit evidence for
+this session is added by the orchestrator at Gate 3.]
+
 ### INFRA-007 -- Single-letter lambda variables in the owned-type configuration block
 
 ```yaml
@@ -319,6 +582,68 @@ the layer, so the cost is purely that the rule now looks optional to the next co
 
 **Suggested direction.** Rename both to `point` (or reuse `position`, which is already the outer
 name and would read `position.Property(point => point.X)`).
+
+**[AMENDED 6b-xx, 2026-10-16 -- this entry is CONFIRMED in substance and was acted on in full: both
+single-letter lambdas existed and both were renamed. BOTH of its cited locations were off by one.
+Classification: CONFIRMED for the defect, the count and the remedy, and DRIFT for both cited locations.**
+Form follows the `AMENDED 6b-xix` block on `UI-025` at `03-app-shell-and-views.md:1235`. Every line number
+below was re-derived by content search on the post-change tree, after this session's own four code tasks had
+landed.
+
+*Correction 1 -- both cited locations have DRIFTED, each by one line.* Previous wording, verbatim:
+
+```
+  - src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs:46
+  - src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs:51
+```
+
+**The two sites were at `:45` and `:50`, not `:46` and `:51`** -- ATTRIBUTED to this session's measurement
+record for the pre-change figures, since locating a line in the tree as it stood before this session's own
+reformatting requires reading a historical blob, which a task that cannot run git may not do. **A uniform
+`-1`, which is what makes this worth recording rather than interesting:** both cites were one high, so this
+is the one case in the six rows where a single constant offset would in fact have been right. That is a
+property of these two adjacent lines, not a licence to remap by arithmetic anywhere else in this file --
+the sibling rows in this same amendment drifted by **+40, +38, +39** and **+77**, non-uniformly, and
+`INFRA-005`'s moved by **+77** while this one moved by **-1**.
+
+**The rename was applied: `p` to `point`.** The entry offered `point` or `position`; `point` was taken,
+because `position` is already the enclosing lambda's parameter and reusing it would shadow. Both sites now
+read `position.Property(point =>`, re-derived by `grep -nE 'point =>'` on the post-change file, which
+returns **`:61`** and **`:67`** -- the two lines carrying the lambda parameter, with each property access on
+the following continuation line. The sites moved because this session's sibling row broke every lambda in
+the file onto a continuation line, so the two edits are the same two lines and could not have been separate
+concurrent tasks.
+
+**THE PREDICATE, AND ITS CASES IN BOTH DIRECTIONS.** A corrected predicate needs cases that discriminate,
+not a re-run of the cases chosen while it was wrong, so the predicate used here --
+`grep -cE '[^a-zA-Z0-9_][a-z] =>'` -- was validated on a purpose-built fixture before being trusted:
+
+| Case | Shape | Required | Observed |
+|---|---|---|---|
+| `position.Property(p => p.X)` | single letter after `(` | must match | **matched** |
+| `, q => q.Y)` | single letter after `, ` | must match | **matched** |
+| `position.Property(ab => ab.X)` | two letters | must NOT match | **not matched** |
+| `position.Property(point =>` | descriptive name | must NOT match | **not matched** |
+
+**2 of 2 must-match and 0 of 2 must-not-match**, so the predicate discriminates on the exact boundary that
+matters -- one letter versus more than one -- and the leading `[^a-zA-Z0-9_]` is what stops it matching the
+final letter of a longer name. **This is a POSITIVE control as well as a negative one**, which matters here:
+a predicate that returns 0 everywhere cannot be distinguished from a blind one by negative controls alone,
+and this session separately recorded a case where three negative controls all returned 0 under a predicate
+that was in fact wrong.
+
+**Post-change census, with the sibling controls.** The predicate returns **0** on
+`PlacedObjectConfiguration.cs` and **0** on each of `AreaConfiguration.cs`, `DungeonConfiguration.cs` and
+`FloorConfiguration.cs` -- the three files the entry itself names as compliant, which is what makes them a
+control matching the defect class rather than three arbitrary files. The zero on the edited file is a
+measured negative rather than a blind one because the same predicate returns **2** on the fixture above.
+
+**Scope, stated because a universal is a measurement with no digit in it.** The entry claims these two were
+"the only violations in the layer". **That claim is not re-established here and is not asserted**: the
+census above covers **four files** -- the four entity configurations -- and not the Infrastructure layer,
+which this session did not measure layer-wide for this form. What is measured is that the four
+configuration files now carry zero single-letter lambda parameters. Commit evidence for this session is
+added by the orchestrator at Gate 3.]
 
 ### INFRA-008 -- Scale is configured with a store default, which makes the CLR default 0f unsendable
 
@@ -384,6 +709,66 @@ could mislead someone tuning the read path later.
 **Suggested direction.** I would leave both in place as defensive uniformity and add a one-line
 comment on the detail query noting that its `AsNoTracking` is the load-bearing one because of the
 owned type. Removing the redundant call is equally defensible and equally safe.
+
+**[AMENDED 6b-xx, 2026-10-16 -- this entry's diagnosis is CONFIRMED and was acted on as the entry itself
+recommended: both calls were left in place and a comment was added. Its coordinates and one of its type
+names are wrong. Classification: CONFIRMED for the no-op finding and for the distinction between the two
+calls, DRIFT for the `locations:` span, and ERROR for the member-type claim.** Form follows the
+`AMENDED 6b-xix` block on `UI-025` at `03-app-shell-and-views.md:1235`. Every line number below was
+re-derived by content search on the post-change tree, after this session's own four code tasks had landed.
+
+*Correction 1 -- the `locations:` span names the method signature, not the call.* Previous wording,
+verbatim: `src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs:17-18`.
+**`:17-18` is the `GetSummariesAsync` signature and its opening brace, not the `AsNoTracking()` call the
+row is about.** At this session's base the call was at **`:23`** -- ATTRIBUTED to this session's
+measurement record, since re-deriving a pre-change line requires reading a historical blob and a task
+cannot run git. Post-change the signature is still at **`:17`**, returned by
+`grep -nE 'public async Task' <file>`, and **the two `AsNoTracking()` calls are at `:34` and `:65`**,
+returned by `grep -n 'AsNoTracking' <file>` -- whose other two hits, `:23` and `:56`, are inside the comment
+blocks this session added and are prose, not calls. **This is a live instance of the self-documenting-census
+hazard**: the same predicate that locates the calls now also matches the comments that describe them, so
+the raw hit count is 4 where the call count is 2. The call count is taken by reading the four hits, not by
+trusting the total.
+
+*Correction 2 -- the member-type claim is wrong.* Previous wording, verbatim: `DungeonSummaryDto`, "whose
+members are all scalars (`Guid`, `string`, `int`, `DateTimeOffset`)". **The two timestamps are `DateTime`,
+not `DateTimeOffset`.** Measured at
+`src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeons/DungeonSummaryDto.cs:24-30`, the record
+declaration, whose members are `Guid Id`, `string Name`, `string? Description`, `int FloorCount`,
+`DateTime CreatedAt` and `DateTime LastModified`; `grep -n 'DateTime' <file>` returns `:29` and `:30` and
+**no `DateTimeOffset` hit anywhere in the file**. **The substantive claim survives intact** -- every member
+is still a scalar and the projection still contains no entity type -- so only the type name is wrong and the
+conclusion is untouched. It is recorded because a comment written from the entry's wording would have
+inherited the error.
+
+**The remedy was applied as the entry proposed, and both calls remain.** Only comments were added; no call
+was removed. `GetSummariesAsync`'s `AsNoTracking()` at `:34` is retained as defensive uniformity, and
+`GetDetailAsync`'s at `:65` now carries a comment recording that it is the load-bearing one.
+
+**The detail call's load-bearing basis, named by construct rather than by line.** The detail projection
+reaches `obj.Position`, an owned `CanvasPoint`, mapped by the `OwnsOne` call in
+`PlacedObjectConfiguration` -- the construct, not a line, because this session's own reformatting moved it.
+An owned type is an entity type in EF Core's model, so that projection's result set does contain an entity
+type and its `AsNoTracking()` does work. The projection site is at **`:102`** (`Position: obj.Position,`),
+returned by `grep -n 'Position' <file>`.
+
+**THE NEAR-MISS A READER WOULD OTHERWISE DRAW, recorded because it is the one inference this row invites
+and does not support.** The detail projection's non-scalar members are **not only `Position`**. `area.Outline`
+is also projected, at **`:95`**, and its type is `IReadOnlyList<PathSegment>` -- a collection of a value
+type, mapped at `AreaConfiguration.cs:137-139` with `.HasColumnType("TEXT")` and a `.HasConversion(...)`,
+so it is **value-converted to a single TEXT column and is NOT an entity type.** It therefore contributes
+nothing to tracking. **So "non-scalar" and "makes the result set tracked" are not the same predicate**, and
+a reader who concluded "the detail projection is tracked because it has non-scalar members" would reach the
+right answer by the wrong rule, then apply that rule wrongly to `Outline` the next time. The load-bearing
+property is specifically *being an entity type*, which among the detail projection's non-scalars is true of
+`Position` and false of `Outline`.
+
+**Post-change state, and a scope note.** The file is **110** lines by `wc -l`. It still carries **two** bare
+`/// <inheritdoc/>` comments, at **`:16`** and **`:47`**, returned by `grep -n 'inheritdoc' <file>`; they
+were deliberately left, are not this row's concern, and are **not** claimed as resolved here. Nothing in
+this block asserts anything about the Infrastructure layer as a whole: the figures above are scoped to
+`DungeonReadRepository.cs`, `DungeonSummaryDto.cs` and `AreaConfiguration.cs`, the only files they were
+measured on. Commit evidence for this session is added by the orchestrator at Gate 3.]
 
 ### INFRA-010 -- The detail projection materialises two sibling collections per floor in one query
 
@@ -641,6 +1026,73 @@ a file search, which is the first thing anyone onboarding does when asked "where
 The Application-side rename belongs to T1/T6; only the Infrastructure file is in this task's scope.
 
 **Suggested direction.** Rename the file to `InfrastructureServiceCollectionExtensions.cs`.
+
+**[AMENDED 6b-xx, 2026-10-16 -- this entry is CONFIRMED and its citation is EXACT at `:12`, one of only two
+exact citations in the six rows this session re-measured. The mismatch was real and the rename was carried
+out. But the entry's IMPLICIT COMPLETENESS IS WRONG: this was not a reference-free rename. One live
+reference existed, as a filename inside a string literal, in a place neither of the searches that cleared
+the row could look. Classification: CONFIRMED for the mismatch and for the `:12` citation, ERROR for the
+implicit claim that the rename touches nothing but the filename, and DRIFT for the out-of-scope Application
+citation.** Form follows the `AMENDED 6b-xix` block on `UI-025` at `03-app-shell-and-views.md:1235`. Every
+line number below was re-derived by content search on the post-change tree, after this session's own four
+code tasks had landed.
+
+**The `:12` citation is recorded AS EXACT and no correction is invented for it.** The register named the
+type declaration's line correctly, and the row is one of the two in this file whose coordinates needed
+nothing.
+
+*Correction 1 -- the rename was NOT reference-free, and the register is not the source of the error.* The
+entry says nothing false here; **the false claim was introduced by this session's own evidence base**, which
+recorded that the rename needs "no code reference changes". One test referenced the old filename as a
+**string literal**: the `ScopedFiles` array in
+`src/DungeonMaster.Tests/Infrastructure/Async/ConfigureAwaitDisciplineTests.cs`, whose first entry named
+`DungeonMaster.Infrastructure/DependencyInjection.cs`. The array is now at **`:28-34`** and its first entry
+at **`:30`**, re-derived by `grep -n -A10 'ScopedFiles'` on the post-change file. The test asserts
+`File.Exists(fullPath).Should().BeTrue(...)` at **`:49`**, located by `grep -n 'File.Exists'`, with the
+message that "the scoped file '{0}' must exist for this guard to mean anything" -- so **renaming the file
+without editing that literal would have failed the test outright**, not silently weakened it.
+
+**Why the original survey could not see it, which is the transferable part.** The searches that cleared the
+rename looked for the **type name** (`InfrastructureServiceCollectionExtensions`, `AddInfrastructure`) and
+for a csproj `Compile` item. **Neither population can contain a filename inside a string literal.** The
+defect class was "references to the file path" and that population was never searched. A survey answers the
+population it is scoped to; the check that was owed was whether the surveyed population *could* contain the
+case under test, and it could not. The population that does contain it,
+`grep -rn 'DependencyInjection\.cs' src --include=*.cs` with `obj` and `bin` excluded, returned **exactly
+one** hit before the rename -- a single-hit census, which is the easiest kind to mistake for zero.
+
+**This was caught at DECOMPOSITION, not at Gate 1**, which is why the entry's `independent: true` and
+`effort: XS` read as optimistic in hindsight. Both were defensible from the entry's own evidence and both
+were wrong about the shape of the work: the rename had a test-side edit attached to it, so it was neither
+independent of the test project nor a pure file move. **The front matter is deliberately left as written**;
+this block is the correction, per this arc's practice of never rewriting original metadata.
+
+**What the entry got right and is confirmed unchanged.** `DungeonMaster.Infrastructure.csproj` contains
+**no** `Compile` item -- `grep -c 'Compile'` on it returns **0**, so SDK-style globbing picked the renamed
+file up with no project edit. The type was already named `InfrastructureServiceCollectionExtensions`, so
+**no reference to the type changed**; the consumer coupling is the **member name only**,
+`AddInfrastructureServices`, which the rename does not touch.
+
+*Correction 2 -- the out-of-scope Application citation has DRIFTED.* Previous wording, verbatim:
+"`src/DungeonMaster.Application/DependencyInjection.cs:27` declares `ApplicationServiceCollectionExtensions`".
+**The declaration is at `:13`, not `:27`.** Re-derived by
+`grep -n 'ApplicationServiceCollectionExtensions' src/DungeonMaster.Application/DependencyInjection.cs`,
+which returns `:13` for the declaration and `:139` for a `typeof` reference inside the same file -- so `:27`
+names neither. **The Application-side rename is deliberately left undone** and is carried forward rather
+than claimed here; the entry's own observation that both composition roots break the rule the same way
+stands, and after this session exactly one of the two is fixed.
+
+**Post-change state, re-derived.** The Infrastructure file is now
+`src/DungeonMaster.Infrastructure/InfrastructureServiceCollectionExtensions.cs`, confirmed present by a
+`find` over that project's top level for both the old and the new name, which returns the new path and no
+`DependencyInjection.cs`. The old-filename census `grep -rn 'DependencyInjection\.cs' src --include=*.cs`,
+`obj` and `bin` excluded, now returns **0**, and the new-filename census under the same scope returns **1**
+-- the updated test literal at `:30`. The two figures are the same population counted before and after,
+which is what makes the zero meaningful rather than blind. **Scope note, because a universal is a
+measurement:** these counts are scoped to the two files this row touched and to `src/`, not to the
+repository's documentation -- `docs/audit/05-tests.md` and `docs/audit/06-cross-cutting.md` both still name
+`DependencyInjection.cs` and are outside this session's scope, reported rather than edited. Commit evidence
+for this session is added by the orchestrator at Gate 3.]
 
 ### INFRA-018 -- Scoped registrations resolve from the root provider, so one DbContext lives for the whole process
 
