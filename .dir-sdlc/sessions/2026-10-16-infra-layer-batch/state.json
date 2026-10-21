@@ -1,0 +1,280 @@
+{
+  "session": "2026-10-16-infra-layer-batch",
+  "updatedAt": "2026-10-21T15:45:00-07:00",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xx",
+  "branch": "dir/2026-10-16-infra-layer-batch",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "9b3396163281e6208b0e98e9dd8d11bd20a3e1f4",
+      "commit": "d0684fe971a73fe89f03383fc089f85b04ad68f6"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "9b3396163281e6208b0e98e9dd8d11bd20a3e1f4",
+      "commit": "69e3c14d2369f335422dedaa5adc970353fb9f20"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "9b3396163281e6208b0e98e9dd8d11bd20a3e1f4",
+      "commit": "0c34ac35262f165d1a1774e182ef5c2498c747fe"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "9b3396163281e6208b0e98e9dd8d11bd20a3e1f4",
+      "commit": "e9e5ae3277798a006a1310fbe14c6b8a8813c551"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 2,
+      "redispatches": 0,
+      "startRef": "e9e5ae3277798a006a1310fbe14c6b8a8813c551",
+      "commit": "65acd5aea86c97daaef63ac324ed8d18a50c7470"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "e9e5ae3277798a006a1310fbe14c6b8a8813c551",
+      "commit": "19b7d4026766b47a856c5edd390faf2dfa2dec87"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T2",
+      "question": "MASTER-117's scope is wider than Gate 1 approved: the rename requires editing a test file that references the old filename as a string literal, or the ConfigureAwait source guard fails. Accept T2's widened ownership?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Accept T2 as written, three paths including the test edit, and keep the measurement.md amendment already made",
+          "rationale": "The test edit is one string literal and is strictly required for the rename to be valid; splitting it would create a cross-task dependency on a single line. The false claim has already been corrected in the permanent record rather than propagated to Gate 3.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/Infrastructure/Async/ConfigureAwaitDisciplineTests.cs:30",
+              "src/DungeonMaster.Tests/Infrastructure/Async/ConfigureAwaitDisciplineTests.cs:49-51",
+              ".dir-sdlc/sessions/2026-10-16-infra-layer-batch/measurement.md"
+            ]
+          }
+        },
+        {
+          "summary": "Split the test edit into its own test-domain task depending on T2",
+          "rationale": "Keeps the domain label honest per file, at the cost of serialising two writes one agent can do atomically.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Accept T2 as written with all three paths, the ConfigureAwaitDisciplineTests.cs edit included. The user also ratified the measurement.md section 6 amendment the orchestrator had already made, so the false \"no code reference changes\" claim does not reach Gate 3."
+    },
+    {
+      "id": "E2",
+      "question": "Three definition-of-done items are covered by no task: the build and suite, the backlog carries, and the register survey. Each is uncovered because a task cannot satisfy it. Confirm all three as orchestrator work?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Confirm all three as orchestrator responsibilities, recorded in log.md and discharged at Gate 3",
+          "rationale": "All three are unsatisfiable by a task running beside peers: concurrent dotnet build collides on obj/ and bin/, Edit would zero the backlog's 8 lone CR, and an index-wide count is not an observation a task can make with its own edits in flight.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-10-16-infra-layer-batch/measurement.md"
+            ]
+          }
+        },
+        {
+          "summary": "Add a seventh serialised task owning .dir-sdlc/backlog.md with a byte-append-only criterion",
+          "rationale": "Puts the backlog carries under a reviewed criterion, but it is unconfirmed that a DIR task can perform a verified byte-append without tripping the harness.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "All three uncovered definition-of-done items confirmed as orchestrator work: the build and suite run serially between waves, the backlog carries are a byte-append with explicit CRLF verified by prefix byte-identity, and the register open/closed survey is recomputed at Gate 3 from the committed tree. No seventh task is added."
+    },
+    {
+      "id": "E3",
+      "taskId": "T4",
+      "question": "MASTER-152's register premise is false: of nine HasMaxLength columns, three are bounded by an Application validator and six (Description and Notes on all three entities) are bounded by nothing in any layer. The documentation branch chosen at Gate 1 was chosen on the false premise. What happens to the six?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Document the measured state only; carry the six-column gap to the backlog",
+          "rationale": "Holds the Gate 1 decision, keeps the session a clean documentation sweep, and leaves a recorded item rather than an invisible gap. T4's criteria already assert the measured state and forbid restating the premise.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-10-16-infra-layer-batch/measurement.md"
+            ]
+          }
+        },
+        {
+          "summary": "Add six MaximumLength rules to the existing validators this session, mirroring the EF limits",
+          "rationale": "Closes the gap with no migration and no schema change, in files that already hold the three Name rules. It is new scope beyond the row and beyond Gate 1, and it needs its own task and ownership.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Application/Features/Dungeons/Commands/UpdateDungeon/UpdateDungeonCommandValidator.cs:19"
+            ]
+          }
+        },
+        {
+          "summary": "Document the measured state and drop the gap without a backlog item",
+          "rationale": "Appropriate only if unbounded Description and Notes is an accepted property of a single-user local database rather than a defect worth tracking.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Document the measured state only. The six columns bounded by nothing in any layer are carried to .dir-sdlc/backlog.md at Gate 3 rather than closed this session; no validator rule, no CHECK constraint and no migration. The Gate 1 documentation branch stands."
+    },
+    {
+      "id": "E4",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T3's criterion 3 states its evidence as `grep -c 'AsNoTracking'` returning 2, but the same criterion requires a comment naming that construct, which puts the token in the file and makes the raw count 4. Instrument form 14. How should the predicate read?",
+      "options": [
+        {
+          "summary": "Amend the predicate to the call-site form `^[[:space:]]*\\.AsNoTracking\\(\\)$` returning 2, plus zero removed lines in the diff",
+          "rationale": "Measures the call sites the criterion is actually about and is immune to prose naming the construct. T3's own first-ranked option.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Keep the frozen command and expect 4, decomposed as 2 call sites plus 2 prose mentions",
+          "rationale": "Preserves the frozen text and makes the decomposition the check, but leaves the criterion's stated number wrong on its face.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Have T3 reword the comment to avoid the token, as T4 did",
+          "rationale": "Resolves both tasks identically but strips AsNoTracking from a comment whose entire subject is that call.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Amend criterion 3's evidence clause to the call-site predicate plus zero removed lines. The orchestrator performed the edit as amendment A1. The comment keeps the literal token; the measuring instrument was at fault, not the prose."
+    },
+    {
+      "id": "E5",
+      "taskId": "T4",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T4 hit the same form-14 contamination on its own criterion 3 (`grep -c 'HasMaxLength'` returning 3) and resolved it by rewording its comments to avoid the literal tokens HasMaxLength and IsUnique, rather than escalating. Leave the reworded prose or amend and restore the tokens?",
+      "options": [
+        {
+          "summary": "Leave T4 as it stands",
+          "rationale": "T4 passes every frozen criterion, its comments are accurate, and the semantic content is intact since the wording sits directly above the three calls. Avoids a revision round on a clean task; costs a reader one grep.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Infrastructure/Persistence/Configurations/DungeonConfiguration.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Amend T4's criterion 3 as well and have T4 restore the literal tokens",
+          "rationale": "Treats both tasks consistently and makes the comments name the terms a reader would search for, at the cost of one amendment-caused revision round.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Leave T4 as it stands. Its criteria are met as written and its comments are accurate; the lost grep affordance is accepted rather than spending a revision round on a clean task. No amendment to T4."
+    },
+    {
+      "id": "E6",
+      "taskId": "T5",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T5's criterion 9 mandates the clause 'two exact citations in six being the best ratio this arc has recorded'. The arc never recorded a citation-exactness metric, and the brief's own 6b-xviii row implies at least 3 of 8, a better ratio. The superlative was the orchestrator's invention, was frozen into the criterion, and reached the permanent register. How should it resolve?",
+      "options": [
+        {
+          "summary": "Drop the superlative and keep the measured figure: two of six exact, both named",
+          "rationale": "The in-batch half is measured and survives; only the uncheckable cross-session comparison goes. Reviewer's first-ranked option.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-10-12-ui-layer-batch/BRIEF-session-6b-xx.md"
+            ]
+          }
+        },
+        {
+          "summary": "Requalify as a comparison on the metric the arc does record, 6 of 6 on false-or-stale specifics",
+          "rationale": "Accurate on both counts and keeps the arc's series comparable, at the cost of a longer clause.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-10-16-infra-layer-batch/measurement.md"
+            ]
+          }
+        },
+        {
+          "summary": "Retain the superlative explicitly marked as belief",
+          "rationale": "Preserves a figure nobody can check, in a register whose purpose is checkable claims. Reviewer ranked it last.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Drop the superlative, keep the measured figure. The orchestrator corrected measurement.md directly and amended manifest.json criterion 9 as A2; T5 strikes the clause from the :344 cell in revision round 2."
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E4",
+      "artifact": "manifest.json",
+      "before": "T3 criterion 3 evidence: `grep -n 'AsNoTracking'` returns 2 hits after your change, and you quote the comment with its post-change line span.",
+      "after": "T3 criterion 3 evidence: `grep -cE '^[[:space:]]*\\.AsNoTracking\\(\\)$'` returns 2 after your change, together with zero removed lines in the task's diff, and you quote the comment with its post-change line span.",
+      "inFlight": [
+        "T3",
+        "T4"
+      ]
+    },
+    {
+      "id": "A2",
+      "escalation": "E6",
+      "artifact": "manifest.json",
+      "before": "T5 criterion 9 required: recorded AS EXACT, with no correction invented for it, two exact citations in six being the best ratio this arc has recorded.",
+      "after": "T5 criterion 9 strikes the superlative and requires the measured figure only -- two of six citations exact, MASTER-117 at :12 and MASTER-156 at :58-59 -- asserting no cross-session comparison.",
+      "inFlight": [
+        "T5"
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 6,
+    "reviewRounds": 2
+  }
+}
