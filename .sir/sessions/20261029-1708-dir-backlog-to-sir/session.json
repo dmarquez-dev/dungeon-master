@@ -1,0 +1,42 @@
+{
+  "id": "20261029-1708-dir-backlog-to-sir",
+  "name": "dir-backlog-to-sir",
+  "scope": "standard",
+  "status": "MERGED",
+  "brief": "Convert the DIR-era deferred work into SIR-readable records. Six parallel triage tasks read the 181 items of .dir-sdlc/backlog.md (in five heading-aligned line ranges) and the 17 open or part-done rows of the audit register, and record each with a disposition (carry, drop with recorded evidence, or defer-permanent for MASTER-158 only) in triage files under this session's directory, against a frozen row format and a frozen 13-bundle vocabulary. A seventh task seeds .sir/lessons.md with the 18 instrument-catalogue forms and nine process lessons, each dated, attributed and cited. A fan-in task assembles .sir/backlog.md: one entry per carried row, preserving the original date and DIR session id, a back-pointer, and the marker re-measure before scheduling, grouped under session-bundle headings. Evidence is recorded records only, never source code; nothing outside .sir/ changes.",
+  "started": "2026-10-29T17:08:30Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "ea93df6d-c12d-4afd-8082-870a23942be5",
+      "phase": "discuss",
+      "started": "2026-10-29T17:08:30Z",
+      "ended": "2026-10-29T17:10:56Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "3c3c8fb2-59d4-484c-8011-b84cc3d80cd4",
+      "phase": "spec",
+      "started": "2026-10-29T17:12:22Z",
+      "ended": "2026-10-29T17:41:10Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "993ef7cb-8e42-4c66-80d5-c16f862fe253",
+      "phase": "implement",
+      "started": "2026-10-29T17:49:19Z",
+      "ended": "2026-10-29T18:39:10Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "6f8bcffb-4ec7-42a7-8e13-50312e19d121",
+      "phase": "review",
+      "started": "2026-10-29T18:40:46Z",
+      "ended": "2026-10-29T18:47:14Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+}
