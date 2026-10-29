@@ -2,10 +2,10 @@
   "id": "20261029-1708-dir-backlog-to-sir",
   "name": "dir-backlog-to-sir",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "brief": "Convert the DIR-era deferred work into SIR-readable records. Six parallel triage tasks read the 181 items of .dir-sdlc/backlog.md (in five heading-aligned line ranges) and the 17 open or part-done rows of the audit register, and record each with a disposition (carry, drop with recorded evidence, or defer-permanent for MASTER-158 only) in triage files under this session's directory, against a frozen row format and a frozen 13-bundle vocabulary. A seventh task seeds .sir/lessons.md with the 18 instrument-catalogue forms and nine process lessons, each dated, attributed and cited. A fan-in task assembles .sir/backlog.md: one entry per carried row, preserving the original date and DIR session id, a back-pointer, and the marker re-measure before scheduling, grouped under session-bundle headings. Evidence is recorded records only, never source code; nothing outside .sir/ changes.",
   "started": "2026-10-29T17:08:30Z",
-  "ended": null,
+  "ended": "2026-10-29T18:54:52Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -36,7 +36,14 @@
       "started": "2026-10-29T18:40:46Z",
       "ended": "2026-10-29T18:47:14Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "4b7e41ed-fa3b-4d64-a0d2-99fe29073562",
+      "phase": "wrap",
+      "started": "2026-10-29T18:53:39Z",
+      "ended": "2026-10-29T18:54:52Z",
+      "outcome": "complete"
     }
   ],
-  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+  "metrics": { "userInteractions": 5, "escalationsRaised": 1, "reviewRounds": 1 }
 }
