@@ -4,7 +4,8 @@ using FluentValidation;
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Validators;
 
 /// <summary>
-///		The shared behaviour of every command validator whose only rule is <c>RuleFor(c =&gt; c.Name).NotEmpty().MaximumLength(100)</c> (MASTER-064).
+///		The Name-rule behaviour shared by the command validators whose tests derive from this base: each applies <c>RuleFor(c =&gt; c.Name).NotEmpty().MaximumLength(100)</c> (MASTER-064).
+///		The base asserts that Name rule and nothing else; a leaf's validator may carry further rules, which the leaf tests itself, so every command the base builds is valid in every respect except its name.
 ///		xUnit does not discover an abstract class, so each fact below runs once per concrete leaf, against that leaf's own command type and that leaf's own validator instance.
 ///		Variation is supplied only through the abstract members: a leaf is a leaf because it overrides them, never because a scan found it.
 /// </summary>
