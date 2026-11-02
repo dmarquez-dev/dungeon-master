@@ -24,5 +24,13 @@ public sealed class UpdateFloorCommandValidator
 		RuleFor(command =>
 			command.Name)
 			.MaximumLength(100);
+
+		RuleFor(command =>
+			command.Description)
+			.MaximumLength(2000);
+
+		RuleFor(command =>
+			command.Notes)
+			.MaximumLength(2000);
 	}
 }
