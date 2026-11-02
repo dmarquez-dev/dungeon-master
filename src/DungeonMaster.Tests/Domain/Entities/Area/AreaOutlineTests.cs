@@ -152,16 +152,16 @@ public class AreaOutlineTests
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
-		var act = () => dungeon.UpdateAreaOutline(
-			floor.Id,
-			area.Id,
-			[
-				new PathSegment(PathSegmentKind.Line, new TilePoint(1, 1), null, null),
-				new PathSegment(PathSegmentKind.Line, new TilePoint(5, 1), null, null),
-				new PathSegment(PathSegmentKind.Line, new TilePoint(5, 5), null, null),
-			]);
+		var outline = new List<PathSegment>
+		{
+			new(PathSegmentKind.Line, new TilePoint(1, 1), null, null),
+			new(PathSegmentKind.Line, new TilePoint(5, 1), null, null),
+			new(PathSegmentKind.Line, new TilePoint(5, 5), null, null),
+		};
+
+		var act = () => dungeon.UpdateAreaOutline(floor.Id, area.Id, outline);
 
 		act.Should().NotThrow();
-		area.Outline.Should().HaveCount(3);
+		area.Outline.Should().Equal(outline);
 	}
 }
