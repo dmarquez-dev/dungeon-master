@@ -22,6 +22,9 @@ namespace DungeonMaster.Domain.ValueObjects;
 ///		<see langword="null"/>, or <paramref name="Kind"/> is <see cref="PathSegmentKind.Line"/> and either control
 ///		point is non-<see langword="null"/> (MASTER-170).
 /// </exception>
+/// <exception cref="ArgumentOutOfRangeException">
+///		Thrown when <paramref name="Kind"/> is not a defined <see cref="PathSegmentKind"/>.
+/// </exception>
 public record PathSegment(
 	PathSegmentKind Kind,
 	TilePoint End,
@@ -35,7 +38,7 @@ public record PathSegment(
 	public PathSegmentKind Kind { get; init; } = ValidateControlPoints(Kind, Ctrl1, Ctrl2);
 
 	// The parameters deliberately carry the record's positional names rather than camel case: the reported
-	// ParamName must be Ctrl1 or Ctrl2, the names a caller wrote, and CA2208 requires that the paramName
+	// ParamName must be Kind, Ctrl1 or Ctrl2, the names a caller wrote, and CA2208 requires that the paramName
 	// argument match a parameter of the throwing method exactly.
 	private static PathSegmentKind ValidateControlPoints(
 		PathSegmentKind Kind,
@@ -58,7 +61,7 @@ public record PathSegment(
 					nameof(Ctrl2));
 			}
 		}
-		else
+		else if (Kind == PathSegmentKind.Line)
 		{
 			if (Ctrl1 is not null)
 			{
@@ -73,6 +76,13 @@ public record PathSegment(
 					"A Line segment must not carry control points.",
 					nameof(Ctrl2));
 			}
+		}
+		else
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(Kind),
+				Kind,
+				$"Kind must be a defined {nameof(PathSegmentKind)}.");
 		}
 
 		return Kind;

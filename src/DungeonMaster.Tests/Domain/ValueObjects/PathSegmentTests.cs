@@ -106,4 +106,15 @@ public class PathSegmentTests
 		act.Should().ThrowExactly<ArgumentException>()
 			.Which.ParamName.Should().Be("Ctrl2");
 	}
+
+	[Fact]
+	public void UndefinedKind_ThrowsArgumentOutOfRangeExceptionNamingKind()
+	{
+		var end = new TilePoint(2, 3);
+
+		var act = () => new PathSegment((PathSegmentKind)2, end, null, null);
+
+		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
+			.WithParameterName("Kind");
+	}
 }

@@ -17,5 +17,13 @@ public sealed class UpdateDungeonCommandValidator
 			command.Name)
 			.NotEmpty()
 			.MaximumLength(100);
+
+		RuleFor(command =>
+			command.Description)
+			.MaximumLength(2000);
+
+		RuleFor(command =>
+			command.Notes)
+			.MaximumLength(4000);
 	}
 }

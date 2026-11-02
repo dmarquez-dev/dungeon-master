@@ -2,6 +2,10 @@ using DungeonMaster.Domain.Entities.Floors;
 
 namespace DungeonMaster.App.Assets.ObjectAssets;
 
+/// <summary>
+///		Describes how each real <see cref="ObjectKind"/> is placed, sized, named and grouped in the palette.
+///		Every member rejects <see cref="ObjectKind.None"/> and values outside the declared members.
+/// </summary>
 public static class ObjectKindInfo
 {
 	private static readonly HashSet<ObjectKind> WallObjects =
@@ -21,8 +25,28 @@ public static class ObjectKindInfo
 		ObjectKind.WeaponRack,
 	];
 
+	/// <summary>
+	///		Gets the anchor an object of the given kind snaps to by default.
+	/// </summary>
+	/// <param name="kind">
+	///		The kind of object to look up.
+	/// </param>
+	/// <returns>
+	///		<see cref="SnapAnchor.East"/> for wall objects, <see cref="SnapAnchor.South"/> for wall-adjacent objects, and <see cref="SnapAnchor.Center"/> for every other real kind.
+	/// </returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		Thrown when <paramref name="kind"/> is <see cref="ObjectKind.None"/> or is an undefined <see cref="ObjectKind"/> value.
+	/// </exception>
 	public static SnapAnchor GetDefaultAnchor(ObjectKind kind)
 	{
+		if (kind == ObjectKind.None || !Enum.IsDefined(kind))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(kind),
+				kind,
+				$"Kind must be a defined {nameof(ObjectKind)} other than {nameof(ObjectKind.None)}.");
+		}
+
 		if (WallObjects.Contains(kind))
 		{
 			return SnapAnchor.East;
@@ -38,85 +62,148 @@ public static class ObjectKindInfo
 	///		Logical bounding size of the object in tile units (W × H).
 	///		Used to scale assets proportionally at appropriate dungeon-map scale.
 	/// </summary>
-	public static (float W, float H) GetObjectSize(ObjectKind kind) => kind switch
+	/// <param name="kind">
+	///		The kind of object to look up.
+	/// </param>
+	/// <returns>
+	///		The width and height in tile units.
+	/// </returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		Thrown when <paramref name="kind"/> is <see cref="ObjectKind.None"/> or is an undefined <see cref="ObjectKind"/> value.
+	/// </exception>
+	public static (float W, float H) GetObjectSize(ObjectKind kind)
 	{
-		// Tiny decorative / lighting
-		ObjectKind.Candle or ObjectKind.Torch or ObjectKind.Lantern => (0.35f, 0.35f),
-		ObjectKind.Vase => (0.35f, 0.50f),
-		ObjectKind.WickerBasket or ObjectKind.Brazier => (0.50f, 0.50f),
+		if (kind == ObjectKind.None || !Enum.IsDefined(kind))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(kind),
+				kind,
+				$"Kind must be a defined {nameof(ObjectKind)} other than {nameof(ObjectKind.None)}.");
+		}
 
-		// Small storage
-		ObjectKind.Chest or ObjectKind.Barrel or ObjectKind.Crate => (0.65f, 0.65f),
+		return kind switch
+		{
+			// Tiny decorative / lighting
+			ObjectKind.Candle or ObjectKind.Torch or ObjectKind.Lantern => (0.35f, 0.35f),
+			ObjectKind.Vase => (0.35f, 0.50f),
+			ObjectKind.WickerBasket or ObjectKind.Brazier => (0.50f, 0.50f),
 
-		// Small seating
-		ObjectKind.Stool => (0.55f, 0.55f),
-		ObjectKind.Chair or ObjectKind.Armchair => (0.75f, 0.75f),
+			// Small storage
+			ObjectKind.Chest or ObjectKind.Barrel or ObjectKind.Crate => (0.65f, 0.65f),
 
-		// Medium / single-tile
-		ObjectKind.Throne or ObjectKind.Cauldron or ObjectKind.Oven => (0.90f, 0.90f),
-		ObjectKind.Chandelier => (0.80f, 0.80f),
-		ObjectKind.Altar or ObjectKind.Statue => (0.90f, 0.90f),
-		ObjectKind.Dresser or ObjectKind.TableRound => (1.00f, 1.00f),
-		ObjectKind.Rug => (1.80f, 1.20f),
+			// Small seating
+			ObjectKind.Stool => (0.55f, 0.55f),
+			ObjectKind.Chair or ObjectKind.Armchair => (0.75f, 0.75f),
 
-		// Wall-adjacent storage (tall/wide)
-		ObjectKind.Bookshelf or ObjectKind.WeaponRack => (0.45f, 1.10f),
-		ObjectKind.Shelf => (1.10f, 0.45f),
+			// Medium / single-tile
+			ObjectKind.Throne or ObjectKind.Cauldron or ObjectKind.Oven => (0.90f, 0.90f),
+			ObjectKind.Chandelier => (0.80f, 0.80f),
+			ObjectKind.Altar or ObjectKind.Statue => (0.90f, 0.90f),
+			ObjectKind.Dresser or ObjectKind.TableRound => (1.00f, 1.00f),
+			ObjectKind.Rug => (1.80f, 1.20f),
 
-		// Large furniture spanning multiple tiles
-		ObjectKind.Bed => (1.00f, 2.00f),
-		ObjectKind.TableRect => (2.00f, 1.00f),
-		ObjectKind.Desk => (1.80f, 0.90f),
-		ObjectKind.Bench => (0.45f, 1.50f),
-		ObjectKind.TableEnd => (0.70f, 0.70f),
+			// Wall-adjacent storage (tall/wide)
+			ObjectKind.Bookshelf or ObjectKind.WeaponRack => (0.45f, 1.10f),
+			ObjectKind.Shelf => (1.10f, 0.45f),
 
-		_ => (1.00f, 1.00f),
-	};
+			// Large furniture spanning multiple tiles
+			ObjectKind.Bed => (1.00f, 2.00f),
+			ObjectKind.TableRect => (2.00f, 1.00f),
+			ObjectKind.Desk => (1.80f, 0.90f),
+			ObjectKind.Bench => (0.45f, 1.50f),
+			ObjectKind.TableEnd => (0.70f, 0.70f),
 
-	public static string GetDisplayName(ObjectKind kind) => kind switch
+			_ => (1.00f, 1.00f),
+		};
+	}
+
+	/// <summary>
+	///		Gets the name the palette shows for an object of the given kind.
+	/// </summary>
+	/// <param name="kind">
+	///		The kind of object to look up.
+	/// </param>
+	/// <returns>
+	///		The human-readable display name.
+	/// </returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		Thrown when <paramref name="kind"/> is <see cref="ObjectKind.None"/> or is an undefined <see cref="ObjectKind"/> value.
+	/// </exception>
+	public static string GetDisplayName(ObjectKind kind)
 	{
-		ObjectKind.DoorWood => "Wood Door",
-		ObjectKind.DoorIron => "Iron Door",
-		ObjectKind.DoorPortcullis => "Portcullis",
-		ObjectKind.Arch => "Arch",
-		ObjectKind.Window => "Window",
-		ObjectKind.TableRound => "Round Table",
-		ObjectKind.TableRect => "Rect Table",
-		ObjectKind.TableEnd => "Side Table",
-		ObjectKind.Desk => "Writing Desk",
-		ObjectKind.Chair => "Chair",
-		ObjectKind.Armchair => "Armchair",
-		ObjectKind.Bench => "Bench",
-		ObjectKind.Stool => "Stool",
-		ObjectKind.Throne => "Throne",
-		ObjectKind.Bed => "Bed",
-		ObjectKind.StairsUp => "Stairs Up",
-		ObjectKind.StairsDown => "Stairs Down",
-		ObjectKind.Chest => "Chest",
-		ObjectKind.Barrel => "Barrel",
-		ObjectKind.Crate => "Crate",
-		ObjectKind.Bookshelf => "Bookshelf",
-		ObjectKind.Dresser => "Dresser",
-		ObjectKind.Shelf => "Shelf",
-		ObjectKind.Vase => "Vase",
-		ObjectKind.WickerBasket => "Basket",
-		ObjectKind.Torch => "Torch",
-		ObjectKind.Brazier => "Brazier",
-		ObjectKind.Lantern => "Lantern",
-		ObjectKind.Chandelier => "Chandelier",
-		ObjectKind.Candle => "Candle",
-		ObjectKind.Fountain => "Fountain",
-		ObjectKind.Altar => "Altar",
-		ObjectKind.Statue => "Statue",
-		ObjectKind.Rug => "Rug",
-		ObjectKind.Cauldron => "Cauldron",
-		ObjectKind.Oven => "Oven",
-		ObjectKind.WeaponRack => "Weapon Rack",
-		_ => kind.ToString()
-	};
+		if (kind == ObjectKind.None || !Enum.IsDefined(kind))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(kind),
+				kind,
+				$"Kind must be a defined {nameof(ObjectKind)} other than {nameof(ObjectKind.None)}.");
+		}
 
+		return kind switch
+		{
+			ObjectKind.DoorWood => "Wood Door",
+			ObjectKind.DoorIron => "Iron Door",
+			ObjectKind.DoorPortcullis => "Portcullis",
+			ObjectKind.Arch => "Arch",
+			ObjectKind.Window => "Window",
+			ObjectKind.TableRound => "Round Table",
+			ObjectKind.TableRect => "Rect Table",
+			ObjectKind.TableEnd => "Side Table",
+			ObjectKind.Desk => "Writing Desk",
+			ObjectKind.Chair => "Chair",
+			ObjectKind.Armchair => "Armchair",
+			ObjectKind.Bench => "Bench",
+			ObjectKind.Stool => "Stool",
+			ObjectKind.Throne => "Throne",
+			ObjectKind.Bed => "Bed",
+			ObjectKind.StairsUp => "Stairs Up",
+			ObjectKind.StairsDown => "Stairs Down",
+			ObjectKind.Chest => "Chest",
+			ObjectKind.Barrel => "Barrel",
+			ObjectKind.Crate => "Crate",
+			ObjectKind.Bookshelf => "Bookshelf",
+			ObjectKind.Dresser => "Dresser",
+			ObjectKind.Shelf => "Shelf",
+			ObjectKind.Vase => "Vase",
+			ObjectKind.WickerBasket => "Basket",
+			ObjectKind.Torch => "Torch",
+			ObjectKind.Brazier => "Brazier",
+			ObjectKind.Lantern => "Lantern",
+			ObjectKind.Chandelier => "Chandelier",
+			ObjectKind.Candle => "Candle",
+			ObjectKind.Fountain => "Fountain",
+			ObjectKind.Altar => "Altar",
+			ObjectKind.Statue => "Statue",
+			ObjectKind.Rug => "Rug",
+			ObjectKind.Cauldron => "Cauldron",
+			ObjectKind.Oven => "Oven",
+			ObjectKind.WeaponRack => "Weapon Rack",
+			_ => kind.ToString()
+		};
+	}
+
+	/// <summary>
+	///		Gets the palette category an object of the given kind is grouped under.
+	/// </summary>
+	/// <param name="kind">
+	///		The kind of object to look up.
+	/// </param>
+	/// <returns>
+	///		One of "Doors", "Furniture", "Storage", "Lighting" or "Decoration".
+	/// </returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		Thrown when <paramref name="kind"/> is <see cref="ObjectKind.None"/> or is an undefined <see cref="ObjectKind"/> value.
+	/// </exception>
 	public static string GetCategory(ObjectKind kind)
 	{
+		if (kind == ObjectKind.None || !Enum.IsDefined(kind))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(kind),
+				kind,
+				$"Kind must be a defined {nameof(ObjectKind)} other than {nameof(ObjectKind.None)}.");
+		}
+
 		if (WallObjects.Contains(kind))
 		{
 			return "Doors";

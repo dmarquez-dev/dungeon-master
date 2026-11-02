@@ -100,6 +100,21 @@ public class AreaOutlineGeometryTests
 	}
 
 	[Fact]
+	public void Translate_LineSegmentCarryingAControlPoint_ThrowsArgumentExceptionNamingCtrl1()
+	{
+		// A with expression skips the constructor's validation, so it is the only way to build the invalid segment.
+		var invalid = new PathSegment(PathSegmentKind.Line, new TilePoint(2, 3), null, null) with
+		{
+			Ctrl1 = new TilePoint(4, 5),
+		};
+		IReadOnlyList<PathSegment> outline = [invalid];
+
+		var act = () => AreaOutlineGeometry.Translate(outline, new TilePoint(1, 1));
+
+		act.Should().ThrowExactly<ArgumentException>().WithParameterName("Ctrl1");
+	}
+
+	[Fact]
 	public void ToPolygon_ClosedOutline_EmitsTheLastSegmentEndFirstThenEverySegmentEndInOrder()
 	{
 		var result = AreaOutlineGeometry.ToPolygon(Rectangle(), TileSize);
