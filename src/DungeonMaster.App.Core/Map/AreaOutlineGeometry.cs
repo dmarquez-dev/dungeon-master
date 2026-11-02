@@ -26,6 +26,9 @@ public static class AreaOutlineGeometry
 	///		<paramref name="outline"/> or <paramref name="delta"/> is null, or any element of
 	///		<paramref name="outline"/> is null.
 	/// </exception>
+	/// <exception cref="ArgumentException">
+	///		Thrown when a segment's control points violate the rule for its <see cref="PathSegment.Kind"/>.
+	/// </exception>
 	public static IReadOnlyList<PathSegment> Translate(
 		IReadOnlyList<PathSegment> outline,
 		TilePoint delta)
@@ -39,16 +42,16 @@ public static class AreaOutlineGeometry
 		{
 			ArgumentNullException.ThrowIfNull(segment, nameof(outline));
 
-			translated.Add(segment with
-			{
-				End = new TilePoint(segment.End.Col + delta.Col, segment.End.Row + delta.Row),
-				Ctrl1 = segment.Ctrl1 is null
+			// The constructor, not a copy, so every output segment is re-validated against its Kind.
+			translated.Add(new PathSegment(
+				segment.Kind,
+				new TilePoint(segment.End.Col + delta.Col, segment.End.Row + delta.Row),
+				segment.Ctrl1 is null
 					? null
 					: new TilePoint(segment.Ctrl1.Col + delta.Col, segment.Ctrl1.Row + delta.Row),
-				Ctrl2 = segment.Ctrl2 is null
+				segment.Ctrl2 is null
 					? null
-					: new TilePoint(segment.Ctrl2.Col + delta.Col, segment.Ctrl2.Row + delta.Row),
-			});
+					: new TilePoint(segment.Ctrl2.Col + delta.Col, segment.Ctrl2.Row + delta.Row)));
 		}
 
 		return translated;
