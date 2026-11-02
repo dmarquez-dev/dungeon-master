@@ -1,0 +1,255 @@
+{
+  "session": "20261102-1907-domain-invariants",
+  "createdAt": "2026-11-02T19:30:12Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "R1 (Dungeon): bound Dungeon Description and Notes in CreateDungeon and UpdateDungeon validators; correct DungeonConfiguration comment and NameOnlyValidatorTestBase summary",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/CreateDungeon/CreateDungeonCommandValidator.cs",
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/UpdateDungeon/UpdateDungeonCommandValidator.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Configurations/DungeonConfiguration.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/CreateDungeonCommandValidatorTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/UpdateDungeonCommandValidatorTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/NameOnlyValidatorTestBase.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "CreateDungeonCommandValidator rejects a Description of 2001 characters: a test in CreateDungeonCommandValidatorTests.cs validates a command with a valid Name and Description `new string('A', 2001)`, and asserts `IsValid` is false and `Errors.Should().ContainSingle()` (no predicate) whose `PropertyName` is `nameof(CreateDungeonCommand.Description)`. Shown able to fail by one route, named in the report: red step (the test fails at fd429e3, where CreateDungeonCommandValidator.cs:16-19 holds only the Name rule) or injection (delete the Description rule; this test turns red while the at-2000 test stays green).",
+        "CreateDungeonCommandValidator accepts a Description of exactly 2000 characters: a test asserts `IsValid` is true for a valid Name and Description `new string('A', 2000)`. This test passes at fd429e3, so the evidence is an injection: change the Description rule's limit to 1999; this test turns red while the 2001 rejection test stays green.",
+        "CreateDungeonCommandValidator accepts a null Description (preserved behaviour, passing at fd429e3 by design; it asserts the new rule does not make the field required): a test asserts `IsValid` is true. Injection: insert `.NotEmpty()` into the Description rule ahead of its length check; this test turns red while the 2001 rejection test stays green.",
+        "UpdateDungeonCommandValidator rejects a Description of 2001 characters: a test in UpdateDungeonCommandValidatorTests.cs asserts `IsValid` is false and `Errors.Should().ContainSingle()` whose `PropertyName` is `nameof(UpdateDungeonCommand.Description)`, with Name valid and Notes null. Shown able to fail by red step (fails at fd429e3, where UpdateDungeonCommandValidator.cs:16-19 holds only the Name rule) or by injection (delete the Description rule; this test red, the Description at-2000 test green).",
+        "UpdateDungeonCommandValidator accepts a Description of exactly 2000 characters: a test asserts `IsValid` is true. Injection: change the Description rule's limit to 1999; this test turns red while the Description 2001 rejection test stays green.",
+        "UpdateDungeonCommandValidator accepts a null Description (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true. Injection: insert `.NotEmpty()` into the Description rule ahead of its length check; this test turns red while the Description 2001 rejection test stays green.",
+        "UpdateDungeonCommandValidator rejects a Notes of 4001 characters: a test asserts `IsValid` is false and `Errors.Should().ContainSingle()` whose `PropertyName` is `nameof(UpdateDungeonCommand.Notes)`, with Name valid and Description null. Shown able to fail by red step (fails at fd429e3) or by injection (delete the Notes rule; this test red, the Notes at-4000 test green).",
+        "UpdateDungeonCommandValidator accepts a Notes of exactly 4000 characters: a test asserts `IsValid` is true. Injection: change the Notes rule's limit to 3999; this test turns red while the Notes 4001 rejection test stays green.",
+        "UpdateDungeonCommandValidator accepts a null Notes (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true. Injection: insert `.NotEmpty()` into the Notes rule ahead of its length check; this test turns red while the Notes 4001 rejection test stays green.",
+        "No comment in DungeonConfiguration.cs still claims Dungeon.Description or Dungeon.Notes is unbounded. None of the fd429e3 comment's bounding claims survives, in any wording: at :43-47, that exactly three columns are validator-bounded, that the rest are bounded by NOTHING IN ANY LAYER, that Description and Notes ARE NOT BOUNDED ANYWHERE, and that six of nine columns are in that state; at :60-61, that the validators bound three of these columns.",
+        "No comment in DungeonConfiguration.cs still states that bounding these columns is deferred: the fd429e3 sentences at :65-67 (closing the six-column gap is deliberately not done here; this change adds no validator rule) survive in no wording.",
+        "The DungeonConfiguration.cs comment states that Dungeon.Description is bounded at 2000 by CreateDungeonCommandValidator and UpdateDungeonCommandValidator, and Dungeon.Notes at 4000 by UpdateDungeonCommandValidator. Those limits match the `HasMaxLength(2000)` and `HasMaxLength(4000)` declarations at fd429e3 :75 and :79.",
+        "Every claim the DungeonConfiguration.cs comment makes about which layer bounds a column concerns only the columns that file configures. It states nothing about Floor or Area columns or their validators: those land in T2 and T3, and a claim about them here would be true or false depending on work outside this task.",
+        "Every count the DungeonConfiguration.cs comment block states at task end is true when its named command is run at task end, and no named command's scope includes src/DungeonMaster.Infrastructure/Persistence/Configurations/ (so the comment cannot count itself) or any path that another task of this manifest owns (so a sibling task landing later cannot falsify it); a count that fails either condition is removed instead of restated, so a project-wide count such as `grep -rn \"MaximumLength\" src` cannot survive. Two fd429e3 counts fail this today. First, `grep -rn \"MaximumLength\" src --include=*.cs` (cited at :49) matches the comment's own :50 and returns 10 lines with /obj/ and /bin/ excluded, not the six rules plus one stated. Second, `grep -rn 'HasCheckConstraint' src` (cited at :37) returns 3 (the three configuration comments), not 0.",
+        "NameOnlyValidatorTestBase.cs's class summary (fd429e3 :7, 'every command validator whose only rule is ...') no longer states that Name is the only rule of any validator. It describes the base as the Name-rule behaviour its leaves share. Its leaves are four (AddArea, CreateDungeon, UpdateArea and UpdateDungeon; `grep -rn \"NameOnlyValidatorTestBase<\" src/DungeonMaster.Tests --include=*.cs` returns the base's declaration plus those four), and every one of them gains rules in T1 or T3. The summary stays true whichever order T1 and T3 land in.",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming: a name that says it works names nothing, and a name must not claim more than its assertions check).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message. For each injected file it quotes PowerShell `Get-FileHash -Algorithm SHA256` taken immediately before the first injection and again after the last revert, and the two are equal.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. This is the preserved-behaviour check: every test passing at fd429e3 still passes, including the three NameOnlyValidatorTestBase facts on each leaf. A run whose output names no test count (for example `--no-build` in an unrestored tree) counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "R1 (Floor): bound Floor Description and Notes in UpdateFloorCommandValidator; correct FloorConfiguration comment",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/UpdateFloor/UpdateFloorCommandValidator.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Configurations/FloorConfiguration.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/UpdateFloorCommandValidatorTests.cs"
+      ],
+      "dependsOn": [
+        "T1"
+      ],
+      "acceptance": [
+        "UpdateFloorCommandValidator rejects a Description of 2001 characters: a test in UpdateFloorCommandValidatorTests.cs validates a command with non-empty DungeonId and FloorId, a valid Name, Notes null and Description `new string('A', 2001)`. It asserts `IsValid` is false and `Errors.Should().ContainSingle()` (no predicate) whose `PropertyName` is `nameof(UpdateFloorCommand.Description)`. Shown able to fail by red step (fails at fd429e3, where UpdateFloorCommandValidator.cs:16-26 holds only the DungeonId, FloorId and Name rules) or by injection (delete the Description rule; this test red, the Description at-2000 test green).",
+        "UpdateFloorCommandValidator accepts a Description of exactly 2000 characters: a test asserts `IsValid` is true. Injection: change the Description rule's limit to 1999; this test turns red while the Description 2001 rejection test stays green.",
+        "UpdateFloorCommandValidator accepts a null Description (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true for a command whose Description is null. Injection: insert `.NotEmpty()` into the Description rule ahead of its length check; this test turns red while the Description 2001 rejection test stays green.",
+        "UpdateFloorCommandValidator rejects a Notes of 2001 characters: a test asserts `IsValid` is false and `Errors.Should().ContainSingle()` whose `PropertyName` is `nameof(UpdateFloorCommand.Notes)`, with Description null and the rest valid. Shown able to fail by red step (fails at fd429e3) or by injection (delete the Notes rule; this test red, the Notes at-2000 test green).",
+        "UpdateFloorCommandValidator accepts a Notes of exactly 2000 characters: a test asserts `IsValid` is true. Injection: change the Notes rule's limit to 1999; this test turns red while the Notes 2001 rejection test stays green.",
+        "UpdateFloorCommandValidator accepts a null Notes (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true for a command whose Notes is null. Injection: insert `.NotEmpty()` into the Notes rule ahead of its length check; this test turns red while the Notes 2001 rejection test stays green.",
+        "No comment in FloorConfiguration.cs still claims Floor.Description or Floor.Notes is unbounded. None of the fd429e3 comment's bounding claims survives, in any wording: at :51-56, that exactly three columns are validator-bounded, that the rest are bounded by NOTHING IN ANY LAYER, that Description and Notes ARE NOT BOUNDED ANYWHERE, and that six of nine columns are in that state; at :69-70, that the validators bound three of these columns.",
+        "No comment in FloorConfiguration.cs still states that bounding these columns is deferred: the fd429e3 sentences at :74-76 (closing the six-column gap is deliberately not done here; this change adds no validator rule) survive in no wording.",
+        "The FloorConfiguration.cs comment states that Floor.Description and Floor.Notes are each bounded at 2000 by UpdateFloorCommandValidator. Those limits match the two `HasMaxLength(2000)` declarations at fd429e3 :83 and :87.",
+        "Every claim the FloorConfiguration.cs comment makes about which layer bounds a column concerns only the columns that file configures. It states nothing about Dungeon or Area columns or their validators, which land in T1 and T3.",
+        "Every count the FloorConfiguration.cs comment block states at task end is true when its named command is run at task end, and no named command's scope includes src/DungeonMaster.Infrastructure/Persistence/Configurations/ (so the comment cannot count itself) or any path that another task of this manifest owns (so a sibling task landing later cannot falsify it); a count that fails either condition is removed instead of restated, so a project-wide count such as `grep -rn \"MaximumLength\" src` cannot survive. Two fd429e3 counts fail this today. First, `grep -rn \"MaximumLength\" src --include=*.cs` (cited at :58) matches the comment's own :59 and returns 10 lines with /obj/ and /bin/ excluded, not the six rules plus one stated. Second, `grep -rn 'HasCheckConstraint' src` (cited at :45) returns 3, not 0.",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message. For each injected file it quotes PowerShell `Get-FileHash -Algorithm SHA256` taken immediately before the first injection and again after the last revert, and the two are equal.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. This is the preserved-behaviour check: every test passing at fd429e3 still passes, including the existing five facts in UpdateFloorCommandValidatorTests.cs. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "R1 (Area): bound Area Description and Notes in AddArea and UpdateArea validators; correct AreaConfiguration comment",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/AddArea/AddAreaCommandValidator.cs",
+        "src/DungeonMaster.Application/Features/Dungeons/Commands/UpdateArea/UpdateAreaCommandValidator.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/AddAreaCommandValidatorTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/UpdateAreaCommandValidatorTests.cs"
+      ],
+      "dependsOn": [
+        "T2"
+      ],
+      "acceptance": [
+        "AddAreaCommandValidator rejects a Description of 2001 characters: a test in AddAreaCommandValidatorTests.cs validates a command with a valid Name and Description `new string('A', 2001)`, and asserts `IsValid` is false and `Errors.Should().ContainSingle()` (no predicate) whose `PropertyName` is `nameof(AddAreaCommand.Description)`. Shown able to fail by red step (fails at fd429e3, where AddAreaCommandValidator.cs:16-19 holds only the Name rule) or by injection (delete the Description rule; this test red, the at-2000 test green).",
+        "AddAreaCommandValidator accepts a Description of exactly 2000 characters: a test asserts `IsValid` is true. Injection: change the Description rule's limit to 1999; this test turns red while the 2001 rejection test stays green.",
+        "AddAreaCommandValidator accepts a null Description (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true. Injection: insert `.NotEmpty()` into the Description rule ahead of its length check; this test turns red while the 2001 rejection test stays green.",
+        "UpdateAreaCommandValidator rejects a Description of 2001 characters: a test in UpdateAreaCommandValidatorTests.cs asserts `IsValid` is false and `Errors.Should().ContainSingle()` whose `PropertyName` is `nameof(UpdateAreaCommand.Description)`, with Name valid and Notes null. Shown able to fail by red step (fails at fd429e3, where UpdateAreaCommandValidator.cs:16-19 holds only the Name rule) or by injection (delete the Description rule; this test red, the Description at-2000 test green).",
+        "UpdateAreaCommandValidator accepts a Description of exactly 2000 characters: a test asserts `IsValid` is true. Injection: change the Description rule's limit to 1999; this test turns red while the Description 2001 rejection test stays green.",
+        "UpdateAreaCommandValidator accepts a null Description (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true. Injection: insert `.NotEmpty()` into the Description rule ahead of its length check; this test turns red while the Description 2001 rejection test stays green.",
+        "UpdateAreaCommandValidator rejects a Notes of 2001 characters: a test asserts `IsValid` is false and `Errors.Should().ContainSingle()` whose `PropertyName` is `nameof(UpdateAreaCommand.Notes)`, with Name valid and Description null. Shown able to fail by red step (fails at fd429e3) or by injection (delete the Notes rule; this test red, the Notes at-2000 test green).",
+        "UpdateAreaCommandValidator accepts a Notes of exactly 2000 characters: a test asserts `IsValid` is true. Injection: change the Notes rule's limit to 1999; this test turns red while the Notes 2001 rejection test stays green.",
+        "UpdateAreaCommandValidator accepts a null Notes (preserved behaviour, passing at fd429e3 by design): a test asserts `IsValid` is true. Injection: insert `.NotEmpty()` into the Notes rule ahead of its length check; this test turns red while the Notes 2001 rejection test stays green.",
+        "No comment in AreaConfiguration.cs still claims Area.Description or Area.Notes is unbounded. None of the fd429e3 comment's bounding claims survives, in any wording: at :88-93, that exactly three columns are validator-bounded, that the rest are bounded by NOTHING IN ANY LAYER, that Description and Notes ARE NOT BOUNDED ANYWHERE, and that six of nine columns are in that state; at :107-108, that the validators bound three of these columns.",
+        "No comment in AreaConfiguration.cs still states that bounding these columns is deferred: the fd429e3 sentences at :112-114 (closing the six-column gap is deliberately not done here; this change adds no validator rule) survive in no wording.",
+        "The AreaConfiguration.cs comment states that Area.Description is bounded at 2000 by AddAreaCommandValidator and UpdateAreaCommandValidator, and Area.Notes at 2000 by UpdateAreaCommandValidator. Those limits match the two `HasMaxLength(2000)` declarations at fd429e3 :122 and :126.",
+        "Every claim the AreaConfiguration.cs comment makes about which layer bounds a column concerns only the columns that file configures. It states nothing about Dungeon or Floor columns or their validators, which land in T1 and T2.",
+        "Every count the AreaConfiguration.cs comment block states at task end is true when its named command is run at task end, and no named command's scope includes src/DungeonMaster.Infrastructure/Persistence/Configurations/ (so the comment cannot count itself) or any path that another task of this manifest owns (so a sibling task landing later cannot falsify it); a count that fails either condition is removed instead of restated, so a project-wide count such as `grep -rn \"MaximumLength\" src` cannot survive. Two fd429e3 counts fail this today. First, `grep -rn \"MaximumLength\" src --include=*.cs` (cited at :96) matches the comment's own :97 and returns 10 lines with /obj/ and /bin/ excluded, not the six rules plus one stated. Second, `grep -rn 'HasCheckConstraint' src` (cited at :82) returns 3, not 0.",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message. For each injected file it quotes PowerShell `Get-FileHash -Algorithm SHA256` taken immediately before the first injection and again after the last revert, and the two are equal.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. This is the preserved-behaviour check: every test passing at fd429e3 still passes, including the three NameOnlyValidatorTestBase facts on the AddArea and UpdateArea leaves. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "R2: PathSegment rejects an undefined PathSegmentKind instead of treating it as Line",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/ValueObjects/PathSegment.cs",
+        "src/DungeonMaster.Tests/Domain/ValueObjects/PathSegmentTests.cs"
+      ],
+      "dependsOn": [
+        "T3"
+      ],
+      "acceptance": [
+        "`new PathSegment((PathSegmentKind)2, end, null, null)` throws `ArgumentOutOfRangeException` with `ParamName` `Kind`: a test in PathSegmentTests.cs asserts `ThrowExactly<ArgumentOutOfRangeException>()` and `.WithParameterName(\"Kind\")`. Shown able to fail by one route, named in the report. Red step: the test fails at fd429e3, where the bare `else` at PathSegment.cs:61 treats the undefined kind as Line and the constructor returns normally. Injection: remove the new undefined-kind throw so that an undefined kind falls through to `return Kind;`. Under the injection this test turns red while `Line_CarryingCtrl1_ThrowsArgumentExceptionNamingCtrl1` stays green.",
+        "The existing Line and CubicBezier rules are unchanged (preserved behaviour). The seven existing facts in PathSegmentTests.cs (fd429e3 :16, :31, :44, :57, :70, :85 and :98, from `grep -n \"public void\" src/DungeonMaster.Tests/Domain/ValueObjects/PathSegmentTests.cs`) still pass, with their assertions unmodified, including the five `ParamName` assertions at :40, :53, :66, :94 and :107.",
+        "PathSegment's XML documentation gains an `<exception cref=\"ArgumentOutOfRangeException\">` entry stating that it is thrown when Kind is not a defined PathSegmentKind, and keeps the existing `<exception cref=\"ArgumentException\">` entry (fd429e3 :20-24). This follows dm-conventions backend/dotnet-format.md section 9: tag bodies go on a new line, indented with two tabs, and each sentence is complete and on its own line.",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message. For each injected file it quotes PowerShell `Get-FileHash -Algorithm SHA256` taken immediately before the first injection and again after the last revert, and the two are equal. A criterion evidenced by its red step instead needs no injection.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim (this covers CA2208 on the new throw's paramName). A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "R3: AreaOutlineGeometry.Translate re-validates every output segment through the PathSegment constructor",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.App.Core/Map/AreaOutlineGeometry.cs",
+        "src/DungeonMaster.Tests/AppCore/Map/AreaOutlineGeometryTests.cs"
+      ],
+      "dependsOn": [
+        "T4"
+      ],
+      "acceptance": [
+        "Translate builds every output segment with `new PathSegment(...)`, passing the source segment's Kind, and its body holds no `with` expression. This is the mechanism D6 and backlog row R3 (MASTER-170) prescribe. Evidence: `grep -nw \"with\" src/DungeonMaster.App.Core/Map/AreaOutlineGeometry.cs` filtered through `grep -v \"//\"` prints nothing. Predicate control: at fd429e3 the same pipeline prints exactly the :42 line, `translated.Add(segment with`, and excludes the word 'without' at :67.",
+        "A Line segment that carries a control point makes Translate throw. A test in AreaOutlineGeometryTests.cs builds `new PathSegment(PathSegmentKind.Line, end, null, null) with { Ctrl1 = <a non-null TilePoint> }`, passes it to Translate, and asserts `ThrowExactly<ArgumentException>()` with `.WithParameterName(\"Ctrl1\")`. Shown able to fail by one route, named in the report. Red step: the test fails at fd429e3, where the `with` copy at :42 passes the invalid segment through without throwing. Injection: restore `segment with { ... }` at the construction site. Under the injection this test turns red while `Translate_NonZeroDelta_OffsetsEndAndBothControlPointsOfEverySegment` stays green.",
+        "Every existing Translate test still passes, unmodified (preserved behaviour). That is the eight facts at fd429e3 AreaOutlineGeometryTests.cs :12, :32, :47, :59, :67, :77, :85 and :95, from `grep -n \"public void Translate\" src/DungeonMaster.Tests/AppCore/Map/AreaOutlineGeometryTests.cs`.",
+        "Translate's XML documentation gains an `<exception cref=\"ArgumentException\">` entry stating that it is thrown when a segment's control points violate the rule for its Kind, and keeps the existing `<exception cref=\"ArgumentNullException\">` entry (fd429e3 :25-28). Format follows dm-conventions backend/dotnet-format.md section 9.",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message. For each injected file it quotes PowerShell `Get-FileHash -Algorithm SHA256` taken immediately before the first injection and again after the last revert, and the two are equal. A criterion evidenced by its red step instead needs no injection.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "R4: ObjectKindInfo rejects ObjectKind.None and undefined values; pin every real kind's output",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs",
+        "src/DungeonMaster.App.UnitTests/Assets/**"
+      ],
+      "dependsOn": [
+        "T5"
+      ],
+      "acceptance": [
+        "`ObjectKindInfo.GetDefaultAnchor(ObjectKind.None)` throws: a test in a new file under src/DungeonMaster.App.UnitTests/Assets/ asserts `ThrowExactly<ArgumentOutOfRangeException>()` with `.WithParameterName(\"kind\")`, the precedent being PlacedObject.cs:22-28. Shown able to fail by one route, named in the report. Red step: fails at fd429e3, where :34 returns `SnapAnchor.Center`. Injection: drop the `kind == ObjectKind.None` clause from the guard. Under the injection this test turns red while the `(ObjectKind)999` test for the same method stays green.",
+        "`ObjectKindInfo.GetDefaultAnchor((ObjectKind)999)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`, asserted as above. Shown able to fail by red step (fails at fd429e3) or by injection: drop the `!Enum.IsDefined(kind)` clause from the guard; this test turns red while the None test for the same method stays green.",
+        "`ObjectKindInfo.GetObjectSize(ObjectKind.None)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`. Shown able to fail by red step (fails at fd429e3, where the `_ =>` arm at :73 returns (1.00f, 1.00f)) or by injection: drop the None clause; this test red, the 999 test for the same method green.",
+        "`ObjectKindInfo.GetObjectSize((ObjectKind)999)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`. Shown able to fail by red step (fails at fd429e3) or by injection: drop the `!Enum.IsDefined(kind)` clause; this test red, the None test for the same method green.",
+        "`ObjectKindInfo.GetDisplayName(ObjectKind.None)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`. Shown able to fail by red step (fails at fd429e3, where the `_ =>` arm at :115 returns \"None\") or by injection: drop the None clause; this test red, the 999 test for the same method green.",
+        "`ObjectKindInfo.GetDisplayName((ObjectKind)999)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`. Shown able to fail by red step (fails at fd429e3, where :115 returns \"999\") or by injection: drop the `!Enum.IsDefined(kind)` clause; this test red, the None test for the same method green.",
+        "`ObjectKindInfo.GetCategory(ObjectKind.None)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`. Shown able to fail by red step (fails at fd429e3, where the `_ =>` arm at :138 returns \"Decoration\") or by injection: drop the None clause; this test red, the 999 test for the same method green.",
+        "`ObjectKindInfo.GetCategory((ObjectKind)999)` throws `ArgumentOutOfRangeException` with `ParamName` `kind`. Shown able to fail by red step (fails at fd429e3) or by injection: drop the `!Enum.IsDefined(kind)` clause; this test red, the None test for the same method green.",
+        "GetDefaultAnchor's output is preserved for every defined ObjectKind except None. A table-driven test asserts that each such kind returns a literal expected SnapAnchor, read off the fd429e3 code (:24-35); expected values are literals and are never computed by calling ObjectKindInfo. The test passes at fd429e3 by design. Injection: change the fallthrough `SnapAnchor.Center` (fd429e3 :34) to another SnapAnchor value. Under the injection this test turns red while the GetDefaultAnchor None test stays green.",
+        "GetObjectSize's output is preserved for every defined ObjectKind except None. A table-driven test asserts each such kind's literal (W, H) read off the fd429e3 code (:41-74), including the kinds that reach the `_ =>` default arm. Injection: change the default arm `_ => (1.00f, 1.00f)` (fd429e3 :73) to `(1.00f, 1.01f)`. Under the injection this test turns red while the GetObjectSize None test stays green.",
+        "GetDisplayName's output is preserved for every defined ObjectKind except None. A table-driven test asserts each such kind's literal display name, read off the fd429e3 code (:76-116). Injection: change `\"Weapon Rack\"` (fd429e3 :114) to `\"WeaponRack\"`. Under the injection this test turns red while the GetDisplayName None test stays green.",
+        "GetCategory's output is preserved for every defined ObjectKind except None. A table-driven test asserts each such kind's literal category, read off the fd429e3 code (:118-140), including the kinds that reach the `_ =>` default arm. Injection: change the default arm `_ => \"Decoration\"` (fd429e3 :138) to `\"Decorations\"`. Under the injection this test turns red while the GetCategory None test stays green.",
+        "The preserved-output tables cover the enum completely. A test asserts that the set of kinds in the expected-value table equals `Enum.GetValues<ObjectKind>()` minus `ObjectKind.None`, so a kind added later fails until it is pinned. At fd429e3 that set has 37 members: the ObjectKind declaration holds 38 members including None, counted by bash `grep -c $'^\\t[A-Z][A-Za-z]*,' src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs`. Use the ANSI-C `$'...'` quoting: in a plain `grep -E` pattern, `\\t` matches a literal t and the count prints 0. `awk 'BEGIN{RS=\"\\r?\\n\"} /^\\t[A-Z][A-Za-z]+,$/'` piped to `wc -l` agrees at 38. Injection: delete one kind's row from the table; this test turns red.",
+        "Each of the four methods carries XML documentation that includes an `<exception cref=\"ArgumentOutOfRangeException\">` entry stating that it is thrown for ObjectKind.None or for an undefined value. This follows dm-conventions backend/dotnet-format.md section 9: public members are documented, and tag bodies go on a new line indented two tabs. At fd429e3 only GetObjectSize carries any documentation (:37-40).",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message. For each injected file it quotes PowerShell `Get-FileHash -Algorithm SHA256` taken immediately before the first injection and again after the last revert, and the two are equal. A criterion evidenced by its red step instead needs no injection.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "R5: test that Dungeon.LastModified is unchanged when an inner floor mutation returns NotFound",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/Domain/Entities/Dungeon/DungeonLastModifiedOnFailedMutationTests.cs",
+        "src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs"
+      ],
+      "dependsOn": [
+        "T6"
+      ],
+      "acceptance": [
+        "RemoveArea: a test in the new file DungeonLastModifiedOnFailedMutationTests.cs works on a dungeon with one existing floor. It captures `dungeon.LastModified`, waits until the clock has advanced past the captured value, and calls `RemoveArea` with that floor's id and an area id that does not exist. It asserts that the outcome is `MutationOutcome.NotFound` and that `LastModified` equals the captured value. Injection: replace the statements of TouchOnSuccess (signature at fd429e3 DungeonMethods.cs:460, statements at :462-469) with `Touch(); return outcome;`. The method returns the real outcome, so only the timestamp changes. Under the injection this test turns red, and the failing assertion is the LastModified one, not the outcome one.",
+        "UpdateArea: a test of the same shape, with an existing floor and a missing area id, asserts the outcome is `NotFound` and `LastModified` is unchanged. It turns red under the same TouchOnSuccess injection, failing on the LastModified assertion.",
+        "UpdateAreaOutline: a test of the same shape, with an existing floor, a missing area id and a valid three-segment outline, asserts the outcome is `NotFound` and `LastModified` is unchanged. It turns red under the same injection, failing on the LastModified assertion.",
+        "RemovePlacedObject: a test of the same shape, with an existing floor and a missing object id, asserts the outcome is `NotFound` and `LastModified` is unchanged. It turns red under the same injection, failing on the LastModified assertion.",
+        "UpdatePlacedObject: a test of the same shape, with an existing floor, a missing object id and otherwise valid arguments, asserts the outcome is `NotFound` and `LastModified` is unchanged. It turns red under the same injection, failing on the LastModified assertion.",
+        "Control: a success-path test in the same file uses the same capture and wait, then mutates an existing area or object through one of the five facade methods, and asserts that the outcome is `Success` and that `LastModified` is strictly greater than the captured value. It passes on the unmodified code and stays green under the TouchOnSuccess injection. That shows the wait lets a Touch be observed, so the five unchanged-assertions cannot pass merely because the clock did not move.",
+        "No test in the new file calls `Task.Delay` or `Thread.Sleep`. The wait between capture and act is a condition wait with a timeout, for example `SpinWait.SpinUntil(() => DateTime.UtcNow > captured, TimeSpan.FromSeconds(1))`, and the test asserts the wait returned true so that a timeout fails the test. This follows test discipline, Determinism: 'No sleeping. Wait on the condition, with a timeout.' It supersedes the spec's Task.Delay assumption row and the EntityEqualityTests.cs:175 precedent.",
+        "DungeonMethods.cs is owned only to host the injection, and it ends the task byte-identical to fd429e3. The report quotes PowerShell `Get-FileHash -Algorithm SHA256` for the file before the first injection and after the revert, and the two are equal.",
+        "Every new test's name states its condition and expected outcome (test discipline, Naming).",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, every failing test's name and its assertion message.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "R6: UpdateAreaOutline_WithThreeSegments_Succeeds compares the stored outline by value and order",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/Domain/Entities/Area/AreaOutlineTests.cs",
+        "src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs"
+      ],
+      "dependsOn": [
+        "T7"
+      ],
+      "acceptance": [
+        "`UpdateAreaOutline_WithThreeSegments_Succeeds` keeps its name and asserts `area.Outline.Should().Equal(...)` against the three supplied segments, by value and in the supplied order. It no longer relies on `HaveCount(3)` (fd429e3 AreaOutlineTests.cs:165) as its only check of the stored outline. Injection: change `_outline.AddRange(outline);` (fd429e3 AreaMethods.cs:52) to `_outline.AddRange(outline.Reverse());`. Under the injection the test turns red, and the failing assertion is the Equal one.",
+        "Control for the R6 injection: under the reversal injection, the Equal failure message quoted in the report shows that the stored outline still holds three segments, the supplied ones in reverse order. The stored count is therefore unchanged, and the fd429e3 `HaveCount(3)` assertion alone would have passed against this defect.",
+        "Every other fact in AreaOutlineTests.cs passes, unmodified (preserved behaviour).",
+        "AreaMethods.cs is owned only to host the injection, and it ends the task byte-identical to fd429e3. The report quotes PowerShell `Get-FileHash -Algorithm SHA256` for the file before the injection and after the revert, and the two are equal.",
+        "Every injection named in this task's criteria was run, and then reverted before the report. For each one the report quotes the `Failed!` summary line, the failing test's name and its assertion message.",
+        "`dotnet build src/DungeonMaster.sln`, run after the last edit and after every revert, prints `0 Warning(s)` and `0 Error(s)`, and the report quotes both lines verbatim. A case-insensitive grep for the words warning or error is not evidence: it returns 2 on a clean build.",
+        "`dotnet test src/DungeonMaster.sln`, run after the last edit and after every revert, prints a `Passed!` summary line naming a test count for every test project and no `Failed!` line, and the report quotes each summary line. A run whose output names no test count counts as not run.",
+        "Standing constraint, line endings: every file this task creates or modifies is CRLF throughout. Evidence per file: PowerShell `[regex]::Matches([IO.File]::ReadAllText('<absolute path>'), \"(?<!`r)`n\").Count` and the same count with the pattern \"`r(?!`n)\" both print 0. Instrument control: on the string \"a`nb`r`nc`rd\" each prints 1. Never run `sed -i` on a tracked file, and never use the Write tool on an existing file: both convert the whole file to LF, and IDE0055 then fails the build. Edit strips trailing whitespace from new_string and normalises every lone CR anywhere in the file, so key each edit on the first text character of a line. New .cs files use tab indentation and CRLF.",
+        "Standing constraint, no git: the task runs no git command of any kind. All git belongs to the orchestrator, through sir-git."
+      ]
+    }
+  ]
+}

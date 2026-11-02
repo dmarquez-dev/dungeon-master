@@ -1,0 +1,47 @@
+{
+  "id": "20261102-1907-domain-invariants",
+  "name": "domain-invariants",
+  "scope": "standard",
+  "status": "MERGED",
+  "brief": "Close six production-correctness gaps from .sir/backlog.md. R1 adds eight FluentValidation MaximumLength rules, bounding Description and Notes on Dungeon (2000/4000), Floor and Area (2000), and corrects the three EF configuration comments that call those columns unbounded. R2 makes PathSegment reject an undefined PathSegmentKind instead of treating it as Line. R3 makes AreaOutlineGeometry.Translate build segments with new PathSegment(...) so a record copy cannot bypass control-point validation. R4 makes the four ObjectKindInfo lookups throw ArgumentOutOfRangeException for ObjectKind.None and undefined values, while pinning every real kind's output. R5 adds a test that Dungeon.LastModified is unchanged when an inner floor mutation returns NotFound. R6 strengthens the three-segment outline test to compare by value. Eight serial tasks, no contracts, no migration; every new test is shown able to fail by an injection or a red step.",
+  "started": "2026-11-02T19:07:51Z",
+  "ended": null,
+  "pushed": true,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "71e29261-fcae-4ae6-a9a0-1584a1835c06",
+      "phase": "discuss",
+      "sir": "1.0.12",
+      "started": "2026-11-02T19:07:51Z",
+      "ended": "2026-11-02T19:08:45Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "48c6bc9d-cd8a-46d0-accf-356b2c54847e",
+      "phase": "spec",
+      "sir": "1.0.12",
+      "started": "2026-11-02T19:15:17Z",
+      "ended": "2026-11-02T19:40:09Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "6cc85be8-6dfb-4530-84be-cb53dbb7e886",
+      "phase": "implement",
+      "sir": "1.0.12",
+      "started": "2026-11-02T19:41:57Z",
+      "ended": "2026-11-02T21:04:04Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "0a84734b-1425-44b3-b426-033828c18e72",
+      "phase": "review",
+      "sir": "1.0.12",
+      "started": "2026-11-02T21:08:17Z",
+      "ended": "2026-11-02T21:15:24Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+}
