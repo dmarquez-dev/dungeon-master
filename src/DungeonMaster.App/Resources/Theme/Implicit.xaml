@@ -219,8 +219,8 @@
 
             Three unstyled Buttons do choose for themselves, all at Opacity 0.35:
 
-                DungeonDetailPage StartSessionButton  DataTrigger FloorCount == 0
-                DungeonListPage   StartSessionButton  Start Session icon, same trigger
+                DungeonDetailPage StartSessionButton  local IsEnabled + Opacity, unconditional
+                DungeonListPage   StartSessionButton  Start Session icon, local IsEnabled + Opacity, unconditional
                 DungeonDetailPage UndoButton          local IsEnabled + Opacity
 
             Named rather than cited by line: the line numbers here were wrong on all three

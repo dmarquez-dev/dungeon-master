@@ -112,7 +112,13 @@
                      and log nothing. It is deliberately left without a SemanticProperties.Hint:
                      its Text already names it, and a Hint describing what starting a session
                      would do is a promise the control cannot keep. The sibling on
-                     DungeonListPage.xaml carries the same note. Wiring it is a feature. -->
+                     DungeonListPage.xaml carries the same note. Wiring it is a feature.
+
+                     It is therefore disabled unconditionally until sessions exist, whatever the
+                     dungeon's floor count: a local IsEnabled="False" and Opacity="0.35", the same
+                     mechanism UndoButton uses. It used to enable once the dungeon had a floor,
+                     which offered a click that did nothing. Restore a floor-count gate at the same
+                     time as the handler, not before. -->
                 <Button
                     Text="Start Session"
                     AutomationId="StartSessionButton"
@@ -122,17 +128,11 @@
                     BackgroundColor="{StaticResource DmConfirm}"
                     TextColor="{StaticResource DmConfirmText}"
                     CornerRadius="{StaticResource DmRadiusDefault}"
-                    IsEnabled="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
+                    IsEnabled="False"
+                    Opacity="0.35">
                     <Button.Behaviors>
                         <behaviors:HandCursorBehavior />
                     </Button.Behaviors>
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button"
-                            Binding="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}"
-                            Value="False">
-                            <Setter Property="Opacity" Value="0.35" />
-                        </DataTrigger>
-                    </Button.Triggers>
                 </Button>
                 <!-- Crossed-sword icon overlaid on the left of the button. Decorative: the
                      button it sits on is already labelled "Start Session". -->
@@ -145,11 +145,11 @@
                        Margin="12,0,0,0"
                        AutomationProperties.IsInAccessibleTree="False"
                        InputTransparent="True" />
-                <!-- Transparent overlay carries tooltip when button is disabled -->
+                <!-- Transparent overlay carries tooltip when button is disabled. That is now
+                     always, so the overlay is visible for every floor count. -->
                 <BoxView
                     BackgroundColor="Transparent"
-                    IsVisible="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}, ConverterParameter=Invert}"
-                    ToolTipProperties.Text="Add at least one floor before starting a session"
+                    ToolTipProperties.Text="Sessions are not available yet"
                     InputTransparent="False" />
             </Grid>
         </Grid>
