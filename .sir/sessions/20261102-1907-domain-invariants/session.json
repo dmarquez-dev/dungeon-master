@@ -2,10 +2,10 @@
   "id": "20261102-1907-domain-invariants",
   "name": "domain-invariants",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "brief": "Close six production-correctness gaps from .sir/backlog.md. R1 adds eight FluentValidation MaximumLength rules, bounding Description and Notes on Dungeon (2000/4000), Floor and Area (2000), and corrects the three EF configuration comments that call those columns unbounded. R2 makes PathSegment reject an undefined PathSegmentKind instead of treating it as Line. R3 makes AreaOutlineGeometry.Translate build segments with new PathSegment(...) so a record copy cannot bypass control-point validation. R4 makes the four ObjectKindInfo lookups throw ArgumentOutOfRangeException for ObjectKind.None and undefined values, while pinning every real kind's output. R5 adds a test that Dungeon.LastModified is unchanged when an inner floor mutation returns NotFound. R6 strengthens the three-segment outline test to compare by value. Eight serial tasks, no contracts, no migration; every new test is shown able to fail by an injection or a red step.",
   "started": "2026-11-02T19:07:51Z",
-  "ended": null,
+  "ended": "2026-11-02T21:18:51Z",
   "pushed": true,
   "parent": null,
   "children": [],
@@ -41,7 +41,15 @@
       "started": "2026-11-02T21:08:17Z",
       "ended": "2026-11-02T21:15:24Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "0a84734b-1425-44b3-b426-033828c18e72",
+      "phase": "wrap",
+      "sir": "1.0.12",
+      "started": "2026-11-02T21:18:15Z",
+      "ended": "2026-11-02T21:18:51Z",
+      "outcome": "complete"
     }
   ],
-  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+  "metrics": { "userInteractions": 4, "escalationsRaised": 0, "reviewRounds": 1 }
 }
