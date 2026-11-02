@@ -51,10 +51,13 @@ public partial class CreateDungeonViewModel(
 	/// <summary>
 	///		Sends <see cref="CreateDungeonCommand"/> and states <see cref="Outcome"/> as
 	///		<see langword="true"/> on success.
+	///		A create clears the previous error when it starts, so a stale message from an earlier failed create is not shown while this one is pending or after it succeeds.
 	/// </summary>
 	[RelayCommand(CanExecute = nameof(CanCreate))]
 	private async Task CreateAsync()
 	{
+		ErrorMessage = null;
+
 		var description = string.IsNullOrWhiteSpace(Description) ? null : Description.Trim();
 
 		var result = await dispatcher.SendAsync<Guid>(
