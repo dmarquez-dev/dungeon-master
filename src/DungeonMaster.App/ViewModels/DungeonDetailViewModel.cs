@@ -23,6 +23,10 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 		"This dungeon could not be opened because the navigation request carried no usable dungeon identifier.",
 		ErrorCategory.NotFound);
 
+	private static readonly Result DungeonNotFoundResult = Result.Failure(
+		"This dungeon could not be found. It may have been deleted. Return to the dungeon list and open a dungeon.",
+		ErrorCategory.NotFound);
+
 	private static readonly Result NoDungeonLoadedResult = Result.Failure(
 		"No dungeon is loaded, so there is nothing to save. Return to the dungeon list and open a dungeon.",
 		ErrorCategory.NotFound);
@@ -105,6 +109,7 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 	/// <param name="query">
 	///		The query attributes provided by route navigation.
 	///		An <c>id</c> key holding a valid <see cref="Guid"/> string starts a load.
+	///		When that identifier names no dungeon, the load clears the identifier, reports the not-found failure on <see cref="ErrorMessage"/>, and leaves every editing command refusing, as <see cref="LoadDungeonAsync"/> describes.
 	///		A missing, empty, or unparsable <c>id</c> is not silently ignored: the view model clears any dungeon it was showing, leaves <see cref="LoadTask"/> completed, and reports the failure on <see cref="ErrorMessage"/>.
 	///		Every editing command is refused while that state holds, so no write is aimed at a dungeon that does not exist.
 	/// </param>
@@ -162,11 +167,17 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 	///		Loads the dungeon detail for the specified <paramref name="id"/> and repopulates the
 	///		three children.
 	/// </summary>
+	/// <remarks>
+	///		When no dungeon has that identifier, the load does not fall through to an empty page.
+	///		The loaded identifier is cleared to <see cref="Guid.Empty"/>, the children are repopulated empty, and the not-found failure is reported on <see cref="ErrorMessage"/>.
+	///		Every editing command then refuses through <see cref="NoDungeonIsLoaded"/>, so no write is aimed at the missing dungeon.
+	///		The same outcome follows when <see cref="ReloadAsync"/> finds that the loaded dungeon was deleted between commands.
+	/// </remarks>
 	/// <param name="id">
 	///		The unique identifier of the dungeon to load.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the dungeon has been read and the children repopulated.
+	///		A task that completes when the dungeon has been read and the children repopulated, or when the not-found failure has been reported.
 	/// </returns>
 	[RelayCommand]
 	private async Task LoadDungeonAsync(Guid id)
@@ -176,6 +187,17 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 		var dto = await _dispatcher.QueryAsync<DungeonDetailDto?>(
 			new GetDungeonDetailQuery(id),
 			CancellationToken.None);
+
+		if (dto is null)
+		{
+			_dungeonId = Guid.Empty;
+
+			Repopulate(null);
+
+			ErrorMessage = ResultMessage.ForFailure(DungeonNotFoundResult);
+
+			return;
+		}
 
 		Repopulate(dto);
 	}

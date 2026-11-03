@@ -198,8 +198,10 @@ public partial class DmCard : ContentView
 		// at all times rather than collapsed. Without this the invisible strip would sit over the
 		// card's own TapGestureRecognizer and could take a pointer event -- or show a tooltip --
 		// while the user can see nothing there. Measured: gating InputTransparent this way costs
-		// neither route. The buttons remain in the Tab order while hidden (the focus ring still
-		// reads ListItem, Edit, StartSession, Delete, CreateDungeon, Search), and a real mouse
+		// neither route. The buttons remain in the Tab order while hidden (the focus ring, measured
+		// before StartSession was disabled unconditionally on 2026-11-02, read ListItem, Edit,
+		// StartSession, Delete, CreateDungeon, Search; it has not been re-measured since, and
+		// StartSession is no longer expected in it), and a real mouse
 		// moved straight onto the Edit button and clicked still reaches OnEditClicked, because
 		// pointer-entered lands on the card and reveals the region before the click is hit-tested.
 		TrailingPresenter.InputTransparent = !revealed;
