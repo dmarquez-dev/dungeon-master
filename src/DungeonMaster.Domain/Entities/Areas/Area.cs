@@ -9,8 +9,11 @@ public sealed partial class Area : Entity
 {
 	private readonly List<PathSegment> _outline = [];
 
-	// MASTER-114. The read-only wrapper over _outline is built once and reused, so Outline hands back
-	// the same instance on every read instead of allocating a fresh wrapper per call.
+	// MASTER-114. The read-only wrapper over _outline is built on first read and cached in _outlineView,
+	// so Outline hands back the cached instance instead of allocating a fresh wrapper per call. The ??=
+	// is a non-atomic check-then-assign: two threads making the first read at once can each build a
+	// wrapper over the same list, and the field keeps whichever is assigned last, so the instance is
+	// unique only when the first read is not concurrent.
 	//
 	// Unlike the wrappers on Dungeon.Floors, Floor.Areas and Floor.Objects, this one CANNOT be a
 	// readonly field built in the constructor. Outline is a value-converted property mapped with
@@ -21,7 +24,8 @@ public sealed partial class Area : Entity
 	// Measured: with the wrapper built in the constructor, AreaOutlineChangeTrackingTests failed 2 of
 	// 3 (the assertions on the loaded aggregate and on the reloaded edited outline); deferring the
 	// wrapper to first read passes 3 of 3. First read always follows materialization, so the wrapper
-	// pairs with whichever list instance EF installed, and it is still built at most once per Area.
+	// pairs with whichever list instance EF installed, and without concurrent first reads it is still
+	// built only once per Area.
 	private IReadOnlyList<PathSegment>? _outlineView;
 
 	private Area() { }

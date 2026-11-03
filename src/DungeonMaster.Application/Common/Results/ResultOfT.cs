@@ -34,10 +34,9 @@ public sealed record Result<T>
 	///		property.
 	///		</para>
 	///		<para>
-	///		<typeparamref name="T"/> is unconstrained, so the <c>?</c> annotation has no effect once
-	///		<typeparamref name="T"/> is closed as a value type. For <c>Result&lt;Guid&gt;</c>, the only closed
-	///		construction this application uses, the failure value is therefore <c>Guid.Empty</c>, which is
-	///		indistinguishable from a Guid a successful operation could in principle return.
+	///		<typeparamref name="T"/> is unconstrained, so the <c>?</c> annotation has no effect once <typeparamref name="T"/> is closed as a value type.
+	///		For <c>Result&lt;Guid&gt;</c>, the failure value is therefore <c>Guid.Empty</c>, which is indistinguishable from a Guid a successful operation could in principle return.
+	///		As of commit d2b84a2, production code (src/ without the test projects) closes <see cref="Result{T}"/> only over <c>Guid</c>, directly and through <c>ICommand&lt;Guid&gt;</c>; the test projects also close it over <see langword="int"/>.
 	///		</para>
 	/// </remarks>
 	public T? Value { get; private init; }
