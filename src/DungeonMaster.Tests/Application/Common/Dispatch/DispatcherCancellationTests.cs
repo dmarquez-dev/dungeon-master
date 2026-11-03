@@ -7,7 +7,8 @@ namespace DungeonMaster.Tests.Application.Common.Dispatch;
 
 /// <summary>
 ///		Unit tests for the <see cref="CancellationToken"/> <see cref="Dispatcher"/> hands on: the token reaches the handler on all three request paths, and it reaches a registered behavior on all three as well.
-///		The handler facts register no behavior, so a token lost on the pipeline hand-off cannot mask a token lost on the handler hand-off, nor the reverse.
+///		The handler-only facts register no behavior, so a token lost on the pipeline hand-off cannot mask a token lost on the handler hand-off, nor the reverse.
+///		The pipelined handler facts add the handler's own token on each path where a behavior is registered, so a handler token lost only when a behavior wraps the handler is caught as well.
 /// </summary>
 public class DispatcherCancellationTests
 {
@@ -210,6 +211,114 @@ public class DispatcherCancellationTests
 	}
 
 	/// <summary>
+	///		Verifies that, with one behavior registered, the exact token handed to <see cref="IDispatcher.SendAsync(ICommand, CancellationToken)"/> is still the token the command handler receives.
+	/// </summary>
+	[Fact]
+	public async Task SendAsync_WithATokenAndARegisteredBehaviour_PassesThatSameTokenToTheCommandHandler()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		var behavior = new RecordingBehavior<PipelinedHandlerTokenCommand, Result>();
+		var handler = new RecordingCommandHandler<PipelinedHandlerTokenCommand>();
+		var services = new ServiceCollection();
+
+		services.AddScoped<IDispatcher, Dispatcher>();
+		services.AddScoped<ICommandHandler<PipelinedHandlerTokenCommand>>(_ =>
+			handler);
+		services.AddScoped<IPipelineBehavior<PipelinedHandlerTokenCommand, Result>>(_ =>
+			behavior);
+
+		using var provider = services.BuildServiceProvider();
+
+		// Act
+		await provider
+			.GetRequiredService<IDispatcher>()
+			.SendAsync(
+				new PipelinedHandlerTokenCommand(),
+				token);
+
+		// Assert
+		token.Should().NotBe(CancellationToken.None);
+		behavior.WasCalled.Should().BeTrue();
+		handler.WasCalled.Should().BeTrue();
+		handler.ReceivedToken.Should().Be(token);
+	}
+
+	/// <summary>
+	///		Verifies that, with one behavior registered, the exact token handed to <see cref="IDispatcher.SendAsync{TResult}(ICommand{TResult}, CancellationToken)"/> is still the token the value-producing command handler receives.
+	/// </summary>
+	[Fact]
+	public async Task SendAsyncOfT_WithATokenAndARegisteredBehaviour_PassesThatSameTokenToTheCommandHandler()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		var behavior = new RecordingBehavior<PipelinedHandlerTokenValueCommand, Result<int>>();
+		var handler = new RecordingValueCommandHandler<PipelinedHandlerTokenValueCommand>();
+		var services = new ServiceCollection();
+
+		services.AddScoped<IDispatcher, Dispatcher>();
+		services.AddScoped<ICommandHandler<PipelinedHandlerTokenValueCommand, int>>(_ =>
+			handler);
+		services.AddScoped<IPipelineBehavior<PipelinedHandlerTokenValueCommand, Result<int>>>(_ =>
+			behavior);
+
+		using var provider = services.BuildServiceProvider();
+
+		// Act
+		await provider
+			.GetRequiredService<IDispatcher>()
+			.SendAsync(
+				new PipelinedHandlerTokenValueCommand(),
+				token);
+
+		// Assert
+		token.Should().NotBe(CancellationToken.None);
+		behavior.WasCalled.Should().BeTrue();
+		handler.WasCalled.Should().BeTrue();
+		handler.ReceivedToken.Should().Be(token);
+	}
+
+	/// <summary>
+	///		Verifies that, with one behavior registered, the exact token handed to <see cref="IDispatcher.QueryAsync{TResult}(IQuery{TResult}, CancellationToken)"/> is still the token the query handler receives.
+	/// </summary>
+	[Fact]
+	public async Task QueryAsync_WithATokenAndARegisteredBehaviour_PassesThatSameTokenToTheQueryHandler()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		var behavior = new RecordingBehavior<PipelinedHandlerTokenQuery, string>();
+		var handler = new RecordingQueryHandler<PipelinedHandlerTokenQuery>();
+		var services = new ServiceCollection();
+
+		services.AddScoped<IDispatcher, Dispatcher>();
+		services.AddScoped<IQueryHandler<PipelinedHandlerTokenQuery, string>>(_ =>
+			handler);
+		services.AddScoped<IPipelineBehavior<PipelinedHandlerTokenQuery, string>>(_ =>
+			behavior);
+
+		using var provider = services.BuildServiceProvider();
+
+		// Act
+		await provider
+			.GetRequiredService<IDispatcher>()
+			.QueryAsync(
+				new PipelinedHandlerTokenQuery(),
+				token);
+
+		// Assert
+		token.Should().NotBe(CancellationToken.None);
+		behavior.WasCalled.Should().BeTrue();
+		handler.WasCalled.Should().BeTrue();
+		handler.ReceivedToken.Should().Be(token);
+	}
+
+	/// <summary>
 	///		A no-payload command defined solely for the handler hand-off token test.
 	/// </summary>
 	public sealed record HandlerTokenCommand
@@ -243,6 +352,24 @@ public class DispatcherCancellationTests
 	///		A query defined solely for the behavior hand-off token test.
 	/// </summary>
 	public sealed record BehaviourTokenQuery
+		: IQuery<string>;
+
+	/// <summary>
+	///		A no-payload command defined solely for the handler hand-off token test with a behavior registered.
+	/// </summary>
+	public sealed record PipelinedHandlerTokenCommand
+		: ICommand;
+
+	/// <summary>
+	///		A value-producing command defined solely for the handler hand-off token test with a behavior registered.
+	/// </summary>
+	public sealed record PipelinedHandlerTokenValueCommand
+		: ICommand<int>;
+
+	/// <summary>
+	///		A query defined solely for the handler hand-off token test with a behavior registered.
+	/// </summary>
+	public sealed record PipelinedHandlerTokenQuery
 		: IQuery<string>;
 
 	/// <summary>
