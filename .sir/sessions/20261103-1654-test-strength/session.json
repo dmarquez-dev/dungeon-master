@@ -2,9 +2,9 @@
   "id": "20261103-1654-test-strength",
   "name": "test-strength",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-03T16:54:45Z",
-  "ended": null,
+  "ended": "2026-11-03T18:42:31Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -39,10 +39,18 @@
       "started": "2026-11-03T18:24:33Z",
       "ended": "2026-11-03T18:40:18Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "dffe73a5-938f-4b5b-bc09-ac1926472ba8",
+      "phase": "wrap",
+      "sir": "1.0.14",
+      "started": "2026-11-03T18:42:14Z",
+      "ended": "2026-11-03T18:42:39Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
+    "userInteractions": 4,
     "escalationsRaised": 0,
     "reviewRounds": 0
   },
