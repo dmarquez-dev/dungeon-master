@@ -50,7 +50,6 @@ public partial class DungeonDetailPage : ContentPage
 	private KeyboardBehavior? _keyboardBehavior;
 
 	private const float ZoomStep = 0.1f;
-	private const float ZoomSnapThreshold = 0.05f;
 
 	/// <summary>
 	///		Initializes a new instance of <see cref="DungeonDetailPage"/>, wires the map drawable,
@@ -518,11 +517,7 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void ApplyZoom(float raw)
 	{
-		if (Math.Abs(raw - 1.0f) < ZoomSnapThreshold)
-		{
-			raw = 1.0f;
-		}
-		_drawable.ZoomLevel = Math.Clamp(raw, 0.25f, 4.0f);
+		_drawable.ZoomLevel = ZoomLevelGuard.Next(_drawable.ZoomLevel, raw);
 		ZoomPercentLabel.Text = $"{(int)Math.Round(_drawable.ZoomLevel * 100)}%";
 		MapCanvas.Invalidate();
 	}
@@ -537,21 +532,22 @@ public partial class DungeonDetailPage : ContentPage
 
 	private async void OnMapCanvasHandlerChanged(object? sender, EventArgs e)
 	{
-		DetachScrollZoom();
-		AttachScrollZoom();
-
-		// HandlerChanged also fires with a null handler on teardown; there is nothing to
-		// preload into then.
-		if (MapCanvas.Handler is null)
-		{
-			return;
-		}
-
 		// async void: an escaping exception is UNOBSERVED and is rethrown on the
-		// synchronisation context, which takes the process down. The try opens before the
-		// first await for that reason, not as defensive style.
+		// synchronisation context, which takes the process down. The try therefore opens at the
+		// method's first statement, so the scroll-zoom detach and attach are covered as well as
+		// the first await, not as defensive style.
 		try
 		{
+			DetachScrollZoom();
+			AttachScrollZoom();
+
+			// HandlerChanged also fires with a null handler on teardown; there is nothing to
+			// preload into then. The detach above has already run, so teardown still detaches.
+			if (MapCanvas.Handler is null)
+			{
+				return;
+			}
+
 			// First point at which the platform view — and on Windows the Win2D resource
 			// creator — exists, so this is where the object images are decoded. Draw no longer
 			// loads them itself; a kind still missing from the cache renders the placeholder.
@@ -560,7 +556,7 @@ public partial class DungeonDetailPage : ContentPage
 		}
 		catch (Exception exception)
 		{
-			_viewModel.ErrorMessage = $"Could not load the object images: {exception.Message}";
+			_viewModel.ErrorMessage = $"Could not set up scroll zoom or load the object images: {exception.Message}";
 		}
 	}
 
@@ -618,7 +614,7 @@ public partial class DungeonDetailPage : ContentPage
 		Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
 	{
 		var delta = e.GetCurrentPoint((Microsoft.UI.Xaml.UIElement)sender)
-					  .Properties.MouseWheelDelta;
+			.Properties.MouseWheelDelta;
 		var direction = delta > 0 ? 1f : -1f;
 		ApplyZoom(_drawable.ZoomLevel + direction * ZoomStep);
 	}
