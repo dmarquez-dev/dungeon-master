@@ -92,7 +92,7 @@ public class PlacedObjectTests
 
 		ex.ParamName.Should().Be("scale");
 		ex.ActualValue.Should().Be(5.0f);
-		ex.Message.Should().Contain("5");
+		ex.Message.Should().StartWith($"Scale must be between {ObjectScale.Min} and {ObjectScale.Max}.");
 	}
 
 	[Theory]

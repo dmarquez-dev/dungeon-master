@@ -167,6 +167,30 @@ public class AddPlacedObjectCommandValidatorTests
 		result.IsValid.Should().BeTrue();
 	}
 
+	[Fact]
+	public void IsInEnumAlone_WithKindOutsideTheEnum_ReturnsKindViolation()
+	{
+		// Arrange: the same throwaway validator, given a value no ObjectKind
+		// member defines.
+		var isInEnumOnly = new KindIsInEnumOnlyValidator();
+
+		var command = new AddPlacedObjectCommand(
+			Guid.NewGuid(),
+			Guid.NewGuid(),
+			(ObjectKind)999,
+			new CanvasPoint(0f, 0f),
+			ObjectRotation.None,
+			ObjectScale.Default);
+
+		// Act
+		var result = isInEnumOnly.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeFalse();
+		result.Errors.Should().Contain(error =>
+			error.PropertyName == nameof(AddPlacedObjectCommand.Kind));
+	}
+
 	private sealed class KindIsInEnumOnlyValidator
 		: AbstractValidator<AddPlacedObjectCommand>
 	{

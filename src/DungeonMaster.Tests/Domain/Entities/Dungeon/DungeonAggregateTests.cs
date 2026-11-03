@@ -548,14 +548,14 @@ public class DungeonAggregateTests
 			ObjectKind.Chair,
 			position,
 			ObjectRotation.CW90,
-			ObjectScale.Default);
+			2.0f);
 
 		// Assert
 		placed.Should().NotBeNull();
 		placed!.Kind.Should().Be(ObjectKind.Chair);
 		placed.Position.Should().Be(position);
 		placed.Rotation.Should().Be(ObjectRotation.CW90);
-		placed.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
+		placed.Scale.Should().BeApproximately(2.0f, 0.001f);
 		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == placed.Id);
 	}
 
