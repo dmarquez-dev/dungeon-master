@@ -18,10 +18,11 @@ public class ObjectKindGuardTests
 	}
 
 	[Fact]
-	public void DeclarationOrderOfTheExistingMembersSurvived()
+	public void DoorWoodIsOne_DoorIronIsTwo_AndWeaponRackIsThirtySeven()
 	{
 		((int)ObjectKind.DoorWood).Should().Be(1);
 		((int)ObjectKind.DoorIron).Should().Be(2);
+		((int)ObjectKind.WeaponRack).Should().Be(37);
 	}
 
 	[Fact]
