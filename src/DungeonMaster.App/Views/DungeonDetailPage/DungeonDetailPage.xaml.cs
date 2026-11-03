@@ -385,6 +385,11 @@ public partial class DungeonDetailPage : ContentPage
 			// KeyPressedEventArgs exposes for exactly this, and Control is the only modifier
 			// proven to reach this handler in this application — Ctrl+0 below has shipped on it.
 			//
+			// THE CHORD REQUIRES CONTROL ALONE. KeyChord.IsControlOnly rejects Control combined
+			// with any other modifier, so Ctrl+Shift+Up or Ctrl+Alt+Down falls through to the
+			// switch below and reorders nothing. Modifiers is a flags value, and testing only
+			// whether its Control bit is set would accept those combinations.
+			//
 			// THE FOCUS GATE IS THE WHOLE SCOPING MECHANISM, and there is no alternative to it.
 			// Plugin.Maui.KeyListener's KeyboardBehavior subscribes to XamlRoot.Content, so it is
 			// GLOBAL to the window however it is attached: a second one on a card would
@@ -393,7 +398,7 @@ public partial class DungeonDetailPage : ContentPage
 			//
 			// A Ctrl+arrow with no card focused, or on the top or bottom floor, does nothing
 			// and sets NO error message. It is a keystroke that means nothing here, not a failure.
-			if (e.Modifiers.HasFlag(KeyboardModifiers.Control)
+			if (KeyChord.IsControlOnly(e.Modifiers)
 				&& (e.Key == KeyboardKeys.UpArrow || e.Key == KeyboardKeys.DownArrow))
 			{
 				await ReorderFocusedFloorAsync(moveUp: e.Key == KeyboardKeys.UpArrow);
@@ -477,7 +482,7 @@ public partial class DungeonDetailPage : ContentPage
 					}
 					break;
 				case '0':
-					if (e.Modifiers.HasFlag(KeyboardModifiers.Control))
+					if (KeyChord.IsControlOnly(e.Modifiers))
 					{
 						ResetViewport();
 					}
