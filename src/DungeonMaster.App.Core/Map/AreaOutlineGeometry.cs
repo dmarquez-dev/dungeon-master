@@ -29,6 +29,9 @@ public static class AreaOutlineGeometry
 	/// <exception cref="ArgumentException">
 	///		Thrown when a segment's control points violate the rule for its <see cref="PathSegment.Kind"/>.
 	/// </exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		Thrown when a segment of <paramref name="outline"/> has a <see cref="PathSegment.Kind"/> that is not a defined <see cref="PathSegmentKind"/>.
+	/// </exception>
 	public static IReadOnlyList<PathSegment> Translate(
 		IReadOnlyList<PathSegment> outline,
 		TilePoint delta)
