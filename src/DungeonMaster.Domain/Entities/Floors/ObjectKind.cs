@@ -7,8 +7,8 @@ namespace DungeonMaster.Domain.Entities.Floors;
 public enum ObjectKind
 {
 	/// <summary>
-	///		No kind has been specified. This is never a legal kind for a <see cref="PlacedObject"/>,
-	///		and the construction chokepoint rejects it.
+	///		No kind has been specified.
+	///		This is never a legal kind for a <see cref="PlacedObject"/>, and the construction chokepoint rejects it.
 	/// </summary>
 	None,
 

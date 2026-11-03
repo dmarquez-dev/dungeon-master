@@ -47,8 +47,7 @@ public sealed class PlacedObject : Entity
 	public ObjectKind Kind { get; private set; }
 
 	/// <summary>
-	///		Gets the canvas-space position of this object's bounding-box center,
-	///		expressed in floor-absolute pixels.
+	///		Gets the canvas-space position of this object's bounding-box center, expressed in floor-absolute pixels.
 	/// </summary>
 	public CanvasPoint Position { get; private set; } = default!;
 
@@ -94,13 +93,11 @@ public sealed class PlacedObject : Entity
 	///		The candidate scale multiplier.
 	/// </param>
 	/// <param name="paramName">
-	///		The caller's parameter name, reported as the thrown exception's
-	///		<see cref="ArgumentException.ParamName"/>. Passed in rather than taken from
-	///		<c>nameof</c> here, so each call site reports its own parameter.
+	///		The caller's parameter name, reported as the thrown exception's <see cref="ArgumentException.ParamName"/>.
+	///		Passed in rather than taken from <c>nameof</c> here, so each call site reports its own parameter.
 	/// </param>
 	/// <exception cref="ArgumentOutOfRangeException">
-	///		<paramref name="scale"/> is NaN, infinite, or outside
-	///		<see cref="ObjectScale.Min"/>..<see cref="ObjectScale.Max"/>.
+	///		<paramref name="scale"/> is NaN, infinite, or outside <see cref="ObjectScale.Min"/>..<see cref="ObjectScale.Max"/>.
 	/// </exception>
 	private static void ValidateScale(float scale, string paramName)
 	{
