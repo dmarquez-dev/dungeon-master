@@ -1,4 +1,5 @@
 using DungeonMaster.App.Core.Map;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using DungeonMaster.Tests.Infrastructure.Persistence;
 using FluentAssertions;
@@ -9,7 +10,8 @@ namespace DungeonMaster.Tests.Domain;
 /// <summary>
 ///		The durable regression guard for the cached read-only collection wrappers (MASTER-114).
 ///		Each of the five collection properties that were changed to reuse one wrapper has an assertion here that two successive reads on the same instance hand back the <em>same</em> object, so a future edit reinstating a per-call <c>AsReadOnly()</c> body turns red instead of silently restoring the allocation.
-///		<c>AsReadOnly_CalledTwiceOnAPlainList_ReturnsDifferentWrapperInstances</c> is the positive control: it pins the pre-change shape, so the five identity assertions cannot pass merely because <c>AsReadOnly()</c> happened to be cheap or because a property was never read.
+///		Each of the five also has a read-mutate-reread test: it reads the property, mutates the backing collection through the public API, reads again, and asserts both the same instance and the changed count. Two reads with no mutation between them cannot tell a live view from a snapshot copy built once on first read, because both are reference-stable; the reread after a mutation can, because only the live view shows the change.
+///		<c>AsReadOnly_CalledTwiceOnAPlainList_ReturnsDifferentWrapperInstances</c> is the positive control: it pins the pre-change shape, so the identity assertions cannot pass merely because <c>AsReadOnly()</c> happened to be cheap or because a property was never read.
 ///		The class derives from <see cref="SqliteInMemoryTestBase"/> because <c>Area.Outline</c> is the one site whose cache must be proven on an EF-materialized instance: the value converter assigns a new <c>List&lt;PathSegment&gt;</c> over the backing field after the constructor runs, so a constructor-captured wrapper reads back empty forever and an in-memory-only assertion would pass against that broken form. The repository keeps one public test class per file, so the in-memory assertions share the fixture rather than moving to a second class.
 /// </summary>
 public sealed class CollectionWrapperCachingTests : SqliteInMemoryTestBase
@@ -34,8 +36,8 @@ public sealed class CollectionWrapperCachingTests : SqliteInMemoryTestBase
 	];
 
 	/// <summary>
-	///		The pre-change shape, asserted so the five identity assertions below are known to be discriminating.
-	///		<c>List&lt;T&gt;.AsReadOnly()</c> allocates a fresh wrapper per call; if this ever became reference-stable the other six tests would stop distinguishing a cached wrapper from an uncached one.
+	///		The pre-change shape, asserted so the identity assertions below are known to be discriminating.
+	///		<c>List&lt;T&gt;.AsReadOnly()</c> allocates a fresh wrapper per call; if this ever became reference-stable the <c>BeSameAs</c> assertions in every other test in this class would stop distinguishing a cached wrapper from an uncached one.
 	/// </summary>
 	[Fact]
 	public void AsReadOnly_CalledTwiceOnAPlainList_ReturnsDifferentWrapperInstances()
@@ -91,12 +93,20 @@ public sealed class CollectionWrapperCachingTests : SqliteInMemoryTestBase
 		var dungeon = new DomainDungeon("Sunken Temple", null);
 		var floor = dungeon.AddFloor(null);
 
+		dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.DoorWood,
+			new CanvasPoint(1.5f, 2.5f),
+			ObjectRotation.None,
+			1.0f);
+
 		// Act
 		var first = floor.Objects;
 		var second = floor.Objects;
 
 		// Assert
 		first.Should().BeSameAs(second);
+		first.Should().HaveCount(1);
 	}
 
 	[Fact]
@@ -181,5 +191,103 @@ public sealed class CollectionWrapperCachingTests : SqliteInMemoryTestBase
 		first.Should().BeSameAs(second);
 		first.Should().HaveCount(3);
 		first.Should().Equal(Outline());
+	}
+
+	[Fact]
+	public void Floors_ReadAgainAfterAddFloor_ReturnsTheSameWrapperWithOneMoreFloor()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Sunken Temple", null);
+		var first = dungeon.Floors;
+		var countBefore = first.Count;
+
+		// Act
+		dungeon.AddFloor(null);
+		var second = dungeon.Floors;
+
+		// Assert
+		second.Should().BeSameAs(first);
+		second.Should().HaveCount(countBefore + 1);
+	}
+
+	[Fact]
+	public void Areas_ReadAgainAfterAddArea_ReturnsTheSameWrapperWithOneMoreArea()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Sunken Temple", null);
+		var floor = dungeon.AddFloor(null);
+		var first = floor.Areas;
+		var countBefore = first.Count;
+
+		// Act
+		dungeon.AddArea(floor.Id, "Nave", null);
+		var second = floor.Areas;
+
+		// Assert
+		second.Should().BeSameAs(first);
+		second.Should().HaveCount(countBefore + 1);
+	}
+
+	[Fact]
+	public void Objects_ReadAgainAfterAddPlacedObject_ReturnsTheSameWrapperWithOneMoreObject()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Sunken Temple", null);
+		var floor = dungeon.AddFloor(null);
+		var first = floor.Objects;
+		var countBefore = first.Count;
+
+		// Act
+		dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.DoorWood,
+			new CanvasPoint(1.5f, 2.5f),
+			ObjectRotation.None,
+			1.0f);
+
+		var second = floor.Objects;
+
+		// Assert
+		second.Should().BeSameAs(first);
+		second.Should().HaveCount(countBefore + 1);
+	}
+
+	[Fact]
+	public void Outline_ReadAgainAfterUpdateAreaOutlineOnAnInMemoryArea_ReturnsTheSameWrapperWithThreeSegments()
+	{
+		// Arrange
+		var dungeon = new DomainDungeon("Sunken Temple", null);
+		var floor = dungeon.AddFloor(null);
+		var area = dungeon.AddArea(floor.Id, "Nave", null)!;
+		var first = area.Outline;
+
+		// Act
+		dungeon.UpdateAreaOutline(
+			floor.Id,
+			area.Id,
+			Outline());
+
+		var second = area.Outline;
+
+		// Assert
+		second.Should().BeSameAs(first);
+		second.Should().HaveCount(3);
+	}
+
+	[Fact]
+	public void Vertices_ReadAgainAfterPlaceVertex_ReturnsTheSameWrapperWithOneMoreVertex()
+	{
+		// Arrange
+		var session = new MapDrawingSession();
+		var first = session.Vertices;
+		var countBefore = first.Count;
+
+		// Act
+		session.PlaceVertex(new TilePoint(2, 2));
+		var second = session.Vertices;
+
+		// Assert
+		second.Should().BeSameAs(first);
+		second.Should().HaveCount(countBefore + 1);
 	}
 }
