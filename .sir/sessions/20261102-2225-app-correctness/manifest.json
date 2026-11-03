@@ -1,0 +1,163 @@
+{
+  "session": "20261102-2225-app-correctness",
+  "createdAt": "2026-11-02T23:03:57Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "A1: a well-formed dungeon id that names no dungeon reports NotFound and stops saves",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/ViewModels/DungeonDetailViewModel.cs",
+        "src/DungeonMaster.App.Tests/ViewModels/DungeonDetailViewModelMissingDungeonTests.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "When `GetDungeonDetailQuery` returns null, `LoadDungeonAsync` (base `DungeonDetailViewModel.cs:172-181`) sets the loaded identifier back to `Guid.Empty`. Evidence: a test drives `ApplyQueryAttributes` with `ShellRoutes.IdQueryKey` mapped to a well-formed `Guid`, the substituted `AppDispatcher` returns null for that query, and the test awaits `LoadTask`. It then asserts that `DungeonId == Guid.Empty`.",
+        "In that same null-query state, `ErrorMessage` is non-null. It is assigned as `ResultMessage.ForFailure(<a new static readonly Result>)` with `ErrorCategory.NotFound`, declared beside `UnusableNavigationIdResult` (base `DungeonDetailViewModel.cs:22-24`). The wording does not say the navigation request was malformed: the id was well formed, and the same branch is reached from `ReloadAsync` (base `:158-159`). Evidence: a test asserting `ErrorMessage` is non-null after `LoadTask` completes, plus the diff for the wording.",
+        "After a null-query load, executing `Header.SaveCommand` dispatches nothing. Evidence: a test asserting that the substituted dispatcher received no `SendAsync` call of any overload. Configure the substitute's `SendAsync` to return a completed `Result.Success()`, so that under the injection below the test fails on this assertion and not on awaiting a null `Task`.",
+        "Reload path, dungeon deleted between commands: a load returns a DTO, `Header.SaveCommand` succeeds, and the reload that save triggers (`DungeonHeaderViewModel.cs:96`, through `ReloadAsync`) returns null. After that, `DungeonId == Guid.Empty` and `ErrorMessage` is non-null. Evidence: a test asserting both values once the save command's task completes.",
+        "Continuing that reload-path test: a second `Header.SaveCommand` dispatches nothing more, so the dispatcher received exactly one `SendAsync` across the whole test. Evidence: a received-call count assertion in that test.",
+        "Control, which must pass both with and without the injection below: when the query returns a DTO, `DungeonId` equals that DTO's id, `ErrorMessage` stays null after the load, and `Header.SaveCommand` dispatches exactly one command.",
+        "Demonstrated discrimination (test.md, Coverage: 'A test is shown able to fail'). Injection `a1-null-branch`: restore the body of `LoadDungeonAsync` to its base text (`:174-180`, no null branch). Then do the following once for this injection. Save a pre-injection copy of the file in your scratch directory and apply the injection. Run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter \"FullyQualifiedName~DungeonDetailViewModelMissingDungeonTests\"` and save the full output to `<scratch>/inject-a1-null-branch.log`. Restore the file from the copy and prove the restore with `cmp` against the copy. Re-run the same command into `<scratch>/inject-a1-null-branch-restored.log`. The report gives both absolute log paths. From each log it quotes the line naming the failed/passed/total counts and the failing test names. Every test above except the control must be red under the injection, and the control must be green. If a named test stays green, report that with the log rather than adjusting the criterion.",
+        "The new tests live in `DungeonMaster.App.Tests`. Its `InternalsVisibleTo` (`src/DungeonMaster.App/AssemblyInfo.cs:3`) lets the test use the real `ShellRoutes.IdQueryKey` (`Services/Navigation/ShellRoutes.cs:19`) and not a copied `\"id\"` literal. `FloorReorderCommandArgsTests.cs:92` is the precedent for a substituted `AppDispatcher`. The report states whether the class joins `MauiHostCollection`; it need not, because no `Element` is constructed.",
+        "The XML documentation on `LoadDungeonAsync` (base `:161-170`) and the `ApplyQueryAttributes` parameter remarks (base `:105-109`) are true after the change. `LoadDungeonAsync`'s docs state the not-found outcome: identifier cleared, error reported, editing refused.",
+        "The existing source scans still pass: `FailureIsSurfacedTests` (including `EveryViewModelErrorAssignment_RoutesThroughResultMessage`) and `NavigationLoadIsObservedTests`. Evidence: the summary line of `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj`, which names counts and shows 0 failed. A failure caused by a file outside this task's ownership is reported with the failing test's name, not fixed.",
+        "`dotnet build src/DungeonMaster.sln` at the task's final state prints `Build succeeded.`, `0 Warning(s)` and `0 Error(s)`, and the report quotes those three lines verbatim. Never prove this with a grep count (lessons.md, Instrument FORM 8).",
+        "At the task's final state, `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj` names its test counts and reports 0 failed, and the report quotes the summary line. A run that prints no count is recorded as not run.",
+        "Every file this task created or modified is CRLF throughout. Counted in binary, its CR-LF pair count equals both its LF byte count and its CR byte count (lessons.md FORM 15). Control the instrument on a scratch fixture holding one bare LF and one lone CR, which it must report. The new test file is tab-indented (`.editorconfig:12-13`). No `sed -i` and no `Write` over an existing file.",
+        "Each new test's name states the condition and the expected outcome, and claims no more than its assertions check (test.md, Naming)."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "A2: CreateDungeonViewModel clears a stale error when a create starts",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/ViewModels/CreateDungeonViewModel.cs",
+        "src/DungeonMaster.App.Tests/ViewModels/CreateDungeonViewModelErrorResetTests.cs"
+      ],
+      "dependsOn": ["T1"],
+      "acceptance": [
+        "After a failed create leaves `ErrorMessage` non-null, a second create whose dispatch has not yet completed shows `ErrorMessage == null` while that dispatch is pending. Evidence: a test in which the substituted dispatcher returns a failure first, then an incomplete `TaskCompletionSource<Result<Guid>>` task. The test starts `CreateCommand.ExecuteAsync` without awaiting it and asserts before completing the source.",
+        "When that second create then completes successfully, `ErrorMessage` is null and `Outcome` is `true`. Evidence: the same test or a sibling one, asserting both after the command's task completes.",
+        "Control, which must pass both with and without the injection below: a failed create sets `ErrorMessage` to a non-null value and leaves `Outcome` null. The failure branch still assigns `ResultMessage.ForFailure(result)` (base `CreateDungeonViewModel.cs:70`).",
+        "Demonstrated discrimination (test.md, Coverage). Injection `a2-reset`: delete the reset this task adds. Then do the following once for this injection. Save a pre-injection copy in your scratch directory and apply the injection. Run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter \"FullyQualifiedName~CreateDungeonViewModelErrorResetTests\"` into `<scratch>/inject-a2-reset.log`. Restore the file from the copy and prove the restore with `cmp`. Re-run into `<scratch>/inject-a2-reset-restored.log`. The report gives both absolute paths and quotes each log's count line and failing test names. The first two criteria's tests must be red under the injection, and the control must be green.",
+        "The `CreateAsync` summary (base `:51-54`) states that a create clears the previous error when it starts.",
+        "`FailureIsSurfacedTests.EveryViewModelErrorAssignment_RoutesThroughResultMessage` still passes. It admits `ErrorMessage = null` (`FailureIsSurfacedTests.cs:196`). Evidence: the summary line of `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj`, which names counts and shows 0 failed. A failure caused outside this task's ownership is reported, not fixed.",
+        "`dotnet build src/DungeonMaster.sln` at final state prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the report quotes them verbatim (lessons.md FORM 8).",
+        "At final state, `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj` names its counts and reports 0 failed, and the report quotes the summary line. A run that prints no count is recorded as not run.",
+        "Every file this task created or modified is CRLF throughout. Counted in binary, CR-LF pairs equal both LF bytes and CR bytes (lessons.md FORM 15), with the instrument controlled on a fixture holding one bare LF and one lone CR. The new test file is tab-indented. No `sed -i` and no `Write` over an existing file.",
+        "Each new test's name states the condition and the expected outcome (test.md, Naming)."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "A3: StartSessionButton is disabled unconditionally until sessions exist (detail page; list page separable at Gate 2)",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml",
+        "src/DungeonMaster.App/Views/DungeonListPage/DungeonListPage.xaml",
+        "src/DungeonMaster.App/Resources/Theme/Implicit.xaml",
+        "src/DungeonMaster.App/Controls/DmCard/DmCard.xaml.cs",
+        "src/DungeonMaster.App.Tests/Views/StartSessionButtonTests.cs"
+      ],
+      "dependsOn": ["T2"],
+      "acceptance": [
+        "Detail page: resolve the real `DungeonDetailPage` from the `MauiHostFixture` container and set its view model's `Dungeon` to a `DungeonDetailDto` with `FloorCount` of at least 1. The element with `AutomationId=\"StartSessionButton\"` then reports `IsEnabled == false`. Evidence: a test in `StartSessionButtonTests` under `[Collection(MauiHostCollection.Name)]`, following `DungeonDetailPageTeardownTests.cs:23-36`.",
+        "Detail page: in that same floored state, the button's `Opacity` is 0.35. Evidence: an assertion in that test class.",
+        "Detail page mechanism: the button carries a local `IsEnabled=\"False\"` and `Opacity=\"0.35\"`, with no `FloorCount` binding and no `DataTrigger`. This is the sibling precedent Gate 1 told the spec to follow: `UndoButton`'s local values (`DungeonDetailPage.xaml:301-302`), named in `Implicit.xaml:220-224`. No `Disabled` VisualState is added to `Implicit.xaml`, whose reasoning at `:215-218` stays true. Evidence: the diff.",
+        "Detail page: the tooltip overlay `BoxView` beside the button (base `DungeonDetailPage.xaml:148-153`) is visible for every `FloorCount`. Its `ToolTipProperties.Text` says sessions are not available yet, and no longer says that adding a floor enables the button. Evidence: the diff.",
+        "Detail page: the UNWIRED comment (base `DungeonDetailPage.xaml:110-115`) stays true and also states that the button is disabled unconditionally until sessions exist. Evidence: the diff.",
+        "Detail page: the `Implicit.xaml` census line for `DungeonDetailPage StartSessionButton` (base `:222`, `DataTrigger FloorCount == 0`) names its new mechanism. The `all at Opacity 0.35` sentence at base `:220` stays true. Evidence: the diff.",
+        "Control for the detail page, which must pass both with and without the injection below: with `Dungeon.FloorCount == 0` the button reports `IsEnabled == false`.",
+        "Demonstrated discrimination, detail page (test.md, Coverage). Injection `a3-detail-binding`: restore the button's base attributes and trigger (`DungeonDetailPage.xaml:125-135`, the `IsEnabled` binding and the Opacity `DataTrigger`), removing the local `IsEnabled`/`Opacity`. Then do the following once for this injection. Save a pre-injection copy and apply the injection. Run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter \"FullyQualifiedName~StartSessionButtonTests\"` into `<scratch>/inject-a3-detail-binding.log`. Restore the file from the copy, prove the restore with `cmp`, and re-run into `<scratch>/inject-a3-detail-binding-restored.log`. Quote each log's count line and failing test names. Under the injection, the floored detail-page `IsEnabled` and `Opacity` tests must be red and the zero-floor control green. A green floored test under this injection means the test's binding context never resolved, and is reported as such.",
+        "[GATE-2 SEPARABLE: list page] Take the `CollectionView.ItemTemplate` of a `DungeonListPage` resolved from the host. Create its content and bind it to a `DungeonSummaryDto` with `FloorCount` of at least 1. The descendant with `AutomationId=\"StartSessionButton\"` (base `DungeonListPage.xaml:96`, inside `DmCard.TrailingContent`) then reports `IsEnabled == false`. Evidence: a test in `StartSessionButtonTests`.",
+        "[GATE-2 SEPARABLE: list page] In that same floored state, the list-page button's `Opacity` is 0.35. Evidence: an assertion in that test class.",
+        "[GATE-2 SEPARABLE: list page] The list-page button carries a local `IsEnabled=\"False\"` and `Opacity=\"0.35\"`, with no `FloorCount` binding and no `DataTrigger`. This is the same precedent as the detail-page mechanism criterion. Its overlay `BoxView` (base `DungeonListPage.xaml:112-117`) is visible for every `FloorCount`, and its tooltip says sessions are not available yet. The `SemanticProperties.Description` and the Hint at base `:97-98` are kept. Evidence: the diff.",
+        "[GATE-2 SEPARABLE: list page] The UNWIRED comment (base `DungeonListPage.xaml:72-85`) stays true and states the unconditional disable. The `Implicit.xaml` census line for `DungeonListPage StartSessionButton` (base `:223`, `same trigger`) names the new mechanism. Evidence: the diff.",
+        "[GATE-2 SEPARABLE: list page] The comment at `DmCard.xaml.cs:202` records a measured focus ring containing `StartSession`. After the change it no longer presents that as the current ring. It either drops `StartSession`, flagged as unmeasured since the button was disabled, or dates the list as measured before this session. Evidence: the diff.",
+        "[GATE-2 SEPARABLE: list page] Demonstrated discrimination. Injection `a3-list-binding`: restore the list button's base attributes and trigger (`DungeonListPage.xaml:100-110`). The procedure and log naming are the same as `a3-detail-binding`, with logs `<scratch>/inject-a3-list-binding.log` and `<scratch>/inject-a3-list-binding-restored.log`. The floored list tests must be red, and a zero-floor list control (`IsEnabled == false` at `FloorCount == 0`) must be green.",
+        "The `DungeonMaster.Tests` XAML scans (the `App/Accessibility` and `App/Theme` suites, among them `SemanticDescriptionTests` and `ImplicitStyleTests`) still pass. Evidence: the summary line of `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj`, which names counts and shows 0 failed. A failure caused outside this task's ownership is reported, not fixed.",
+        "`dotnet build src/DungeonMaster.sln` at final state prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the report quotes them verbatim (lessons.md FORM 8).",
+        "At final state, `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj` names its counts and reports 0 failed, and the report quotes the summary line.",
+        "Every file this task created or modified is CRLF throughout. Counted in binary, CR-LF pairs equal both LF bytes and CR bytes (lessons.md FORM 15), with the instrument controlled on a fixture holding one bare LF and one lone CR. The new test file is tab-indented. Edited XAML keeps the indentation of its surrounding lines. No `sed -i` and no `Write` over an existing file.",
+        "Each new test's name states the condition and the expected outcome (test.md, Naming).",
+        "The report lists, as human observations for Gate 3 and not as met criteria: on a dungeon with at least one floor, `StartSessionButton` is skipped by Tab on each page in scope; it renders dimmed; and hovering it shows the new tooltip. No test in this task observes the tab ring or a tooltip."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "A4: floor reorder chord requires exactly Control (Ctrl+0 at :480 separable at Gate 2)",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/KeyChord.cs",
+        "src/DungeonMaster.App.Tests/Views/KeyChordTests.cs"
+      ],
+      "dependsOn": ["T3"],
+      "acceptance": [
+        "A new `internal static` class in `src/DungeonMaster.App/Views/DungeonDetailPage/KeyChord.cs`, namespace `DungeonMaster.App.Views.DungeonDetail`, exposes a predicate over `Plugin.Maui.KeyListener.KeyboardModifiers`. It is true only when the modifiers are exactly `KeyboardModifiers.Control`. This is the seam the orchestrator named, following `DrawSessionResultGuard.cs:3,10`, so the decision executes on the test host with no page.",
+        "The floor reorder condition (base `DungeonDetailPage.xaml.cs:396-397`) calls that predicate in place of `e.Modifiers.HasFlag(KeyboardModifiers.Control)`. The Up/Down key test and the `ReorderFocusedFloorAsync` call are unchanged. Evidence: the diff.",
+        "The comment block above the chord (base `:381-395`) stays true, and states that the chord requires Control alone and rejects Control combined with any other modifier. Evidence: the diff.",
+        "Tests in `src/DungeonMaster.App.Tests/Views/KeyChordTests.cs` (no host, as `DrawSessionResultGuardTests.cs:17`) show that every declared `KeyboardModifiers` member other than `None` and `Control`, each combined with `Control`, is rejected. The members are enumerated with `Enum.GetValues<KeyboardModifiers>()` and not hand-listed, so a member added later is covered. The test asserts the enumerated non-`None`, non-`Control` set is non-empty, so it cannot pass vacuously. The report names the members it found. The orchestrator reflected them as `Shift`, `Command`, `Alt`; this task re-measures rather than repeating that.",
+        "Tests show that `Control` together with two other modifiers (`Shift` and `Alt`) is rejected.",
+        "Controls, which must pass both with and without the injection below: `KeyboardModifiers.Control` alone is accepted, and `None` and each non-`Control` member alone are rejected.",
+        "Demonstrated discrimination (test.md, Coverage). Injection `a4-hasflag`: replace the predicate's body with `modifiers.HasFlag(KeyboardModifiers.Control)`. Then do the following once for this injection. Save a pre-injection copy of `KeyChord.cs` and apply the injection. Run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter \"FullyQualifiedName~KeyChordTests\"` into `<scratch>/inject-a4-hasflag.log`. Restore from the copy, prove the restore with `cmp`, and re-run into `<scratch>/inject-a4-hasflag-restored.log`. Quote each log's count line and failing test names. The combination tests must be red and the controls green.",
+        "[GATE-2 SEPARABLE: Ctrl+0] The Ctrl+0 reset-viewport condition (base `DungeonDetailPage.xaml.cs:480`) calls the same predicate in place of `e.Modifiers.HasFlag(KeyboardModifiers.Control)`. Evidence: the diff. The predicate's tests above cover the decision. No test exercises this call site, and the report says so.",
+        "After this task, `HasFlag(KeyboardModifiers.Control)` remains in `DungeonDetailPage.xaml.cs` at zero sites (Gate 2 kept the Ctrl+0 criterion). Control: the same `grep -n 'HasFlag'` run against the orchestrator's saved base copy `C:\\Users\\dmarq\\AppData\\Local\\Temp\\claude\\C--Users-dmarq-Development-Repos-dungeon-master\\43c183d4-8538-44e3-9f1f-6bf20e9850d9\\scratchpad\\sir\\20261102-2225-app-correctness\\base\\DungeonDetailPage.xaml.cs` (blob at 18329d4, LF endings; read it, never write it) must report 2 hits, at `:396` and `:480`. Evidence: `grep -n 'HasFlag' src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs`, quoted, with the hit count read from its output.",
+        "The async-void scans still pass: `AsyncVoidUnitsAreGuardedTests` and the rest of `src/DungeonMaster.Tests/App/AsyncDiscipline/` (the key handler at base `:379` opens its `try` before its first `await`). Evidence: the summary line of `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj`, which names counts and shows 0 failed. A failure caused outside this task's ownership is reported, not fixed.",
+        "`dotnet build src/DungeonMaster.sln` at final state prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the report quotes them verbatim (lessons.md FORM 8).",
+        "At final state, `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj` names its counts and reports 0 failed, and the report quotes the summary line.",
+        "Every file this task created or modified is CRLF throughout. Counted in binary, CR-LF pairs equal both LF bytes and CR bytes (lessons.md FORM 15), with the instrument controlled on a fixture holding one bare LF and one lone CR. New files are tab-indented. No `sed -i` and no `Write` over an existing file. Key any whitespace-bearing `Edit` on the line's first text character (lessons.md edit-trailing-tabs).",
+        "Each new test's name states the condition and the expected outcome (test.md, Naming).",
+        "The report lists, as human observations for Gate 3: Ctrl+Up and Ctrl+Down still reorder the focused floor card on Windows; Ctrl+Shift+Up and Ctrl+Alt+Up do not reorder. If Ctrl+0 is kept, it still resets the viewport. Whether the plugin delivers exactly `Control` for a plain Ctrl press at runtime is not observable from any test."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "A5 + A6: non-finite zoom is rejected in ApplyZoom; OnMapCanvasHandlerChanged is guarded from its first statement (mixed-indent line separable at Gate 2)",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ZoomLevelGuard.cs",
+        "src/DungeonMaster.App.Tests/Views/ZoomLevelGuardTests.cs",
+        "src/DungeonMaster.Tests/App/AsyncDiscipline/MapCanvasHandlerChangedIsGuardedTests.cs"
+      ],
+      "dependsOn": ["T4"],
+      "acceptance": [
+        "A new `internal static` class in `src/DungeonMaster.App/Views/DungeonDetailPage/ZoomLevelGuard.cs`, namespace `DungeonMaster.App.Views.DungeonDetail` (precedent `DrawSessionResultGuard.cs:3,10`), maps a current zoom level and a requested raw level to the next zoom level. A non-finite raw value returns the current level unchanged, following the finiteness precedents `CanvasPoint` and `FloorReorderNearest.cs:155`. A finite raw value gets exactly the base `ApplyZoom` treatment (`DungeonDetailPage.xaml.cs:516-520`): snap to 1.0 inside `ZoomSnapThreshold` (0.05, base `:53`), then clamp to [0.25, 4.0].",
+        "`ApplyZoom` (base `:514-523`) takes the zoom level it assigns from that guard, so the zoom buttons (base `:508-512`), the Windows wheel (base `:618`) and the MacCatalyst pinch (base `:632`) all pass through it. The pinch line still calls `ApplyZoom`. Evidence: the diff.",
+        "Tests in `src/DungeonMaster.App.Tests/Views/ZoomLevelGuardTests.cs` show that a raw value of `float.NaN` returns the current level. The current level is one that is neither 1.0, 0.25 nor 4.0, so an unguarded snap or clamp cannot coincide with it.",
+        "Tests show that a raw value of `float.PositiveInfinity` returns that same current level. Without the guard it would clamp to 4.0.",
+        "Tests show that a raw value of `float.NegativeInfinity` returns that same current level. Without the guard it would clamp to 0.25.",
+        "Preserved behaviour, a control that must pass both with and without the injection below: a finite in-range raw value outside the snap band (for example 2.0) is returned unchanged.",
+        "Preserved behaviour, control: a finite raw value inside the snap band (for example 1.03) returns 1.0.",
+        "Preserved behaviour, control: a finite raw value above 4.0 returns 4.0.",
+        "Preserved behaviour, control: a finite raw value below 0.25 returns 0.25.",
+        "Demonstrated discrimination (test.md, Coverage). Injection `a5-isfinite`: delete the finiteness check from the guard. Then do the following once for this injection. Save a pre-injection copy of `ZoomLevelGuard.cs` and apply the injection. Run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter \"FullyQualifiedName~ZoomLevelGuardTests\"` into `<scratch>/inject-a5-isfinite.log`. Restore from the copy, prove the restore with `cmp`, and re-run into `<scratch>/inject-a5-isfinite-restored.log`. Quote each log's count line and failing test names. All three non-finite tests must be red and all four finite controls green.",
+        "The report states whether the solution build compiled the `net10.0-maccatalyst` target of `DungeonMaster.App` and quotes the build output line showing it. If that target was not built, it says so. The MacCatalyst pinch path is not executable on this machine, and the report does not claim it was exercised.",
+        "In `OnMapCanvasHandlerChanged` (base `:533-560`), `DetachScrollZoom()` and `AttachScrollZoom()` (base `:535-536`) execute inside the `try` (base `:548`), and no statement executes before the `try`. Evidence: the diff.",
+        "Preserved behaviour: both calls still run, Detach then Attach, before the null-handler early return (base `:540-543`), so a teardown with a null handler still detaches. Only the object-image preload is skipped for a null handler. Evidence: the diff.",
+        "The `catch` message (base `:558`, `Could not load the object images: …`) is true for every operation the `try` now covers. It names the scroll-zoom attach/detach as well as the image preload, or reads as a canvas-preparation failure that covers both (backend.md, Error handling: 'Include the operation … in the failure'). The comment above the `try` (base `:545-547`) is true of the new shape. Evidence: the diff.",
+        "A source-text scan test in `src/DungeonMaster.Tests/App/AsyncDiscipline/MapCanvasHandlerChangedIsGuardedTests.cs` reads `DungeonDetailPage.xaml.cs` through `RepoPaths`. It asserts that between `OnMapCanvasHandlerChanged`'s opening brace and the line whose trimmed text is exactly `try`, there is no line other than blanks and comments. Its doc comment and name state that it is STRUCTURAL evidence about source text, not proof of runtime guarding. Match `try` as the whole trimmed line: the comment at base `:545-547` contains the word 'try', and a substring match would be satisfied by prose (lessons.md FORM 14). The test fails loudly if the method or its `try` line is not found.",
+        "Control for the scan, which must pass both with and without the injection below: an assertion in the same class that the method is found and that `PreloadObjectImagesAsync` appears after its `try` line.",
+        "Demonstrated discrimination. Injection `a6-calls-above-try`: move the two calls back to the start of the method body above the `try`, as at base `:535-536`. Then do the following once for this injection. Save a pre-injection copy of `DungeonDetailPage.xaml.cs` and apply the injection. Run `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --filter \"FullyQualifiedName~MapCanvasHandlerChangedIsGuardedTests\"` into `<scratch>/inject-a6-calls-above-try.log`. Restore from the copy, prove the restore with `cmp`, and re-run into `<scratch>/inject-a6-calls-above-try-restored.log`. Quote each log's count line and failing test names. The ordering assertion must be red and the control green.",
+        "[GATE-2 SEPARABLE: mixed indent, backlog line 58] The continuation line at base `DungeonDetailPage.xaml.cs:616` (`.Properties.MouseWheelDelta;`, five tabs then two spaces) is indented with tabs only. After the change, no line in the file has a space anywhere in its leading whitespace. Evidence: an `awk` census that strips each line to its leading whitespace and reports any containing a space. It runs on the final file and returns no lines, and it runs on a scratch fixture holding one tab-then-space line, which it must report. Quote both outputs.",
+        "The async-void scans still pass: `AsyncVoidUnitsAreGuardedTests` and the rest of `src/DungeonMaster.Tests/App/AsyncDiscipline/`. Evidence: the summary line of `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj`, which names counts and shows 0 failed. A failure caused outside this task's ownership is reported, not fixed.",
+        "`dotnet build src/DungeonMaster.sln` at final state prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the report quotes them verbatim (lessons.md FORM 8).",
+        "At final state, `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj` names its counts and reports 0 failed, and the report quotes the summary line.",
+        "Every file this task created or modified is CRLF throughout. Counted in binary, CR-LF pairs equal both LF bytes and CR bytes (lessons.md FORM 15), with the instrument controlled on a fixture holding one bare LF and one lone CR. New files are tab-indented. No `sed -i` and no `Write` over an existing file. Key any whitespace-bearing `Edit` on the line's first text character (lessons.md edit-trailing-tabs).",
+        "Each new test's name states the condition and the expected outcome (test.md, Naming).",
+        "The report lists, as human observations for Gate 3: on Windows, the zoom buttons and the scroll wheel still zoom and snap at 100%; object images still render on the map after the page opens; scroll-wheel zoom still works after navigating away and back. It also states that A6's 'guarded' property is not observable by a human or by any runtime test, because nothing makes `AttachScrollZoom` throw, and that the scan is a structural proxy."
+      ]
+    }
+  ]
+}

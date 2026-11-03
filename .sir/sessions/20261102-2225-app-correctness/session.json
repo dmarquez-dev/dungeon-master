@@ -1,0 +1,47 @@
+{
+  "id": "20261102-2225-app-correctness",
+  "name": "app-correctness",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-02T22:25:00Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "pushed": true,
+  "brief": "Close six user-visible correctness gaps in DungeonMaster.App, all re-measured live at base 18329d4. A1: DungeonDetailViewModel.LoadDungeonAsync treats a well-formed Guid that names no dungeon as loaded; it must report a NotFound error through ResultMessage and clear the dungeon id so every editing command's NoDungeonIsLoaded gate refuses saves. A2: CreateDungeonViewModel never clears ErrorMessage; reset it when a create starts. A3: both StartSession buttons (DungeonListPage, inside DmCard, and DungeonDetailPage) are enabled on a floored dungeon and do nothing; disable them, keeping tooltips and comments true. A4: the Ctrl+Up/Down floor reorder chord uses HasFlag(Control); require exactly Control, with Ctrl+0 offered as an optional add. A5: ApplyZoom passes a non-finite zoom through Math.Clamp; reject non-finite input and leave zoom unchanged, testable on Windows through an extracted helper. A6: fold the Detach/AttachScrollZoom calls in OnMapCanvasHandlerChanged into its try. Every guard gets a test proven to fail on an injected revert, with a passing control. Optional add: the mixed-indent line, now at DungeonDetailPage.xaml.cs:616.",
+  "runs": [
+    {
+      "cc": "1567c3f4-833a-4b8e-b574-30de11a5f398",
+      "phase": "discuss",
+      "sir": "1.0.13",
+      "started": "2026-11-02T22:25:00Z",
+      "ended": "2026-11-02T22:36:35Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "43c183d4-8538-44e3-9f1f-6bf20e9850d9",
+      "phase": "spec",
+      "sir": "1.0.13",
+      "started": "2026-11-02T22:51:21Z",
+      "ended": "2026-11-02T23:14:49Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "f7a7fe5f-3892-4bd5-86a9-6a38d83678f6",
+      "phase": "implement",
+      "sir": "1.0.13",
+      "started": "2026-11-02T23:30:58Z",
+      "ended": "2026-11-03T00:20:55Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "40c01026-9272-49ab-9198-4920fe810d37",
+      "phase": "review",
+      "sir": "1.0.13",
+      "started": "2026-11-03T00:25:33Z",
+      "ended": "2026-11-03T00:38:40Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+}

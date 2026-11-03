@@ -1,0 +1,27 @@
+{
+  "session": "20261102-2225-app-correctness",
+  "updatedAt": "2026-11-03T00:38:40Z",
+  "worktree": "C:/dm-wt/app-correctness",
+  "branch": "agent/20261102-2225-app-correctness",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/app-correctness/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:37.53"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/app-correctness/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed: 0, Passed: 187, Total: 187 - DungeonMaster.App.UnitTests.dll | Passed!  - Failed: 0, Passed: 932, Total: 932 - DungeonMaster.Tests.dll | Passed!  - Failed: 0, Passed: 108, Total: 108 - DungeonMaster.App.Tests.dll"
+    }
+  ],
+  "tasks": [
+    { "id": "T1", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "18329d4f16a769a6049c26e665ef6cae98d7124e", "commit": "2885a8eb66f91f3828e672a2146da8c428b25b24" },
+    { "id": "T2", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "2885a8eb66f91f3828e672a2146da8c428b25b24", "commit": "820a760319b27896134dbe2656acdc77160b781d" },
+    { "id": "T3", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "820a760319b27896134dbe2656acdc77160b781d", "commit": "209922e32caefe8af9d8b48365d01fd02f8982b1" },
+    { "id": "T4", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "209922e32caefe8af9d8b48365d01fd02f8982b1", "commit": "123a4beccc8e1f0a7bd3d94e3a259dd32cbae11f" },
+    { "id": "T5", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "123a4beccc8e1f0a7bd3d94e3a259dd32cbae11f", "commit": "02fc0ddb40d802640aa7623a905d8db41deb2dbb" }
+  ],
+  "escalations": [],
+  "metrics": { "userInteractions": 4, "escalationsRaised": 0, "reviewRounds": 0 }
+}
