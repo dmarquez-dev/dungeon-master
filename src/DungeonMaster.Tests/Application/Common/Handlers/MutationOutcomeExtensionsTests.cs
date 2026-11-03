@@ -123,7 +123,7 @@ public class MutationOutcomeExtensionsTests
 	}
 
 	/// <summary>
-	///		Verifies that the zero member, which is what <see langword="default"/> produces, is rejected.
+	///		Verifies that the zero member, which is what <see langword="default"/> produces, is rejected with the message of its own arm.
 	/// </summary>
 	[Fact]
 	public void ToResult_WithNone_Throws()
@@ -138,5 +138,10 @@ public class MutationOutcomeExtensionsTests
 
 		act.Should().Throw<ArgumentOutOfRangeException>()
 			.Which.ActualValue.Should().Be(MutationOutcome.None);
+
+		// The message is asserted because ParamName and ActualValue are the same on the
+		// None arm and the unrecognised-value arm; only the message tells them apart.
+		act.Should().Throw<ArgumentOutOfRangeException>()
+			.Which.Message.Should().StartWith("No mutation outcome was reported.");
 	}
 }
