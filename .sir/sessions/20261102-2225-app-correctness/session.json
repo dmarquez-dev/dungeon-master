@@ -2,9 +2,9 @@
   "id": "20261102-2225-app-correctness",
   "name": "app-correctness",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-02T22:25:00Z",
-  "ended": null,
+  "ended": "2026-11-03T00:44:14Z",
   "parent": null,
   "children": [],
   "pushed": true,
@@ -41,7 +41,15 @@
       "started": "2026-11-03T00:25:33Z",
       "ended": "2026-11-03T00:38:40Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "40c01026-9272-49ab-9198-4920fe810d37",
+      "phase": "wrap",
+      "sir": "1.0.13",
+      "started": "2026-11-03T00:43:43Z",
+      "ended": "2026-11-03T00:44:14Z",
+      "outcome": "complete"
     }
   ],
-  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+  "metrics": { "userInteractions": 4, "escalationsRaised": 0, "reviewRounds": 0 }
 }
