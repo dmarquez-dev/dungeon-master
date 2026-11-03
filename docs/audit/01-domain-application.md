@@ -2882,6 +2882,39 @@ that `dotnet-format.md:377` explicitly allows multi-sentence descriptions, so th
 breaks, not to split the prose into more tags. `ObjectKind.cs:10` is only safe to touch once `CORE-025` is
 closed, which it now is.
 
+**[AMENDED 20261103-1947-core-doc-comments, 2026-11-03 -- `MASTER-180` is CLOSED done by this session,
+and one claim in this entry's `locations:` comment is false: `CanvasPoint.cs:19` at `d2b84a2` does
+violate the rule. Classification: MEASUREMENT ERROR, by a predicate blind to the case.** The register
+row is `MASTER-180` at `00-master-index.md:368`, now closed **done**. **Nothing below deletes any
+previous wording.** Every `CanvasPoint.cs` line number in this block is labelled with the commit it was
+measured at, because this session's task `T1` re-broke that file's `///` lines and moved them.
+
+*Correction -- the claim that `CanvasPoint.cs:19` at `d2b84a2` conforms.* Previous wording, verbatim, from the `locations:` comment at
+`:2801-2803` of this file at `d2b84a2`, each line's `  # ` prefix left out: *"Enumerated, NOT
+compressed into ranges: a range here would silently include conforming lines. CanvasPoint.cs:16-30 as a
+range, for instance, would sweep in :19, :22, :25, :26 and :27, none of which violates the rule."* Every
+`CanvasPoint.cs` line number in that quotation refers to the file at `d2b84a2`. **`:19` at `d2b84a2` is wrong.** At
+`d2b84a2`, `CanvasPoint.cs:19` ends `while <see cref="float.PositiveInfinity"/>`, and its sentence
+continues on `CanvasPoint.cs:20` at `d2b84a2` -- a sentence broken across two `///` lines, which
+`backend/dotnet-format.md:378` forbids. This entry's own predicate cannot see it, because it exempts
+every line ending `>`, and an inline tag such as `<see cref="..."/>` ends in `>`. The same predicate
+without that exemption, recorded verbatim as `P2` in section 2 of
+`.sir/sessions/20261103-1947-core-doc-comments/contracts/C1-measurement.md`, reports the line: run on
+`CanvasPoint.cs` at `d2b84a2` it prints this entry's `CanvasPoint.cs` list plus `19`, while this entry's
+predicate (`P1` in section 1 of that file) prints the list alone. Neither predicate reports
+`CanvasPoint.cs:22`, `:25`, `:26` or `:27` at `d2b84a2`, so the rest of the quoted claim stands.
+
+*Closure.* `MASTER-180` is closed **done** by this session; the remedy is its task `T1`. Measured on the
+session worktree after `T1`, `P2` prints nothing on `src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs`,
+`src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs` and
+`src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs`, so the `Suggested direction.` paragraph's
+verification -- no lines in all three files afterwards -- holds under the stronger predicate as well as
+under this entry's own. `P2`'s controls were re-run first, on the two CRLF fixtures that section
+records: it printed only line 2 of `fixture1`, a sentence broken mid-clause, and only line 1 of
+`fixture2`, a sentence broken after `<see cref="X"/>`, which this entry's predicate passes over. The
+record's severity, category, effort and risk are unchanged, and its `locations:` block above
+deliberately keeps its line numbers: they describe `CanvasPoint.cs` at `d2b84a2`, before `T1`.**]**
+
 ## Layer verdict
 
 Both layers hold their shape. The Domain has no project or package references and, on reading all
