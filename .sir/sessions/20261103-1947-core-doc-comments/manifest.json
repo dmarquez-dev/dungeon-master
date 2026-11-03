@@ -1,0 +1,117 @@
+{
+  "session": "20261103-1947-core-doc-comments",
+  "createdAt": "2026-11-03T19:47:00Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-measurement.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "D3 + D1: correct CanvasPoint's NaN paragraph, then re-break mid-sentence /// lines in CanvasPoint, PlacedObject and ObjectKind",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs",
+        "src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs",
+        "src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "D3 scope. D3's rewrite stays inside one element: the second <para> of CanvasPoint.cs's type-level <remarks> (startRef :15-26). The type-level <remarks> still holds exactly three <para> elements. Evidence: read the type-level <remarks> block.",
+        "D3 removes the false claim. The second <para> no longer says that a NaN coordinate of a CanvasPoint reaches EF, SaveChanges or a commit. At startRef :18 says it 'throws on save' as a DbUpdateException wrapping InvalidOperationException, and :25 says 'So the store stops one of three cases, at commit time'. Neither claim survives. If the paragraph names DbUpdateException, it presents EF's wrapper as no longer observable, matching CanvasPointNonFinitePersistenceTests.cs:55-62, and never as reachable. Evidence: read the paragraph.",
+        "D3 states the guard. The second <para> says that CanvasPoint's finiteness guard rejects a NaN coordinate when the CanvasPoint is created (and through the init accessors), so a NaN never reaches EF. This matches CanvasPoint.cs:53-54, :70, :82 and :106-112 at startRef. Evidence: read the paragraph.",
+        "D3 keeps the ADO-layer attribution. The second <para> still says that a NaN parameter bound through Microsoft.Data.Sqlite is refused with InvalidOperationException('Cannot store 'NaN' values.'). It still says this is the ADO provider declining to bind, not a SQLite constraint and not the IsRequired() mapping. This matches CanvasPointNonFinitePersistenceTests.cs:20-26. Evidence: read the paragraph.",
+        "D3 keeps the column-type point. The second <para> still says that the REAL column type is why a floating-point bind is attempted at all, and that a TEXT mapping would store NaN without complaint. This matches startRef :23-24 and CanvasPointNonFinitePersistenceTests.cs:26-28. Evidence: read the paragraph.",
+        "D3 keeps the asymmetry. The second <para> still says that PositiveInfinity and NegativeInfinity round-trip intact while NaN cannot be written. The third <para>, which is word-preserved, opens 'One consequence of that asymmetry' and needs that referent. This matches CanvasPointNonFinitePersistenceTests.cs:33-36. Evidence: read both paragraphs.",
+        "D3 follows the doc-comment rules (dotnet-format.md:376 and :378). Every description line (every line that is not a tag-only line such as <para> or </para>) of the rewritten second <para> holds one or more complete sentences and ends with a period. No sentence spans two /// lines. Every cref in it names a type or member that exists. The build does not check crefs, per C1 section 10. Evidence: read the paragraph and resolve each cref.",
+        "D1, CanvasPoint.cs. P2 (C1 section 2) prints nothing on src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs. At startRef it prints 25 lines, :19 included. Rerun fixture1 and fixture2 from C1 section 2, in your own scratch directory, before trusting the empty output, and report their outputs. P2's hits contain P1's, so this also means P1 prints nothing.",
+        "D1, PlacedObject.cs. P2 (C1 section 2) prints nothing on src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs. At startRef it prints :50, :97, :98 and :102. The fixture rerun required for CanvasPoint.cs covers this criterion too.",
+        "D1, ObjectKind.cs. P2 (C1 section 2) prints nothing on src/DungeonMaster.Domain/Entities/Floors/ObjectKind.cs. At startRef it prints :10. The fixture rerun required for CanvasPoint.cs covers this criterion too.",
+        "D1 changed no words in CanvasPoint.cs outside D3's paragraph. This deliberately asserts preserved state. 'awk -v skip=2 -f W' (C1 section 3) on CanvasPoint.cs prints 364 tokens with sha256 369908f9deb957076ee746477736ba2d543bed6a55ba24675cdb94f8ad60b8e7, the startRef value.",
+        "D1 changed no words in PlacedObject.cs. This deliberately asserts preserved state. 'awk -v skip=0 -f W' (C1 section 3) on PlacedObject.cs prints 183 tokens with sha256 a8b33b0483cd5646adbf7eea0b9e2213a0c5c337bd60f9ba26ec1799ebe85d46, the startRef value.",
+        "D1 changed no words in ObjectKind.cs. This deliberately asserts preserved state. 'awk -v skip=0 -f W' (C1 section 3) on ObjectKind.cs prints 49 tokens with sha256 3620232a9195b0ebdbdabdbf8e898e9316f59e485b80230e3b41eb056f6ca10d, the startRef value.",
+        "No executable code changed in CanvasPoint.cs. This deliberately asserts preserved state. N (C1 section 5) prints 9867de75592e3048725aea9bf74400371754fbe2f0fa8ea531e02211a006715f. Before trusting it, run N's must-pass and must-fire controls on scratch copies (C1 section 5) and report both hashes. Never inject into the worktree.",
+        "No executable code changed in PlacedObject.cs. This deliberately asserts preserved state. N (C1 section 5) prints d155f683f2dee2899f7916a003bf6cd619d8d4ead96a70ef228d574b06b5c2f0.",
+        "No executable code changed in ObjectKind.cs. This deliberately asserts preserved state. N (C1 section 5) prints 3ad22314b05778aed4c47ba38054f9b91bdc68569d657b8564021d9912e27f09.",
+        "CanvasPoint.cs keeps its line endings. The census B (C1 section 6), run after the last edit, prints CR = LF = CRLF with loneCR=0. Report the printed line.",
+        "PlacedObject.cs keeps its line endings. The census B (C1 section 6), run after the last edit, prints CR = LF = CRLF with loneCR=0. Report the printed line.",
+        "ObjectKind.cs keeps its line endings. The census B (C1 section 6), run after the last edit, prints CR = LF = CRLF with loneCR=0. Report the printed line.",
+        "CanvasPoint.cs keeps tab-indented descriptions (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 4) prints nothing on CanvasPoint.cs. Rerun I1's fixture first and report its output.",
+        "PlacedObject.cs keeps tab-indented descriptions (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 4) prints nothing on PlacedObject.cs.",
+        "ObjectKind.cs keeps tab-indented descriptions (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 4) prints nothing on ObjectKind.cs.",
+        "The solution still builds clean. This deliberately asserts preserved state. 'dotnet build C:/dm-wt/20261103-1947-core-doc-comments/src/DungeonMaster.sln' ends with 'Build succeeded.', '0 Warning(s)' and '0 Error(s)'. Quote the three lines (FORM 8). Do not run it while a peer task is building (C1 section 10).",
+        "The test suite still passes. This deliberately asserts preserved state. 'dotnet test C:/dm-wt/20261103-1947-core-doc-comments/src/DungeonMaster.sln --no-build', run after the build above, reports 0 failed in every assembly. The per-assembly totals are 187, 943 and 139, as the orchestrator probed at startRef. Quote each summary line. Output that names no test count is reported as not runnable, not as a pass."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "D2 + D4 + D6: scope Result<T>.Value's closed-construction claim, qualify Area's once-only wrapper comment, document Translate's ArgumentOutOfRangeException",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Application/Common/Results/ResultOfT.cs",
+        "src/DungeonMaster.Domain/Entities/Areas/Area.cs",
+        "src/DungeonMaster.App.Core/Map/AreaOutlineGeometry.cs"
+      ],
+      "dependsOn": [
+        "T1"
+      ],
+      "acceptance": [
+        "D2 scopes the claim. The second <para> of Value's <remarks> in ResultOfT.cs (startRef :36-41) no longer says, unqualified, that Result<Guid> is 'the only closed construction this application uses'. Any exclusivity claim left is scoped to production code (src/ without the test projects), or it names the survey it rests on. Evidence: read the paragraph.",
+        "D2's claim is true. Every statement the rewritten paragraph makes about which closed constructions of Result<T> exist holds when C1 section 7's S1 and S2 are rerun in the worktree. Production closes Result<T> only over Guid, directly and through ICommand<Guid>, ICommandHandler<_, Guid> and SendAsync<Guid>. The test projects also close it over int, as at DispatcherCancellationTests.cs:155. Evidence: rerun S1 and S2 and report what they print.",
+        "D2 does not falsify itself (FORM 17). If the rewritten paragraph states a command and its result, either the command's population excludes ResultOfT.cs or the result is stated as of a named commit. If no command is stated, this criterion is met by reading. Evidence: read the paragraph.",
+        "D2 keeps the paragraph's technical content. The rewritten paragraph still says that T is unconstrained, so the '?' annotation has no effect once T is closed as a value type. It still says that for Result<Guid> a failed result's Value is Guid.Empty, which cannot be told apart from a Guid a successful operation could return. Evidence: read the paragraph.",
+        "D2 follows the doc-comment rules (dotnet-format.md:376 and :378). Every description line (every line that is not a tag-only line such as <para> or </para>) of the rewritten paragraph holds one or more complete sentences and ends with a period. Every cref names something that exists, because the build does not check crefs (C1 section 10). Evidence: read the paragraph.",
+        "D2 fixes only its own paragraph's sentence breaks. P2 (C1 section 2) on ResultOfT.cs prints exactly :27, :32 and :33, nothing else. At startRef it also prints :37, :38 and :39. The three that stay are other paragraphs, out of scope and routed to the backlog. Rerun fixture1 and fixture2 (C1 section 2) in your own scratch directory first and report their outputs.",
+        "D2 changed no words outside its paragraph. This deliberately asserts preserved state. 'awk -v skip=2 -f W' (C1 section 3) on ResultOfT.cs prints 333 tokens with sha256 24a636802bdee9b01c85205e4c022f704f7beac51503c335bfe5de0e75cbdc80, the startRef value.",
+        "No executable code changed in ResultOfT.cs. This deliberately asserts preserved state. N (C1 section 5) prints 7fd75c7f1120a28645204e2d892f48f96b73ad198171f13518dd14202e177962. Before trusting it, run N's must-pass and must-fire controls on scratch copies (C1 section 5) and report both hashes. Never inject into the worktree.",
+        "ResultOfT.cs keeps its line endings. The census B (C1 section 6), run after the last edit, prints CR = LF = CRLF with loneCR=0. Report the printed line.",
+        "ResultOfT.cs keeps tab-indented descriptions (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 4) prints nothing on ResultOfT.cs. Rerun I1's fixture first and report its output.",
+        "D4 removes the unqualified once-only claims. The // comment above _outlineView in Area.cs (startRef :12-24) no longer says, unqualified, that the wrapper is built once or at most once per Area, or that Outline returns the same instance on every read. At startRef that claim appears at :12-13 ('built once and reused, so Outline hands back the same instance on every read') and at :24 ('it is still built at most once per Area'). Each is removed, or qualified so it stays true when two threads make the first read at once. '_outlineView ??= _outline.AsReadOnly()' (Area.cs:76) is a non-atomic check-then-assign. Evidence: read the comment.",
+        "D4 adds no unverified threading claim. If the rewritten comment says how Area is accessed across threads (for example 'single-threaded, which is how the aggregate is used'), it cites the file:line evidence for that. Otherwise it makes no such claim. Evidence: read the comment.",
+        "D4 touches only that comment. The diff to Area.cs changes only lines inside the startRef :12-24 comment block. The rest of the block still carries its MASTER-114 rationale: why the wrapper cannot be built in the constructor, and the AreaOutlineChangeTrackingTests measurement. Evidence: the task diff.",
+        "No executable code changed in Area.cs. This deliberately asserts preserved state. N (C1 section 5) prints e9fbfd5cdd8cf5655d353499264a7d52059f4f82ab6ebf8c8d325ef0620a6e42.",
+        "Area.cs keeps its line endings. The census B (C1 section 6), run after the last edit, prints CR = LF = CRLF with loneCR=0. Report the printed line.",
+        "D6 adds the missing exception. X (C1 section 8) on AreaOutlineGeometry.cs prints three <exception cref= lines. One of them is <exception cref=\"ArgumentOutOfRangeException\">. At startRef X prints only :25 (ArgumentNullException) and :29 (ArgumentException).",
+        "D6's description is true. The new element's description says it is thrown when a segment of outline has a Kind that is not a defined PathSegmentKind. It may say the ParamName is Kind. This follows from AreaOutlineGeometry.cs:46-47 rebuilding each segment through 'new PathSegment(segment.Kind, ...)' and PathSegment.cs:80-85 throwing ArgumentOutOfRangeException(nameof(Kind), ...) for any Kind other than Line or CubicBezier. Every cref it uses names something that exists. Evidence: read the element and the cited lines.",
+        "D6 follows the doc-comment rules (dotnet-format.md:375, :376 and :378). The new element's description sits on its own line or lines, written as tab + '///' + two tabs. Each line holds one or more complete sentences ending with a period. No sentence spans two /// lines. Evidence: read the element; I1 (C1 section 4) prints nothing on AreaOutlineGeometry.cs.",
+        "D6 adds no new sentence break. P2 (C1 section 2) on AreaOutlineGeometry.cs prints exactly the startRef set of nine (:6, :12, :22, :26, :73, :74, :75, :76, :138), with every line at or below the insertion point shifted down by k, where k is the number of lines the task inserted, and nothing else. None of the hits falls inside the new element. The nine are out of scope and routed to the backlog. Rerun fixture1 and fixture2 (C1 section 2) in your own scratch directory first and report their outputs.",
+        "D6 inserts and changes nothing else. The diff to AreaOutlineGeometry.cs consists only of inserted lines. All of them lie inside Translate's doc block (between startRef :11 and the declaration at :32), and together they form exactly one <exception> element. Evidence: the task diff.",
+        "No executable code changed in AreaOutlineGeometry.cs. This deliberately asserts preserved state. N (C1 section 5) prints 17bde18ebebad37a9ef46550d990b31f3fb16196084998c0e789c5b0d7b1950f.",
+        "AreaOutlineGeometry.cs keeps its line endings. The census B (C1 section 6), run after the last edit, prints CR = LF = CRLF with loneCR=0. Report the printed line.",
+        "The solution still builds clean. This deliberately asserts preserved state. 'dotnet build C:/dm-wt/20261103-1947-core-doc-comments/src/DungeonMaster.sln' ends with 'Build succeeded.', '0 Warning(s)' and '0 Error(s)'. Quote the three lines (FORM 8). Do not run it while a peer task is building (C1 section 10).",
+        "The test suite still passes. This deliberately asserts preserved state. 'dotnet test C:/dm-wt/20261103-1947-core-doc-comments/src/DungeonMaster.sln --no-build', run after the build above, reports 0 failed in every assembly. The per-assembly totals are 187, 943 and 139, as the orchestrator probed at startRef. Quote each summary line. Output that names no test count is reported as not runnable, not as a pass."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "REGISTER (kept at Gate 2): close MASTER-180 in the master index and amend CORE-036, correcting its ':19 conforms' claim",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/00-master-index.md",
+        "docs/audit/01-domain-application.md"
+      ],
+      "dependsOn": [
+        "T1"
+      ],
+      "acceptance": [
+        "MASTER-180 is marked done. Line 368 of docs/audit/00-master-index.md still begins '| 180 | MASTER-180 |'. Its last cell, the status cell, begins '**done** (20261103-1947-core-doc-comments, 2026-11-03) -- '. Strip '*' and the cell's first token is 'done', per the register-classifier lesson. Evidence: read line 368.",
+        "The status cell cites closure evidence measured on the tree T3 starts from, which is after T1. It says that P2 (C1 section 2) prints nothing on CanvasPoint.cs, PlacedObject.cs and ObjectKind.cs, and this task reruns P2 in the worktree, with fixture1 and fixture2 from C1 section 2, to establish that. Evidence: read the cell; rerun P2.",
+        "The status cell says no commit hash is cited, because tasks run without git and the orchestrator makes the commit. Evidence: read the cell.",
+        "The status cell points to the new AMENDED block on CORE-036 in docs/audit/01-domain-application.md. Evidence: read the cell.",
+        "The register row keeps its shape: no phantom column, and every '|' inside the cell escaped as '\\|'. This deliberately asserts preserved state. R (C1 section 9) prints 11 for line 368.",
+        "The master index changes nowhere else. The diff to docs/audit/00-master-index.md changes line 368 only, and the file still has 689 lines. Evidence: the task diff.",
+        "The master index keeps its line endings. The census B (C1 section 6) on docs/audit/00-master-index.md prints CR=689 LF=689 CRLF=689 loneCR=0.",
+        "The amendment block is in place and in house form. A new block sits after CORE-036's '**Suggested direction.**' paragraph (startRef :2878-2883) and before '## Layer verdict' (startRef :2885) in docs/audit/01-domain-application.md. Its first line begins '**[AMENDED 20261103-1947-core-doc-comments, 2026-11-03 -- '. Its last line ends '**]**', the closer form at startRef :262 and :415. Evidence: the opener census and closer census (C1 section 9) each print 14 (13 at startRef). Read the block's position.",
+        "The block records the closure. It says MASTER-180 is closed done by this session, and that P2 (C1 section 2, stated in the block or cited by path as .sir/sessions/20261103-1947-core-doc-comments/contracts/C1-measurement.md) prints nothing on all three files on the post-T1 tree. Evidence: read the block.",
+        "The block corrects the ':19 conforms' claim. It quotes verbatim the words it corrects: the locations: comment at startRef :2801-2803, whose words (leaving out each line's '  # ' prefix) say that a :16-30 range 'would sweep in :19, :22, :25, :26 and :27, none of which violates the rule'. It then states that at d2b84a2, CanvasPoint.cs:19 ended 'while <see cref=\"float.PositiveInfinity\"/>' and its sentence continued on :20, a break that CORE-036's own predicate cannot see because it exempts lines ending '>'. It also says that P2, the predicate without that exemption, reports the line. Evidence: read the block; check the quote against the file.",
+        "Every CanvasPoint.cs line number the block cites is labelled with the commit it was measured at (d2b84a2 for the pre-change state), because T1 moves those lines. Evidence: read the block.",
+        "Nothing in the CORE-036 entry is deleted. The diff to docs/audit/01-domain-application.md consists only of inserted lines. Evidence: the task diff.",
+        "The audit file keeps its line endings. The census B (C1 section 6) on docs/audit/01-domain-application.md prints CR = LF = CRLF = (2917 + the inserted line count), with loneCR=0."
+      ]
+    }
+  ]
+}

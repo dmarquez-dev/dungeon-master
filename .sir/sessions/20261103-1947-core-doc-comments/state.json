@@ -1,0 +1,51 @@
+{
+  "session": "20261103-1947-core-doc-comments",
+  "updatedAt": "2026-11-03T21:28:19Z",
+  "worktree": "C:/dm-wt/20261103-1947-core-doc-comments",
+  "branch": "agent/20261103-1947-core-doc-comments",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261103-1947-core-doc-comments/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:35.12"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261103-1947-core-doc-comments/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed:     0, Passed:   187, Skipped:     0, Total:   187 - DungeonMaster.App.UnitTests.dll (net10.0) | Passed!  - Failed:     0, Passed:   943, Skipped:     0, Total:   943 - DungeonMaster.Tests.dll (net10.0) | Passed!  - Failed:     0, Passed:   139, Skipped:     0, Total:   139 - DungeonMaster.App.Tests.dll (net10.0)"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "startRef": "d2b84a249baf8d3e12c16e7cadbd6c96d16a4564",
+      "commit": "6a6decba3cb2fb3752282820c1a7f1d90de11eaf",
+      "model": "opus",
+      "revisionRounds": 0
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "startRef": "6a6decba3cb2fb3752282820c1a7f1d90de11eaf",
+      "commit": "6e1493ffaa6d299febe9857f5ef0a6fd63951cbc",
+      "model": "opus",
+      "revisionRounds": 1
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "startRef": "6a6decba3cb2fb3752282820c1a7f1d90de11eaf",
+      "commit": "7421d028a7da5edeaf2c32ecef4653e006cf7162",
+      "model": "opus",
+      "revisionRounds": 0
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 0,
+    "reviewRounds": 1
+  }
+}
