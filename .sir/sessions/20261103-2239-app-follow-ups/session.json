@@ -1,0 +1,51 @@
+{
+  "id": "20261103-2239-app-follow-ups",
+  "name": "app-follow-ups",
+  "scope": "standard",
+  "status": "MERGED",
+  "pushed": true,
+  "brief": "Close the five App-layer follow-up rows (backlog 194-198) left by session 20261102-2225-app-correctness. F1: remove the list page StartSessionButton's own tooltip so only the overlay's 'Sessions are not available yet' surfaces. F2: accept the plain-Ctrl+0-only reset as-is, with no code change. F3: route ResetViewport's zoom write through ZoomLevelGuard and pin Next(NaN, 1.0f) == 1.0f with an injected-defect test. F4: after a controlled census finds no consumer, delete GreaterThanZeroConverter, its App.xaml registration and its 18 tests, and amend UIKIT-004, UIKIT-006 and MASTER-167. F5: correct the UiTests README detail-page tab walk to press 3, stated as inferred from source. Per E1, kept narrow: correct the ZoomLevel half of FloorMapDrawableNonFiniteTests' remarks, which T2 would otherwise falsify. Five tasks, serial build chain T1-T2-T3-T5, T4 free; no contracts.",
+  "started": "2026-11-03T22:39:30Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "466b6bf7-55c7-4e4b-9342-845c43a90d92",
+      "phase": "discuss",
+      "sir": "1.0.18",
+      "started": "2026-11-03T22:39:30Z",
+      "ended": "2026-11-03T23:39:13Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "d3692c51-7339-41db-91b1-3a1ea4ea80b9",
+      "phase": "spec",
+      "sir": "1.0.18",
+      "started": "2026-11-03T23:44:38Z",
+      "ended": "2026-11-04T00:39:04Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "e472e2c5-94cf-4fc6-9b16-0fb44cb04b8f",
+      "phase": "implement",
+      "sir": "1.0.18",
+      "started": "2026-11-04T00:40:44Z",
+      "ended": "2026-11-04T01:16:22Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "e593f929-bf18-417d-9e73-305cbb6ba3cc",
+      "phase": "review",
+      "sir": "1.0.18",
+      "started": "2026-11-04T01:19:52Z",
+      "ended": "2026-11-04T01:39:19Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}

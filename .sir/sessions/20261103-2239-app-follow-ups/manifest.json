@@ -1,0 +1,111 @@
+{
+  "session": "20261103-2239-app-follow-ups",
+  "createdAt": "2026-11-03T22:39:00Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "F1: drop the list page StartSessionButton's own tooltip so only the overlay's can surface",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonListPage/DungeonListPage.xaml"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "The Button element with AutomationId=\"StartSessionButton\" in src/DungeonMaster.App/Views/DungeonListPage/DungeonListPage.xaml (its opening tag, from `<Button` to the `>` that closes it) carries no `ToolTipProperties.*` attribute. This encodes the user's Gate 1 decision for F1 (discussion.md, Decisions, 'F1, decided by the user: overlay only'). Evidence: `grep -c 'ToolTipProperties.Text=\"Start session\"' src/DungeonMaster.App/Views/DungeonListPage/DungeonListPage.xaml` prints 0 (it printed 1 at startRef, the attribute at :107), and the reviewer reads the button's opening tag.",
+        "Preserved: the same Button still carries `SemanticProperties.Description=\"Start session\"` and `SemanticProperties.Hint=\"Sessions are not available yet; this button performs no action.\"`, byte-for-byte as at startRef (:105 and :106). Evidence: `grep -c 'SemanticProperties.Description=\"Start session\"' <file>` prints 1 and `grep -c 'SemanticProperties.Hint=\"Sessions are not available yet; this button performs no action.\"' <file>` prints 1.",
+        "Preserved: the transparent overlay BoxView that follows the button still carries `ToolTipProperties.Text=\"Sessions are not available yet\"` and `InputTransparent=\"False\"` (startRef :116-119). Evidence: `grep -c 'ToolTipProperties.Text=\"Sessions are not available yet\"' <file>` prints 1, and the reviewer reads the BoxView.",
+        "The task's diff to this file deletes exactly one line, the button's `ToolTipProperties.Text=\"Start session\"` line, and changes nothing else (no comment, no other attribute). Evidence: the diff the orchestrator hands the reviewer; and `grep -c ToolTipProperties <file>` prints 4 (it printed 5 at startRef: :66, :107, :118, :136, :156).",
+        "The file remains all-CRLF with zero lone CR. Evidence: `perl -0777 -ne '$cr=()=/\\r/g; $crlf=()=/\\r\\n/g; $lf=()=/\\n/g; print \"$cr $crlf $lf\\n\"' src/DungeonMaster.App/Views/DungeonListPage/DungeonListPage.xaml` prints three equal numbers (181 181 181 at startRef; 180 180 180 expected after one deleted line). Control, run once in the task's scratch directory: a fixture written with `printf 'a\\r\\nb\\rc\\n'` must print `2 1 2`. Never `sed -i`, never `Write` this file; use `Edit`, and never end an Edit's new_string on whitespace.",
+        "`dotnet build C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln` succeeds and its summary reads `0 Warning(s)` and `0 Error(s)`; quote both summary lines (do not use a warning-grep count, per .sir/lessons.md FORM 8). Then `dotnet test C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln --no-build` reports zero failures and prints a total for each of the three test assemblies; quote the three totals. An exit code with no printed totals is not a pass (.sir/lessons.md, 2026-10-29)."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "F3: route ResetViewport's zoom write through ZoomLevelGuard and pin the guard property the reset relies on",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ZoomLevelGuard.cs",
+        "src/DungeonMaster.App.Tests/Views/ZoomLevelGuardTests.cs"
+      ],
+      "dependsOn": ["T1"],
+      "acceptance": [
+        "Every production assignment to `FloorMapDrawable.ZoomLevel` under src/DungeonMaster.App takes its value from `ZoomLevelGuard.Next(...)`, and that includes the zoom write `ResetViewport` performs, whether directly or by calling `ApplyZoom`. This is the backlog row's requirement itself (.sir/backlog.md line 196 as read at Gate 1: 'Route ResetViewport ... through ZoomLevelGuard, so every zoom write shares the non-finite guard'). Evidence: `grep -rnE \"ZoomLevel[[:space:]]*(=([^=]|$)|\\+=|-=|\\*=|/=)\" src/DungeonMaster.App --include=*.cs --exclude-dir=obj --exclude-dir=bin`, every hit read by eye (a right-hand side continuing on the next line is read there). At startRef it printed exactly 2 hits: DungeonDetailPage.xaml.cs:520 (`= ZoomLevelGuard.Next(_drawable.ZoomLevel, raw);`) and :527 (`= 1.0f;`, unguarded), so this criterion fails at startRef. Must-match case: the startRef :527 line. Near miss that must not match: `_drawable.ZoomLevel * 100` (startRef :521). Second count: `grep -n ZoomLevel src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` classified by eye, write versus read; the two counts must agree. The property declaration initializer `{ get; set; } = 1.0f;` in FloorMapDrawable.cs is a default, not an assignment, and is not matched.",
+        "Preserved: after `ResetViewport` returns, `_drawable.ZoomLevel` is 1.0f, `_drawable.PanOffset` is `PointF.Zero`, `ZoomPercentLabel.Text` is \"100%\", and `MapCanvas.Invalidate()` has been called at least once. Evidence: read from source. The zoom value follows from `ZoomLevelGuard.Next(current, 1.0f)` returning 1.0f for every `current`, per ZoomLevelGuard.cs:43-53 at startRef (1.0f is finite, lies inside the snap band, and is inside [0.25, 4.0]). If the label is now computed as `$\"{(int)Math.Round(_drawable.ZoomLevel * 100)}%\"` (the ApplyZoom route), it evaluates to \"100%\" for 1.0f.",
+        "Preserved (F2, decided by the user at Gate 1: accept as-is): the `case '0':` block in DungeonDetailPage.xaml.cs that calls `ResetViewport()` only under `KeyChord.IsControlOnly(e.Modifiers)` (startRef :484-488) is unchanged. Evidence: the diff the reviewer is handed shows no change to those lines.",
+        "src/DungeonMaster.App.Tests/Views/ZoomLevelGuardTests.cs gains a test asserting `ZoomLevelGuard.Next(float.NaN, 1.0f)` returns exactly 1.0f: the guard property `ResetViewport` now relies on to bring a non-finite level back to 100%. This deliberately pins behaviour the guard already has at startRef; what it preserves is that a reset routed through the guard recovers a corrupted level. Its name states the condition and the outcome (test discipline, Naming: 'A test name states the condition and the expected outcome').",
+        "That test is shown able to fail (test discipline, Coverage: 'A test is shown able to fail'). Demonstrated discrimination, at one site: at src/DungeonMaster.App/Views/DungeonDetailPage/ZoomLevelGuard.cs:43, replace `if (!float.IsFinite(raw))` (it occurs once in the file; `grep -c 'IsFinite' ZoomLevelGuard.cs` prints 1 at startRef) with `if (!float.IsFinite(raw) || !float.IsFinite(current))`. Then run `dotnet test C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter \"FullyQualifiedName~ZoomLevelGuardTests\"`. The new test fails (Expected 1, Actual NaN). Revert. Report the injected text, the command, its printed summary, and the revert.",
+        "A second new test, the control, asserts `ZoomLevelGuard.Next(ZoomLevelGuard.MaximumZoom, 1.0f)` returns exactly 1.0f. It passes under the same injection, shown in the same filtered run, so the injected failure is the non-finite-current case and not a broken apparatus. The 7 tests ZoomLevelGuardTests.cs held at startRef (`grep -cE \"^[[:space:]]*\\[Fact\\]\"` prints 7) also pass under the injection.",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ZoomLevelGuard.cs ends byte-identical to startRef. The task owns it only for the injection window. Evidence: `sha256sum` of the file before the injection and after the revert, both quoted in the report, are equal. The revert is verified before any solution-wide build.",
+        "Every file this task edits remains all-CRLF with zero lone CR. Evidence: `perl -0777 -ne '$cr=()=/\\r/g; $crlf=()=/\\r\\n/g; $lf=()=/\\n/g; print \"$cr $crlf $lf\\n\"' <file>` prints three equal numbers for DungeonDetailPage.xaml.cs, ZoomLevelGuardTests.cs and ZoomLevelGuard.cs (each was all-CRLF with 0 lone CR at startRef). Control, run once in the task's scratch directory: a fixture written with `printf 'a\\r\\nb\\rc\\n'` must print `2 1 2`. Use tabs for indentation in .cs files (dm-conventions dotnet-format.md). Never `sed -i`, never `Write` an existing file, and never end an Edit's new_string on whitespace.",
+        "After the revert is verified, `dotnet build C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln` succeeds and its summary reads `0 Warning(s)` and `0 Error(s)`; quote both lines. Then `dotnet test C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln --no-build` reports zero failures and prints a total for each of the three test assemblies. The DungeonMaster.App.Tests total equals the total that assembly printed before this task's first edit plus the number of tests this task added; quote both totals."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "F4: census, then delete GreaterThanZeroConverter, its registration and its tests, and amend the audit records that name it",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs",
+        "src/DungeonMaster.App.Tests/Converters/GreaterThanZeroConverterTests.cs",
+        "src/DungeonMaster.App/App.xaml",
+        "docs/audit/04-app-controls-and-theme.md",
+        "docs/audit/00-master-index.md"
+      ],
+      "dependsOn": ["T2"],
+      "acceptance": [
+        "Before any deletion, the consumer census is re-run and its output quoted. Predicate 1: `grep -rIn \"GreaterThanZeroConverter\" src --exclude-dir=bin --exclude-dir=obj` prints exactly 5 lines: App.xaml:21, Converters/GreaterThanZeroConverter.cs:10, and App.Tests/Converters/GreaterThanZeroConverterTests.cs:8, :15 and :17. Predicate 2, a second count that cannot share predicate 1's case or suffix assumptions: `grep -rIni \"greaterthanzero\" src --exclude-dir=bin --exclude-dir=obj` prints exactly those 5 plus 3 `TileSizeNotGreaterThanZero` test-method lines in src/DungeonMaster.Tests/AppCore/Map (AreaOutlineGeometryTests.cs:178, MapHitTesterTests.cs:119, :259), 8 in total. Positive control, which must match: `grep -rIn \"StaticResource NotNullConverter\" src --include=*.xaml --exclude-dir=bin --exclude-dir=obj` includes Views/CreateDungeonPopup/CreateDungeonPopup.xaml:71. If either predicate prints any other line, the task deletes nothing and stops with an escalation naming the hit (discussion.md, Decisions, F4: 'A census that finds a live consumer stops F4').",
+        "src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs and src/DungeonMaster.App.Tests/Converters/GreaterThanZeroConverterTests.cs no longer exist. Evidence: `test -e <path>` exits non-zero for each.",
+        "src/DungeonMaster.App/App.xaml no longer declares the `GreaterThanZeroConverter` resource, and the `NotNullConverter` resource declaration (startRef :20) is unchanged. The task's diff to App.xaml deletes exactly one line, startRef :21. Evidence: the diff the reviewer is handed, and `grep -c 'converters:NotNullConverter x:Key=\"NotNullConverter\"' src/DungeonMaster.App/App.xaml` prints 1.",
+        "After deletion, `grep -rIn \"GreaterThanZeroConverter\" src --exclude-dir=bin --exclude-dir=obj` prints nothing, and `grep -rIni \"greaterthanzero\" src --exclude-dir=bin --exclude-dir=obj` prints exactly the 3 `TileSizeNotGreaterThanZero` lines named in the census criterion.",
+        "After deletion, `dotnet build C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln` succeeds and its summary reads `0 Warning(s)` and `0 Error(s)`; quote both lines. Then `dotnet test C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln --no-build` reports zero failures and prints a total for each of the three test assemblies. The DungeonMaster.App.Tests total is exactly 18 fewer than the total that assembly printed before this task's first deletion (quote both). The other two assemblies' totals are unchanged. 18 is the test count of GreaterThanZeroConverterTests at startRef: `grep -cE \"^[[:space:]]*\\[Fact\\]\" src/DungeonMaster.App.Tests/Converters/GreaterThanZeroConverterTests.cs` prints 18, and `grep -cE \"\\[Theory|\\[InlineData|MemberData|ClassData\"` on the same file prints 0, matching the 'Total: 18' recorded at docs/audit/00-master-index.md:355.",
+        "UIKIT-004 in docs/audit/04-app-controls-and-theme.md gains an amendment block placed after the record's existing text and before `### UIKIT-005`. It quotes verbatim the previous wording at startRef :224-225, '`GreaterThanZeroConverter` does not share the defect: its `value is int n` test rejects the sentinel.', and records that the converter, its `App.xaml` registration and its tests were deleted by this session because the census in this task's first criterion found no consumer (quote the census command). No previous wording is deleted: the quoted sentence still occurs at its original place.",
+        "UIKIT-006 in docs/audit/04-app-controls-and-theme.md gains an amendment block placed after the record's existing text and before `### UIKIT-007`. It records that its `locations:` entry `src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs:69-74` (startRef :291) refers to deleted code, quoting that entry verbatim, as docs/audit/05-tests.md:1032 does for a deleted location. No previous wording is deleted.",
+        "MASTER-167's narrative in docs/audit/00-master-index.md gains an amendment block placed immediately after its existing closing amendment (startRef :674). It records that the converter and its tests, which that entry cites, were deleted by this session. The table row at startRef :355 is unchanged.",
+        "Each of the three amendment blocks opens with `**[AMENDED 20261103-2239-app-follow-ups, 2026-11-03 -- ` (the opener form of the most recent block, docs/audit/01-domain-application.md:2885) and ends with `**]**` (as docs/audit/04-app-controls-and-theme.md:408 and docs/audit/01-domain-application.md:2916 do). Each states which claims it measured, with the command, and labels anything it was only told. `grep -c '\\*\\*\\]\\*\\*' docs/audit/04-app-controls-and-theme.md` prints 12 (10 at startRef), and on docs/audit/00-master-index.md prints 15 (14 at startRef).",
+        "Every file this task edits (App.xaml and both audit documents) remains all-CRLF with zero lone CR. Evidence: `perl -0777 -ne '$cr=()=/\\r/g; $crlf=()=/\\r\\n/g; $lf=()=/\\n/g; print \"$cr $crlf $lf\\n\"' <file>` prints three equal numbers for each (all three were all-CRLF with 0 lone CR at startRef). Control, run once in the task's scratch directory: a fixture written with `printf 'a\\r\\nb\\rc\\n'` must print `2 1 2`. Never `sed -i`, never `Write` an existing file, and never end an Edit's new_string on whitespace. Nothing under `.dir-sdlc/` is edited."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "F5: correct the UiTests README detail-page tab walk now that StartSessionButton is disabled",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App.UiTests/README.md"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "The bullet for `TabbingFromTheDetailPageEntryReachesFloorExpandToggle` in src/DungeonMaster.App.UiTests/README.md no longer presents `StartSessionButton` as a stop in the current tab walk. At startRef :102-104 it read 'reached at press 4: `StartSessionButton`, `DungeonNotebookButton`, `AddFloorButton`, `FloorExpandToggle`'. Evidence: the reviewer reads the bullet. Any remaining mention of `StartSessionButton` (`grep -n StartSessionButton <file>`) describes it as no longer a stop.",
+        "The bullet states the expected current walk as `DungeonNotebookButton`, `AddFloorButton`, `FloorExpandToggle`, so FloorExpandToggle is reached at press 3. It says this is inferred, not measured: it is the walk measured on 2026-09-14 minus `StartSessionButton`, which DungeonDetailPage.xaml now declares `IsEnabled=\"False\"` unconditionally, together with the platform rule 'Disabled controls are automatically removed from tab order.' (https://learn.microsoft.com/windows/apps/design/accessibility/keyboard-accessibility, cited in the README). It also says the count was not re-measured because the Appium suite is outside src/DungeonMaster.sln and no session command ran it. Evidence: the reviewer reads the bullet.",
+        "Preserved: the bullet still says the test asserts that `FloorExpandToggle` appears in the sequence (it does not assert a press number), still names its control `ControlOneTabPressFromPageEntryMovesFocusOffTheEntryElement` with the existing explanation, and keeps 2026-09-14 as the date of the original measurement in the paragraph introducing `FloorSidebarAutomationTests` (startRef :93-94). No line outside that bullet changes. Evidence: the diff the reviewer is handed.",
+        "The file remains all-CRLF with zero lone CR. Evidence: `perl -0777 -ne '$cr=()=/\\r/g; $crlf=()=/\\r\\n/g; $lf=()=/\\n/g; print \"$cr $crlf $lf\\n\"' src/DungeonMaster.App.UiTests/README.md` prints three equal numbers (167 167 167 at startRef). Control, run once in the task's scratch directory: a fixture written with `printf 'a\\r\\nb\\rc\\n'` must print `2 1 2`. Never `sed -i`, never `Write` this file, and never end an Edit's new_string on whitespace. This task runs no build: it edits no file the solution compiles."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "F3 follow-through: correct the ZoomLevel half of FloorMapDrawableNonFiniteTests' remarks to the guarded state",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs"
+      ],
+      "dependsOn": ["T2", "T3"],
+      "acceptance": [
+        "In the class-level `<remarks>` of src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs, the `ZoomLevel` paragraph (startRef :16-19, beginning '`ZoomLevel`: NO') no longer says that an assignment site writes 'the literal `1.0f` or `Math.Clamp(raw, 0.25f, 4.0f)`'. It states instead that every production `ZoomLevel` write takes its value from `ZoomLevelGuard.Next`, as T2 left the code. Its conclusion, that the property is never non-finite and never 0f, is kept. At startRef the paragraph says the stale form, so this fails at startRef.",
+        "The paragraph on `Math.Clamp` and NaN (startRef :22-26) no longer says that the NaN hole is latent on MacCatalyst or that nothing intercepts a NaN `raw`. It states that `ZoomLevelGuard.Next` returns the current level for a non-finite `raw`, and it names `ZoomLevelGuardTests` for that by `<see cref>` or by class name. It keeps `MathClampWithNaNReturnsNaNRatherThanABound` cited as the mechanism that makes the guard necessary.",
+        "List items 3 and 4 of 'ASSIGNMENT SITES CHECKED' (startRef :42-43) describe the post-T2 zoom writes and their right-hand sides by method name (`ApplyZoom`, `ResetViewport`). Any `DungeonDetailPage.xaml.cs:N` citation they keep points at the line it describes in the post-T2 file. Evidence: the reviewer opens each cited line.",
+        "The remarks state, in one sentence, that the line-number citations outside the `ZoomLevel` text corrected here were not re-measured by this change. The `PanOffset` paragraphs and list items 1, 2, 5 and 6 are otherwise unchanged. Only `///` lines change in this file: no test method, attribute or assertion is added, removed or edited, and `grep -cE \"^[[:space:]]*\\[Fact\\]\" <file>` prints the same number before and after.",
+        "No `.sir/` path appears in the edited comment (.sir/lessons.md, 2026-11-03 [project] lesson on session paths in shipping source). Evidence: `grep -c '\\.sir/' <file>` prints 0.",
+        "The file remains all-CRLF with zero lone CR. Evidence: `perl -0777 -ne '$cr=()=/\\r/g; $crlf=()=/\\r\\n/g; $lf=()=/\\n/g; print \"$cr $crlf $lf\\n\"' <file>` prints three equal numbers (169 169 169 at startRef). Control, run once in the task's scratch directory: a fixture written with `printf 'a\\r\\nb\\rc\\n'` must print `2 1 2`. `///` lines are tab-indented, with the `///<TAB><TAB>` continuation form the file already uses. Edit strips trailing whitespace, so key every edit on the line's first text character. Never `sed -i`, never `Write` this file.",
+        "`dotnet build C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln` succeeds and its summary reads `0 Warning(s)` and `0 Error(s)`, so every `<see cref>` in the edited remarks resolves. Quote both lines. Then `dotnet test C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln --no-build` reports zero failures and prints a total for each of the three test assemblies, each equal to the total that assembly printed before this task's first edit."
+      ]
+    }
+  ]
+}
