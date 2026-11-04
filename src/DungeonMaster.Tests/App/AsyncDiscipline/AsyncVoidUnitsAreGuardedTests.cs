@@ -71,7 +71,7 @@ public class AsyncVoidUnitsAreGuardedTests
 	///		An async void method whose body awaits with no <c>try</c> above the await is reported.
 	/// </summary>
 	[Fact]
-	public void ScanG1_WhenAnAsyncVoidMethodAwaitsWithNoPrecedingTry_ReportsTheDeclaration()
+	public void ScanG1ReportsTheDeclarationOfAnAsyncVoidMethodThatAwaitsWithNoPrecedingTry()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(MethodAwaitingWithNoTry);
@@ -93,7 +93,7 @@ public class AsyncVoidUnitsAreGuardedTests
 	///		An async void method whose <c>try</c> sits above its first await is not reported.
 	/// </summary>
 	[Fact]
-	public void ScanG1_WhenAnAsyncVoidMethodOpensTryBeforeItsFirstAwait_ReportsNothing()
+	public void ScanG1ReportsNothingWhenAnAsyncVoidMethodOpensTryBeforeItsFirstAwait()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(MethodOpeningTryBeforeItsAwait);
@@ -111,7 +111,7 @@ public class AsyncVoidUnitsAreGuardedTests
 	///		An async event-handler lambda is an async void unit too, and is reported on the same terms.
 	/// </summary>
 	[Fact]
-	public void ScanG1_WhenAnAsyncEventHandlerLambdaAwaitsWithNoPrecedingTry_ReportsTheSubscription()
+	public void ScanG1ReportsTheSubscriptionOfAnAsyncEventHandlerLambdaThatAwaitsWithNoPrecedingTry()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(LambdaAwaitingWithNoTry);
@@ -133,7 +133,7 @@ public class AsyncVoidUnitsAreGuardedTests
 	///		A commented-out await is not an await: comment lines are excluded from the scan.
 	/// </summary>
 	[Fact]
-	public void ScanG1_WhenTheOnlyAwaitInTheBodyIsInACommentLine_ReportsNothing()
+	public void ScanG1ReportsNothingWhenTheOnlyAwaitInTheBodyIsInACommentLine()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(MethodWhoseOnlyAwaitIsCommentedOut);
@@ -152,7 +152,7 @@ public class AsyncVoidUnitsAreGuardedTests
 	///		says nothing about what any handler does when it runs.
 	/// </summary>
 	[Fact]
-	public void AppSource_EveryAsyncVoidUnit_StatesATryAboveItsFirstAwait()
+	public void EveryAsyncVoidUnitInAppSourceStatesATryAboveItsFirstAwait()
 	{
 		// Arrange
 		var paths = RepoPaths.AppSourceFiles("*.cs");

@@ -58,7 +58,7 @@ public class FailureIsSurfacedTests
 	///		rather than one. The scan follows them; the fourteen it counts are the same fourteen.
 	/// </remarks>
 	[Fact]
-	public void EveryDispatchInDungeonDetailViewModel_BranchesOnTheResult()
+	public void EveryDungeonDetailViewModelDispatchBranchesOnItsResult()
 	{
 		var discarded = new List<string>();
 		var unbranched = new List<string>();
@@ -138,7 +138,7 @@ public class FailureIsSurfacedTests
 	///		site is caught here even though the <c>IsFailure</c> branch around it survives.
 	/// </remarks>
 	[Fact]
-	public void EveryViewModelWithADispatch_DeclaresAnErrorMessageProperty()
+	public void EveryViewModelWithADispatchHasAnErrorMessageChannel()
 	{
 		var offenders = new List<string>();
 
@@ -180,7 +180,7 @@ public class FailureIsSurfacedTests
 	///		<c>ErrorCategory</c> — MASTER-045's consumer half.
 	/// </summary>
 	[Fact]
-	public void EveryViewModelErrorAssignment_RoutesThroughResultMessage()
+	public void EveryViewModelErrorAssignmentIsNullOrRoutesThroughResultMessage()
 	{
 		var offenders = new List<string>();
 

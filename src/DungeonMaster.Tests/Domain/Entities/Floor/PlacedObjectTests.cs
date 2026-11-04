@@ -9,9 +9,11 @@ public class PlacedObjectTests
 	[Fact]
 	public void Constructor_SetsAllProperties()
 	{
+		// Arrange
 		var floorId = Guid.NewGuid();
 		var pos = new CanvasPoint(120f, 200f);
 
+		// Act
 		var obj = new PlacedObject(
 			floorId,
 			ObjectKind.DoorWood,
@@ -19,6 +21,7 @@ public class PlacedObjectTests
 			ObjectRotation.CW90,
 			ObjectScale.Default);
 
+		// Assert
 		obj.Id.Should().NotBeEmpty();
 		obj.FloorId.Should().Be(floorId);
 		obj.Kind.Should().Be(ObjectKind.DoorWood);
@@ -30,6 +33,7 @@ public class PlacedObjectTests
 	[Fact]
 	public void Constructor_WithCustomScale_SetsScale()
 	{
+		// Act
 		var obj = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
@@ -37,12 +41,14 @@ public class PlacedObjectTests
 			ObjectRotation.None,
 			scale: 2.0f);
 
+		// Assert
 		obj.Scale.Should().BeApproximately(2.0f, 0.001f);
 	}
 
 	[Fact]
 	public void Update_ChangesPositionRotationAndScale()
 	{
+		// Arrange
 		var obj = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
@@ -52,8 +58,10 @@ public class PlacedObjectTests
 
 		var newPos = new CanvasPoint(160f, 80f);
 
+		// Act
 		obj.Update(newPos, ObjectRotation.CW180, 1.5f);
 
+		// Assert
 		obj.Position.Should().Be(newPos);
 		obj.Rotation.Should().Be(ObjectRotation.CW180);
 		obj.Scale.Should().BeApproximately(1.5f, 0.001f);
@@ -67,6 +75,7 @@ public class PlacedObjectTests
 	[InlineData(5.0f)]   // above Max
 	public void Constructor_InvalidScale_Throws(float invalidScale)
 	{
+		// Act
 		var act = () => new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
@@ -74,6 +83,7 @@ public class PlacedObjectTests
 			ObjectRotation.None,
 			invalidScale);
 
+		// Assert
 		act.Should().Throw<ArgumentOutOfRangeException>()
 			.And.ParamName.Should().Be("scale");
 	}
@@ -81,6 +91,7 @@ public class PlacedObjectTests
 	[Fact]
 	public void Constructor_InvalidScale_ReportsRejectedValue()
 	{
+		// Act
 		var act = () => new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
@@ -88,6 +99,7 @@ public class PlacedObjectTests
 			ObjectRotation.None,
 			5.0f);
 
+		// Assert
 		var ex = act.Should().Throw<ArgumentOutOfRangeException>().Which;
 
 		ex.ParamName.Should().Be("scale");
@@ -103,6 +115,7 @@ public class PlacedObjectTests
 	[InlineData(5.0f)]   // above Max
 	public void Update_InvalidScale_Throws(float invalidScale)
 	{
+		// Arrange
 		var obj = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
@@ -110,11 +123,13 @@ public class PlacedObjectTests
 			ObjectRotation.None,
 			ObjectScale.Default);
 
+		// Act
 		var act = () => obj.Update(
 			new CanvasPoint(10f, 10f),
 			ObjectRotation.None,
 			invalidScale);
 
+		// Assert
 		act.Should().Throw<ArgumentOutOfRangeException>()
 			.And.ParamName.Should().Be("newScale");
 	}
@@ -122,6 +137,7 @@ public class PlacedObjectTests
 	[Fact]
 	public void Update_InvalidScale_ReportsRejectedValue()
 	{
+		// Arrange
 		var obj = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
@@ -129,11 +145,13 @@ public class PlacedObjectTests
 			ObjectRotation.None,
 			ObjectScale.Default);
 
+		// Act
 		var act = () => obj.Update(
 			new CanvasPoint(10f, 10f),
 			ObjectRotation.None,
 			0.1f);
 
+		// Assert
 		var ex = act.Should().Throw<ArgumentOutOfRangeException>().Which;
 
 		ex.ParamName.Should().Be("newScale");

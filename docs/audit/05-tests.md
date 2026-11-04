@@ -1642,6 +1642,31 @@ second read to find which line is the Act.
 blank lines between the phases even where the comments are judged noise -- the separation carries
 most of the benefit.
 
+**[AMENDED 20261104-1726-test-hygiene-sweep, 2026-11-04 -- `MASTER-137` is CLOSED done by this session,
+and one path in this entry is stale. Classification: DRIFT.** The register row is `MASTER-137` at
+`00-master-index.md:325`, now closed **done**. Nothing above is deleted.
+
+*Correction -- the sub-tree path.* Previous wording, verbatim: *"`Application/Common/Map/`, `Domain/`
+and `Infrastructure/` carry neither"*, with two `locations:` entries under
+`src/DungeonMaster.Tests/Application/Common/Map/`. At the session base `9c931b4` that directory is
+`src/DungeonMaster.Tests/AppCore/Map/` (DRIFT, as this session's contracts record it: the code moved
+after the audit).
+
+*Population worked.* The 205 methods that `aaa.pl` (section 4 of this session's contract
+`C1-measurement.md`) flagged at `9c931b4`: 126 in `AppCore/`, 63 in `Domain/` and 16 in
+`Infrastructure/`, distinct methods, re-run by task `T8` on the main checkout at `9c931b4`. The rest of
+`AppCore/` beside `AppCore/Map/` is the same kind of code and was included. `App/` was excluded: this
+entry does not name it, and its facts are scans over source files, not arrange-act-assert unit tests.
+`Application/`, the sub-tree whose handler tests carry the convention, was not worked; `aaa.pl`
+reports 3 of its methods, the same 3 at `9c931b4` and after this session, and no claim is made about
+them.
+
+*Closure.* The convention was applied as the `Suggested direction.` paragraph proposes, markers and
+blank lines both. Measured by task `T8` on the post-change session worktree, `aaa.pl` prints nothing
+over each of `AppCore/`, `Domain/` and `Infrastructure/`. The rule is stated for new test files in
+`src/DungeonMaster.Tests/README.md`, section "Arrange / Act / Assert (MASTER-137)". No claim is made
+about any method outside the 205.**]**
+
 ### TEST-023 -- Single-letter lambda parameters appear in thirteen places
 
 ```yaml
@@ -1684,6 +1709,32 @@ repository, nothing but review enforces this, so the count will grow.
 
 **Suggested direction.** Rename to `floor`, `summary` and `failure` respectively. Consider whether
 this is one of the rules worth encoding once an `.editorconfig` exists (T6 owns that question).
+
+**[AMENDED 20261104-1726-test-hygiene-sweep, 2026-11-04 -- `MASTER-126` is CLOSED done by this session;
+the count and every `locations:` line number in this entry are stale.** The register row is
+`MASTER-126` at `00-master-index.md:314`, now closed **done**. Nothing above is deleted.
+
+*Correction 1 -- "thirteen", and the eight validator sites. Classification: DRIFT.* Previous wording,
+verbatim, in the title: *"Single-letter lambda parameters appear in thirteen places"*; in the body:
+*"all four validator test classes use `e` for a validation failure in `ContainSingle` -- twice each,
+at lines 37 and 52, which is eight of the thirteen sites"*. At the session base `9c931b4`, P1 (section
+1 of this session's contract `C1-measurement.md`) prints **7** sites over the `.cs` files under
+`src/DungeonMaster.Tests`, re-run by task `T8` on the main checkout at `9c931b4`. The eight validator
+sites are two, `NameOnlyValidatorTestBase.cs:65` and `:80`, in the base class from which
+`AddAreaCommandValidatorTests`, `CreateDungeonCommandValidatorTests`, `UpdateAreaCommandValidatorTests`
+and `UpdateDungeonCommandValidatorTests` derive at `9c931b4` (DRIFT, as this session's contracts
+record it: the four classes were consolidated after the audit).
+
+*Correction 2 -- the other five line numbers. Classification: UNDETERMINED.* The `locations:` entries
+cite `DungeonAggregateTests.cs:29`, `:43` and `:68` and `DungeonReadRepositoryTests.cs:51` and `:52`.
+At `9c931b4`, P1 reports `DungeonAggregateTests.cs:32`, `:46` and `:71` and
+`DungeonReadRepositoryTests.cs:29` and `:30`. Whether the cited lines were right on the audit date
+needs git history, which task `T8` cannot read, so this is classified UNDETERMINED rather than DRIFT.
+
+*Closure.* The parameters were renamed as the `Suggested direction.` paragraph proposes: `e` ->
+`failure`, `f` -> `floor`, `s` -> `summary`. Measured by task `T8` on the post-change session
+worktree, P1 and P2 (section 1) each print nothing over the 123 `.cs` files under
+`src/DungeonMaster.Tests`.**]**
 
 ### TEST-024 -- ObjectScaleTests is the only file in the project indented with tabs
 
@@ -1763,6 +1814,29 @@ If it does, the gap is 24 files of type summaries plus per-method summaries; if 
 the exemption in `dm-conventions` and consider trimming the 21 that have them, since the `App/`
 documentation is genuinely load-bearing (much of it explains why a fact exists) and should survive
 either way.
+
+**[AMENDED 20261104-1726-test-hygiene-sweep, 2026-11-04 -- `MASTER-143` is CLOSED done by DECISION:
+test classes are exempt from section 9, and the figures in this entry are stale.** The register row
+is `MASTER-143` at `00-master-index.md:331`, now closed **done**. Nothing above is deleted.
+
+*Correction -- "21 of 45" and "24". Classification: DRIFT.* Previous wording, verbatim, in the title:
+*"XML documentation is present on 21 of 45 files and absent from 24"*. By DOC (section 5 of this
+session's contract `C1-measurement.md`), re-measured by task `T8` on the post-change session worktree,
+**18 of 109** `*Tests.cs` files under `src/DungeonMaster.Tests` carry no `/// <summary>`: both of its
+predicates print 18, and both print 18 of 109 on the main checkout at the session base `9c931b4`
+too. The 45 was a different population, the files at the audit date (DRIFT, as this session's
+contracts record it).
+
+*Decision.* The `Suggested direction.` paragraph asks whether the rule applies to test classes. It
+does not: **test classes in this project are exempt** from `dm-conventions`
+`backend/dotnet-format.md` section 9 ("All public types, members, and parameters must have XML
+documentation comments."). The decision is recorded in `src/DungeonMaster.Tests/README.md`, section
+"XML documentation (MASTER-143)", rather than in `dm-conventions`, which this session's contracts
+record as read-only to it. The README names test classes only, says nothing about the project's
+fixtures, scanners and readers beyond excluding them, and keeps existing documentation, so the `App/`
+documentation this entry calls load-bearing stays. No doc comment was added or removed to close this
+row. Separately, task `T5`'s split facts for `MASTER-139` carry 7 new `/// <summary>` blocks, all in
+files that already had one, which is why DOC is unchanged.**]**
 
 ### TEST-026 -- Seven non-sealed test classes implement IDisposable with no Dispose(bool) overload
 
@@ -1872,6 +1946,29 @@ the same directory, which leaves a reader with no rule to follow.
 uniform within that directory by removing the underscore-separated hybrids, and state the two
 schemes and where each applies somewhere a new file's author will see it.
 
+**[AMENDED 20261104-1726-test-hygiene-sweep, 2026-11-04 -- `MASTER-144` is CLOSED done by this session;
+Gate 2 chose Option A.** The register row is `MASTER-144` at `00-master-index.md:332`, now closed
+**done**. Nothing above is deleted.
+
+*Decision.* Two schemes, chosen by directory. `App/` uses sentence form: a PascalCase declarative
+sentence stating the condition and the outcome, with no underscore. `AppCore/`, `Application/`,
+`Domain/` and `Infrastructure/` use `Method_Scenario_ExpectedBehaviour`: the first part names the
+member or type under test, and the scenario part is omitted when there is none. Gate 2 chose
+**Option A**: all **58** underscore names in `App/` at the session base `9c931b4` (N1, section 3 of
+this session's contract `C1-measurement.md`, re-run by task `T8` on the main checkout at `9c931b4`)
+were renamed to sentence form, with no exception for a fact that exercises a helper method directly.
+The three sentence names outside `App/` (N2, 3 at `9c931b4`) were renamed to
+`Method_Scenario_Expected`. This removes the hybrids, as the `Suggested direction.` paragraph
+proposes, and both schemes are stated where a new file's author will see them, in
+`src/DungeonMaster.Tests/README.md`, section "Test method naming (MASTER-144)". The hybrid quoted
+above, `EveryKeyDmThemeResolves_IsDefinedInTheThemeDictionaries`, is now
+`EveryKeyDmThemeResolvesIsDefinedInTheThemeDictionaries`; the quotation is left as the record of what
+this entry saw.
+
+*Closure.* Measured by task `T8` on the post-change session worktree, over the output of `tests.pl`
+(section 3): N1 prints `0` and N2 prints `0`. REF (section 10) over `src` for the 61 old names prints
+no hit.**]**
+
 ### TEST-028 -- Comment-stripping regexes and a line-number helper are re-declared instead of shared
 
 ```yaml
@@ -1952,6 +2049,33 @@ success.
 change `TEST-016` proposes and should land with it), and split
 `TheIconFontCmapParsesToPrivateUseGlyphs` into one fact per property of the parse.
 
+**[AMENDED 20261104-1726-test-hygiene-sweep, 2026-11-04 -- `MASTER-139` is CLOSED done by this session
+for the five facts this entry names, and two of its claims are stale.** The register row is
+`MASTER-139` at `00-master-index.md:327`, now closed **done**. Nothing above is deleted.
+
+*Correction 1 -- the path. Classification: DRIFT.* Previous wording, verbatim, in `locations:`:
+`src/DungeonMaster.Tests/Application/Common/Map/MapDrawingSessionTests.cs:13-17`. At the session base
+`9c931b4` the file is `src/DungeonMaster.Tests/AppCore/Map/MapDrawingSessionTests.cs` (DRIFT, as this
+session's contracts record it: the code moved after the audit).
+
+*Correction 2 -- "the ordering inverts the diagnosis". Classification: DRIFT for one fact; the clause
+still held for the other.* Previous wording, verbatim: *"In the anti-vacuity cases the ordering also
+inverts the diagnosis: because the offender assertion runs first"*. Read by task `T8` on the main
+checkout at `9c931b4`: `EveryDmFontIconTextIsInTheIconFontsCmap` already ran its `NotBeEmpty` guard
+(`IconFontCoverageTests.cs:67-72`) before its offenders assertion (`:91-96`), so the clause no longer
+described it. `EveryIconOnlyControlHasASemanticDescription` still ran its guard
+(`SemanticDescriptionTests.cs:106-110`) after its offenders assertion (`:90-96`), so the clause was
+still true of it at `9c931b4`.
+
+*Closure.* Each of the five facts was split into facts with one reason to fail, the anti-vacuity
+guards into facts of their own and `TheIconFontCmapParsesToPrivateUseGlyphs` into one fact per
+property of the parse, as the `Suggested direction.` paragraph proposes: `EveryIconOnlyControlHasASemanticDescription`
+into 2, `EveryDmFontIconTextIsInTheIconFontsCmap` into 2, `TheIconFontCmapParsesToPrivateUseGlyphs`
+into 4, `EveryRegisteredExceptionStillExistsAndStillOffends` into 3 and
+`PlaceVertex_FirstVertex_ReturnsAdded` into 3; the new names and lines are on `MASTER-139`. The
+splits grew `DungeonMaster.Tests` by 9, 943 -> 952, per the session's task reviews. **No claim is
+made about any fact other than these five.**]**
+
 ### TEST-030 -- Assertions appear inside Arrange blocks
 
 ```yaml
@@ -1986,6 +2110,37 @@ for a reason that has nothing to do with the object not being found.
 **Suggested direction.** Replace the fluent extraction with `floor.Objects.Single()` in Arrange, and
 move the outline assertion in the diagnostic test into its own fact -- or delete it, since
 `TEST-012` proposes removing that test entirely.
+
+**[AMENDED 20261104-1726-test-hygiene-sweep, 2026-11-04 -- `MASTER-128` is CLOSED done: the
+`UpdatePlacedObjectCommandHandlerTests` half is done, and the diagnostic-test half is STALE.** The
+register row is `MASTER-128` at `00-master-index.md:316`, now closed **done**. Nothing above is
+deleted.
+
+*Correction 1 -- the third location. Classification: DRIFT.* Previous wording, verbatim, in
+`locations:`:
+`src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/AreaPersistenceDiagnosticTests.cs:79`.
+That file does not exist at the session base `9c931b4`. It was deleted in `cf32061` (2026-09-08), as
+this session's architect measured with `git log --diff-filter=D` at spec time (section 2 of this
+session's contract `C1-measurement.md`); this is attributed, not re-measured by task `T8`, which runs
+without git. It existed on the audit date: the `AMENDED 6b-ii` block on `TEST-026` measured it at
+`2603170`. This block makes no claim about where, if anywhere, that test's outline assertion lives
+now.
+
+*Correction 2 -- the second line number and the first method name. Classification: UNDETERMINED.*
+Previous wording, verbatim: *"`HandleAsync_ObjectNotFound_ReturnsSuccessWithNoChange` binds it as
+`theObj` at line 145, and `HandleAsync_WithCustomScale_StoresScaleOnObject` binds it as `obj` at line
+186"*. At `9c931b4`, PA (section 2) prints `:145`, in
+`HandleAsync_WithUnknownObjectId_ReturnsNotFoundAndDoesNotSave`, and `:195`, in
+`HandleAsync_WithCustomScale_StoresScaleOnObject`, re-run by task `T8` on the main checkout at
+`9c931b4`. Whether the entry's method name and `:186` were right on the audit date needs git
+history, which `T8` cannot read, so this is classified UNDETERMINED.
+
+*Closure.* Both bindings now read `var placedObject = floor.Objects.Single();` in Arrange, as the
+`Suggested direction.` paragraph proposes. Measured by task `T8` on the post-change session worktree,
+PA prints nothing over the 123 `.cs` files under `src/DungeonMaster.Tests`. Adding AAA markers for
+`MASTER-137` exposed further precondition assertions in Arrange blocks (amendment A1, escalation E1);
+they were removed where a dedicated fact already asserts them and otherwise moved into a guard fact of
+their own, recorded by task and file on `MASTER-128`.**]**
 
 ### TEST-031 -- One theme ratchet is structurally incapable of failing in its current state
 

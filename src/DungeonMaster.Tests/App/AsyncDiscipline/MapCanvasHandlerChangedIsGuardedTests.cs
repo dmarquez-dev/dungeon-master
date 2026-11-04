@@ -28,7 +28,7 @@ public class MapCanvasHandlerChangedIsGuardedTests
 	///		Every line between the method's opening brace and its <c>try</c> line is blank or a comment.
 	/// </summary>
 	[Fact]
-	public void StructuralSourceScan_OfOnMapCanvasHandlerChanged_StatesNoStatementAboveItsTry()
+	public void OnMapCanvasHandlerChangedStatesNoStatementAboveItsTry()
 	{
 		// Arrange
 		var method = LocateMethod();
@@ -57,7 +57,7 @@ public class MapCanvasHandlerChangedIsGuardedTests
 	///		<c>try</c>, so it shows the scan above is reading the right method.
 	/// </summary>
 	[Fact]
-	public void StructuralSourceScan_OfOnMapCanvasHandlerChanged_FindsPreloadObjectImagesAsyncAfterItsTry()
+	public void OnMapCanvasHandlerChangedStatesPreloadObjectImagesAsyncAfterItsTry()
 	{
 		// Arrange
 		var method = LocateMethod();

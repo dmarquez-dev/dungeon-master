@@ -11,7 +11,10 @@ public class TileDistanceTests
 	[Fact]
 	public void InFeet_WhenPointsAreEqual_ReturnsZero()
 	{
+		// Act
 		var feet = TileDistance.InFeet(new TilePoint(2, 3), new TilePoint(2, 3), FeetPerTile);
+
+		// Assert
 		feet.Should().Be(0);
 	}
 
@@ -21,15 +24,21 @@ public class TileDistanceTests
 	[InlineData(-3, 0, 15)]
 	public void InFeet_ForOrthogonalDistance_ReturnsTileCountTimesFeetPerTile(int col, int row, int expectedFeet)
 	{
+		// Act
 		var feet = TileDistance.InFeet(new TilePoint(0, 0), new TilePoint(col, row), FeetPerTile);
+
+		// Assert
 		feet.Should().Be(expectedFeet);
 	}
 
 	[Fact]
 	public void InFeet_ForDiagonalDistance_ReturnsRoundedWholeFeet()
 	{
+		// Act
 		// One tile diagonally is sqrt(2) tiles, which is 7.0710678 feet at 5 feet per tile.
 		var feet = TileDistance.InFeet(new TilePoint(0, 0), new TilePoint(1, 1), FeetPerTile);
+
+		// Assert
 		feet.Should().Be(7);
 	}
 
@@ -39,7 +48,10 @@ public class TileDistanceTests
 	[InlineData(4.5f, 4)]
 	public void InFeet_WhenResultIsExactlyAMidpoint_RoundsToTheNearestEvenFoot(float feetPerTile, int expectedFeet)
 	{
+		// Act
 		var feet = TileDistance.InFeet(new TilePoint(0, 0), new TilePoint(1, 0), feetPerTile);
+
+		// Assert
 		feet.Should().Be(expectedFeet);
 	}
 }

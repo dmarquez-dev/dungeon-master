@@ -37,8 +37,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithFewerThanTwoFloors_DoesNotReorder()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 1, floorCount: 1, moveUp: false);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 		decision.TargetFloorNumber.Should().Be(0);
 	}
@@ -46,8 +48,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithAFocusedFloorNumberBelowOne_DoesNotReorder()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 0, floorCount: 5, moveUp: false);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 		decision.TargetFloorNumber.Should().Be(0);
 	}
@@ -55,8 +59,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithAFocusedFloorNumberAboveTheFloorCount_DoesNotReorder()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 6, floorCount: 5, moveUp: true);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 		decision.TargetFloorNumber.Should().Be(0);
 	}
@@ -69,8 +75,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithTheTopFloorFocusedAndMovingUp_DoesNotReorder()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 1, floorCount: 5, moveUp: true);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 		decision.TargetFloorNumber.Should().Be(0);
 	}
@@ -78,8 +86,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithTheBottomFloorFocusedAndMovingDown_DoesNotReorder()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 5, floorCount: 5, moveUp: false);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 		decision.TargetFloorNumber.Should().Be(0);
 	}
@@ -94,8 +104,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithAFloorBelowTheTopFocusedAndMovingUp_ReordersToTheNumberOneLower()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 3, floorCount: 5, moveUp: true);
 
+		// Assert
 		decision.ShouldReorder.Should().BeTrue();
 		decision.TargetFloorNumber.Should().Be(2);
 	}
@@ -106,8 +118,10 @@ public class FloorReorderKeysTests
 	[Fact]
 	public void Decide_WithAFloorAboveTheBottomFocusedAndMovingDown_ReordersToTheNumberOneHigher()
 	{
+		// Act
 		var decision = FloorReorderKeys.Decide(focusedFloorNumber: 3, floorCount: 5, moveUp: false);
 
+		// Assert
 		decision.ShouldReorder.Should().BeTrue();
 		decision.TargetFloorNumber.Should().Be(4);
 	}

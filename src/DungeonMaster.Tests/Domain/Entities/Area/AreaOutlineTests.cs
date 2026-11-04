@@ -10,6 +10,7 @@ public class AreaOutlineTests
 	[Fact]
 	public void UpdateAreaOutline_SetsOutline()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
@@ -22,8 +23,10 @@ public class AreaOutlineTests
 			new(PathSegmentKind.Line, new TilePoint(2, 3), null, null),
 		};
 
+		// Act
 		dungeon.UpdateAreaOutline(floor.Id, area.Id, outline);
 
+		// Assert
 		var updated = dungeon.Floors
 			.First(dungeonFloor => dungeonFloor.Id == floor.Id).Areas
 			.First(dungeonArea => dungeonArea.Id == area.Id);
@@ -34,33 +37,40 @@ public class AreaOutlineTests
 	[Fact]
 	public void UpdateAreaOutline_WithUnknownFloor_IsNoOp()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 
+		// Act
 		var act = () => dungeon.UpdateAreaOutline(
 			Guid.NewGuid(),
 			Guid.NewGuid(),
 			new List<PathSegment>());
 
+		// Assert
 		act.Should().NotThrow();
 	}
 
 	[Fact]
 	public void UpdateAreaOutline_WithUnknownArea_IsNoOp()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 
+		// Act
 		var act = () => dungeon.UpdateAreaOutline(
 			floor.Id,
 			Guid.NewGuid(),
 			new List<PathSegment>());
 
+		// Assert
 		act.Should().NotThrow();
 	}
 
 	[Fact]
 	public void SetOutline_DoesNotMoveFloorObjects()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
@@ -70,6 +80,7 @@ public class AreaOutlineTests
 			ObjectRotation.None,
 			ObjectScale.Default);
 
+		// Act
 		dungeon.UpdateAreaOutline(
 			floor.Id,
 			area.Id,
@@ -79,6 +90,7 @@ public class AreaOutlineTests
 				new PathSegment(PathSegmentKind.Line, new TilePoint(0, 0), null, null),
 			]);
 
+		// Assert
 		obj.Position.Should().Be(new CanvasPoint(100f, 100f));
 		area.Outline.Should().HaveCount(3);
 	}
@@ -86,15 +98,18 @@ public class AreaOutlineTests
 	[Fact]
 	public void UpdateAreaOutline_WithNullOutline_Throws()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
+		// Act
 		var act = () => dungeon.UpdateAreaOutline(
 			floor.Id,
 			area.Id,
 			null!);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentNullException>()
 			.WithParameterName("outline");
 	}
@@ -102,15 +117,18 @@ public class AreaOutlineTests
 	[Fact]
 	public void UpdateAreaOutline_WithEmptyOutline_OnAKnownArea_Throws()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
+		// Act
 		var act = () => dungeon.UpdateAreaOutline(
 			floor.Id,
 			area.Id,
 			new List<PathSegment>());
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentException>()
 			.WithParameterName("outline");
 	}
@@ -118,6 +136,7 @@ public class AreaOutlineTests
 	[Fact]
 	public void UpdateAreaOutline_WithTwoSegments_Throws_AndLeavesTheOutlineUntouched()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
@@ -131,6 +150,7 @@ public class AreaOutlineTests
 
 		dungeon.UpdateAreaOutline(floor.Id, area.Id, original);
 
+		// Act
 		var act = () => dungeon.UpdateAreaOutline(
 			floor.Id,
 			area.Id,
@@ -139,6 +159,7 @@ public class AreaOutlineTests
 				new PathSegment(PathSegmentKind.Line, new TilePoint(8, 8), null, null),
 			]);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentException>()
 			.WithParameterName("outline");
 
@@ -148,6 +169,7 @@ public class AreaOutlineTests
 	[Fact]
 	public void UpdateAreaOutline_WithThreeSegments_Succeeds()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
@@ -159,8 +181,10 @@ public class AreaOutlineTests
 			new(PathSegmentKind.Line, new TilePoint(5, 5), null, null),
 		};
 
+		// Act
 		var act = () => dungeon.UpdateAreaOutline(floor.Id, area.Id, outline);
 
+		// Assert
 		act.Should().NotThrow();
 		area.Outline.Should().Equal(outline);
 	}

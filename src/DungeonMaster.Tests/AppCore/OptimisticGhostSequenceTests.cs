@@ -16,8 +16,10 @@ public class OptimisticGhostSequenceTests
 	[Fact]
 	public async Task RefreshThenClearAsync_ClearsThePlaceholderAfterTheRefreshHasCompleted()
 	{
+		// Arrange
 		var calls = new List<string>();
 
+		// Act
 		await OptimisticGhostSequence.RefreshThenClearAsync(
 			async () =>
 			{
@@ -27,6 +29,7 @@ public class OptimisticGhostSequenceTests
 			},
 			() => calls.Add("placeholder-cleared"));
 
+		// Assert
 		calls.Should().Equal(
 			"refresh-started",
 			"refresh-completed",
@@ -41,9 +44,11 @@ public class OptimisticGhostSequenceTests
 	[Fact]
 	public async Task RefreshThenClearAsync_RunsEachStepExactlyOnce()
 	{
+		// Arrange
 		var refreshes = 0;
 		var clears = 0;
 
+		// Act
 		await OptimisticGhostSequence.RefreshThenClearAsync(
 			() =>
 			{
@@ -53,6 +58,7 @@ public class OptimisticGhostSequenceTests
 			},
 			() => clears++);
 
+		// Assert
 		refreshes.Should().Be(1);
 		clears.Should().Be(1);
 	}
@@ -60,12 +66,15 @@ public class OptimisticGhostSequenceTests
 	[Fact]
 	public async Task RefreshThenClearAsync_WhenTheRefreshFaults_LeavesThePlaceholderOnScreen()
 	{
+		// Arrange
 		var cleared = false;
 
+		// Act
 		var act = async () => await OptimisticGhostSequence.RefreshThenClearAsync(
 			() => Task.FromException(new InvalidOperationException("reload failed")),
 			() => cleared = true);
 
+		// Assert
 		await act.Should().ThrowAsync<InvalidOperationException>();
 		cleared.Should().BeFalse();
 	}
@@ -73,20 +82,24 @@ public class OptimisticGhostSequenceTests
 	[Fact]
 	public async Task RefreshThenClearAsync_WithANullRefresh_Throws()
 	{
+		// Act
 		var act = async () => await OptimisticGhostSequence.RefreshThenClearAsync(
 			null!,
 			() => { });
 
+		// Assert
 		await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 
 	[Fact]
 	public async Task RefreshThenClearAsync_WithANullClear_Throws()
 	{
+		// Act
 		var act = async () => await OptimisticGhostSequence.RefreshThenClearAsync(
 			() => Task.CompletedTask,
 			null!);
 
+		// Assert
 		await act.Should().ThrowAsync<ArgumentNullException>();
 	}
 }

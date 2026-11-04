@@ -262,16 +262,6 @@ public class TokenNamingTests
 	{
 		var tokens = ColourTokens().ToHashSet(StringComparer.Ordinal);
 
-		// Both registers are non-empty by construction, so an empty scan would fill the complaints
-		// list rather than empty it — but the guard is stated anyway, because "it happens to fail
-		// loudly for another reason" is a property of today's registers, not of this fact. See
-		// contracts/anti-vacuity.md section 5.
-		tokens
-			.Should()
-			.NotBeEmpty(
-				"every entry in both registers is resolved against this scan, so an empty scan "
-				+ "makes the whole fact meaningless");
-
 		var complaints = new List<string>();
 
 		foreach (var entry in StructuralQualifierExceptions)
@@ -315,6 +305,17 @@ public class TokenNamingTests
 			}
 		}
 
+		complaints.Should().BeEmpty();
+	}
+
+	/// <summary>
+	///		Asserts that every entry in both exception registers,
+	///		<see cref="StructuralQualifierExceptions"/> and <see cref="CategorylessByDesign"/>,
+	///		carries a non-blank reason.
+	/// </summary>
+	[Fact]
+	public void EveryRegisteredExceptionStatesAReason()
+	{
 		StructuralQualifierExceptions
 			.Values
 			.Concat(CategorylessByDesign.Values)
@@ -323,8 +324,26 @@ public class TokenNamingTests
 				reason =>
 					!string.IsNullOrWhiteSpace(reason),
 				"an exception without a reason is an exemption nobody has to defend");
+	}
 
-		complaints.Should().BeEmpty();
+	/// <summary>
+	///		Asserts that the colour-token scan
+	///		<see cref="EveryRegisteredExceptionStillExistsAndStillOffends"/> resolves both
+	///		registers against reaches at least one token.
+	/// </summary>
+	[Fact]
+	public void TheColourTokenScanReachesAtLeastOneToken()
+	{
+		// Both registers are non-empty by construction, so an empty scan would fill that fact's
+		// complaints list rather than empty it — but the guard is stated anyway, as a fact of its
+		// own, because "it happens to fail loudly for another reason" is a property of today's
+		// registers, not of that fact. The reason below was written when the guard sat inside
+		// that fact, so its "the whole fact" names that one.
+		ColourTokens()
+			.Should()
+			.NotBeEmpty(
+				"every entry in both registers is resolved against this scan, so an empty scan "
+				+ "makes the whole fact meaningless");
 	}
 
 	/// <summary>

@@ -122,7 +122,7 @@ public class DmThemeKeysResolveTests
 	///		Asserts that every key <c>DmTheme</c> asks for is defined under Resources/Theme.
 	/// </summary>
 	[Fact]
-	public void EveryKeyDmThemeResolves_IsDefinedInTheThemeDictionaries()
+	public void EveryKeyDmThemeResolvesIsDefinedInTheThemeDictionaries()
 	{
 		var requested = ResolveCalls()
 			.Select(call =>
@@ -146,7 +146,7 @@ public class DmThemeKeysResolveTests
 	///		This is the fact that reads the type.
 	/// </summary>
 	[Fact]
-	public void EveryKeyDmThemeResolves_IsDeclaredAsTheTypeItIsResolvedAs()
+	public void EveryKeyDmThemeResolvesIsDeclaredAsTheTypeItIsResolvedAs()
 	{
 		var declarations = KeyedElementsInThemeDictionaries();
 

@@ -70,7 +70,7 @@ public class ResultSentinelIsAbsentTests
 	///		is asserted about their contents.
 	/// </remarks>
 	[Fact]
-	public void NoDungeonDetailViewModel_ComparesAResultValueAgainstGuidEmptyOrDefault()
+	public void NoDungeonDetailViewModelComparesAResultValueAgainstGuidEmptyOrDefault()
 	{
 		var sources = DetailViewModelSources();
 
@@ -101,7 +101,7 @@ public class ResultSentinelIsAbsentTests
 	///		the scan above could pass because the predicate matches nothing at all.
 	/// </summary>
 	[Fact]
-	public void TheDetector_FlagsTheRemovedSentinelForm()
+	public void TheDetectorFlagsTheRemovedSentinelForm()
 	{
 		SentinelFindings(
 				"constructed.cs",
@@ -117,7 +117,7 @@ public class ResultSentinelIsAbsentTests
 	///		on. This form survives in MapCanvasViewModel and is correct there.
 	/// </summary>
 	[Fact]
-	public void TheDetector_DoesNotFlagABareResultValueRead()
+	public void TheDetectorDoesNotFlagABareResultValueRead()
 	{
 		SentinelFindings(
 				"constructed.cs",
@@ -133,7 +133,7 @@ public class ResultSentinelIsAbsentTests
 	///		something that is not a result value.
 	/// </summary>
 	[Fact]
-	public void TheDetector_DoesNotFlagAGuidEmptyComparisonOnANonResultValue()
+	public void TheDetectorDoesNotFlagAGuidEmptyComparisonOnANonResultValue()
 	{
 		SentinelFindings(
 				"constructed.cs",
@@ -149,7 +149,7 @@ public class ResultSentinelIsAbsentTests
 	///		substring of a longer identifier.
 	/// </summary>
 	[Fact]
-	public void TheDetector_DoesNotFlagValueAsASubstringOfAnUnrelatedIdentifier()
+	public void TheDetectorDoesNotFlagValueAsASubstringOfAnUnrelatedIdentifier()
 	{
 		SentinelFindings(
 				"constructed.cs",

@@ -89,7 +89,7 @@ public class DmThemeResolutionTests
 	/// </summary>
 	/// <remarks>
 	///		This is the behavioural replacement for
-	///		<c>DmThemeKeysResolveTests.EveryKeyDmThemeResolves_IsDefinedInTheThemeDictionaries</c>
+	///		<c>DmThemeKeysResolveTests.EveryKeyDmThemeResolvesIsDefinedInTheThemeDictionaries</c>
 	///		and <c>…_IsDeclaredAsTheTypeItIsResolvedAs</c>. Both of those read the key AND the
 	///		declaring element out of text; this one makes the call. A missing key, a key declared as
 	///		the wrong XAML element, and a read that ran too early all throw out of

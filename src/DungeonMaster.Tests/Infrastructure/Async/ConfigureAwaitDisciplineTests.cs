@@ -34,12 +34,14 @@ public class ConfigureAwaitDisciplineTests
 	];
 
 	[Fact]
-	public void EveryAwaitInScopedInfrastructureFilesIsConfiguredFalse()
+	public void ScopedFiles_EveryAwait_IsConfiguredFalse()
 	{
+		// Arrange
 		var sourceRoot = LocateSourceRoot();
 
 		List<string> unconfigured = [];
 
+		// Act
 		foreach (var relativePath in ScopedFiles)
 		{
 			var fullPath = Path.Combine(
@@ -75,6 +77,7 @@ public class ConfigureAwaitDisciplineTests
 			}
 		}
 
+		// Assert
 		unconfigured
 			.Should()
 			.BeEmpty(

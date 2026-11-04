@@ -159,7 +159,7 @@ public class ImplicitStyleTests
 	/// </param>
 	[Theory]
 	[MemberData(nameof(RequiredStyles))]
-	public void ImplicitStyle_DeclaresItsRequiredSetters(
+	public void RequiredImplicitStyleExistsAndDeclaresItsRequiredSetters(
 		string target,
 		string[] requiredSetters)
 	{
@@ -197,7 +197,7 @@ public class ImplicitStyleTests
 	///		replaces.
 	/// </summary>
 	[Fact]
-	public void ImplicitButtonStyle_CarriesItsCommonStates()
+	public void ImplicitButtonStyleCarriesItsCommonStates()
 	{
 		var styles = Styles();
 
@@ -241,7 +241,7 @@ public class ImplicitStyleTests
 	///		member of the forbidden set.
 	/// </summary>
 	[Fact]
-	public void ImplicitControlStyles_SetNoColourOrFontSize()
+	public void ImplicitControlStylesSetNoColourOrFontSize()
 	{
 		var declared = Styles()
 			.Where(entry =>

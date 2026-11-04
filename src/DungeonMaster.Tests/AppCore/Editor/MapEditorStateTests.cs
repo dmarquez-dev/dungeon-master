@@ -10,10 +10,13 @@ public class MapEditorStateTests
 	[Fact]
 	public void SetActiveTool_DrawWithAnActiveDrawingSession_SetsDrawStateToDrawing()
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		var change = state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 
+		// Assert
 		state.DrawState.Should().Be(DrawState.Drawing);
 		change.AbortInProgressDraw.Should().BeFalse();
 	}
@@ -21,10 +24,13 @@ public class MapEditorStateTests
 	[Fact]
 	public void SetActiveTool_DrawWithNoActiveDrawingSession_SetsDrawStateToDrawingReady()
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		var change = state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: false);
 
+		// Assert
 		state.DrawState.Should().Be(DrawState.DrawingReady);
 		change.AbortInProgressDraw.Should().BeFalse();
 	}
@@ -32,11 +38,14 @@ public class MapEditorStateTests
 	[Fact]
 	public void SetActiveTool_DrawWhileAlreadyDrawing_ReportsNoAbort()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 
+		// Act
 		var change = state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 
+		// Assert
 		change.AbortInProgressDraw.Should().BeFalse();
 		state.DrawState.Should().Be(DrawState.Drawing);
 	}
@@ -49,12 +58,14 @@ public class MapEditorStateTests
 	[InlineData(MapTool.Erase)]
 	public void SetActiveTool_NonDrawToolWhileDrawing_ReportsAbortAndLeavesDrawStateIdle(MapTool tool)
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
-		state.DrawState.Should().Be(DrawState.Drawing);
 
+		// Act
 		var change = state.SetActiveTool(tool, drawingSessionIsActive: true);
 
+		// Assert
 		change.AbortInProgressDraw.Should().BeTrue();
 		state.DrawState.Should().Be(DrawState.Idle);
 	}
@@ -67,13 +78,25 @@ public class MapEditorStateTests
 	[InlineData(MapTool.Erase)]
 	public void SetActiveTool_NonDrawToolFromDrawingReady_ReportsNoAbortAndLeavesDrawStateIdle(MapTool tool)
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: false);
-		state.DrawState.Should().Be(DrawState.DrawingReady);
 
+		// Act
 		var change = state.SetActiveTool(tool, drawingSessionIsActive: false);
 
+		// Assert
 		change.AbortInProgressDraw.Should().BeFalse();
+		state.DrawState.Should().Be(DrawState.Idle);
+	}
+
+	[Fact]
+	public void DrawState_OnANewState_IsIdle()
+	{
+		// Act
+		var state = new MapEditorState();
+
+		// Assert
 		state.DrawState.Should().Be(DrawState.Idle);
 	}
 
@@ -85,11 +108,13 @@ public class MapEditorStateTests
 	[InlineData(MapTool.Erase)]
 	public void SetActiveTool_NonDrawToolFromIdle_ReportsNoAbortAndLeavesDrawStateIdle(MapTool tool)
 	{
+		// Arrange
 		var state = new MapEditorState();
-		state.DrawState.Should().Be(DrawState.Idle);
 
+		// Act
 		var change = state.SetActiveTool(tool, drawingSessionIsActive: false);
 
+		// Assert
 		change.AbortInProgressDraw.Should().BeFalse();
 		state.DrawState.Should().Be(DrawState.Idle);
 	}
@@ -105,10 +130,13 @@ public class MapEditorStateTests
 		MapTool tool,
 		bool expected)
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		var change = state.SetActiveTool(tool, drawingSessionIsActive: false);
 
+		// Assert
 		change.ClearHoveredArea.Should().Be(expected);
 	}
 
@@ -121,10 +149,13 @@ public class MapEditorStateTests
 	[InlineData(MapTool.Place, false)]
 	public void SetActiveTool_ReportsLeavingPlaceToolForEveryToolButPlace(MapTool tool, bool expected)
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		var change = state.SetActiveTool(tool, drawingSessionIsActive: false);
 
+		// Assert
 		change.LeavingPlaceTool.Should().Be(expected);
 	}
 
@@ -137,33 +168,42 @@ public class MapEditorStateTests
 	[InlineData(MapTool.Erase)]
 	public void SetActiveTool_AnyTool_ClearsObjectInteraction(MapTool tool)
 	{
+		// Arrange
 		var state = new MapEditorState();
 		FillObjectInteraction(state);
 
+		// Act
 		state.SetActiveTool(tool, drawingSessionIsActive: false);
 
+		// Assert
 		AssertObjectInteractionIsClear(state);
 	}
 
 	[Fact]
 	public void SetActiveTool_SwitchingToTheSameToolAgain_StillClearsObjectInteraction()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.SetActiveTool(MapTool.Select, drawingSessionIsActive: false);
 		FillObjectInteraction(state);
 
+		// Act
 		state.SetActiveTool(MapTool.Select, drawingSessionIsActive: false);
 
+		// Assert
 		AssertObjectInteractionIsClear(state);
 	}
 
 	[Fact]
 	public void ConfirmObjectDragIfPastThreshold_NoPendingPress_ReturnsFalse()
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		var confirmed = state.ConfirmObjectDragIfPastThreshold(new CanvasPoint(1000f, 1000f));
 
+		// Assert
 		confirmed.Should().BeFalse();
 		state.IsObjectDragConfirmed.Should().BeFalse();
 	}
@@ -171,12 +211,15 @@ public class MapEditorStateTests
 	[Fact]
 	public void ConfirmObjectDragIfPastThreshold_ExactlyAtTheThreshold_ReturnsFalseAndLeavesTheDragUnconfirmed()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.BeginObjectPress(Guid.NewGuid(), new CanvasPoint(0f, 0f));
 
+		// Act
 		var confirmed = state.ConfirmObjectDragIfPastThreshold(
 			new CanvasPoint(MapEditorState.ObjectDragThreshold, 0f));
 
+		// Assert
 		confirmed.Should().BeFalse();
 		state.IsObjectDragConfirmed.Should().BeFalse();
 	}
@@ -184,12 +227,15 @@ public class MapEditorStateTests
 	[Fact]
 	public void ConfirmObjectDragIfPastThreshold_JustPastTheThreshold_ReturnsTrueAndConfirmsTheDrag()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.BeginObjectPress(Guid.NewGuid(), new CanvasPoint(0f, 0f));
 
+		// Act
 		var confirmed = state.ConfirmObjectDragIfPastThreshold(
 			new CanvasPoint(MapEditorState.ObjectDragThreshold + 0.01f, 0f));
 
+		// Assert
 		confirmed.Should().BeTrue();
 		state.IsObjectDragConfirmed.Should().BeTrue();
 	}
@@ -197,11 +243,14 @@ public class MapEditorStateTests
 	[Fact]
 	public void ConfirmObjectDragIfPastThreshold_WellInsideTheThreshold_ReturnsFalse()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.BeginObjectPress(Guid.NewGuid(), new CanvasPoint(100f, 100f));
 
+		// Act
 		var confirmed = state.ConfirmObjectDragIfPastThreshold(new CanvasPoint(101f, 101f));
 
+		// Assert
 		confirmed.Should().BeFalse();
 		state.IsObjectDragConfirmed.Should().BeFalse();
 	}
@@ -209,14 +258,16 @@ public class MapEditorStateTests
 	[Fact]
 	public void ConfirmObjectDragIfPastThreshold_CalledBackInsideTheThresholdAfterConfirming_StillReturnsTrue()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.BeginObjectPress(Guid.NewGuid(), new CanvasPoint(0f, 0f));
 		state.ConfirmObjectDragIfPastThreshold(
-			new CanvasPoint(MapEditorState.ObjectDragThreshold + 0.01f, 0f))
-			.Should().BeTrue();
+			new CanvasPoint(MapEditorState.ObjectDragThreshold + 0.01f, 0f));
 
+		// Act
 		var confirmed = state.ConfirmObjectDragIfPastThreshold(new CanvasPoint(0f, 0f));
 
+		// Assert
 		confirmed.Should().BeTrue();
 		state.IsObjectDragConfirmed.Should().BeTrue();
 	}
@@ -230,11 +281,14 @@ public class MapEditorStateTests
 	[Fact]
 	public void BeginObjectPress_RecordsThePendingClickAndTheAnchorWithTheDragUnconfirmed()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		var objectId = Guid.NewGuid();
 
+		// Act
 		state.BeginObjectPress(objectId, new CanvasPoint(12f, 34f));
 
+		// Assert
 		state.PendingObjectClickId.Should().Be(objectId);
 		state.ObjectDragAnchorScreen.Should().Be(new CanvasPoint(12f, 34f));
 		state.IsObjectDragConfirmed.Should().BeFalse();
@@ -243,32 +297,41 @@ public class MapEditorStateTests
 	[Fact]
 	public void ResetDrawState_WithAFloorSelected_SetsDrawStateToDrawingReady()
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		state.ResetDrawState(aFloorIsSelected: true);
 
+		// Assert
 		state.DrawState.Should().Be(DrawState.DrawingReady);
 	}
 
 	[Fact]
 	public void ResetDrawState_WithNoFloorSelected_SetsDrawStateToIdle()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 
+		// Act
 		state.ResetDrawState(aFloorIsSelected: false);
 
+		// Assert
 		state.DrawState.Should().Be(DrawState.Idle);
 	}
 
 	[Fact]
 	public void ResetDrawState_DuringAMoveDrag_ClearsTheMoveDragState()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.BeginMoveDrag(Guid.NewGuid(), new TilePoint(2, 3));
 
+		// Act
 		state.ResetDrawState(aFloorIsSelected: true);
 
+		// Assert
 		state.IsMoveDragging.Should().BeFalse();
 		state.DraggingAreaId.Should().BeNull();
 		state.MoveGrabTile.Should().BeNull();
@@ -277,6 +340,7 @@ public class MapEditorStateTests
 	[Fact]
 	public void ResetDrawState_WithObjectInteractionInFlight_LeavesEveryObjectInteractionFieldUntouched()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		var pressedId = Guid.NewGuid();
 		state.SelectedObjectId = Guid.NewGuid();
@@ -285,8 +349,10 @@ public class MapEditorStateTests
 		var selectedId = state.SelectedObjectId;
 		var hoveredId = state.HoveredObjectId;
 
+		// Act
 		state.ResetDrawState(aFloorIsSelected: true);
 
+		// Assert
 		state.SelectedObjectId.Should().Be(selectedId);
 		state.HoveredObjectId.Should().Be(hoveredId);
 		state.PendingObjectClickId.Should().Be(pressedId);
@@ -296,11 +362,14 @@ public class MapEditorStateTests
 	[Fact]
 	public void BeginMoveDrag_SetsTheDraggingFlagTheAreaIdAndTheGrabTileTogether()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		var areaId = Guid.NewGuid();
 
+		// Act
 		state.BeginMoveDrag(areaId, new TilePoint(4, 7));
 
+		// Assert
 		state.IsMoveDragging.Should().BeTrue();
 		state.DraggingAreaId.Should().Be(areaId);
 		state.MoveGrabTile.Should().Be(new TilePoint(4, 7));
@@ -309,11 +378,14 @@ public class MapEditorStateTests
 	[Fact]
 	public void EndMoveDrag_AfterABeginMoveDrag_ClearsTheDraggingFlagTheAreaIdAndTheGrabTile()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		state.BeginMoveDrag(Guid.NewGuid(), new TilePoint(4, 7));
 
+		// Act
 		state.EndMoveDrag();
 
+		// Assert
 		state.IsMoveDragging.Should().BeFalse();
 		state.DraggingAreaId.Should().BeNull();
 		state.MoveGrabTile.Should().BeNull();
@@ -322,10 +394,13 @@ public class MapEditorStateTests
 	[Fact]
 	public void EndMoveDrag_WithNoDragInProgress_LeavesTheMoveDragStateClearWithoutThrowing()
 	{
+		// Arrange
 		var state = new MapEditorState();
 
+		// Act
 		Action act = state.EndMoveDrag;
 
+		// Assert
 		act.Should().NotThrow();
 		state.IsMoveDragging.Should().BeFalse();
 		state.DraggingAreaId.Should().BeNull();
@@ -335,11 +410,14 @@ public class MapEditorStateTests
 	[Fact]
 	public void ClearObjectInteraction_WithEveryObjectFieldSet_ClearsEachOfThem()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		FillObjectInteraction(state);
 
+		// Act
 		state.ClearObjectInteraction();
 
+		// Assert
 		state.SelectedObjectId.Should().BeNull();
 		state.HoveredObjectId.Should().BeNull();
 		state.PendingObjectClickId.Should().BeNull();
@@ -353,6 +431,7 @@ public class MapEditorStateTests
 	[Fact]
 	public void ClearObjectInteraction_LeavesTheSelectionAndDrawStateAlone()
 	{
+		// Arrange
 		var state = new MapEditorState();
 		var floorId = Guid.NewGuid();
 		var focusedAreaId = Guid.NewGuid();
@@ -360,8 +439,10 @@ public class MapEditorStateTests
 		state.FocusedAreaId = focusedAreaId;
 		state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
 
+		// Act
 		state.ClearObjectInteraction();
 
+		// Assert
 		state.SelectedFloorId.Should().Be(floorId);
 		state.FocusedAreaId.Should().Be(focusedAreaId);
 		state.DrawState.Should().Be(DrawState.Drawing);

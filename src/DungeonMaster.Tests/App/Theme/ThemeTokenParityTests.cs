@@ -59,7 +59,7 @@ public class ThemeTokenParityTests
 	///		that broke it.
 	/// </summary>
 	[Fact]
-	public void EveryReferencedThemeKey_IsDefinedUnderResources()
+	public void EveryReferencedThemeKeyIsDefinedUnderResources()
 	{
 		var definitions = ResourceKeyDefinitions()
 			.Select(definition =>
@@ -93,7 +93,7 @@ public class ThemeTokenParityTests
 	/// <summary>
 	///		Asserts that every Dm-prefixed string literal in application code names a key that
 	///		actually exists under <c>Resources/</c>. This is the C# counterpart of
-	///		<see cref="EveryReferencedThemeKey_IsDefinedUnderResources"/>: it scans literals rather
+	///		<see cref="EveryReferencedThemeKeyIsDefinedUnderResources"/>: it scans literals rather
 	///		than parsing indexer expressions, so a key hidden in a ternary, a switch arm or a const
 	///		is caught just as readily as a direct <c>Resources["Key"]</c> lookup.
 	///		<para>
@@ -104,7 +104,7 @@ public class ThemeTokenParityTests
 	///		</para>
 	/// </summary>
 	[Fact]
-	public void EveryThemeKeyStringLiteralInCode_IsDefinedUnderResources()
+	public void EveryThemeKeyStringLiteralInCodeIsDefinedUnderResources()
 	{
 		var definitions = ResourceKeyDefinitions()
 			.Where(definition =>

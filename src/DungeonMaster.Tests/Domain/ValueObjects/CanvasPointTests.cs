@@ -13,8 +13,10 @@ public class CanvasPointTests
 	[Fact]
 	public void Constructor_WithNaNX_ThrowsArgumentOutOfRangeExceptionNamingX()
 	{
+		// Act
 		var act = () => new CanvasPoint(float.NaN, 0f);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("X");
 	}
@@ -22,8 +24,10 @@ public class CanvasPointTests
 	[Fact]
 	public void Constructor_WithNaNY_ThrowsArgumentOutOfRangeExceptionNamingY()
 	{
+		// Act
 		var act = () => new CanvasPoint(0f, float.NaN);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("Y");
 	}
@@ -33,8 +37,10 @@ public class CanvasPointTests
 	[InlineData(float.NegativeInfinity)]
 	public void Constructor_WithAnInfiniteX_ThrowsArgumentOutOfRangeExceptionNamingX(float x)
 	{
+		// Act
 		var act = () => new CanvasPoint(x, 0f);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("X");
 	}
@@ -44,8 +50,10 @@ public class CanvasPointTests
 	[InlineData(float.NegativeInfinity)]
 	public void Constructor_WithAnInfiniteY_ThrowsArgumentOutOfRangeExceptionNamingY(float y)
 	{
+		// Act
 		var act = () => new CanvasPoint(0f, y);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("Y");
 	}
@@ -56,8 +64,10 @@ public class CanvasPointTests
 	[Fact]
 	public void Constructor_WithAnInfiniteX_CarriesTheRejectedValueAsActualValue()
 	{
+		// Act
 		var act = () => new CanvasPoint(float.PositiveInfinity, 0f);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ActualValue.Should().Be(float.PositiveInfinity);
 	}
@@ -65,8 +75,10 @@ public class CanvasPointTests
 	[Fact]
 	public void Constructor_WithNaNY_CarriesTheRejectedValueAsActualValue()
 	{
+		// Act
 		var act = () => new CanvasPoint(0f, float.NaN);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ActualValue.Should().Be(float.NaN);
 	}
@@ -77,10 +89,13 @@ public class CanvasPointTests
 	[InlineData(float.NegativeInfinity)]
 	public void With_SettingXNonFinite_ThrowsArgumentOutOfRangeExceptionNamingX(float x)
 	{
+		// Arrange
 		var existing = new CanvasPoint(12.5f, 7.25f);
 
+		// Act
 		var act = () => existing with { X = x };
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("X");
 	}
@@ -91,10 +106,13 @@ public class CanvasPointTests
 	[InlineData(float.NegativeInfinity)]
 	public void With_SettingYNonFinite_ThrowsArgumentOutOfRangeExceptionNamingY(float y)
 	{
+		// Arrange
 		var existing = new CanvasPoint(12.5f, 7.25f);
 
+		// Act
 		var act = () => existing with { Y = y };
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("Y");
 	}
@@ -109,8 +127,10 @@ public class CanvasPointTests
 	[InlineData(float.Epsilon, -float.Epsilon)]
 	public void Constructor_WithFiniteCoordinates_CarriesTheGivenValues(float x, float y)
 	{
+		// Act
 		var point = new CanvasPoint(x, y);
 
+		// Assert
 		point.X.Should().Be(x);
 		point.Y.Should().Be(y);
 	}
@@ -118,10 +138,13 @@ public class CanvasPointTests
 	[Fact]
 	public void With_SettingAFiniteCoordinate_CarriesTheGivenValues()
 	{
+		// Arrange
 		var existing = new CanvasPoint(12.5f, 7.25f);
 
+		// Act
 		var moved = existing with { X = float.MaxValue };
 
+		// Assert
 		moved.X.Should().Be(float.MaxValue);
 		moved.Y.Should().Be(7.25f);
 	}
