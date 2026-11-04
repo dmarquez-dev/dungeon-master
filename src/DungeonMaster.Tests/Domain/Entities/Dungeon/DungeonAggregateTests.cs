@@ -11,10 +11,13 @@ public class DungeonAggregateTests
 	[Fact]
 	public void AddFloor_IncrementsFloorCount()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 
+		// Act
 		dungeon.AddFloor("Entry Level");
 
+		// Assert
 		dungeon.Floors.Should().HaveCount(1);
 		dungeon.Floors[0].Number.Should().Be(1);
 		dungeon.Floors[0].Name.Should().Be("Entry Level");
@@ -23,37 +26,46 @@ public class DungeonAggregateTests
 	[Fact]
 	public void AddFloor_AssignsSequentialNumbers()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 
+		// Act
 		dungeon.AddFloor(null);
 		dungeon.AddFloor("Second");
 		dungeon.AddFloor(null);
 
-		dungeon.Floors.Select(f => f.Number).Should().Equal(1, 2, 3);
+		// Assert
+		dungeon.Floors.Select(floor => floor.Number).Should().Equal(1, 2, 3);
 	}
 
 	[Fact]
 	public void RemoveFloor_RemovesAndRenumbers()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		dungeon.AddFloor("First");
 		var second = dungeon.AddFloor("Second");
 		dungeon.AddFloor("Third");
 
+		// Act
 		dungeon.RemoveFloor(second.Id);
 
+		// Assert
 		dungeon.Floors.Should().HaveCount(2);
-		dungeon.Floors.Select(f => f.Number).Should().Equal(1, 2);
+		dungeon.Floors.Select(floor => floor.Number).Should().Equal(1, 2);
 	}
 
 	[Fact]
 	public void RemoveFloor_WithNonExistentId_IsNoOp()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		dungeon.AddFloor(null);
 
+		// Act
 		var act = () => dungeon.RemoveFloor(Guid.NewGuid());
 
+		// Assert
 		act.Should().NotThrow();
 		dungeon.Floors.Should().HaveCount(1);
 	}
@@ -61,14 +73,17 @@ public class DungeonAggregateTests
 	[Fact]
 	public void ReorderFloor_MovesFloorAndRenumbersOthers()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		dungeon.AddFloor("First");
 		dungeon.AddFloor("Second");
 		var third = dungeon.AddFloor("Third");
 
+		// Act
 		dungeon.ReorderFloor(third.Id, 1);
 
-		var ordered = dungeon.Floors.OrderBy(f => f.Number).ToList();
+		// Assert
+		var ordered = dungeon.Floors.OrderBy(floor => floor.Number).ToList();
 		ordered[0].Name.Should().Be("Third");
 		ordered[1].Name.Should().Be("First");
 		ordered[2].Name.Should().Be("Second");
@@ -77,11 +92,14 @@ public class DungeonAggregateTests
 	[Fact]
 	public void AddArea_AddsToCorrectFloor()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
+		// Act
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", "A large entrance hall.")!;
 
+		// Assert
 		floor.Areas.Should().HaveCount(1);
 		floor.Areas[0].Name.Should().Be("Grand Foyer");
 		area.Id.Should().NotBeEmpty();
@@ -90,22 +108,28 @@ public class DungeonAggregateTests
 	[Fact]
 	public void RemoveArea_RemovesFromCorrectFloor()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
 
+		// Act
 		dungeon.RemoveArea(floor.Id, area.Id);
 
+		// Assert
 		floor.Areas.Should().BeEmpty();
 	}
 
 	[Fact]
 	public void Update_SetsAllThreeFields()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Old Name", "Old Desc");
 
+		// Act
 		dungeon.Update("New Name", "New Desc", "DM Notes");
 
+		// Assert
 		dungeon.Name.Should().Be("New Name");
 		dungeon.Description.Should().Be("New Desc");
 		dungeon.Notes.Should().Be("DM Notes");

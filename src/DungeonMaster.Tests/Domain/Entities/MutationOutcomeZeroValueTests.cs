@@ -11,16 +11,27 @@ public class MutationOutcomeZeroValueTests
 	[Fact]
 	public void None_IsZero_AndIsTheDefaultMutationOutcome()
 	{
-		((int)MutationOutcome.None).Should().Be(0);
-		default(MutationOutcome).Should().Be(MutationOutcome.None);
+		// Act
+		var noneValue = (int)MutationOutcome.None;
+		var defaultOutcome = default(MutationOutcome);
+
+		// Assert
+		noneValue.Should().Be(0);
+		defaultOutcome.Should().Be(MutationOutcome.None);
 	}
 
 	[Fact]
-	public void DeclarationOrderOfTheExistingMembersSurvived()
+	public void MutationOutcome_ExistingMembers_KeepValuesOneThroughThree()
 	{
-		((int)MutationOutcome.Success).Should().Be(1);
-		((int)MutationOutcome.NotFound).Should().Be(2);
-		((int)MutationOutcome.OutOfRange).Should().Be(3);
+		// Act
+		var successValue = (int)MutationOutcome.Success;
+		var notFoundValue = (int)MutationOutcome.NotFound;
+		var outOfRangeValue = (int)MutationOutcome.OutOfRange;
+
+		// Assert
+		successValue.Should().Be(1);
+		notFoundValue.Should().Be(2);
+		outOfRangeValue.Should().Be(3);
 	}
 
 	[Fact]

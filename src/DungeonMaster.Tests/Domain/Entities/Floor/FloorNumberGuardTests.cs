@@ -10,11 +10,13 @@ public class FloorNumberGuardTests
 	[Fact]
 	public void Constructor_WithZeroNumber_Throws()
 	{
+		// Act
 		var act = () => new DomainFloor(
 			Guid.NewGuid(),
 			0,
 			"Entry");
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("number");
 	}
@@ -22,11 +24,13 @@ public class FloorNumberGuardTests
 	[Fact]
 	public void Constructor_WithNegativeNumber_Throws()
 	{
+		// Act
 		var act = () => new DomainFloor(
 			Guid.NewGuid(),
 			-1,
 			"Entry");
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("number");
 	}
@@ -34,22 +38,27 @@ public class FloorNumberGuardTests
 	[Fact]
 	public void Constructor_WithNumberOne_Succeeds()
 	{
+		// Act
 		var floor = new DomainFloor(
 			Guid.NewGuid(),
 			1,
 			"Entry");
 
+		// Assert
 		floor.Number.Should().Be(1);
 	}
 
 	[Fact]
 	public void UpdateNumber_WithZero_Throws()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
+		// Act
 		var act = () => floor.UpdateNumber(0);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("number");
 	}
@@ -57,11 +66,14 @@ public class FloorNumberGuardTests
 	[Fact]
 	public void UpdateNumber_WithNegative_Throws()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
+		// Act
 		var act = () => floor.UpdateNumber(-1);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("number");
 	}
@@ -69,28 +81,32 @@ public class FloorNumberGuardTests
 	[Fact]
 	public void UpdateNumber_WithOne_Succeeds()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 		var second = dungeon.AddFloor("Cellar");
 
-		second.Number.Should().Be(2);
-
+		// Act
 		second.UpdateNumber(1);
 
+		// Assert
 		second.Number.Should().Be(1);
 	}
 
 	[Fact]
 	public void ReorderFloor_WithTargetZero_ReturnsOutOfRange()
 	{
+		// Arrange
 		var dungeon = new DomainDungeon("Test Dungeon");
 		var first = dungeon.AddFloor("Entry");
 		dungeon.AddFloor("Cellar");
 
+		// Act
 		var outcome = dungeon.ReorderFloor(
 			first.Id,
 			0);
 
+		// Assert
 		outcome.Should().Be(MutationOutcome.OutOfRange);
 		first.Number.Should().Be(1);
 	}

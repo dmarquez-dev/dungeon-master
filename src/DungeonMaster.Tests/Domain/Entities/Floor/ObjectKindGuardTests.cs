@@ -13,23 +13,36 @@ public class ObjectKindGuardTests
 	[Fact]
 	public void None_IsZero_AndIsTheDefaultObjectKind()
 	{
-		((int)ObjectKind.None).Should().Be(0);
-		default(ObjectKind).Should().Be(ObjectKind.None);
+		// Act
+		var noneValue = (int)ObjectKind.None;
+		var defaultKind = default(ObjectKind);
+
+		// Assert
+		noneValue.Should().Be(0);
+		defaultKind.Should().Be(ObjectKind.None);
 	}
 
 	[Fact]
 	public void DoorWoodIsOne_DoorIronIsTwo_AndWeaponRackIsThirtySeven()
 	{
-		((int)ObjectKind.DoorWood).Should().Be(1);
-		((int)ObjectKind.DoorIron).Should().Be(2);
-		((int)ObjectKind.WeaponRack).Should().Be(37);
+		// Act
+		var doorWoodValue = (int)ObjectKind.DoorWood;
+		var doorIronValue = (int)ObjectKind.DoorIron;
+		var weaponRackValue = (int)ObjectKind.WeaponRack;
+
+		// Assert
+		doorWoodValue.Should().Be(1);
+		doorIronValue.Should().Be(2);
+		weaponRackValue.Should().Be(37);
 	}
 
 	[Fact]
 	public void ExactlyOneMemberCastsToZero_AndItIsNone()
 	{
+		// Act
 		var values = Enum.GetValues<ObjectKind>();
 
+		// Assert
 		values.Should().HaveCount(38);
 		values.Where(kind => (int)kind == 0).Should().ContainSingle()
 			.Which.Should().Be(ObjectKind.None);
@@ -48,6 +61,7 @@ public class ObjectKindGuardTests
 	[Fact]
 	public void FiveParameterConstructor_WithUndefinedKind_Throws()
 	{
+		// Act
 		var act = () => new PlacedObject(
 			Guid.NewGuid(),
 			(ObjectKind)999,
@@ -55,6 +69,7 @@ public class ObjectKindGuardTests
 			ObjectRotation.None,
 			ObjectScale.Default);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("kind");
 
@@ -63,8 +78,9 @@ public class ObjectKindGuardTests
 	}
 
 	[Fact]
-	public void KindGuardRunsBeforeTheScaleRejection()
+	public void FiveParameterConstructor_WithNoneKindAndScaleAboveMax_RejectsTheKindFirst()
 	{
+		// Act
 		var act = () => new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.None,
@@ -72,6 +88,7 @@ public class ObjectKindGuardTests
 			ObjectRotation.None,
 			ObjectScale.Max * 2f);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentOutOfRangeException>()
 			.Which.ParamName.Should().Be("kind");
 
@@ -82,9 +99,11 @@ public class ObjectKindGuardTests
 	[Fact]
 	public void PositiveControl_ConstructorAcceptsADefinedKind()
 	{
+		// Arrange
 		var floorId = Guid.NewGuid();
 		var position = new CanvasPoint(120f, 200f);
 
+		// Act
 		var obj = new PlacedObject(
 			floorId,
 			ObjectKind.DoorWood,
@@ -92,6 +111,7 @@ public class ObjectKindGuardTests
 			ObjectRotation.CW90,
 			ObjectScale.Default);
 
+		// Assert
 		obj.Kind.Should().Be(ObjectKind.DoorWood);
 		obj.FloorId.Should().Be(floorId);
 		obj.Position.Should().Be(position);
