@@ -22,6 +22,7 @@ public class PathSegmentJsonRoundTripTests
 	[Fact]
 	public void Deserialize_ValidOutlineOfALineAndACubicBezier_RoundTripsToEqualValues()
 	{
+		// Arrange
 		const string raw = """
 			[
 				{ "Kind": 0, "End": { "Col": 2, "Row": 3 }, "Ctrl1": null, "Ctrl2": null },
@@ -29,8 +30,10 @@ public class PathSegmentJsonRoundTripTests
 			]
 			""";
 
+		// Act
 		var outline = JsonSerializer.Deserialize<List<PathSegment>>(raw, JsonOptions);
 
+		// Assert
 		outline.Should().Equal(
 			new PathSegment(PathSegmentKind.Line, new TilePoint(2, 3), null, null),
 			new PathSegment(
@@ -43,14 +46,17 @@ public class PathSegmentJsonRoundTripTests
 	[Fact]
 	public void Deserialize_CorruptRowWhoseCubicBezierHasANullCtrl2_Throws()
 	{
+		// Arrange
 		const string raw = """
 			[
 				{ "Kind": 1, "End": { "Col": 4, "Row": 4 }, "Ctrl1": { "Col": 6, "Row": 1 }, "Ctrl2": null }
 			]
 			""";
 
+		// Act
 		var act = () => JsonSerializer.Deserialize<List<PathSegment>>(raw, JsonOptions);
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentException>()
 			.Which.ParamName.Should().Be("Ctrl2");
 	}

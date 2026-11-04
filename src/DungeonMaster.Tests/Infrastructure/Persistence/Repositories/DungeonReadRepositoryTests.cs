@@ -11,6 +11,7 @@ public sealed class DungeonReadRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task GetSummariesAsync_ReturnsAllDungeonsWithFloorCount()
 	{
+		// Arrange
 		var d1 = new Dungeon("Caverns", "Dark.");
 		d1.AddFloor("L1");
 		d1.AddFloor("L2");
@@ -23,16 +24,20 @@ public sealed class DungeonReadRepositoryTests : SqliteInMemoryTestBase
 		}
 
 		var repo = new DungeonReadRepository(CreateDbContextFactory());
+
+		// Act
 		var summaries = await repo.GetSummariesAsync(CancellationToken.None);
 
+		// Assert
 		summaries.Should().HaveCount(2);
-		summaries.First(s => s.Name == "Caverns").FloorCount.Should().Be(2);
-		summaries.First(s => s.Name == "Labyrinth").FloorCount.Should().Be(0);
+		summaries.First(summary => summary.Name == "Caverns").FloorCount.Should().Be(2);
+		summaries.First(summary => summary.Name == "Labyrinth").FloorCount.Should().Be(0);
 	}
 
 	[Fact]
 	public async Task GetDetailAsync_ReturnsFullHierarchy()
 	{
+		// Arrange
 		var dungeon = new Dungeon("Castle", "Ancient fortress.");
 		dungeon.Update("Castle", "Ancient fortress.", "DM secret notes.");
 		var floor = dungeon.AddFloor("Great Hall");
@@ -45,8 +50,11 @@ public sealed class DungeonReadRepositoryTests : SqliteInMemoryTestBase
 		}
 
 		var repo = new DungeonReadRepository(CreateDbContextFactory());
+
+		// Act
 		var detail = await repo.GetDetailAsync(dungeon.Id, CancellationToken.None);
 
+		// Assert
 		detail.Should().NotBeNull();
 		detail!.Name.Should().Be("Castle");
 		detail.Notes.Should().Be("DM secret notes.");
@@ -59,10 +67,13 @@ public sealed class DungeonReadRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task GetDetailAsync_WithNonExistentId_ReturnsNull()
 	{
+		// Arrange
 		var repo = new DungeonReadRepository(CreateDbContextFactory());
 
+		// Act
 		var result = await repo.GetDetailAsync(Guid.NewGuid(), CancellationToken.None);
 
+		// Assert
 		result.Should().BeNull();
 	}
 	/// <summary>

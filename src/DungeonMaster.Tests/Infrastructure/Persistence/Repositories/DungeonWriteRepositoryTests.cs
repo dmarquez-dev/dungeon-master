@@ -13,14 +13,17 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task Add_PersistsDungeon()
 	{
+		// Arrange
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			unitOfWork.Dungeons.Add(dungeon);
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var persisted = await verify.Dungeons.FindAsync(dungeon.Id);
 		persisted.Should().NotBeNull();
@@ -30,6 +33,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task RemoveAsync_RemovesDungeon()
 	{
+		// Arrange
 		var dungeon = new Dungeon("Tomb of the Ancients");
 		using (var ctx = CreateContext())
 		{
@@ -37,12 +41,14 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 			await ctx.SaveChangesAsync();
 		}
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			await unitOfWork.Dungeons.RemoveAsync(dungeon.Id, CancellationToken.None);
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var found = await verify.Dungeons.FindAsync(dungeon.Id);
 		found.Should().BeNull();
@@ -51,6 +57,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task LoadAsync_HydratesFloorAndAreas()
 	{
+		// Arrange
 		var dungeon = new Dungeon("Castle Ravenloft");
 		var floor = dungeon.AddFloor("Main Hall");
 		dungeon.AddArea(floor.Id, "Throne Room", "The seat of power.");
@@ -63,8 +70,11 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 
 		using var readCtx = CreateContext();
 		var repo = new DungeonWriteRepository(readCtx);
+
+		// Act
 		var loaded = await repo.LoadAsync(dungeon.Id, CancellationToken.None);
 
+		// Assert
 		loaded.Should().NotBeNull();
 		loaded!.Floors.Should().HaveCount(1);
 		loaded.Floors[0].Areas.Should().HaveCount(1);
@@ -74,6 +84,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task Update_PersistsDomainMutations()
 	{
+		// Arrange
 		var dungeon = new Dungeon("Old Name");
 		using (var ctx = CreateContext())
 		{
@@ -81,6 +92,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 			await ctx.SaveChangesAsync();
 		}
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeon.Id, CancellationToken.None);
@@ -89,6 +101,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var updated = await verify.Dungeons.FindAsync(dungeon.Id);
 		updated!.Name.Should().Be("New Name");
@@ -199,6 +212,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task LoadAsync_RoundTripsFloorObjectPositionsUnchanged()
 	{
+		// Arrange
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 		var floor = dungeon.AddFloor(null);
 		var obj = floor.AddObject(
@@ -215,8 +229,11 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 
 		using var verify = CreateContext();
 		var verifyRepo = new DungeonWriteRepository(verify);
+
+		// Act
 		var loaded = await verifyRepo.LoadAsync(dungeon.Id, CancellationToken.None);
 
+		// Assert
 		var loadedObj = loaded!.Floors.Single().Objects.Single();
 		loadedObj.Id.Should().Be(obj.Id);
 		loadedObj.Position.Should().Be(new CanvasPoint(123.5f, 456.25f));

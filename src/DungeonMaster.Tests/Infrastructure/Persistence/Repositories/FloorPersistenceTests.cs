@@ -28,8 +28,10 @@ public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task UpdateFloor_DescriptionPersistsAcrossReload()
 	{
+		// Arrange
 		var (dungeonId, floorId) = await SeedAsync();
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
@@ -38,6 +40,7 @@ public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var verifyRepo = new DungeonWriteRepository(verify);
 		var reloaded = await verifyRepo.LoadAsync(dungeonId, CancellationToken.None);
@@ -50,6 +53,7 @@ public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task UpdateFloor_RenamePreservesDescriptionAndNotes()
 	{
+		// Arrange
 		var (dungeonId, floorId) = await SeedAsync();
 
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
@@ -60,6 +64,7 @@ public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Act
 		// Asserts the repository and mapping layer preserve description and notes when an
 		// update explicitly supplies them. The App-layer path that instead passes hardcoded
 		// nulls (DungeonDetailViewModel.UpdateFloorAsync) is not reachable from this test
@@ -74,6 +79,7 @@ public sealed class FloorPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var verifyRepo = new DungeonWriteRepository(verify);
 		var reloaded = await verifyRepo.LoadAsync(dungeonId, CancellationToken.None);

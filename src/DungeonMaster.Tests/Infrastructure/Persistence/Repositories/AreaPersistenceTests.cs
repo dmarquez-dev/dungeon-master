@@ -28,8 +28,10 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task RemoveArea_WithEmptyOutline_PersistsAcrossReload()
 	{
+		// Arrange
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
@@ -39,6 +41,7 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var verifyRepo = new DungeonWriteRepository(verify);
 		var reloaded = await verifyRepo.LoadAsync(dungeonId, CancellationToken.None);
@@ -49,8 +52,10 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task UpdateArea_RenamePersistsAcrossReload()
 	{
+		// Arrange
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
@@ -59,6 +64,7 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var verifyRepo = new DungeonWriteRepository(verify);
 		var reloaded = await verifyRepo.LoadAsync(dungeonId, CancellationToken.None);
@@ -69,6 +75,7 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 	[Fact]
 	public async Task UpdateArea_SecondRenamePersistsAcrossReload()
 	{
+		// Arrange
 		var (dungeonId, floorId, areaId) = await SeedAsync();
 
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
@@ -79,6 +86,7 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Act
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
 		{
 			var loaded = await unitOfWork.Dungeons.LoadAsync(dungeonId, CancellationToken.None);
@@ -87,6 +95,7 @@ public sealed class AreaPersistenceTests : SqliteInMemoryTestBase
 			await unitOfWork.CommitAsync(CancellationToken.None);
 		}
 
+		// Assert
 		using var verify = CreateContext();
 		var verifyRepo = new DungeonWriteRepository(verify);
 		var reloaded = await verifyRepo.LoadAsync(dungeonId, CancellationToken.None);
