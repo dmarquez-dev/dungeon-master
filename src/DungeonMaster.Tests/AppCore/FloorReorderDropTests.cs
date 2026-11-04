@@ -18,58 +18,75 @@ public class FloorReorderDropTests
 	[Fact]
 	public void Decide_WithANullPayload_DoesNotReorder()
 	{
+		// Act
 		var decision = FloorReorderDrop.Decide(null, Target, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Decide_WithTheFloorIdKeyAbsent_DoesNotReorder()
 	{
+		// Arrange
 		var payload = new Dictionary<string, object> { ["SomethingElse"] = Dragged.ToString() };
 
+		// Act
 		var decision = FloorReorderDrop.Decide(payload, Target, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Decide_WithAFloorIdThatIsNotAString_DoesNotReorder()
 	{
+		// Arrange
 		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = Dragged };
 
+		// Act
 		var decision = FloorReorderDrop.Decide(payload, Target, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Decide_WithAFloorIdThatDoesNotParse_DoesNotReorder()
 	{
+		// Arrange
 		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = "not-a-guid" };
 
+		// Act
 		var decision = FloorReorderDrop.Decide(payload, Target, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Decide_WithTheDraggedFloorEqualToTheTarget_DoesNotReorder()
 	{
+		// Arrange
 		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = Target.ToString() };
 
+		// Act
 		var decision = FloorReorderDrop.Decide(payload, Target, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 	}
 
 	[Fact]
 	public void Decide_WithNoTargetFloorBound_DoesNotReorder()
 	{
+		// Arrange
 		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = Dragged.ToString() };
 
+		// Act
 		var decision = FloorReorderDrop.Decide(payload, targetFloorId: null, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeFalse();
 	}
 
@@ -83,10 +100,13 @@ public class FloorReorderDropTests
 	[Fact]
 	public void Decide_WithADifferentDraggedFloor_ReordersToTheTargetsNumberAndNotItsIndex()
 	{
+		// Arrange
 		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = Dragged.ToString() };
 
+		// Act
 		var decision = FloorReorderDrop.Decide(payload, Target, targetFloorNumber: 7);
 
+		// Assert
 		decision.ShouldReorder.Should().BeTrue();
 		decision.DraggedFloorId.Should().Be(Dragged);
 		decision.TargetFloorNumber.Should().Be(7);

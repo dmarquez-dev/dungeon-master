@@ -11,14 +11,17 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void Translate_NonZeroDelta_OffsetsEndAndBothControlPointsOfEverySegment()
 	{
+		// Arrange
 		IReadOnlyList<PathSegment> outline =
 		[
 			new(PathSegmentKind.CubicBezier, new TilePoint(2, 3), new TilePoint(4, 5), new TilePoint(6, 7)),
 			new(PathSegmentKind.CubicBezier, new TilePoint(-1, -2), new TilePoint(0, 0), new TilePoint(1, 1)),
 		];
 
+		// Act
 		var result = AreaOutlineGeometry.Translate(outline, new TilePoint(10, 20));
 
+		// Assert
 		result.Should().HaveCount(2);
 		result[0].End.Should().Be(new TilePoint(12, 23));
 		result[0].Ctrl1.Should().Be(new TilePoint(14, 25));
@@ -31,14 +34,17 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void Translate_NonZeroDelta_PreservesSegmentKind()
 	{
+		// Arrange
 		IReadOnlyList<PathSegment> outline =
 		[
 			Line(1, 1),
 			new(PathSegmentKind.CubicBezier, new TilePoint(2, 2), new TilePoint(3, 3), new TilePoint(4, 4)),
 		];
 
+		// Act
 		var result = AreaOutlineGeometry.Translate(outline, new TilePoint(1, 1));
 
+		// Assert
 		result[0].Kind.Should().Be(PathSegmentKind.Line);
 		result[1].Kind.Should().Be(PathSegmentKind.CubicBezier);
 	}
@@ -46,10 +52,13 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void Translate_SegmentWithBothControlPointsNull_KeepsThemNull()
 	{
+		// Arrange
 		IReadOnlyList<PathSegment> outline = [new(PathSegmentKind.Line, new TilePoint(2, 3), null, null)];
 
+		// Act
 		var result = AreaOutlineGeometry.Translate(outline, new TilePoint(5, 5));
 
+		// Assert
 		result[0].End.Should().Be(new TilePoint(7, 8));
 		result[0].Ctrl1.Should().BeNull();
 		result[0].Ctrl2.Should().BeNull();
@@ -58,50 +67,63 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void Translate_EmptyOutline_ReturnsEmptyList()
 	{
+		// Act
 		var result = AreaOutlineGeometry.Translate([], new TilePoint(3, 4));
 
+		// Assert
 		result.Should().BeEmpty();
 	}
 
 	[Fact]
 	public void Translate_ZeroDelta_ReturnsAnOutlineEqualInValueToTheInput()
 	{
+		// Arrange
 		var outline = Rectangle();
 
+		// Act
 		var result = AreaOutlineGeometry.Translate(outline, new TilePoint(0, 0));
 
+		// Assert
 		result.Should().Equal(outline);
 	}
 
 	[Fact]
 	public void Translate_NullOutline_ThrowsArgumentNullException()
 	{
+		// Act
 		var act = () => AreaOutlineGeometry.Translate(null!, new TilePoint(1, 1));
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
 	public void Translate_NullElementInOutline_ThrowsArgumentNullException()
 	{
+		// Arrange
 		IReadOnlyList<PathSegment> outline = [Line(0, 0), null!];
 
+		// Act
 		var act = () => AreaOutlineGeometry.Translate(outline, new TilePoint(1, 1));
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
 	public void Translate_NullDelta_ThrowsArgumentNullException()
 	{
+		// Act
 		var act = () => AreaOutlineGeometry.Translate(Rectangle(), null!);
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
 	public void Translate_LineSegmentCarryingAControlPoint_ThrowsArgumentExceptionNamingCtrl1()
 	{
+		// Arrange
 		// A with expression skips the constructor's validation, so it is the only way to build the invalid segment.
 		var invalid = new PathSegment(PathSegmentKind.Line, new TilePoint(2, 3), null, null) with
 		{
@@ -109,16 +131,20 @@ public class AreaOutlineGeometryTests
 		};
 		IReadOnlyList<PathSegment> outline = [invalid];
 
+		// Act
 		var act = () => AreaOutlineGeometry.Translate(outline, new TilePoint(1, 1));
 
+		// Assert
 		act.Should().ThrowExactly<ArgumentException>().WithParameterName("Ctrl1");
 	}
 
 	[Fact]
 	public void ToPolygon_ClosedOutline_EmitsTheLastSegmentEndFirstThenEverySegmentEndInOrder()
 	{
+		// Act
 		var result = AreaOutlineGeometry.ToPolygon(Rectangle(), TileSize);
 
+		// Assert
 		result.Should().Equal(
 			(0f, 30f),
 			(0f, 0f),
@@ -129,46 +155,59 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void ToPolygon_ClosedOutline_ReturnsOneVertexPerSegmentBecauseTheDuplicateIsDropped()
 	{
+		// Arrange
 		var outline = Rectangle();
 
+		// Act
 		var result = AreaOutlineGeometry.ToPolygon(outline, TileSize);
 
+		// Assert
 		result.Should().HaveCount(outline.Count);
 	}
 
 	[Fact]
 	public void ToPolygon_SingleSegmentOutline_ReturnsThatSingleVertexOnce()
 	{
+		// Arrange
 		IReadOnlyList<PathSegment> outline = [Line(2, 5)];
 
+		// Act
 		var result = AreaOutlineGeometry.ToPolygon(outline, TileSize);
 
+		// Assert
 		result.Should().Equal((20f, 50f));
 	}
 
 	[Fact]
 	public void ToPolygon_EmptyOutline_ReturnsEmptyList()
 	{
+		// Act
 		var result = AreaOutlineGeometry.ToPolygon([], TileSize);
 
+		// Assert
 		result.Should().BeEmpty();
 	}
 
 	[Fact]
 	public void ToPolygon_NullOutline_ThrowsArgumentNullException()
 	{
+		// Act
 		var act = () => AreaOutlineGeometry.ToPolygon(null!, TileSize);
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 
 	[Fact]
 	public void ToPolygon_NullElementInOutline_ThrowsArgumentNullException()
 	{
+		// Arrange
 		IReadOnlyList<PathSegment> outline = [Line(0, 0), null!];
 
+		// Act
 		var act = () => AreaOutlineGeometry.ToPolygon(outline, TileSize);
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 
@@ -177,8 +216,10 @@ public class AreaOutlineGeometryTests
 	[InlineData(-1f)]
 	public void ToPolygon_TileSizeNotGreaterThanZero_ThrowsArgumentOutOfRangeException(float tileSize)
 	{
+		// Act
 		var act = () => AreaOutlineGeometry.ToPolygon(Rectangle(), tileSize);
 
+		// Assert
 		act.Should().Throw<ArgumentOutOfRangeException>();
 	}
 
@@ -219,8 +260,10 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void ContainsPoint_NullPolygon_ThrowsArgumentNullException()
 	{
+		// Act
 		var act = () => AreaOutlineGeometry.ContainsPoint(null!, 0f, 0f);
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 
@@ -233,10 +276,13 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void Area_SameSquareWoundTheOtherWay_ReturnsTheSamePositiveValue()
 	{
+		// Arrange
 		IReadOnlyList<(float X, float Y)> reversed = [(0f, 40f), (40f, 40f), (40f, 0f), (0f, 0f)];
 
+		// Act
 		var result = AreaOutlineGeometry.Area(reversed);
 
+		// Assert
 		result.Should().Be(1600f);
 		result.Should().Be(AreaOutlineGeometry.Area(Square()));
 	}
@@ -250,8 +296,10 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void Area_NullPolygon_ThrowsArgumentNullException()
 	{
+		// Act
 		var act = () => AreaOutlineGeometry.Area(null!);
 
+		// Assert
 		act.Should().Throw<ArgumentNullException>();
 	}
 

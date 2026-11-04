@@ -49,9 +49,13 @@ public class PresentationItemTests
 	[Fact]
 	public void AreaItem_HasNotebookContent_TracksALaterEditRatherThanHoldingTheValueItWasBuiltWith()
 	{
+		// Arrange
 		var built = Area(null, null);
+
+		// Act
 		var edited = built with { Description = "added later" };
 
+		// Assert
 		built.HasNotebookContent.Should().BeFalse();
 		edited.HasNotebookContent.Should().BeTrue();
 	}
@@ -93,9 +97,13 @@ public class PresentationItemTests
 	[Fact]
 	public void FloorItem_HasNotebookContent_TracksALaterEditRatherThanHoldingTheValueItWasBuiltWith()
 	{
+		// Arrange
 		var built = Floor(null, null);
+
+		// Act
 		var edited = built with { Notes = "added later" };
 
+		// Assert
 		built.HasNotebookContent.Should().BeFalse();
 		edited.HasNotebookContent.Should().BeTrue();
 	}
@@ -103,13 +111,16 @@ public class PresentationItemTests
 	[Fact]
 	public void AreaItem_CarriesTheOutlineItWasBuiltWith()
 	{
+		// Arrange
 		var outline = new PathSegment[]
 		{
 			new(PathSegmentKind.Line, new TilePoint(1, 2), null, null),
 		};
 
+		// Act
 		var item = new AreaItem(Guid.NewGuid(), "Area", null, null, outline);
 
+		// Assert
 		item.Outline.Should().Equal(outline);
 	}
 }

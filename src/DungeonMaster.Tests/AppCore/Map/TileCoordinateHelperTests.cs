@@ -16,7 +16,10 @@ public class TileCoordinateHelperTests
 	[InlineData(41f, 59f, 2, 3)]
 	public void SnapToGrid_ReturnsNearestTilePoint(float x, float y, int expectedCol, int expectedRow)
 	{
+		// Act
 		var result = TileCoordinateHelper.SnapToGrid(x, y, TileSize);
+
+		// Assert
 		result.Col.Should().Be(expectedCol);
 		result.Row.Should().Be(expectedRow);
 	}
@@ -27,7 +30,10 @@ public class TileCoordinateHelperTests
 	[InlineData(3, 5, 60f, 100f)]
 	public void ToPixel_ReturnsTopLeftOfTile(int col, int row, float expectedX, float expectedY)
 	{
+		// Act
 		var (x, y) = TileCoordinateHelper.ToPixel(new TilePoint(col, row), TileSize);
+
+		// Assert
 		x.Should().Be(expectedX);
 		y.Should().Be(expectedY);
 	}
