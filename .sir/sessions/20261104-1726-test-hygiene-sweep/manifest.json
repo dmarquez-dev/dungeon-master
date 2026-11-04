@@ -1,0 +1,261 @@
+{
+  "session": "20261104-1726-test-hygiene-sweep",
+  "createdAt": "2026-11-04T18:30:00Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-measurement.md",
+    "contracts/C2-naming.md",
+    "contracts/C3-readme.md",
+    "contracts/C4-register.md",
+    "contracts/C5-splits.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Application: lambda names in NameOnlyValidatorTestBase (MASTER-126) and Arrange-block assertions in UpdatePlacedObjectCommandHandlerTests (MASTER-128)",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/NameOnlyValidatorTestBase.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "MASTER-126, Application half. P1 (C1 section 1) prints nothing on src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/NameOnlyValidatorTestBase.cs. At startRef it prints 2 lines, :65 and :80 (`e =>`).",
+        "P2 (C1 section 1) prints nothing on NameOnlyValidatorTestBase.cs. This deliberately asserts preserved state: it prints nothing at startRef too.",
+        "The two renamed lambda parameters are each a full descriptive word for a validation failure, `failure` being the row's suggestion. Encodes dm-conventions backend/dotnet-format.md 'Lambda Variable Names' (descriptive names in lambdas, never single letters). Evidence: read :65 and :80 and their continuation lines.",
+        "In NameOnlyValidatorTestBase.cs, the two lambda bodies are unchanged apart from the parameter identifier. Evidence: the task diff for that file changes only the lambda head lines and the lines that use the parameter.",
+        "MASTER-128. PA (C1 section 2) prints nothing on src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs. At startRef it prints 2 lines, :145 and :195.",
+        "Both Arrange-block extractions use `floor.Objects.Single()`, the remedy the row and Gate 1 name (backlog MASTER-128 entry; TEST-030 Suggested direction). Evidence: read the two Arrange blocks of HandleAsync_WithUnknownObjectId_ReturnsNotFoundAndDoesNotSave and HandleAsync_WithCustomScale_StoresScaleOnObject.",
+        "The abbreviated locals `obj` and `theObj` are gone from UpdatePlacedObjectCommandHandlerTests.cs, renamed to a descriptive name (for example `placedObject`). `grep -cwE 'theObj|obj' <file>` prints 0; it prints 13 at startRef (bindings at :39, :145, :195 and their uses).",
+        "No assertion in UpdatePlacedObjectCommandHandlerTests.cs is removed or weakened: every `.Should()` line under `// Assert` at startRef is present after the change with only the local identifier renamed. Evidence: the task diff.",
+        "No test method in either owned file is renamed, added or removed. Evidence: tests.pl (C1 section 3) lists the same method names for both files before and after.",
+        "Build: `dotnet build` of the solution (C1 section 8) prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`. Preserved state.",
+        "Tests: `dotnet test --no-build` of the solution (C1 section 8) reports DungeonMaster.Tests with 0 failed and a passed count equal to the count measured at this task's start (delta 0). Report both counts.",
+        "Line endings: both owned files pass B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "AppCore: Arrange/Act/Assert structure (MASTER-137) and the PlaceVertex_FirstVertex_ReturnsAdded split (MASTER-139 S5)",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/AppCore/**",
+        "src/DungeonMaster.App.Core/Map/MapDrawingSession.cs"
+      ],
+      "dependsOn": ["T1"],
+      "acceptance": [
+        "MASTER-137, AppCore. aaa.pl (C1 section 4) prints nothing over every .cs file under src/DungeonMaster.Tests/AppCore/. At startRef it flags 126 methods. Encodes the handler-test structure (dm-conventions backend/dotnet-format.md section 12; Gate 1 decision on MASTER-137).",
+        "The AAA edits change no behaviour of any test: within existing methods the diff consists only of `// Arrange`/`// Act`/`// Assert` marker lines, blank lines, where a single statement fused the Act with its assertion, the extraction of the acted-on value into a local declared under `// Act` and asserted under `// Assert`, and (amendment A1, escalation E1) the removal of a precondition assertion that the markers would otherwise leave between `// Arrange` and `// Act`. Each removed precondition is either asserted by an existing dedicated fact, named in the report with file:line, or moved into a new guard fact of its own. No other assertion is removed, weakened or reordered. Evidence: the task diff.",
+        "Apart from the S5 split and the E1 guard facts, no AppCore test method is renamed, added or removed. Evidence: tests.pl (C1 section 3) over AppCore/ lists the 152 startRef names, with PlaceVertex_FirstVertex_ReturnsAdded replaced by the three S5 facts, plus one E1 guard fact per precondition moved into its own fact (one expected: a new MapEditorState's DrawState is Idle, from MapEditorStateTests.cs:105 at startRef), and nothing else changed.",
+        "(A1, E1) PA (C1 section 2) prints nothing over every .cs file under src/DungeonMaster.Tests/AppCore/. The precondition assertions at MapEditorStateTests.cs :64, :85, :105 and :257-259 (as T2's first round left them) are gone from their Arrange blocks: the first, second and fourth because the dedicated facts at :11, :25 and :221 (startRef) already assert them, the third moved into its own guard fact.",
+        "(A1, E1) Each E1 guard fact follows Method_Scenario_ExpectedBehaviour (C2 section 1), holds exactly one assertion statement, and is shown able to fail by a red step: the report quotes the narrowest test command failing the fact with a wrong expected value, then passing with the correct one.",
+        "MASTER-139 S5. PlaceVertex_FirstVertex_ReturnsAdded (src/DungeonMaster.Tests/AppCore/Map/MapDrawingSessionTests.cs:10 at startRef) is three [Fact]s per C5 section 2, each asserting one property of the same Arrange and Act: the result is Added; the session holds one vertex; the session is active. Evidence: read the three methods.",
+        "Each S5 fact holds exactly one assertion statement. Evidence: read the three methods.",
+        "Each S5 fact name follows Method_Scenario_ExpectedBehaviour (C2 section 1): it contains an underscore and its first part is `PlaceVertex`. Evidence: tests.pl output.",
+        "Injection J1 (C5 section 4) is run and reported: at src/DungeonMaster.App.Core/Map/MapDrawingSession.cs:60-61 (`IsActive`), the narrowest test command shows the S5 'active' fact failing and the S5 'Added' and 'one vertex' facts passing in the same run. The report names the site, the injected text, the command, and the verified revert.",
+        "Injection J2 (C5 section 4) is run and reported: at MapDrawingSession.cs:90 (`_vertices.Add(point);`), the narrowest test command shows the S5 'one vertex' fact failing and the S5 'Added' fact passing in the same run. The report names the site, the injected text, the command, and the verified revert.",
+        "src/DungeonMaster.App.Core/Map/MapDrawingSession.cs is absent from the task's diff (byte-identical to startRef). It is owned for the injection window only.",
+        "Build: `dotnet build` of the solution (C1 section 8) prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`. Preserved state.",
+        "Tests: `dotnet test --no-build` of the solution (C1 section 8) reports DungeonMaster.Tests with 0 failed and a passed count equal to the count at this task's start plus 2 (S5) plus the number of E1 guard facts added (A1; 1 expected, so plus 3). Report both counts.",
+        "Line endings: every file in the task's diff passes B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Domain: Arrange/Act/Assert structure (MASTER-137), lambda names in DungeonAggregateTests (MASTER-126), two sentence names to Method_Scenario_Expected (MASTER-144)",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/Domain/**"
+      ],
+      "dependsOn": ["T2"],
+      "acceptance": [
+        "MASTER-137, Domain. aaa.pl (C1 section 4) prints nothing over every .cs file under src/DungeonMaster.Tests/Domain/. At startRef it flags 63 methods. Encodes the handler-test structure (dm-conventions backend/dotnet-format.md section 12; Gate 1 decision on MASTER-137).",
+        "The AAA edits change no behaviour of any test: within existing methods the diff consists only of marker lines, blank lines, the lambda renames below, the two method renames below, where a single statement fused the Act with its assertion, the extraction of the acted-on value into a local declared under `// Act` and asserted under `// Assert`, and (amendment A1, escalation E1) the removal of a precondition assertion that the markers would otherwise leave between `// Arrange` and `// Act`. Each removed precondition is either asserted by an existing dedicated fact, named in the report with file:line, or moved into a new guard fact of its own. No other assertion is removed, weakened or reordered. Evidence: the task diff.",
+        "(A1, E1) PA (C1 section 2) prints nothing over every .cs file under src/DungeonMaster.Tests/Domain/. Each E1 guard fact added follows Method_Scenario_ExpectedBehaviour (C2 section 1), holds exactly one assertion statement, and is shown able to fail by a red step (the narrowest test command failing it with a wrong expected value, then passing with the correct one).",
+        "MASTER-126, Domain half. P1 (C1 section 1) prints nothing on src/DungeonMaster.Tests/Domain/Entities/Dungeon/DungeonAggregateTests.cs. At startRef it prints 3 lines, :32, :46, :71 (`f =>`).",
+        "The three renamed lambda parameters are each a full descriptive word for a floor, `floor` being the row's suggestion, and none shadows or collides with a local in its method. Encodes dm-conventions backend/dotnet-format.md 'Lambda Variable Names'. Evidence: read the three sites and their methods.",
+        "MASTER-144, Domain. `awk -F'\\t' '$1 ~ /^Domain\\// && $3 !~ /_/' methods.tsv | wc -l` (tests.pl, C1 section 3) prints 0. At startRef it prints 2: ObjectKindGuardTests.cs:66 KindGuardRunsBeforeTheScaleRejection and MutationOutcomeZeroValueTests.cs:19 DeclarationOrderOfTheExistingMembersSurvived (C2 section 5).",
+        "Each of the two new names follows Method_Scenario_ExpectedBehaviour with a first part naming the member or type under test (C2 sections 1 and 6), and its method body is unchanged apart from (amendment A3, escalation E2) the AAA edit classes criterion 2 allows: marker lines, blank lines, and Act-value extraction. Evidence: read the two declarations; the task diff.",
+        "Apart from the two renames and any E1 guard facts (A1), no Domain test method is renamed, added or removed: tests.pl over Domain/ reports 120 methods plus the number of E1 guard facts, the same names as at startRef but for the two and the guard facts. Evidence: tests.pl output.",
+        "Neither old name survives under src (C1 section 10): the grep prints no line carrying KindGuardRunsBeforeTheScaleRejection or DeclarationOrderOfTheExistingMembersSurvived. At startRef each appears only on its own declaration under src.",
+        "Build: `dotnet build` of the solution (C1 section 8) prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`. Preserved state.",
+        "Tests: `dotnet test --no-build` of the solution (C1 section 8) reports DungeonMaster.Tests with 0 failed and a passed count equal to the count at this task's start plus the number of E1 guard facts added (A1; delta 0 if none). Report both counts.",
+        "Line endings: every file in the task's diff passes B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Infrastructure: Arrange/Act/Assert structure (MASTER-137), lambda names in DungeonReadRepositoryTests (MASTER-126), one sentence name to Method_Scenario_Expected (MASTER-144)",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/Infrastructure/**"
+      ],
+      "dependsOn": ["T3"],
+      "acceptance": [
+        "MASTER-137, Infrastructure. aaa.pl (C1 section 4) prints nothing over every .cs file under src/DungeonMaster.Tests/Infrastructure/. At startRef it flags 16 methods. Encodes the handler-test structure (dm-conventions backend/dotnet-format.md section 12; Gate 1 decision on MASTER-137).",
+        "The AAA edits change no behaviour of any test: within existing methods the diff consists only of marker lines, blank lines, the lambda renames below, the method rename below, where a single statement fused the Act with its assertion, the extraction of the acted-on value into a local declared under `// Act` and asserted under `// Assert`, and (amendment A1, escalation E1) the removal of a precondition assertion that the markers would otherwise leave between `// Arrange` and `// Act`. Each removed precondition is either asserted by an existing dedicated fact, named in the report with file:line, or moved into a new guard fact of its own. No other assertion is removed, weakened or reordered. Evidence: the task diff.",
+        "(A1, E1) PA (C1 section 2) prints nothing over every .cs file under src/DungeonMaster.Tests/Infrastructure/. Each E1 guard fact added follows Method_Scenario_ExpectedBehaviour (C2 section 1), holds exactly one assertion statement, and is shown able to fail by a red step (the narrowest test command failing it with a wrong expected value, then passing with the correct one).",
+        "MASTER-126, Infrastructure half. P1 (C1 section 1) prints nothing on src/DungeonMaster.Tests/Infrastructure/Persistence/Repositories/DungeonReadRepositoryTests.cs. At startRef it prints 2 lines, :29 and :30 (`s =>`).",
+        "The two renamed lambda parameters are each a full descriptive word for a dungeon summary, `summary` being the row's suggestion, and neither collides with a local in its method. Encodes dm-conventions backend/dotnet-format.md 'Lambda Variable Names'. Evidence: read the two sites.",
+        "MASTER-144, Infrastructure. `awk -F'\\t' '$1 ~ /^Infrastructure\\// && $3 !~ /_/' methods.tsv | wc -l` (tests.pl, C1 section 3) prints 0. At startRef it prints 1: ConfigureAwaitDisciplineTests.cs:37 EveryAwaitInScopedInfrastructureFilesIsConfiguredFalse (C2 section 5).",
+        "The new name follows Method_Scenario_ExpectedBehaviour with a first part naming what is under test (C2 sections 1 and 6), and the method body is unchanged apart from (amendment A3, escalation E2) the AAA edit classes criterion 2 allows: marker lines, blank lines, and Act-value extraction. Evidence: read the declaration; the task diff.",
+        "Apart from the one rename and any E1 guard facts (A1), no Infrastructure test method is renamed, added or removed: tests.pl over Infrastructure/ reports 39 methods plus the number of E1 guard facts, the same names as at startRef but for the one and the guard facts. Evidence: tests.pl output.",
+        "The old name EveryAwaitInScopedInfrastructureFilesIsConfiguredFalse does not survive under src (C1 section 10). At startRef it appears only on its own declaration under src.",
+        "Build: `dotnet build` of the solution (C1 section 8) prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`. Preserved state.",
+        "Tests: `dotnet test --no-build` of the solution (C1 section 8) reports DungeonMaster.Tests with 0 failed and a passed count equal to the count at this task's start plus the number of E1 guard facts added (A1; delta 0 if none). Report both counts.",
+        "Line endings: every file in the task's diff passes B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "App: split the four multi-reason App facts (MASTER-139 S1-S4)",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/App/Accessibility/SemanticDescriptionTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/IconFontCoverageTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/TokenNamingTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/IconFontFixture.cs",
+        "src/DungeonMaster.Tests/App/Theme/TrueTypeCmap.cs"
+      ],
+      "dependsOn": ["T4"],
+      "acceptance": [
+        "S1 (C5 section 2). EveryIconOnlyControlHasASemanticDescription no longer asserts that the scan reached anything: its body holds the offenders assertion only. At startRef it also holds `reached.Should().NotBeEmpty(...)` at SemanticDescriptionTests.cs:106-110. Evidence: read the method.",
+        "S1. A new [Fact] in SemanticDescriptionTests.cs asserts that ScannedIconOnlyControls() is non-empty and nothing else, carrying the startRef `because` text and the explanatory comment from :98-105. Evidence: read the method.",
+        "S2. EveryDmFontIconTextIsInTheIconFontsCmap no longer asserts that the scan reached anything: its body holds the offenders loop and assertion only. At startRef it also holds the IconTexts guard at IconFontCoverageTests.cs:67-72. Evidence: read the method.",
+        "S2. A new [Fact] in IconFontCoverageTests.cs asserts that the fixture's IconTexts is non-empty and nothing else, carrying the startRef `because` text. Evidence: read the method.",
+        "S2. The comment claiming the guard 'stays INSIDE this fact because that is the correct place for it' is gone: `grep -c 'stays INSIDE' src/DungeonMaster.Tests/App/Theme/IconFontCoverageTests.cs` prints 0 (1 at startRef, :62). Any replacement comment describes the arrangement as it now is.",
+        "S3. TheIconFontCmapParsesToPrivateUseGlyphs (:104 at startRef) is four [Fact]s, one per property in C5 section 2 (S3 i-iv), each holding exactly one assertion statement. Evidence: read the four methods.",
+        "S4. EveryRegisteredExceptionStillExistsAndStillOffends keeps the two register loops and `complaints.Should().BeEmpty()` and holds no other assertion. At startRef it also holds the ColourTokens guard (:270-274) and the reason assertion (:318-324). Evidence: read the method.",
+        "S4. A new [Fact] in TokenNamingTests.cs asserts that every reason in StructuralQualifierExceptions and CategorylessByDesign is non-blank and nothing else, carrying the startRef `because` text. Evidence: read the method.",
+        "S4. A new [Fact] in TokenNamingTests.cs asserts that ColourTokens() is non-empty and nothing else, carrying the startRef `because` text and the comment from :265-269 rewritten so that it no longer describes the guard as sitting inside the register fact. Evidence: read the method.",
+        "No assertion is lost: every assertion statement in the four startRef facts appears in exactly one fact after the change, with its expected value and `because` text unchanged. Evidence: the task diff.",
+        "Every new fact name in the three test files is sentence form with no underscore (C2 section 1). Evidence: tests.pl (C1 section 3) over the three files lists no name containing `_`. This is preserved state for the existing names and a requirement on the new ones.",
+        "Injection J3 (C5 section 4) is run and reported: the S1 guard fact fails and EveryIconOnlyControlHasASemanticDescription passes in the same run. The report names the site, injected text, command, and verified revert.",
+        "Injection J4 is run and reported: at IconFontFixture.cs:88 the S2 guard fact fails and EveryDmFontIconTextIsInTheIconFontsCmap passes in the same run. Site, text, command, verified revert reported.",
+        "Injection J5 is run and reported: at TrueTypeCmap.cs:86 only, the S3(iii) fact (0xEA8F) fails and S3(i), S3(ii), S3(iv) pass in the same run. Site, text, command, verified revert reported.",
+        "Injection J6 is run and reported: at TrueTypeCmap.cs:86 only, the S3(iv) fact (0xEAD4) fails and S3(i), S3(ii), S3(iii) pass in the same run. Site, text, command, verified revert reported.",
+        "Injection J7 is run and reported: at TrueTypeCmap.cs:86 only, dropping 0xE000..0xF8FF fails S3(ii) and S3(i) passes in the same run. Site, text, command, verified revert reported.",
+        "Injection J8 is run and reported: at TrueTypeCmap.cs:86 only, an empty parse fails S3(i). Site, text, command, verified revert reported.",
+        "Injection J9 is run and reported: a blank reason in one register entry fails the S4 reason fact and EveryRegisteredExceptionStillExistsAndStillOffends passes in the same run. Site, text, command, verified revert reported.",
+        "Injection J10 is run and reported: ColourTokens() returning nothing fails the S4 colour-token guard fact. Site, text, command, verified revert reported.",
+        "src/DungeonMaster.Tests/App/Theme/IconFontFixture.cs and src/DungeonMaster.Tests/App/Theme/TrueTypeCmap.cs are absent from the task's diff (byte-identical to startRef). They are owned for injection only.",
+        "No new or edited file cites a path under `.sir/` (sir-contracts 'Lifetime'): `grep -c '\\.sir/'` on each of the three test files prints the same count as at startRef (0).",
+        "Build: `dotnet build` of the solution (C1 section 8) prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`. Preserved state.",
+        "Tests: `dotnet test --no-build` of the solution (C1 section 8) reports DungeonMaster.Tests with 0 failed and a passed count equal to the count at this task's start plus 7 (S1 +1, S2 +1, S3 +3, S4 +2). Report both counts.",
+        "Line endings: every file in the task's diff passes B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "App: rename the underscore test names to sentence form (MASTER-144, Option A) and update every in-source reference",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/App/AsyncDiscipline/AsyncVoidIsSignatureForcedTests.cs",
+        "src/DungeonMaster.Tests/App/AsyncDiscipline/AsyncVoidUnitsAreGuardedTests.cs",
+        "src/DungeonMaster.Tests/App/AsyncDiscipline/DiscardedTasksAreAbsentTests.cs",
+        "src/DungeonMaster.Tests/App/AsyncDiscipline/MapCanvasHandlerChangedIsGuardedTests.cs",
+        "src/DungeonMaster.Tests/App/AsyncDiscipline/SyncOverAsyncIsAbsentTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/BindablePropertyDefaultsMatchTokensTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/DmThemeKeysResolveTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/ImplicitStyleTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/ThemeDictionaryTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/ThemeSourceTests.cs",
+        "src/DungeonMaster.Tests/App/Theme/ThemeTokenParityTests.cs",
+        "src/DungeonMaster.Tests/App/ViewModels/FailureIsSurfacedTests.cs",
+        "src/DungeonMaster.Tests/App/ViewModels/NavigationLoadIsObservedTests.cs",
+        "src/DungeonMaster.Tests/App/ViewModels/ResultSentinelIsAbsentTests.cs",
+        "src/DungeonMaster.App.UnitTests/Theme/DmThemeResolutionTests.cs",
+        "src/DungeonMaster.App/Resources/Theme/Controls.Base.xaml",
+        "src/DungeonMaster.App/Resources/Theme/Tokens.xaml",
+        "src/DungeonMaster.App/Services/Platform/PlatformSeams.Unsupported.cs"
+      ],
+      "dependsOn": ["T5"],
+      "acceptance": [
+        "MASTER-144, Option A (C2 section 2). N1 (C1 section 3) prints 0: no test method under src/DungeonMaster.Tests/App/ has an underscore in its name. At startRef it prints 58, the names enumerated in C2 section 4.",
+        "Every new name obeys C2 section 6: sentence form, states condition and outcome, claims no more than the test asserts, unique within its class. Evidence: the old-name -> new-name table in the report, checked against each method body.",
+        "Only declaration lines change in the 14 test files apart from reference updates: each renamed method's attributes and body are byte-identical to startRef. Evidence: the task diff.",
+        "No App test method is added or removed: tests.pl over App/ reports the same method count at this task's end as at its start. Report both.",
+        "Reference: the `<see cref=\"...\"/>` at src/DungeonMaster.Tests/App/Theme/ThemeTokenParityTests.cs:96 (startRef) names the new name of EveryReferencedThemeKey_IsDefinedUnderResources. The build does not check cref targets (C1 section 8), so this is read.",
+        "Reference: the doc comment at src/DungeonMaster.App.UnitTests/Theme/DmThemeResolutionTests.cs:92 (startRef) names the new name of EveryKeyDmThemeResolves_IsDefinedInTheThemeDictionaries, and that line is the file's only change. Evidence: the task diff.",
+        "Reference: the XML comment at src/DungeonMaster.App/Resources/Theme/Controls.Base.xaml:114 (startRef) names the new name of BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault, and that line is the file's only change. Evidence: the task diff.",
+        "Reference: the XML comment at src/DungeonMaster.App/Resources/Theme/Tokens.xaml:511 (startRef) names the new name of BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault, and that line is the file's only change. Evidence: the task diff.",
+        "Reference: the doc comment at src/DungeonMaster.App/Services/Platform/PlatformSeams.Unsupported.cs:22 (startRef) names the new fully qualified name of DiscardedTasksAreAbsentTests.AppSource_NoLineStatesADiscardedTask, and that line is the file's only change. Evidence: the task diff.",
+        "No old name survives under src: REF (C1 section 10) run for each of the 58 old names prints no line. At startRef it prints the declarations plus the five reference sites listed in C1 section 10.",
+        "Build: `dotnet build` of the solution (C1 section 8) prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)`. Preserved state.",
+        "Tests: `dotnet test --no-build` of the solution (C1 section 8) reports DungeonMaster.Tests with 0 failed and a passed count equal to the count at this task's start (delta 0). Report both counts.",
+        "Tests: the same run reports App.UnitTests 187 passed and App.Tests 123 passed, 0 failed each (orchestrator baseline, C1 section 8). Preserved state.",
+        "Line endings: every file in the task's diff, the two .xaml files included, passes B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "Write src/DungeonMaster.Tests/README.md: naming schemes (MASTER-144), XML-doc exemption (MASTER-143), AAA rule (MASTER-137)",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/README.md"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "src/DungeonMaster.Tests/README.md exists and its first line is `# DungeonMaster.Tests` (C3 section 1).",
+        "Line endings: `tr -cd '\\r' < src/DungeonMaster.Tests/README.md | wc -c` prints 0 (LF throughout, C3 section 1).",
+        "The README cites no path under `.sir/` and no session id: `grep -c '\\.sir/' src/DungeonMaster.Tests/README.md` prints 0, and reading finds no `2026` session slug.",
+        "The README states no count of files, tests, methods or names and no universal about the existing code (C3 section 1). Evidence: read the file.",
+        "Naming: the README states that `App/` uses sentence form with no underscore, and why (C3 section 2), with one example name that is declared verbatim under src/DungeonMaster.Tests/App/ at startRef, contains no underscore, and is therefore renamed by no task (C2 section 4 lists only underscore names); for example NoRawColourLiteralsOutsideTheThemeDictionaries at App/Theme/ThemeHygieneTests.cs:126. Evidence: `grep -rnw <name> src/DungeonMaster.Tests/App` finds its declaration.",
+        "Naming: the README states that `AppCore/`, `Application/`, `Domain/` and `Infrastructure/` use Method_Scenario_ExpectedBehaviour with the scenario part optional (C3 section 2), with one example name declared verbatim in one of those sub-trees at startRef that no task renames or splits (not a C2 section 5 name, not PlaceVertex_FirstVertex_ReturnsAdded); for example HandleAsync_WithUnknownObjectId_ReturnsNotFoundAndDoesNotSave in Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs. Evidence: grep finds its declaration.",
+        "Naming: the README states that the scheme is chosen by the directory a file is created in (C3 section 2).",
+        "XML documentation: the README states that test classes in this project are exempt from dm-conventions backend/dotnet-format.md section 9, quoting verbatim 'All public types, members, and parameters must have XML documentation comments.', and names MASTER-143 (C3 section 3).",
+        "XML documentation: the README states that existing documentation is kept, and words the exemption so that it covers test classes and not the project's non-test helper types (C3 section 3).",
+        "AAA: the README states the marker structure, its order, the blank-line rule, the Arrange-omitted-when-no-setup rule, the single-statement exemption, and that `App/` scan facts are not bound (C3 section 4)."
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "Register: close MASTER-126, 128, 137, 139, 143, 144 and amend TEST-022, 023, 025, 027, 029, 030, with the session's closing measurements",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/00-master-index.md",
+        "docs/audit/05-tests.md"
+      ],
+      "dependsOn": ["T1", "T2", "T3", "T4", "T5", "T6", "T7"],
+      "acceptance": [
+        "Closing measurement: P1 and P2 (C1 section 1) each print nothing over every .cs file under src/DungeonMaster.Tests (P1 prints 7 at startRef).",
+        "Closing measurement: PA (C1 section 2) prints nothing over every .cs file under src/DungeonMaster.Tests (2 at startRef).",
+        "Closing measurement: aaa.pl (C1 section 4) prints nothing over AppCore/, Domain/ and Infrastructure/ (205 methods flagged at startRef).",
+        "Closing measurement: N1 (C1 section 3) prints 0 (58 at startRef).",
+        "Closing measurement: N2 (C1 section 3) prints 0 (3 at startRef).",
+        "Closing measurement: DOC (C1 section 5), both predicates, re-run; the figure is quoted with its command in MASTER-143's cell (18 of 109 at startRef).",
+        "Closing measurement: `dotnet build` of the solution prints `Build succeeded.`, `0 Warning(s)`, `0 Error(s)` (C1 section 8).",
+        "Closing measurement: `dotnet test --no-build` of the solution reports DungeonMaster.Tests 952 passed plus the E1 guard facts T2, T3 and T4 added (amendment A1; T2 adds 1, so at least 953), 0 failed (943 at startRef, + 2 S5 from T2, + 7 from T5, + E1 guard facts; C1 section 8). Quote the guard-fact count from each task's commit.",
+        "Closing measurement: the same run reports App.UnitTests 187 and App.Tests 123 passed, 0 failed. Preserved state.",
+        "MASTER-126's status cell (startRef :314) begins `**done** (20261104-1726-test-hygiene-sweep, 2026-11-04) -- ` and carries what C4 section 1 requires for it.",
+        "MASTER-128's status cell (startRef :316) begins `**done** (20261104-1726-test-hygiene-sweep, 2026-11-04) -- ` and carries what C4 section 1 requires for it, including the STALE diagnostic half attributed to cf32061, and (A1, E1) that the AAA markers exposed further precondition assertions in Arrange blocks, which were removed where a dedicated fact already asserts them and otherwise moved into guard facts of their own (one per task's report, by file).",
+        "MASTER-137's status cell (startRef :325) begins `**done** (20261104-1726-test-hygiene-sweep, 2026-11-04) -- ` and carries what C4 section 1 requires for it.",
+        "MASTER-139's status cell (startRef :327) begins `**done** (20261104-1726-test-hygiene-sweep, 2026-11-04) -- ` and carries what C4 section 1 requires for it, including that no claim is made about facts outside the five.",
+        "MASTER-143's status cell (startRef :331) begins `**done** (20261104-1726-test-hygiene-sweep, 2026-11-04) -- ` and carries what C4 section 1 requires for it, including the exemption decision and its README location; (amendment A7, escalation E3) the doc-comment statement is the scoped claim that no doc comment was added or removed to close this row, with any session-added doc comments disclosed with their count and predicate.",
+        "MASTER-144's status cell (startRef :332) begins `**done** (20261104-1726-test-hygiene-sweep, 2026-11-04) -- ` and carries what C4 section 1 requires for it under Option A: all 58 App/ underscore names renamed to sentence form.",
+        "Each of the six cells states that no commit hash is cited because tasks run without git and the orchestrator makes the commit (C4 section 1). Evidence: read the cells.",
+        "R (C1 section 7) prints 11 on each of the six edited lines: no phantom column, every `|` inside a cell escaped as `\\|`. Preserved shape.",
+        "00-master-index.md changes on the six status lines only and still has 691 lines. Evidence: the task diff; `wc -l`.",
+        "TEST-022's AMENDED block is in place after its Suggested direction paragraph (startRef :1641) and before `### TEST-023` (startRef :1645), in house form, carrying the C4 section 2 corrections for it.",
+        "TEST-023's AMENDED block is in place after :1685 and before `### TEST-024` (:1688), in house form, carrying the C4 section 2 corrections for it.",
+        "TEST-025's AMENDED block is in place after :1761 and before `### TEST-026` (:1767), in house form, carrying the C4 section 2 corrections for it.",
+        "TEST-027's AMENDED block is in place after :1871 and before `### TEST-028` (:1875), in house form, carrying the C4 section 2 corrections for it.",
+        "TEST-029's AMENDED block is in place after :1951 and before `### TEST-030` (:1955), in house form, carrying the C4 section 2 corrections for it.",
+        "TEST-030's AMENDED block is in place after :1986 and before `### TEST-031` (:1990), in house form, carrying the C4 section 2 corrections for it.",
+        "The amendment opener census (C1 section 7) on docs/audit/05-tests.md prints 44 (38 at startRef).",
+        "The amendment closer census (C1 section 7) on docs/audit/05-tests.md prints 44 (38 at startRef).",
+        "Nothing in 05-tests.md is deleted: the task diff to that file consists of inserted lines only.",
+        "Line endings: both owned files pass B (C1 section 6): CR = LF = CRLF, loneCR 0."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": "20261104-1726-test-hygiene-sweep",
+  "name": "test-hygiene-sweep",
+  "scope": "standard",
+  "status": "MERGED",
+  "pushed": true,
+  "started": "2026-11-04T17:26:22Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "d17fe6b1-0c04-4acc-856d-de8655b9be95",
+      "phase": "discuss",
+      "sir": "1.0.20",
+      "started": "2026-11-04T17:26:22Z",
+      "ended": "2026-11-04T17:29:26Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "43b71acd-a837-44a2-b674-e29281ee92a4",
+      "phase": "spec",
+      "sir": "1.0.20",
+      "started": "2026-11-04T17:30:30Z",
+      "ended": "2026-11-04T18:04:54Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "53c2b20e-c663-4af8-90d5-eb5296484eee",
+      "phase": "implement",
+      "sir": "1.0.20",
+      "started": "2026-11-04T18:06:16Z",
+      "ended": "2026-11-04T20:03:37Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "d9185f0a-2fe7-4481-a4ca-8c929abe640a",
+      "phase": "review",
+      "sir": "1.0.20",
+      "started": "2026-11-04T20:19:07Z",
+      "ended": "2026-11-04T20:41:36Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "brief": "Close the six TEST register rows MASTER-126, 128, 137, 139, 143 and 144 as structural cleanup of src/DungeonMaster.Tests with no production behaviour change. Rename the 7 remaining single-letter lambda parameters; replace the two fluent Arrange-block extractions in UpdatePlacedObjectCommandHandlerTests with floor.Objects.Single() (the diagnostic half is stale, deleted in cf32061); apply // Arrange/Act/Assert markers with blank lines across AppCore, Domain and Infrastructure (205 methods); split the five named multi-reason facts into single-reason facts (+9) with injected-defect proof; record the test-class XML-doc exemption and both naming schemes in a new src/DungeonMaster.Tests/README.md; rename App/ underscore test names to sentence form and the 3 sentence names elsewhere to Method_Scenario_Expected; close the six register cells and amend TEST-022/023/025/027/029/030. Eight tasks, chained for build safety, README in parallel."
+}
