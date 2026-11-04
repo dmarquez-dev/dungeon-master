@@ -2,10 +2,10 @@
   "id": "20261104-1726-test-hygiene-sweep",
   "name": "test-hygiene-sweep",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "pushed": true,
   "started": "2026-11-04T17:26:22Z",
-  "ended": null,
+  "ended": "2026-11-04T20:48:37Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -40,11 +40,19 @@
       "started": "2026-11-04T20:19:07Z",
       "ended": "2026-11-04T20:41:36Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "d9185f0a-2fe7-4481-a4ca-8c929abe640a",
+      "phase": "wrap",
+      "sir": "1.0.20",
+      "started": "2026-11-04T20:48:07Z",
+      "ended": "2026-11-04T20:48:37Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
-    "escalationsRaised": 0,
+    "userInteractions": 7,
+    "escalationsRaised": 3,
     "reviewRounds": 0
   },
   "brief": "Close the six TEST register rows MASTER-126, 128, 137, 139, 143 and 144 as structural cleanup of src/DungeonMaster.Tests with no production behaviour change. Rename the 7 remaining single-letter lambda parameters; replace the two fluent Arrange-block extractions in UpdatePlacedObjectCommandHandlerTests with floor.Objects.Single() (the diagnostic half is stale, deleted in cf32061); apply // Arrange/Act/Assert markers with blank lines across AppCore, Domain and Infrastructure (205 methods); split the five named multi-reason facts into single-reason facts (+9) with injected-defect proof; record the test-class XML-doc exemption and both naming schemes in a new src/DungeonMaster.Tests/README.md; rename App/ underscore test names to sentence form and the 3 sentence names elsewhere to Method_Scenario_Expected; close the six register cells and amend TEST-022/023/025/027/029/030. Eight tasks, chained for build safety, README in parallel."
