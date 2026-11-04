@@ -234,6 +234,47 @@ moved twice since the audit -- because the file plus the converter name is the d
 **Suggested direction.** Test the sentinel explicitly -- `value is not null && value !=
 BindableProperty.UnsetValue` -- or narrow the check to the type the converter actually expects.
 
+**[AMENDED 20261103-2239-app-follow-ups, 2026-11-03 -- `GreaterThanZeroConverter` no longer exists.
+This session deleted the converter, its `App.xaml` registration and its tests, because a census found
+no consumer. Classification: DRIFT.** Previous wording, verbatim, at `:224-225` of this file:
+*"`GreaterThanZeroConverter` does not share the defect: its `value is int n` test rejects the
+sentinel."* **Nothing above is deleted.** That sentence stays where it is; it was true when written,
+and it now describes code that does not exist. Deleted: `src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs`,
+its resource declaration at `src/DungeonMaster.App/App.xaml:21`, and
+`src/DungeonMaster.App.Tests/Converters/GreaterThanZeroConverterTests.cs`. This record's own finding
+is about `NotNullConverter` and is unaffected: its declaration is still `App.xaml:20`, and
+`grep -c 'converters:NotNullConverter x:Key="NotNullConverter"' src/DungeonMaster.App/App.xaml`
+prints `1` after the deletion.
+
+*Measured -- the census, immediately before the deletion.* The commands are given relative to the
+repository root; they were run against the session worktree's absolute `src` path, which changes only
+the printed path prefix. `grep -rIn "GreaterThanZeroConverter" src --exclude-dir=bin --exclude-dir=obj`
+printed 5 lines: `src/DungeonMaster.App/App.xaml:21` (the registration),
+`src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs:10` (the class declaration), and
+`src/DungeonMaster.App.Tests/Converters/GreaterThanZeroConverterTests.cs:8`, `:15` and `:17` (the
+tests). None is a XAML binding or a C# caller. A second count, which cannot share that predicate's
+case or suffix assumptions, `grep -rIni "greaterthanzero" src --exclude-dir=bin --exclude-dir=obj`,
+printed those 5 plus 3 `TileSizeNotGreaterThanZero` test-method names in
+`src/DungeonMaster.Tests/AppCore/Map` -- `AreaOutlineGeometryTests.cs:178`, `MapHitTesterTests.cs:119`
+and `:259` -- which name a tile-size guard, not this converter. Positive control, which had to match:
+`grep -rIn "StaticResource NotNullConverter" src --include=*.xaml --exclude-dir=bin --exclude-dir=obj`
+printed the three bindings this record names, `CreateDungeonPopup.xaml:71` among them. The test file
+held 18 tests: `grep -cE "^[[:space:]]*\[Fact\]"` on it printed `18`, and
+`grep -cE "\[Theory|\[InlineData|MemberData|ClassData"` printed `0`.
+
+*Measured -- after the deletion.* The first predicate prints nothing. The second prints only the 3
+`TileSizeNotGreaterThanZero` lines. `test -e` exits `1` for both deleted files.
+`dotnet build src/DungeonMaster.sln` prints `0 Warning(s)` and `0 Error(s)`.
+`dotnet test src/DungeonMaster.sln --no-build` prints `Total: 141` for `DungeonMaster.App.Tests`
+before the deletion and `Total: 123` after, 18 fewer, with `Failed: 0`. `DungeonMaster.App.UnitTests`
+(`187`) and `DungeonMaster.Tests` (`943`) are unchanged.
+
+*Told, not measured.* The line numbers in this block were measured in the session worktree. That no
+earlier commit of this session touched this file, `App.xaml` or either deleted file, so that they
+match the session's start commit `2a7d27b`, was told to this task and not measured: a task cannot
+run git. For the same reason no commit hash is written here, and when the converter's XAML bindings
+were removed was not measured. The record's severity, category, effort and risk are unchanged.**]**
+
 ### UIKIT-005 -- The reusable control kit binds directly to Application query DTOs
 
 ```yaml
@@ -308,6 +349,21 @@ it.
 
 **Suggested direction.** Return `null` (or `BindableProperty.UnsetValue`) from both `ConvertBack`
 implementations and collapse the accompanying documentation to a single sentence.
+
+**[AMENDED 20261103-2239-app-follow-ups, 2026-11-03 -- `locations:` entry 2 refers to deleted code.
+Classification: DRIFT.** Previous wording, verbatim, `locations:` entry 2 at `:291` of this file:
+`src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs:69-74`. This session deleted that file,
+with its `App.xaml` registration and its tests, after a census found no consumer; the census, its
+second count and its positive control are quoted in the `AMENDED 20261103-2239-app-follow-ups` block
+on `UIKIT-004` above. **Nothing above is deleted.** The entry was right when written. Measured after
+the deletion: `test -e src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs` exits `1`, and
+`grep -rIn "GreaterThanZeroConverter" src --exclude-dir=bin --exclude-dir=obj` prints nothing.
+**Location 2 does not exist and no work should be done for it.** "Both converters" under **What.**
+and "both `ConvertBack` implementations" under **Suggested direction.** now describe one converter,
+`NotNullConverter`. *Not measured:* this session did not re-measure `locations:` entry 1,
+`src/DungeonMaster.App/Converters/NotNullConverter.cs:60-67`, or this record's claim that every call
+site is a `OneWay` target. No commit hash is written here, because a task cannot run git. The
+record's severity, category, effort and risk are unchanged.**]**
 
 ### UIKIT-007 -- propertyChanged handlers imperatively write properties the XAML already binds
 

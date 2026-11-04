@@ -104,7 +104,6 @@
                                             AutomationId="StartSessionButton"
                                             SemanticProperties.Description="Start session"
                                             SemanticProperties.Hint="Sessions are not available yet; this button performs no action."
-                                            ToolTipProperties.Text="Start session"
                                             IsEnabled="False"
                                             Opacity="0.35">
                                             <Button.Behaviors>
