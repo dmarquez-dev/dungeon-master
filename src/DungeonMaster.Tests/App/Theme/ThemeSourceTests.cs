@@ -34,7 +34,7 @@ public class ThemeSourceTests
 	///		namespace is spelled bare, because that is the vocabulary the consuming tables use.
 	/// </summary>
 	[Fact]
-	public void QualifiedElementName_PrefixesTheXamlNamespaceAndLeavesTheDefaultNamespaceBare()
+	public void QualifiedElementNamePrefixesTheXamlNamespaceAndLeavesTheDefaultNamespaceBare()
 	{
 		var document = XDocument.Parse(SyntheticDocument);
 
@@ -57,7 +57,7 @@ public class ThemeSourceTests
 	///		text is still a line number in the original file.
 	/// </summary>
 	[Fact]
-	public void BlankXmlComments_ReplacesTheCommentWithSpacesAndMovesNothingElse()
+	public void BlankXmlCommentsReplacesTheCommentWithSpacesAndMovesNothingElse()
 	{
 		const string original = "<A />\r\n<!-- <B x:Key=\"DmFake\" />\r\n     still comment -->\r\n<C />\r\n";
 
@@ -120,7 +120,7 @@ public class ThemeSourceTests
 	///		real code.
 	/// </summary>
 	[Fact]
-	public void BlankCSharpComments_BlanksWholeLineCommentsAndLeavesAUrlIntact()
+	public void BlankCSharpCommentsBlanksWholeLineCommentsAndLeavesAUrlIntact()
 	{
 		const string original = "\tvar source = \"ms-appx:///Assets/DmMarker.png\";\r\n\t// DmCommentKey\r\n\tvar keep = DmRealKey;\r\n";
 
@@ -180,7 +180,7 @@ public class ThemeSourceTests
 	///		by a <c>(char)</c> cast.
 	/// </summary>
 	[Fact]
-	public void DecodeCharacterEntities_ExpandsASupplementaryPlaneHexEntityToOneRune()
+	public void DecodeCharacterEntitiesExpandsASupplementaryPlaneHexEntityToOneRune()
 	{
 		var decoded = ThemeSource.DecodeCharacterEntities("&#x1F6E1;");
 
@@ -210,7 +210,7 @@ public class ThemeSourceTests
 	///		decimal reference as no reference at all and leaves the markup in the text.
 	/// </summary>
 	[Fact]
-	public void DecodeCharacterEntities_ExpandsTheDecimalFormAndTheAmpersandEntity()
+	public void DecodeCharacterEntitiesExpandsTheDecimalFormAndTheAmpersandEntity()
 	{
 		ThemeSource
 			.DecodeCharacterEntities("&#8592;&amp;&#x2190;")
@@ -223,7 +223,7 @@ public class ThemeSourceTests
 	///		failure rather than being silently dropped.
 	/// </summary>
 	[Fact]
-	public void DecodeCharacterEntities_ThrowsNamingTheEntityWhenItIsOutOfRange()
+	public void DecodeCharacterEntitiesThrowsNamingTheEntityWhenItIsOutOfRange()
 	{
 		var decode = () =>
 			ThemeSource.DecodeCharacterEntities("&#x110000;");
@@ -239,7 +239,7 @@ public class ThemeSourceTests
 	///		is none, and two BMP characters are two.
 	/// </summary>
 	[Fact]
-	public void IsSingleRune_CountsRunesRatherThanChars()
+	public void IsSingleRuneCountsRunesRatherThanChars()
 	{
 		ThemeSource
 			.IsSingleRune("a")
@@ -267,7 +267,7 @@ public class ThemeSourceTests
 	///		so a consumer may call either in a loop without re-reading disk.
 	/// </summary>
 	[Fact]
-	public void ThemeDocumentsAndAppDocuments_ShareOneParsedInstancePerFile()
+	public void ThemeDocumentsAndAppDocumentsShareOneParsedInstanceOfTokensXaml()
 	{
 		var themeDocument = ThemeSource
 			.ThemeDocuments()
@@ -300,7 +300,7 @@ public class ThemeSourceTests
 	///		consumer can cite the declaration rather than the scan.
 	/// </summary>
 	[Fact]
-	public void KeyedElements_CarryTheirQualifiedElementFileAndLineNumber()
+	public void KeyedElementsCarryTheQualifiedElementFileAndLineNumberOfDmRadiusDefault()
 	{
 		var radius = ThemeSource
 			.KeyedElements()
@@ -333,7 +333,7 @@ public class ThemeSourceTests
 	///		The token readers return the declared value when the token is there.
 	/// </summary>
 	[Fact]
-	public void TheTokenReaders_ReturnTheDeclaredValue()
+	public void TheTokenReadersReturnTheDeclaredValueWhenTheTokenIsPresent()
 	{
 		ThemeSource
 			.DoubleToken(
@@ -363,7 +363,7 @@ public class ThemeSourceTests
 	///		test called it first.
 	/// </summary>
 	[Fact]
-	public void DoubleToken_ThrowsNamingTheFileKeyAndElementWhenTheTokenIsAbsent()
+	public void DoubleTokenThrowsNamingTheFileKeyAndElementWhenTheTokenIsAbsent()
 	{
 		var read = () =>
 			ThemeSource.DoubleToken(
@@ -384,7 +384,7 @@ public class ThemeSourceTests
 	///		of failure it is handling.
 	/// </summary>
 	[Fact]
-	public void Int32Token_ThrowsNamingTheFileKeyAndElementWhenTheTokenIsAbsent()
+	public void Int32TokenThrowsNamingTheFileKeyAndElementWhenTheTokenIsAbsent()
 	{
 		var read = () =>
 			ThemeSource.Int32Token(
@@ -403,7 +403,7 @@ public class ThemeSourceTests
 	///		A missing <c>x:String</c> throws the same way.
 	/// </summary>
 	[Fact]
-	public void StringToken_ThrowsNamingTheFileKeyAndElementWhenTheTokenIsAbsent()
+	public void StringTokenThrowsNamingTheFileKeyAndElementWhenTheTokenIsAbsent()
 	{
 		var read = () =>
 			ThemeSource.StringToken(
@@ -425,7 +425,7 @@ public class ThemeSourceTests
 	///		tokens.
 	/// </summary>
 	[Fact]
-	public void Int32Token_ThrowsRatherThanParsingAKeyDeclaredAsADouble()
+	public void Int32TokenThrowsRatherThanParsingAKeyDeclaredAsADouble()
 	{
 		var read = () =>
 			ThemeSource.Int32Token(
@@ -444,7 +444,7 @@ public class ThemeSourceTests
 	///		surviving <c>DM</c> reference, so they would not report it and would pass.
 	/// </summary>
 	[Fact]
-	public void TheLegacyTolerantKeyPattern_StillMatchesThePrefixCasingTheStrictPatternRejects()
+	public void TheLegacyTolerantKeyPatternStillMatchesThePrefixCasingTheStrictPatternRejects()
 	{
 		const string declaration = @"<Color x:Key=""DMLegacyKey"" />";
 

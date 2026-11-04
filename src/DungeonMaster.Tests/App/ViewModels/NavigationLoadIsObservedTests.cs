@@ -33,7 +33,7 @@ public class NavigationLoadIsObservedTests
 	///		MASTER-017: a task assigned to a discard is never awaited and never observed, so a load that faults is captured on a <c>Task</c> nobody holds.
 	/// </summary>
 	[Fact]
-	public void ApplyQueryAttributes_StartsNoDiscardedTask()
+	public void ApplyQueryAttributesStartsNoDiscardedTask()
 	{
 		// Arrange
 		var body = ApplyQueryAttributesBody();
@@ -58,7 +58,7 @@ public class NavigationLoadIsObservedTests
 	///		Asserts that the started load is held on an awaitable member rather than dropped.
 	/// </summary>
 	[Fact]
-	public void ApplyQueryAttributes_HoldsTheStartedLoadOnAnAwaitableMember()
+	public void ApplyQueryAttributesHoldsTheStartedLoadOnAnAwaitableMember()
 	{
 		// Arrange
 		var source = ViewModelSource();
@@ -85,7 +85,7 @@ public class NavigationLoadIsObservedTests
 	///		MASTER-017: the silent branch left the page permanently empty with <c>_dungeonId</c> at <c>Guid.Empty</c>, so every subsequent save targeted a dungeon that does not exist.
 	/// </summary>
 	[Fact]
-	public void ApplyQueryAttributes_WhenTheIdIsUnusable_AssignsErrorMessage()
+	public void ApplyQueryAttributesAssignsErrorMessageWhenTheIdIsUnusable()
 	{
 		// Arrange
 		var body = ApplyQueryAttributesBody();
@@ -130,7 +130,7 @@ public class NavigationLoadIsObservedTests
 	///		The scan follows it, and judges each dispatch rather than counting guards: a guard must stand earlier in the SAME member as the dispatch it protects, so deleting one guard is caught even while the other twelve stand.
 	/// </remarks>
 	[Fact]
-	public void EveryCommandThatWritesTheLoadedDungeon_IsGuardedWhileNoDungeonIsLoaded()
+	public void EveryCommandThatWritesTheLoadedDungeonIsGuardedWhileNoDungeonIsLoaded()
 	{
 		// Arrange
 		var unguarded = new List<string>();

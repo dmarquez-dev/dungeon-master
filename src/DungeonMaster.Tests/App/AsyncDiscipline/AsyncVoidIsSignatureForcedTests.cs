@@ -56,7 +56,7 @@ public class AsyncVoidIsSignatureForcedTests
 	///		An async void method that is neither an override nor an <c>On...</c> handler is reported.
 	/// </summary>
 	[Fact]
-	public void ScanG3_WhenAnAsyncVoidMethodIsNeitherAnOverrideNorAnOnHandler_ReportsThatDeclaration()
+	public void ScanG3ReportsTheDeclarationOfAnAsyncVoidMethodThatIsNeitherAnOverrideNorAnOnHandler()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWithAnUnforcedAsyncVoid);
@@ -78,7 +78,7 @@ public class AsyncVoidIsSignatureForcedTests
 	///		An override and an <c>On...</c> handler are both allowed and are not reported.
 	/// </summary>
 	[Fact]
-	public void ScanG3_WhenEveryAsyncVoidMethodIsAnOverrideOrAnOnHandler_ReportsNothing()
+	public void ScanG3ReportsNothingWhenEveryAsyncVoidMethodIsAnOverrideOrAnOnHandler()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWithOnlyForcedAsyncVoid);
@@ -96,7 +96,7 @@ public class AsyncVoidIsSignatureForcedTests
 	///		An async void declaration inside a comment line is excluded from the scan.
 	/// </summary>
 	[Fact]
-	public void ScanG3_WhenTheOnlyAsyncVoidDeclarationIsInACommentLine_ReportsNothing()
+	public void ScanG3ReportsNothingWhenTheOnlyAsyncVoidDeclarationIsInACommentLine()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWhoseOnlyAsyncVoidIsCommentedOut);
@@ -114,7 +114,7 @@ public class AsyncVoidIsSignatureForcedTests
 	///		Applies G3 to the application source text on disk. This asserts what the files SAY.
 	/// </summary>
 	[Fact]
-	public void AppSource_EveryAsyncVoidMethodDeclaration_IsAnOverrideOrAnOnHandler()
+	public void EveryAsyncVoidMethodDeclaredInAppSourceIsAnOverrideOrAnOnHandler()
 	{
 		// Arrange
 		var paths = RepoPaths.AppSourceFiles("*.cs");

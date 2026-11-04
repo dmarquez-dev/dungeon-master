@@ -64,7 +64,7 @@ public class DiscardedTasksAreAbsentTests
 	///		A line whose trimmed form starts with the discard token is reported.
 	/// </summary>
 	[Fact]
-	public void ScanG2_WhenALineStartsWithADiscardAssignment_ReportsThatLine()
+	public void ScanG2ReportsALineThatStartsWithADiscardAssignment()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceDiscardingATask);
@@ -86,7 +86,7 @@ public class DiscardedTasksAreAbsentTests
 	///		A source that awaits instead of discarding is not reported.
 	/// </summary>
 	[Fact]
-	public void ScanG2_WhenNoLineStartsWithADiscardAssignment_ReportsNothing()
+	public void ScanG2ReportsNothingWhenNoLineStartsWithADiscardAssignment()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceAwaitingTheTask);
@@ -104,7 +104,7 @@ public class DiscardedTasksAreAbsentTests
 	///		A discard token inside a comment line is excluded from the scan.
 	/// </summary>
 	[Fact]
-	public void ScanG2_WhenTheOnlyDiscardAssignmentIsInACommentLine_ReportsNothing()
+	public void ScanG2ReportsNothingWhenTheOnlyDiscardAssignmentIsInACommentLine()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWhoseOnlyDiscardIsCommentedOut);
@@ -124,7 +124,7 @@ public class DiscardedTasksAreAbsentTests
 	///		reported them could never go green.
 	/// </summary>
 	[Fact]
-	public void ScanG2_WhenALineIsASwitchExpressionDiscardArm_ReportsNothing()
+	public void ScanG2ReportsNothingForASwitchExpressionDiscardArm()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWithASwitchExpressionDiscardArm);
@@ -142,7 +142,7 @@ public class DiscardedTasksAreAbsentTests
 	///		Applies G2 to the application source text on disk. This asserts what the files SAY.
 	/// </summary>
 	[Fact]
-	public void AppSource_NoLineStatesADiscardedTask()
+	public void NoAppSourceLineStatesADiscardedTask()
 	{
 		// Arrange
 		var paths = RepoPaths.AppSourceFiles("*.cs");

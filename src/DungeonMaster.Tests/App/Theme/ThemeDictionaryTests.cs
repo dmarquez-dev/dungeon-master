@@ -119,7 +119,7 @@ public class ThemeDictionaryTests
 	/// </param>
 	[Theory]
 	[MemberData(nameof(RequiredKeys))]
-	public void RequiredKey_IsDefinedInThemeDictionaries(string key)
+	public void RequiredKeyIsDefinedInThemeDictionaries(string key)
 	{
 		DefinedThemeKeys()
 			.Should()

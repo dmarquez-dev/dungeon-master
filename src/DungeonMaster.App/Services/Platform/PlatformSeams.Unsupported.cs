@@ -19,7 +19,7 @@ namespace DungeonMaster.App.Services.Platform;
 ///		<para>
 ///		NO BODY IN THIS FILE MAY USE THE DISCARD TOKEN — the underscore-assignment form, deliberately
 ///		not spelled out here. Using it to consume an unused parameter makes
-///		<c>DungeonMaster.Tests.App.AsyncDiscipline.DiscardedTasksAreAbsentTests.AppSource_NoLineStatesADiscardedTask</c>
+///		<c>DungeonMaster.Tests.App.AsyncDiscipline.DiscardedTasksAreAbsentTests.NoAppSourceLineStatesADiscardedTask</c>
 ///		fail: that hygiene test scans application source TEXT and bans the token outright. An empty
 ///		body with an explaining comment is the shape that passes. Measured, and found only by
 ///		running the suite.

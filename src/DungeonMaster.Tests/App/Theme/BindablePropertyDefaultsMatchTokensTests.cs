@@ -45,7 +45,7 @@ public class BindablePropertyDefaultsMatchTokensTests
 	///		literal must move with the token, and this is what enforces that.
 	/// </summary>
 	[Fact]
-	public void BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault()
+	public void BorderBaseStrokeShapeRadiusEqualsDmRadiusDefault()
 	{
 		var controlsBase = File.ReadAllText(
 			Path.Combine(

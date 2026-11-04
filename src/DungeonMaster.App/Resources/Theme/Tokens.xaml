@@ -508,7 +508,7 @@
          and mutating the radius through one visibly changed what the other rendered.
          DmBorderBase therefore KEEPS its string-form literal, the reasoning is
          recorded in full at Controls.Base.xaml, and
-         BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault stays — it is the only
+         BorderBaseStrokeShapeRadiusEqualsDmRadiusDefault stays — it is the only
          thing keeping that literal in step with DmRadiusDefault. Do not delete it.
     ═══════════════════════════════════════════════════════════════ -->
     <!-- ───────────────────────────────────────────────────────────────

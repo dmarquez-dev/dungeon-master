@@ -111,7 +111,7 @@
     <Style x:Key="DmBorderBase" TargetType="Border">
         <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
         <!-- The 3 mirrors DmRadiusDefault and must move with it;
-             BorderBaseStrokeShapeRadius_EqualsDmRadiusDefault enforces that. The STRING form
+             BorderBaseStrokeShapeRadiusEqualsDmRadiusDefault enforces that. The STRING form
              used here cannot avoid the literal: its converter parses a shape name and its
              arguments out of one string and has nowhere to accept a markup extension.
 

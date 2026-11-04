@@ -69,7 +69,7 @@ public class SyncOverAsyncIsAbsentTests
 	///		A line blocking on a task through GetAwaiter and GetResult is reported.
 	/// </summary>
 	[Fact]
-	public void ScanG4_WhenALineBlocksOnATaskWithGetAwaiterGetResult_ReportsThatLine()
+	public void ScanG4ReportsALineThatBlocksOnATaskWithGetAwaiterGetResult()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceBlockingOnATask);
@@ -91,7 +91,7 @@ public class SyncOverAsyncIsAbsentTests
 	///		A line blocking on a task through Wait is reported.
 	/// </summary>
 	[Fact]
-	public void ScanG4_WhenALineBlocksOnATaskWithWait_ReportsThatLine()
+	public void ScanG4ReportsALineThatBlocksOnATaskWithWait()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWaitingOnATask);
@@ -113,7 +113,7 @@ public class SyncOverAsyncIsAbsentTests
 	///		A source that awaits instead of blocking is not reported.
 	/// </summary>
 	[Fact]
-	public void ScanG4_WhenNoLineBlocksOnATask_ReportsNothing()
+	public void ScanG4ReportsNothingWhenNoLineBlocksOnATask()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceAwaitingInstead);
@@ -132,7 +132,7 @@ public class SyncOverAsyncIsAbsentTests
 	///		<c>Graphics/FloorMapDrawable.cs</c> line 291, which would otherwise be a false positive.
 	/// </summary>
 	[Fact]
-	public void ScanG4_WhenTheOnlyBlockingCallIsInACommentLine_ReportsNothing()
+	public void ScanG4ReportsNothingWhenTheOnlyBlockingCallIsInACommentLine()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceWhoseOnlyBlockingCallIsCommentedOut);
@@ -151,7 +151,7 @@ public class SyncOverAsyncIsAbsentTests
 	///		the property. This pins the deliberate exclusion recorded in the contract.
 	/// </summary>
 	[Fact]
-	public void ScanG4_WhenALineReadsAnOrdinaryResultProperty_ReportsNothing()
+	public void ScanG4ReportsNothingForALineReadingAnOrdinaryResultProperty()
 	{
 		// Arrange
 		var lines = AsyncDisciplineScanner.ToLines(SourceReadingAPopupResultProperty);
@@ -169,7 +169,7 @@ public class SyncOverAsyncIsAbsentTests
 	///		Applies G4 to the application source text on disk. This asserts what the files SAY.
 	/// </summary>
 	[Fact]
-	public void AppSource_NoLineStatesASyncOverAsyncCall()
+	public void NoAppSourceLineStatesASyncOverAsyncCall()
 	{
 		// Arrange
 		var paths = RepoPaths.AppSourceFiles("*.cs");
