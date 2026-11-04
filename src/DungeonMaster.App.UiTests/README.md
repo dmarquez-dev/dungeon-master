@@ -99,9 +99,15 @@ share:
   control for all four. If this reddens, the session never reached a page with floors and every
   other failure in the class is apparatus rather than defect.
 - `TabbingFromTheDetailPageEntryReachesFloorExpandToggle` — presses `Tab`, reports the focused
-  `AutomationId` after each press, and asserts `FloorExpandToggle` appears in the sequence. It is
-  reached at press 4: `StartSessionButton`, `DungeonNotebookButton`, `AddFloorButton`,
-  `FloorExpandToggle`. Control:
+  `AutomationId` after each press, and asserts `FloorExpandToggle` appears in the sequence. It
+  does not assert a press number. The expected walk now is `DungeonNotebookButton`,
+  `AddFloorButton`, `FloorExpandToggle`, so it is reached at press 3. That is inferred, not
+  measured. It is the walk measured on 2026-09-14 minus `StartSessionButton`, which is no longer
+  a stop: `DungeonDetailPage.xaml` now declares it `IsEnabled="False"` unconditionally, and
+  "Disabled controls are automatically removed from tab order."
+  (<https://learn.microsoft.com/windows/apps/design/accessibility/keyboard-accessibility>). The
+  count was not re-measured, because this suite is outside `src/DungeonMaster.sln` and no
+  command in the session that made this change ran it. Control:
   `ControlOneTabPressFromPageEntryMovesFocusOffTheEntryElement`, which establishes only that a
   `Tab` reaches the app at all — so a red walk beside a green control means the chevron is
   genuinely out of the tab ring, which is what it was while it was a `Label`.
