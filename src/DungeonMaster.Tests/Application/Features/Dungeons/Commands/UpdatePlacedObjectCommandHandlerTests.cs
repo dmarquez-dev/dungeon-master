@@ -36,7 +36,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			ObjectRotation.None,
 			ObjectScale.Default);
 
-		var obj = floor.Objects[0];
+		var placedObject = floor.Objects[0];
 		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
@@ -46,7 +46,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 		var command = new UpdatePlacedObjectCommand(
 			dungeon.Id,
 			floor.Id,
-			obj.Id,
+			placedObject.Id,
 			new CanvasPoint(200f, 200f),
 			ObjectRotation.CW90);
 
@@ -57,9 +57,9 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 
 		// Assert
 		result.IsSuccess.Should().BeTrue();
-		obj.Position.Should().Be(new CanvasPoint(200f, 200f));
-		obj.Rotation.Should().Be(ObjectRotation.CW90);
-		obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
+		placedObject.Position.Should().Be(new CanvasPoint(200f, 200f));
+		placedObject.Rotation.Should().Be(ObjectRotation.CW90);
+		placedObject.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 
 		WriteRepository
 			.Received(1)
@@ -142,8 +142,8 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			ObjectRotation.None,
 			ObjectScale.Default);
 
-		var theObj = floor.Objects.Should().ContainSingle().Which;
-		var originalPos = theObj.Position;
+		var placedObject = floor.Objects.Single();
+		var originalPos = placedObject.Position;
 		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
@@ -164,7 +164,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 
 		// Assert
 		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
-		theObj.Position.Should().Be(originalPos);
+		placedObject.Position.Should().Be(originalPos);
 
 		WriteRepository
 			.DidNotReceive()
@@ -192,7 +192,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			ObjectRotation.None,
 			ObjectScale.Default);
 
-		var obj = floor.Objects.Should().ContainSingle().Which;
+		var placedObject = floor.Objects.Single();
 		WriteRepository
 			.LoadAsync(
 				dungeon.Id,
@@ -202,9 +202,9 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 		var command = new UpdatePlacedObjectCommand(
 			dungeon.Id,
 			floor.Id,
-			obj.Id,
-			obj.Position,
-			obj.Rotation,
+			placedObject.Id,
+			placedObject.Position,
+			placedObject.Rotation,
 			NewScale: 1.5f);
 
 		// Act
@@ -213,7 +213,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			CancellationToken.None);
 
 		// Assert
-		obj.Scale.Should().BeApproximately(1.5f, 0.001f);
+		placedObject.Scale.Should().BeApproximately(1.5f, 0.001f);
 	}
 	/// <summary>
 	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.

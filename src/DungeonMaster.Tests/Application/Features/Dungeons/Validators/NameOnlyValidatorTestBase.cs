@@ -62,8 +62,8 @@ public abstract class NameOnlyValidatorTestBase<TCommand>
 
 		// Assert
 		result.IsValid.Should().BeFalse();
-		result.Errors.Should().ContainSingle(e =>
-			e.PropertyName == NamePropertyName);
+		result.Errors.Should().ContainSingle(failure =>
+			failure.PropertyName == NamePropertyName);
 	}
 
 	[Fact]
@@ -77,7 +77,7 @@ public abstract class NameOnlyValidatorTestBase<TCommand>
 
 		// Assert
 		result.IsValid.Should().BeFalse();
-		result.Errors.Should().ContainSingle(e =>
-			e.PropertyName == NamePropertyName);
+		result.Errors.Should().ContainSingle(failure =>
+			failure.PropertyName == NamePropertyName);
 	}
 }
