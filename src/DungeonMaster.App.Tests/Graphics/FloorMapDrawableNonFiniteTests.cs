@@ -13,17 +13,16 @@ namespace DungeonMaster.App.Tests.Graphics;
 ///		FINDING, on the question of whether an input reachable from <c>DungeonDetailPage.xaml.cs:1437</c> can leave <c>ZoomLevel</c> or <c>PanOffset</c> non-finite.
 ///		</para>
 ///		<para>
-///		<c>ZoomLevel</c>: NO, on the shipping Windows TFM.
-///		Every assignment site writes either the literal <c>1.0f</c> or <c>Math.Clamp(raw, 0.25f, 4.0f)</c>, and the only <c>raw</c> values a Windows-compiled caller can supply are <c>ZoomLevel ± ZoomStep</c> starting from the <c>1.0f</c> default, where <c>ZoomStep</c> is <c>0.1f</c> at <c>DungeonDetailPage.xaml.cs:52</c>.
-///		Those are all finite, and the clamp holds finite input inside <c>[0.25, 4.0]</c>.
+///		<c>ZoomLevel</c>: NO, on every target.
+///		Every production write of <c>ZoomLevel</c> takes its value from <see cref="DungeonMaster.App.Views.DungeonDetail.ZoomLevelGuard.Next"/>: the one assignment site is inside <c>ApplyZoom</c>, and every zoom input reaches it through <c>ApplyZoom</c>, including <c>ResetViewport</c>, which requests <c>1.0f</c>.
+///		That guard returns the current level unchanged for a non-finite <c>raw</c> and clamps a finite one into <c>[0.25, 4.0]</c>, so starting from the finite <c>1.0f</c> default every level it produces is finite and inside that range.
 ///		<c>ZoomLevel</c> is therefore never <c>0f</c> either, which makes the two <c>ZoomLevel == 0f</c> tests below unreachable-by-construction rather than reproductions of a live defect.
 ///		</para>
 ///		<para>
-///		That conclusion rests on one mechanism claim which was RUN rather than assumed, because it cuts the other way.
-///		<c>Math.Clamp</c> does NOT sanitize <c>NaN</c>, as <see cref="MathClampWithNaNReturnsNaNRatherThanABound"/> shows.
-///		The clamp at <c>DungeonDetailPage.xaml.cs:500</c> therefore bounds only non-<c>NaN</c> input, and the snap guard one line above it at <c>DungeonDetailPage.xaml.cs:498</c> is <c>false</c> for <c>NaN</c> and does not intercept it either.
-///		The one caller that could supply a <c>NaN</c> <c>raw</c> is the pinch handler's <c>ApplyZoom(_pinchStartZoom * (float)e.Scale)</c> at <c>DungeonDetailPage.xaml.cs:612</c>, which sits inside the <c>#elif MACCATALYST</c> fence spanning <c>DungeonDetailPage.xaml.cs:600-616</c> and does not compile on Windows.
-///		The hole is latent on MacCatalyst and not reachable on Windows.
+///		That conclusion depends on the guard's finiteness test, because of one mechanism claim which was RUN rather than assumed.
+///		<c>Math.Clamp</c> does NOT sanitize <c>NaN</c>, as <see cref="MathClampWithNaNReturnsNaNRatherThanABound"/> shows, so a clamp alone would pass a <c>NaN</c> <c>raw</c> straight through to <c>ZoomLevel</c>; that is what makes the guard necessary.
+///		<see cref="DungeonMaster.App.Views.DungeonDetail.ZoomLevelGuard.Next"/> tests <c>raw</c> for finiteness before it snaps or clamps, and returns the current level for a <c>NaN</c> or infinite <c>raw</c>, as <see cref="DungeonMaster.App.Tests.Views.ZoomLevelGuardTests"/> pins.
+///		That covers the one caller that could supply a <c>NaN</c> <c>raw</c>, the pinch handler's <c>ApplyZoom(_pinchStartZoom * (float)e.Scale)</c> inside the <c>#elif MACCATALYST</c> fence, as much as the Windows callers.
 ///		</para>
 ///		<para>
 ///		<c>PanOffset</c>: NOT closed by source inspection.
@@ -36,11 +35,12 @@ namespace DungeonMaster.App.Tests.Graphics;
 ///		<para>
 ///		ASSIGNMENT SITES CHECKED in reaching that answer, the complete set.
 ///		They come from <c>grep -rn "ZoomLevel"</c> and <c>grep -rn "PanOffset"</c> over <c>src/</c> with <c>--include=*.cs --include=*.xaml</c>, filtered through <c>grep -Ev "[\\/](obj|bin)[\\/]"</c>, with every hit then classified by eye as a write or a read.
+///		Only the <c>ZoomLevel</c> text was corrected when <c>ZoomLevelGuard</c> was introduced, namely the two paragraphs above on <c>ZoomLevel</c> and <c>Math.Clamp</c>, list items 3 and 4, and the summary of <see cref="MathClampWithNaNReturnsNaNRatherThanABound"/>, and every line-number citation elsewhere in this file was not re-measured by that correction.
 ///		<list type="number">
 ///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:439</c>, the <c>ZoomLevel</c> declaration initializer <c>= 1.0f</c>, finite.</item>
 ///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:442</c>, the <c>PanOffset</c> declaration initializer <c>= PointF.Zero</c>, finite.</item>
-///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:500</c>, <c>_drawable.ZoomLevel = Math.Clamp(raw, 0.25f, 4.0f);</c> inside <c>ApplyZoom</c> at <c>:496</c>, whose callers are <c>:491</c> and <c>:494</c> unfenced, <c>:598</c> inside <c>#if WINDOWS</c> spanning <c>:587-600</c>, and <c>:612</c> inside <c>#elif MACCATALYST</c> spanning <c>:600-616</c>.</item>
-///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:507</c>, <c>_drawable.ZoomLevel = 1.0f;</c> inside <c>ResetViewport</c> at <c>:505</c>, finite.</item>
+///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:520</c>, <c>_drawable.ZoomLevel = ZoomLevelGuard.Next(_drawable.ZoomLevel, raw);</c> inside <c>ApplyZoom</c> at <c>:518</c>, the only production <c>ZoomLevel</c> write, whose callers are <c>:513</c> and <c>:516</c> unfenced, <c>:528</c> inside <c>ResetViewport</c>, <c>:617</c> inside <c>#if WINDOWS</c> spanning <c>:606-619</c>, and <c>:631</c> inside <c>#elif MACCATALYST</c> spanning <c>:619-635</c>.</item>
+///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:528</c>, <c>ApplyZoom(1.0f);</c> inside <c>ResetViewport</c> at <c>:525</c>, which no longer writes <c>ZoomLevel</c> directly: its finite <c>1.0f</c> reaches the property through <c>ZoomLevelGuard.Next</c>.</item>
 ///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:508</c>, <c>_drawable.PanOffset = PointF.Zero;</c> inside <c>ResetViewport</c>, finite.</item>
 ///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:1632-1634</c>, the pan-drag accumulator <c>_drawable.PanOffset = new PointF(_drawable.PanOffset.X + delta.X, _drawable.PanOffset.Y + delta.Y);</c>, the one unbounded writer.</item>
 ///		</list>
@@ -155,7 +155,7 @@ public class FloorMapDrawableNonFiniteTests
 	/// <summary>
 	///		The mechanism claim the <c>ZoomLevel</c> half of this class's finding rests on, run rather than assumed.
 	///		<c>Math.Clamp</c> returns <c>NaN</c> unchanged instead of substituting a bound, while clamping both infinities to the bounds.
-	///		The arguments are the literals <c>ApplyZoom</c> passes at <c>DungeonDetailPage.xaml.cs:500</c>, but this test asserts about <c>Math.Clamp</c> alone and would not notice an edit to those literals.
+	///		The bounds are the values of <c>ZoomLevelGuard.MinimumZoom</c> and <c>ZoomLevelGuard.MaximumZoom</c>, but this test asserts about <c>Math.Clamp</c> alone and would not notice an edit to those constants.
 	/// </summary>
 	[Fact]
 	public void MathClampWithNaNReturnsNaNRatherThanABound()
