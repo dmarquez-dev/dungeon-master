@@ -524,10 +524,8 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void ResetViewport()
 	{
-		_drawable.ZoomLevel = 1.0f;
 		_drawable.PanOffset = PointF.Zero;
-		ZoomPercentLabel.Text = "100%";
-		MapCanvas.Invalidate();
+		ApplyZoom(1.0f);
 	}
 
 	private async void OnMapCanvasHandlerChanged(object? sender, EventArgs e)

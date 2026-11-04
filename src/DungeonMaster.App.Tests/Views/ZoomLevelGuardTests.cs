@@ -88,4 +88,26 @@ public class ZoomLevelGuardTests
 
 		Assert.Equal(0.25f, next);
 	}
+
+	/// <summary>
+	///		A request for 100% from a NaN level returns exactly 1.0, so a viewport reset routed through the guard recovers a corrupted level.
+	/// </summary>
+	[Fact]
+	public void Next_FromANaNCurrentLevelWithARequestForOne_ReturnsOne()
+	{
+		var next = ZoomLevelGuard.Next(float.NaN, 1.0f);
+
+		Assert.Equal(1.0f, next);
+	}
+
+	/// <summary>
+	///		Control: a request for 100% from the maximum level returns exactly 1.0, so a failure of the NaN-level test above is the non-finite current level and not the request.
+	/// </summary>
+	[Fact]
+	public void Next_FromTheMaximumLevelWithARequestForOne_ReturnsOne()
+	{
+		var next = ZoomLevelGuard.Next(ZoomLevelGuard.MaximumZoom, 1.0f);
+
+		Assert.Equal(1.0f, next);
+	}
 }
