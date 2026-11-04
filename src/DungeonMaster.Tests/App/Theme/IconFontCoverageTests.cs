@@ -53,24 +53,39 @@ public class IconFontCoverageTests : IClassFixture<IconFontFixture>
 	}
 
 	/// <summary>
-	///		Every literal <c>Text</c> on a control declaring <c>DmFontIcon</c> must be drawable by
-	///		the icon font.
+	///		Asserts that the XAML scan <see cref="EveryDmFontIconTextIsInTheIconFontsCmap"/> reads
+	///		reaches at least one control declaring <c>DmFontIcon</c> with a literal <c>Text</c>.
 	/// </summary>
+	/// <remarks>
+	///		That fact's offenders list is empty both when every icon is right and when the scan
+	///		reached nothing, so on its own it passes on an empty scan. This fact is the one that
+	///		fails then. The reason below was written when the guard sat inside that fact, so its
+	///		"this fact" names that one.
+	/// </remarks>
 	[Fact]
-	public void EveryDmFontIconTextIsInTheIconFontsCmap()
+	public void TheIconTextScanReachesAtLeastOneDmFontIconDeclaration()
 	{
-		// Anti-vacuity, and it stays INSIDE this fact because that is the correct place for it:
-		// the offenders list below is empty both when every icon is right and when the scan
-		// reached nothing. Four plausible edits make the scan reach nothing while staying green:
-		// the alias renamed, the fonts folder moved, DmFontIcon declared through a Setter instead
-		// of an attribute, or every icon Text moved to code-behind.
+		// Four plausible edits make the scan reach nothing while staying green: the alias
+		// renamed, the fonts folder moved, DmFontIcon declared through a Setter instead of an
+		// attribute, or every icon Text moved to code-behind.
 		this.fixture
 			.IconTexts
 			.Should()
 			.NotBeEmpty(
 				"the scan must reach at least one control declaring DmFontIcon with a literal "
 				+ "Text, or this fact guards nothing");
+	}
 
+	/// <summary>
+	///		Every literal <c>Text</c> on a control declaring <c>DmFontIcon</c> must be drawable by
+	///		the icon font.
+	/// </summary>
+	[Fact]
+	public void EveryDmFontIconTextIsInTheIconFontsCmap()
+	{
+		// The offenders list below is empty both when every icon is right and when the scan
+		// reached nothing; the second case is reported by
+		// TheIconTextScanReachesAtLeastOneDmFontIconDeclaration, not here.
 		var offenders = new List<string>();
 
 		foreach (var declaration in this.fixture.IconTexts)
@@ -101,13 +116,21 @@ public class IconFontCoverageTests : IClassFixture<IconFontFixture>
 	///		empty set would make the fact above pass everything, forever.
 	/// </summary>
 	[Fact]
-	public void TheIconFontCmapParsesToPrivateUseGlyphs()
+	public void TheIconFontCmapParseFindsAtLeastOneCodepoint()
 	{
 		this.fixture
 			.Codepoints
 			.Should()
 			.NotBeEmpty("the cmap parse must find glyphs or the coverage fact is vacuous");
+	}
 
+	/// <summary>
+	///		Asserts the font parse finds at least one codepoint in the private-use area, where
+	///		<c>RpgAwesome</c> maps its icons.
+	/// </summary>
+	[Fact]
+	public void TheIconFontCmapParsesToPrivateUseGlyphs()
+	{
 		this.fixture
 			.Codepoints
 			.Where(codepoint =>
@@ -116,16 +139,36 @@ public class IconFontCoverageTests : IClassFixture<IconFontFixture>
 			.NotBeEmpty(
 				"RpgAwesome maps its icons into the private-use area, so a parse that finds none "
 				+ "of them has read the wrong table");
+	}
 
-		// The two codepoints the application actually asks the icon font for at its two extremes.
-		// Named literally so a parse that returns a plausible-looking but wrong range fails.
+	/// <summary>
+	///		Asserts the font parse contains <c>U+EA8F</c>, the lower of the two codepoints the
+	///		application actually asks the icon font for at its two extremes.
+	/// </summary>
+	/// <remarks>
+	///		Named literally so a parse that returns a plausible-looking but wrong range fails.
+	/// </remarks>
+	[Fact]
+	public void TheIconFontCmapContainsTheNotebookGlyph()
+	{
 		this.fixture
 			.Codepoints
 			.Should()
 			.Contain(
 				0xEA8F,
 				"the notebook glyph is in use at FloorSidebarItem.xaml");
+	}
 
+	/// <summary>
+	///		Asserts the font parse contains <c>U+EAD4</c>, the upper of the two codepoints the
+	///		application actually asks the icon font for at its two extremes.
+	/// </summary>
+	/// <remarks>
+	///		Named literally so a parse that returns a plausible-looking but wrong range fails.
+	/// </remarks>
+	[Fact]
+	public void TheIconFontCmapContainsTheDividerOrnament()
+	{
 		this.fixture
 			.Codepoints
 			.Should()

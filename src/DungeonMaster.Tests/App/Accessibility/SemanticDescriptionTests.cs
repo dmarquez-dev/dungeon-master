@@ -80,9 +80,7 @@ public class SemanticDescriptionTests
 	[Fact]
 	public void EveryIconOnlyControlHasASemanticDescription()
 	{
-		var reached = ScannedIconOnlyControls();
-
-		var offenders = reached
+		var offenders = ScannedIconOnlyControls()
 			.Where(IsOffender)
 			.Select(DescribeOffence)
 			.ToList();
@@ -94,6 +92,22 @@ public class SemanticDescriptionTests
 				+ "reader unless it carries a non-blank SemanticProperties.Description, or is "
 				+ @"marked AutomationProperties.IsInAccessibleTree=""False"" because something "
 				+ "beside it already says the same thing");
+	}
+
+	/// <summary>
+	///		Asserts that the scan <see cref="EveryIconOnlyControlHasASemanticDescription"/> reads
+	///		reaches at least one icon-only control.
+	/// </summary>
+	/// <remarks>
+	///		That fact's offenders list is empty both when every control is described and when the
+	///		scan reached nothing, so on its own it passes on an empty scan. This fact is the one
+	///		that fails then. The reason below was written when the guard sat inside that fact, so
+	///		its "this fact" names that one.
+	/// </remarks>
+	[Fact]
+	public void TheIconOnlyControlScanReachesAtLeastOneControl()
+	{
+		var reached = ScannedIconOnlyControls();
 
 		// Anti-vacuity, and the only scanner in the suite that was missing one. Four plausible
 		// edits make this scan reach nothing while staying green — a glyph moved into element
