@@ -46,9 +46,8 @@ public partial class ObjectPaletteView : ContentView
 	public event EventHandler? PackChanged;
 
 	/// <summary>
-	///		Raised when loading an object pack fails. This view has no view model of its own,
-	///		so the message is handed to <c>DungeonDetailPage</c>, which routes it to
-	///		<c>DungeonDetailViewModel.ErrorMessage</c>.
+	///		Raised when loading an object pack fails.
+	///		This view has no view model of its own, so the message is handed to <c>DungeonDetailPage</c>, which routes it to <c>DungeonDetailViewModel.ErrorMessage</c>.
 	/// </summary>
 	public event EventHandler<string>? LoadFailed;
 
@@ -306,9 +305,8 @@ public partial class ObjectPaletteView : ContentView
 	}
 
 	/// <summary>
-	///		The chip for one object in the primary palette. The chip itself is
-	///		<see cref="PaletteThumb"/>'s; this palette supplies only what is its own, which is that
-	///		a tap selects the object directly rather than raising an event.
+	///		The chip for one object in the primary palette.
+	///		The chip itself is <see cref="PaletteThumb"/>'s; this palette supplies only what is its own, which is that a tap selects the object directly rather than raising an event.
 	/// </summary>
 	private View BuildThumbButton(ObjectKind kind) =>
 		PaletteThumb.Build(kind, SelectObject);

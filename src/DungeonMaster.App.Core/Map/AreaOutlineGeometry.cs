@@ -3,14 +3,12 @@ using DungeonMaster.Domain.ValueObjects;
 namespace DungeonMaster.App.Core.Map;
 
 /// <summary>
-///		Provides pure geometry over an area outline: translation, closed-polygon construction,
-///		point containment and area. No MAUI type appears in this file.
+///		Provides pure geometry over an area outline: translation, closed-polygon construction, point containment and area. No MAUI type appears in this file.
 /// </summary>
 public static class AreaOutlineGeometry
 {
 	/// <summary>
-	///		Returns a new outline in which the end point and both control points of every segment
-	///		are offset by the given tile delta. Null control points stay null.
+	///		Returns a new outline in which the end point and both control points of every segment are offset by the given tile delta. Null control points stay null.
 	/// </summary>
 	/// <param name="outline">
 	///		The ordered segments of the outline to translate. An empty outline returns an empty list.
@@ -19,12 +17,10 @@ public static class AreaOutlineGeometry
 	///		The offset in tile units to add to every point.
 	/// </param>
 	/// <returns>
-	///		A new list of translated segments. A zero delta returns an equal-valued outline; it is
-	///		not required to be the same instance.
+	///		A new list of translated segments. A zero delta returns an equal-valued outline; it is not required to be the same instance.
 	/// </returns>
 	/// <exception cref="ArgumentNullException">
-	///		<paramref name="outline"/> or <paramref name="delta"/> is null, or any element of
-	///		<paramref name="outline"/> is null.
+	///		<paramref name="outline"/> or <paramref name="delta"/> is null, or any element of <paramref name="outline"/> is null.
 	/// </exception>
 	/// <exception cref="ArgumentException">
 	///		Thrown when a segment's control points violate the rule for its <see cref="PathSegment.Kind"/>.
@@ -73,11 +69,7 @@ public static class AreaOutlineGeometry
 	///		The polygon vertices in pixel space, without the duplicated closing vertex.
 	/// </returns>
 	/// <remarks>
-	///		The order matters and is frozen. The polygon is closed, so the last segment's end point
-	///		is also the start point: it is emitted first, then every segment's end point in order,
-	///		and finally the last vertex is dropped when more than one vertex results, because it
-	///		duplicates the first. A drag preview is applied by calling <see cref="Translate"/> first
-	///		and passing the translated outline here; this method reads end points only.
+	///		The order matters and is frozen. The polygon is closed, so the last segment's end point is also the start point: it is emitted first, then every segment's end point in order, and finally the last vertex is dropped when more than one vertex results, because it duplicates the first. A drag preview is applied by calling <see cref="Translate"/> first and passing the translated outline here; this method reads end points only.
 	/// </remarks>
 	/// <exception cref="ArgumentNullException">
 	///		<paramref name="outline"/> is null, or any element is null.
@@ -138,8 +130,7 @@ public static class AreaOutlineGeometry
 	///		True when the point lies inside the polygon.
 	/// </returns>
 	/// <remarks>
-	///		Behaviour exactly on the boundary is whatever the crossing expression yields and is not
-	///		specified.
+	///		Behaviour exactly on the boundary is whatever the crossing expression yields and is not specified.
 	/// </remarks>
 	/// <exception cref="ArgumentNullException">
 	///		<paramref name="polygon"/> is null.
