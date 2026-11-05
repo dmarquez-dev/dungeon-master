@@ -24,14 +24,11 @@ public sealed record Result<T>
 		!IsSuccess;
 
 	/// <summary>
-	///		Gets the value returned by the operation. A failed result carries <see langword="default"/> of
-	///		<typeparamref name="T"/>, because the failure factories never assign this property.
+	///		Gets the value returned by the operation. A failed result carries <see langword="default"/> of <typeparamref name="T"/>, because the failure factories never assign this property.
 	/// </summary>
 	/// <remarks>
 	///		<para>
-	///		That default is NOT a failure signal and must never be read as one. <see cref="IsSuccess"/> and
-	///		<see cref="IsFailure"/> are the only failure signals; branch on one of them before reading this
-	///		property.
+	///		That default is NOT a failure signal and must never be read as one. <see cref="IsSuccess"/> and <see cref="IsFailure"/> are the only failure signals; branch on one of them before reading this property.
 	///		</para>
 	///		<para>
 	///		<typeparamref name="T"/> is unconstrained, so the <c>?</c> annotation has no effect once <typeparamref name="T"/> is closed as a value type.
