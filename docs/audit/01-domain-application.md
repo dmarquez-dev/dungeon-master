@@ -1574,6 +1574,53 @@ extension when behaviour clusters (which `FloorObjectMethods.cs` is a fair examp
 into `FloorMethods.cs`. Whichever is chosen, apply it to `PlacedObject` too so all four entities read
 the same way.
 
+**[AMENDED 20261105-0106-core-two-row-sweep, 2026-11-05 -- `MASTER-110` is CLOSED done by this session's
+task `T1`, and the line counts in this entry's `Why it matters.` paragraph are stale. Classification:
+DRIFT.** The register row is `MASTER-110` at `00-master-index.md:298`, now closed **done**. **Nothing
+below deletes any previous wording.** Every figure in this block is labelled either as measured by this
+session's task `T4` on the session worktree after `T1`, or as told, with its source.
+
+*Closure.* `MASTER-110` is closed **done** by this session; the remedy is its task `T1`. Gate 1 chose
+"conform both": the fold-back option of the `Suggested direction.` paragraph above, applied to
+`PlacedObject` too. `FloorObjectMethods.cs` was folded into `FloorMethods.cs` and deleted. `PlacedObject`
+became `public sealed partial class`, split into `PlacedObject.cs` (constructors and properties) and
+`PlacedObjectMethods.cs` (`Update`, `ValidateScale`). dm-conventions is unchanged. Measured by `T4`: PC
+(section 10 of `.sir/sessions/20261105-0106-core-two-row-sweep/contracts/C1-measurement.md`),
+`grep -n partial src/DungeonMaster.Domain/Entities/*/*.cs`, prints eight lines, two per entity, for
+`Area`, `Dungeon`, `Floor` and `PlacedObject`, exactly the list that section requires after `T1`. `ls`
+reports `src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs` absent. M (section 8 of the
+same file), its regex control re-run first, prints the startRef digest for both entities: `f3b9a065...`
+over `Floor.cs` and `FloorMethods.cs`, and `ace0efdf...` over `PlacedObject.cs` and
+`PlacedObjectMethods.cs`. Those startRef digests are told: measured by the architect at `11f9562` and
+stated in C1.
+
+*Correction -- the line counts in the `Why it matters.` paragraph.* Previous wording, verbatim, from
+`:1567` of this file: "`Floor.cs` at 73 lines is genuinely readable next to 305 lines of behaviour". At
+`11f9562`, `wc -l` gives `Floor.cs` 94, `FloorMethods.cs` 176 and `FloorObjectMethods.cs` 112, so
+Floor's behaviour came to 288 lines. Those figures are told: measured by the architect and stated in
+this session's C1 and C2 contracts. After `T1`, measured by `T4` with `wc -l`: `Floor.cs` 94 and
+`FloorMethods.cs` 282. Both of the entry's figures were true when it was written. At the audit's own
+commit `16d594b`, `git show 16d594b:<path> | wc -l` gives
+`src/DungeonMaster.Domain/Entities/Floor/Floor.cs` 73, `FloorMethods.cs` 148 and `FloorObjectMethods.cs`
+157, so behaviour came to 148 + 157 = 305, in a folder then named singular `Floor/`. That evidence is
+told: it was supplied by the orchestrator, measured in the spec phase because tasks run without git,
+and recorded in section 2 item 2 of this session's C3 contract. The code has since moved, so the
+classification is DRIFT. The layer verdict at `:2940` (numbered as at `11f9562`, before this block was
+inserted) restates both stale figures, and this block supersedes them there too.
+
+*The `What.` paragraph's state claims.* "`Floor` adds a third partial" and "`PlacedObject` is not
+partial at all" (`:1561-1563`) describe the pre-change state. Neither holds after `T1`.
+
+*`locations:` is kept unchanged*, as a record of the pre-change state. After `T1`,
+`FloorObjectMethods.cs:5` no longer exists. The other seven citations still name a partial declaration
+on the cited line, `PlacedObject.cs:8` now included, as `T4` checked against PC's output.
+
+*Other mentions, deliberately left unedited.* `:2302`, inside another entry's `AMENDED 6b-xvii` block,
+refers to "`CORE-022`'s stale line counts, which `MASTER-110` carries"; this block is where those counts
+are corrected. The layer verdict at `:2940-2941` stays as written, because it is dated audit narrative.
+Both line numbers are as at `11f9562`, before this block was inserted. The record's severity, category,
+effort and risk are unchanged.**]**
+
 ### CORE-023 -- RotateDirection.cs declares a type named RotationDirection
 
 ```yaml
