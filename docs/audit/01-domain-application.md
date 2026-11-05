@@ -2462,6 +2462,70 @@ with ordering requirements -- the balance shifts.
 keeping it. Revisit only if the pipeline needs ordered behaviors, notifications, or query-side
 cross-cutting concerns, at which point a library becomes cheaper than growing this one.
 
+**[AMENDED 20261105-1907-core-heavy-rows, 2026-11-05 -- `MASTER-157` is CLOSED DELIBERATELY UNCHANGED by
+user decision at Gate 1, and the size this entry's `What.` paragraph gives is stale. Classification:
+DRIFT.** The register row is `MASTER-157` at `00-master-index.md:345`. **Nothing below deletes any previous
+wording.** Every figure in this block is labelled either as measured by this session's task `T2` on the
+session worktree, or as told, with its source. The contract files cited below are in
+`.sir/sessions/20261105-1907-core-heavy-rows/contracts/`.
+
+*Closure.* `MASTER-157` (`00-master-index.md:345`) is CLOSED **DELIBERATELY UNCHANGED** by user decision at
+Gate 1: the user chose to keep the hand-rolled dispatcher, which is this entry's own `Suggested direction.`
+("Keep it"). No code changed.
+
+*The stale size.* Previous wording, verbatim, from `What.` (`:2447` of this file at this session's startRef):
+"The `Common/Dispatch` folder is seven files and 233 lines". Measured by `T2`:
+`wc -l src/DungeonMaster.Application/Common/Dispatch/*.cs` lists 8 files and 437 lines in total,
+`Dispatcher.cs` 209; the eighth file is `IRequest.cs` (9 lines). Told, measured by the orchestrator in the
+spec phase and recorded in `C4-register.md` section 1.3: `16d594b` ("docs: add code-quality audit for domain
+and application", 2026-08-17) is the only commit `git log -S 'seven files and 233 lines'` prints over this
+file, and at that commit `Common/Dispatch/` held seven files -- `Dispatcher.cs` 70, `ICommand.cs` 9,
+`ICommandHandler.cs` 32, `IDispatcher.cs` 47, `IPipelineBehavior.cs` 36, `IQuery.cs` 9, `IQueryHandler.cs`
+30 -- totalling 233, by `git show 16d594b:<path>` piped to `wc -l` per file; the same method at `62ba566`
+prints 8 files and 437 lines. Classification **DRIFT**: exact at its commit, moved since.
+
+*The three costs.* `Why it matters.` names them as `CORE-010`, `CORE-011` and `CORE-012`. Their register
+rows, `MASTER-089` (`00-master-index.md:277`), `MASTER-090` (`:278`) and `MASTER-080` (`:268`), each read
+**done**: that is what the register says (told), and `T2` verified each in code rather than take it from
+there. Paths below are under `src/DungeonMaster.Application/`.
+
+*`CORE-011`, uncached reflection and `dynamic`.* DYN (`C1-measurement.md` section 4) prints nothing, its
+control re-run first. `Common/Dispatch/Dispatcher.cs:18` declares
+`private static readonly ConcurrentDictionary<Type, object> Invokers`. `grep -n 'Invokers.GetOrAdd'` on
+`Dispatcher.cs` prints `:31`, `:48` and `:67` (the two `SendAsync` overloads and `QueryAsync`), and
+`grep -n MakeGenericType` on it prints `:35`, `:52` and `:71`, each inside the `static` value factory of the
+`GetOrAdd` above it: the closed invoker type is built once per request type and cached.
+
+*`CORE-010`, the hand-maintained registration list.* `grep -n 'AddScoped<' DependencyInjection.cs` prints
+one line, `:27`, `services.AddScoped<IDispatcher, Dispatcher>();`: no handler is registered by name.
+`grep -n ScannedTypes DependencyInjection.cs` prints `:29` (the registration loop), `:99` (the self-check
+loop) and `:137` (the property, an assembly scan of the Application assembly). `ValidateHandlerRegistrations`
+(`DependencyInjection.cs:93`) asserts exactly one marker and exactly one handler per request type; it is
+exercised by `ApplicationServiceRegistrationTests.cs` (`:29`, `:46`) and is not called at app startup:
+`grep -rn ValidateHandlerRegistrations src/DungeonMaster.App --include=*.cs --exclude-dir=obj
+--exclude-dir=bin`, run from the worktree root, prints nothing.
+
+*`CORE-012`, queries bypassing the pipeline.* `Common/Dispatch/IQuery.cs:9-10` declares
+`public interface IQuery<TResult>` `: IRequest<TResult>`. `grep -n 'BuildPipeline<'` on `Dispatcher.cs`
+prints `:84` (the definition) and `:133`, `:166`, `:199`; `:199` is inside `TypedQueryInvoker`, so a query
+passes through the same `IPipelineBehavior` composition as a command. No behavior is registered for
+queries, by design: `ValidationBehavior` is registered in the two command branches
+(`DependencyInjection.cs:48-54`, whose comment at `:48-49` reads "so that no query can ever acquire a
+validation behavior", and `:64-70`). The pipeline is reachable by queries and empty for them.
+
+*The residue.* The grep of `C4-register.md` section 1.2 D, run by `T2` on `Dispatcher.cs`, prints `:92`,
+`:131`, `:164` and `:197`: handlers and behaviors are still resolved from `IServiceProvider` at dispatch
+time. That is the service-location shape `MASTER-089`'s title names. Its hand-maintained-list half is gone;
+its service-location half remains, by design, inherent in the dispatcher Gate 1 kept. The three costs are
+therefore not all fully gone, and this block does not claim they are.
+
+This entry's `What.`, `Why it matters.` and `Suggested direction.` paragraphs are left exactly as written,
+and its `locations:` list is kept unchanged as a record of the audited state; this block does not
+re-derive those lines. **No hash for this session's commit appears in this block** (the two hashes above
+are the orchestrator's, told): this session's tasks run without git and the orchestrator makes the
+commit; no code changed for this row in any case. The record's severity,
+category, effort and risk are unchanged.**]**
+
 ### CORE-032 -- Both query handlers wrap a single passthrough call in an async state machine
 
 ```yaml
