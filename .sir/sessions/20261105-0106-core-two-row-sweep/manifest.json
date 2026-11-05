@@ -1,0 +1,144 @@
+{
+  "session": "20261105-0106-core-two-row-sweep",
+  "createdAt": "2026-11-05T01:06:37Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-measurement.md",
+    "contracts/C2-entity-split.md",
+    "contracts/C3-register.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "MASTER-110 / CORE-022: fold FloorObjectMethods.cs into FloorMethods.cs and split PlacedObject into PlacedObject.cs + PlacedObjectMethods.cs, exactly as C2 composes them",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs",
+        "src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs",
+        "src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs",
+        "src/DungeonMaster.Domain/Entities/Floors/PlacedObjectMethods.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "Floor's third partial is gone. 'ls src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs' reports 'No such file or directory'. At startRef that file exists (112 lines).",
+        "FloorMethods.cs is the C2 section 2 composition, so Floor's three object methods live there with their text unchanged (dotnet-format.md section 11, :554-563, two-file entity split). E (C1 section 9) on src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs prints d92063f00c74c5ca8448b9cf15c9385282a51fd7e6cec82f142bd44209d9f499, and 'wc -l' prints 282. At startRef E prints 9b9cc01a... (176 lines).",
+        "PlacedObject.cs is the C2 section 3 composition: constructors and properties only, with the declaration 'public sealed partial class PlacedObject : Entity' (dotnet-format.md section 11, :554-563). E (C1 section 9) on src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs prints 6f324b807ac0f5216a3490cec2c42a898f0c95f5976b9d8781d9a96bed2ca788, and 'wc -l' prints 63. At startRef E prints 9ab84b7a... (112 lines).",
+        "PlacedObjectMethods.cs exists and is the C2 section 4 composition, holding Update and ValidateScale under 'public sealed partial class PlacedObject' in namespace DungeonMaster.Domain.Entities.Floors (dotnet-format.md section 11, :554-563). E (C1 section 9) on src/DungeonMaster.Domain/Entities/Floors/PlacedObjectMethods.cs prints a6c0697ede8e61b5736a66bc3542afd6ab4035343aceba6886d08d5a6a305c9f, and 'wc -l' prints 55. The file does not exist at startRef.",
+        "Every entity in src/DungeonMaster.Domain/Entities has exactly the two-file partial split (dotnet-format.md section 11, :554-563). PC (C1 section 10), 'grep -n partial src/DungeonMaster.Domain/Entities/*/*.cs', prints exactly the eight lines C1 section 10 lists under 'Required after T1', in that order. At startRef it prints seven lines, FloorObjectMethods.cs:5 among them, and no PlacedObject line.",
+        "No member line of Floor was added, removed or altered. This deliberately asserts preserved state. M (C1 section 8) over src/DungeonMaster.Domain/Entities/Floors/Floor.cs and FloorMethods.cs prints f3b9a065d6206de9afc57d873e888cc69fc7b629210dd514ffad4808a02d5e4d, and its 'wc -l' form prints 320. These are the startRef values over Floor.cs, FloorMethods.cs and FloorObjectMethods.cs. Before trusting it, rerun M's regex fixture and its two must-fire controls (C1 section 8) on scratch copies, and report all three outputs. Never inject into the worktree.",
+        "No member line of PlacedObject was added, removed or altered. This deliberately asserts preserved state. M (C1 section 8) over src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs and PlacedObjectMethods.cs prints ace0efdfcdba2bf95e9b45eb0a42d0b06c5c34c1641119029f6ab70e1ab9d0ea, and its 'wc -l' form prints 94. These are the startRef values over PlacedObject.cs alone.",
+        "FloorMethods.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints 'CR=282 LF=282 CRLF=282 loneCR=0'. Report the printed line.",
+        "PlacedObject.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints 'CR=63 LF=63 CRLF=63 loneCR=0'. Report the printed line.",
+        "PlacedObjectMethods.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints 'CR=55 LF=55 CRLF=55 loneCR=0'. Report the printed line. Rerun B's control fixture first and report its output.",
+        "PlacedObjectMethods.cs has no BOM, matching its siblings. 'head -c 3 src/DungeonMaster.Domain/Entities/Floors/PlacedObjectMethods.cs | od -An -tx1' prints ' 75 73 69' (C1 section 7).",
+        "The solution still builds clean. This deliberately asserts preserved state. 'dotnet build C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln' ends with 'Build succeeded.', '0 Warning(s)' and '0 Error(s)'. Quote the three lines (FORM 8). Never run it while another task is building (C1 section 13).",
+        "The test suite still passes with unchanged totals. This deliberately asserts preserved state. 'dotnet test C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln --no-build', run after the build above, reports 0 failed and these passed totals: DungeonMaster.App.UnitTests.dll 187, DungeonMaster.Tests.dll 953, DungeonMaster.App.Tests.dll 123. Quote each summary line. Output that names no test count is reported as not runnable, not as a pass."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Backlog :191 (CORE): re-break sentence-splitting /// lines in ResultOfT.cs and AreaOutlineGeometry.cs, changing no words",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Application/Common/Results/ResultOfT.cs",
+        "src/DungeonMaster.App.Core/Map/AreaOutlineGeometry.cs"
+      ],
+      "dependsOn": [
+        "T1"
+      ],
+      "acceptance": [
+        "No /// line in ResultOfT.cs ends mid-sentence (dotnet-format.md:378, 'Line breaks occur only at sentence boundaries'). P2 (C1 section 1) prints nothing on src/DungeonMaster.Application/Common/Results/ResultOfT.cs. At startRef it prints :27, :32 and :33. Before trusting the empty output, rerun fixture1, fixture2 and fixture3 (C1 section 1) in your own scratch directory and report their outputs.",
+        "No /// line in AreaOutlineGeometry.cs ends mid-sentence (dotnet-format.md:378). P2 (C1 section 1) prints nothing on src/DungeonMaster.App.Core/Map/AreaOutlineGeometry.cs. At startRef it prints :6, :12, :22, :26, :76, :77, :78, :79 and :141.",
+        "No /// line in ResultOfT.cs continues a sentence from the line above (dotnet-format.md:378, 'Each new /// continuation line begins a new sentence'). S (C1 section 2) prints nothing on ResultOfT.cs. At startRef it prints :34. Rerun S's three fixture controls (C1 section 2) first and report their outputs.",
+        "No /// line in AreaOutlineGeometry.cs continues a sentence from the line above (dotnet-format.md:378). S (C1 section 2) prints nothing on AreaOutlineGeometry.cs. At startRef it prints :7, :13, :23, :77, :78, :79, :80 and :142.",
+        "No words changed in ResultOfT.cs's doc comments. This deliberately asserts preserved state. W (C1 section 3) on ResultOfT.cs prints 406 tokens with sha256 fb6eccd476aa7e06db746e5f621497604e104e5767bf4b9c5d56e97d52b29551, the startRef value. Rerun W's must-pass and must-fire controls (C1 section 3) on scratch copies first and report both digests.",
+        "No words changed in AreaOutlineGeometry.cs's doc comments. This deliberately asserts preserved state. W (C1 section 3) on AreaOutlineGeometry.cs prints 440 tokens with sha256 52b288989b1e3f532beb7ff44a0596cb3baa81054872f55eb68762f2504d1863, the startRef value.",
+        "Nothing but /// lines changed in ResultOfT.cs. This deliberately asserts preserved state. K (C1 section 4) on ResultOfT.cs prints 7fd75c7f1120a28645204e2d892f48f96b73ad198171f13518dd14202e177962, the startRef value. Rerun K's three controls (C1 section 4) on scratch copies first and report the digests.",
+        "Nothing but /// lines changed in AreaOutlineGeometry.cs. This deliberately asserts preserved state. K (C1 section 4) on AreaOutlineGeometry.cs prints fcfd92b71446f6ae7ea0f32450cff2b83265fc8d3825d30b5907f465fd2861e1, the startRef value.",
+        "ResultOfT.cs keeps two-tab description indentation (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 5) prints nothing on ResultOfT.cs. Rerun I1's fixture first and report its output.",
+        "AreaOutlineGeometry.cs keeps two-tab description indentation (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 5) prints nothing on AreaOutlineGeometry.cs.",
+        "ResultOfT.cs keeps the indentation in front of each ///. This deliberately asserts preserved state. L (C1 section 6) prints nothing on ResultOfT.cs. Rerun L's fixture first and report its output.",
+        "AreaOutlineGeometry.cs keeps the indentation in front of each ///. This deliberately asserts preserved state. L (C1 section 6) prints nothing on AreaOutlineGeometry.cs.",
+        "ResultOfT.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints CR = LF = CRLF, each equal to 'wc -l' of the file, with loneCR=0. Report the printed line and the line count.",
+        "AreaOutlineGeometry.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints CR = LF = CRLF, each equal to 'wc -l' of the file, with loneCR=0. Report the printed line and the line count.",
+        "The solution still builds clean. This deliberately asserts preserved state. 'dotnet build C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln' ends with 'Build succeeded.', '0 Warning(s)' and '0 Error(s)'. Quote the three lines (FORM 8). Never run it while another task is building (C1 section 13).",
+        "The test suite still passes with unchanged totals. This deliberately asserts preserved state. 'dotnet test C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln --no-build', run after the build above, reports 0 failed and these passed totals: DungeonMaster.App.UnitTests.dll 187, DungeonMaster.Tests.dll 953, DungeonMaster.App.Tests.dll 123. Quote each summary line. Output that names no test count is reported as not runnable, not as a pass."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Backlog :65 (App/UI): re-break sentence-splitting /// lines in ShellRoutes.cs and ObjectPaletteView.xaml.cs (LoadFailed and BuildThumbButton summaries), changing no words",
+      "agent": "sir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Services/Navigation/ShellRoutes.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs"
+      ],
+      "dependsOn": [
+        "T2"
+      ],
+      "acceptance": [
+        "No /// line in ShellRoutes.cs ends mid-sentence (dotnet-format.md:378, 'Line breaks occur only at sentence boundaries'). P2 (C1 section 1) prints nothing on src/DungeonMaster.App/Services/Navigation/ShellRoutes.cs. At startRef it prints :4, :10 and :16. Before trusting the empty output, rerun fixture1, fixture2 and fixture3 (C1 section 1) in your own scratch directory and report their outputs.",
+        "No /// line in ObjectPaletteView.xaml.cs ends mid-sentence (dotnet-format.md:378). P2 (C1 section 1) prints nothing on src/DungeonMaster.App/Views/DungeonDetailPage/ObjectPaletteView.xaml.cs. At startRef it prints :49 and :50, in the LoadFailed event summary the backlog row names, and :309 and :310, in the BuildThumbButton summary, which the row's whole-file goal covers.",
+        "No /// line in ShellRoutes.cs continues a sentence from the line above (dotnet-format.md:378, 'Each new /// continuation line begins a new sentence'). S (C1 section 2) prints nothing on ShellRoutes.cs. At startRef it prints :5, :11 and :17. Rerun S's three fixture controls (C1 section 2) first and report their outputs.",
+        "No /// line in ObjectPaletteView.xaml.cs continues a sentence from the line above (dotnet-format.md:378). S (C1 section 2) prints nothing on ObjectPaletteView.xaml.cs. At startRef it prints :50 and :311.",
+        "No words changed in ShellRoutes.cs's doc comments. This deliberately asserts preserved state. W (C1 section 3) on ShellRoutes.cs prints 74 tokens with sha256 56623335833fe17cd996158f6040b4c0d29193d57fd72db0e8a6ba857fc4bd38, the startRef value. Rerun W's must-pass and must-fire controls (C1 section 3) on scratch copies first and report both digests.",
+        "No words changed in ObjectPaletteView.xaml.cs's doc comments. This deliberately asserts preserved state. W (C1 section 3) on ObjectPaletteView.xaml.cs prints 302 tokens with sha256 b05485a3a81397cfc352f80e19e4aa02b9a27028e0d3fe230d3632925659fbc1, the startRef value.",
+        "Nothing but /// lines changed in ShellRoutes.cs. This deliberately asserts preserved state. K (C1 section 4) on ShellRoutes.cs prints 7a8b8ec45ca0b4cd15850777b3b7affb289315ebb2a1036bb0965c715f15d111, the startRef value. Rerun K's three controls (C1 section 4) on scratch copies first and report the digests.",
+        "Nothing but /// lines changed in ObjectPaletteView.xaml.cs, // comments and non-ASCII text included. This deliberately asserts preserved state. K (C1 section 4) on ObjectPaletteView.xaml.cs prints 77277b534d14f2406f711f6fd45e0ba8d640cfd4e54599286d441220e2836669, the startRef value.",
+        "ShellRoutes.cs keeps two-tab description indentation (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 5) prints nothing on ShellRoutes.cs. Rerun I1's fixture first and report its output.",
+        "ObjectPaletteView.xaml.cs keeps two-tab description indentation (dotnet-format.md:375). This deliberately asserts preserved state. I1 (C1 section 5) prints nothing on ObjectPaletteView.xaml.cs.",
+        "ShellRoutes.cs keeps the indentation in front of each ///. This deliberately asserts preserved state. L (C1 section 6) prints nothing on ShellRoutes.cs. Rerun L's fixture first and report its output.",
+        "ObjectPaletteView.xaml.cs keeps the indentation in front of each ///. This deliberately asserts preserved state. L (C1 section 6) prints nothing on ObjectPaletteView.xaml.cs.",
+        "ShellRoutes.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints CR = LF = CRLF, each equal to 'wc -l' of the file, with loneCR=0. Report the printed line and the line count.",
+        "ObjectPaletteView.xaml.cs is CRLF throughout. B (C1 section 7), run after the last edit, prints CR = LF = CRLF, each equal to 'wc -l' of the file, with loneCR=0. Report the printed line and the line count.",
+        "The solution still builds clean. This deliberately asserts preserved state. 'dotnet build C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln' ends with 'Build succeeded.', '0 Warning(s)' and '0 Error(s)'. Quote the three lines (FORM 8). Never run it while another task is building (C1 section 13).",
+        "The test suite still passes with unchanged totals. This deliberately asserts preserved state. 'dotnet test C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln --no-build', run after the build above, reports 0 failed and these passed totals: DungeonMaster.App.UnitTests.dll 187, DungeonMaster.Tests.dll 953, DungeonMaster.App.Tests.dll 123. Quote each summary line. Output that names no test count is reported as not runnable, not as a pass."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "REGISTER: close MASTER-110 in the master index and amend CORE-022 with closure evidence and its stale-figure correction",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/00-master-index.md",
+        "docs/audit/01-domain-application.md"
+      ],
+      "dependsOn": [
+        "T1"
+      ],
+      "acceptance": [
+        "MASTER-110 is marked done. Line 298 of docs/audit/00-master-index.md still begins '| 110 | MASTER-110 |'. Its last (status) cell begins '**done** (20261105-0106-core-two-row-sweep, 2026-11-05) -- '. With '*' stripped, the cell's first token is 'done' (C3 section 1). Evidence: read line 298.",
+        "The status cell states the remedy as C3 section 1 gives it: 'conform both'; FloorObjectMethods.cs folded into FloorMethods.cs and deleted; PlacedObject made public sealed partial and split into PlacedObject.cs and PlacedObjectMethods.cs; dm-conventions unchanged. Evidence: read the cell.",
+        "The status cell cites PC (C1 section 10) as measured by T4 on the post-T1 worktree, with its command, and says it prints eight lines, two per entity, for Area, Dungeon, Floor and PlacedObject. T4 runs PC and confirms its output equals C1 section 10's 'Required after T1' list. Evidence: read the cell; rerun PC.",
+        "The status cell cites, as measured by T4, that 'ls' reports src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs absent. Evidence: read the cell; rerun the ls.",
+        "The status cell cites M (C1 section 8), measured by T4 on the post-T1 worktree, as printing the startRef digest for both entities (f3b9a065... for Floor, ace0efdf... for PlacedObject). It labels the startRef digests as told, measured by the architect at 11f9562 and stated in C1. T4 reruns M's regex fixture first. Evidence: read the cell; rerun M.",
+        "The status cell either omits build and test outcomes or attributes them to T1's review record as told. It never presents them as T4's own measurement. Evidence: read the cell.",
+        "The status cell points to the AMENDED 20261105-0106-core-two-row-sweep block on CORE-022 in docs/audit/01-domain-application.md. Evidence: read the cell.",
+        "The status cell says that no commit hash is cited, because tasks run without git and the orchestrator makes the commit. Evidence: read the cell.",
+        "The register row keeps its shape: no phantom column, and every '|' inside the cell escaped as '\\|'. This deliberately asserts preserved state. R (C1 section 12) prints 11 for line 298. Rerun R's fixture first and report its output.",
+        "The master index changes nowhere else. The diff to docs/audit/00-master-index.md changes line 298 only, and 'wc -l' still prints 691. Evidence: the task diff and wc -l.",
+        "The master index keeps its line endings. B (C1 section 7) on docs/audit/00-master-index.md prints 'CR=691 LF=691 CRLF=691 loneCR=0'.",
+        "The amendment block sits where C3 section 2 puts it in docs/audit/01-domain-application.md: after CORE-022's '**Suggested direction.**' paragraph (startRef :1572-1575) and before '### CORE-023' (startRef :1577), with one empty line before and after it. Evidence: read the region.",
+        "The block opens in house form. Its first line begins '**[AMENDED 20261105-0106-core-two-row-sweep, 2026-11-05 -- '. The opener census (C1 section 12) prints 15, where it prints 14 at startRef. Evidence: read the block; run the census.",
+        "The block closes in house form. Its last line ends '**]**', and the closer census (C1 section 12) prints 15, where it prints 14 at startRef. Evidence: read the block; run the census.",
+        "The block contains the sentence 'Nothing below deletes any previous wording.' It may be bold and may wrap across two lines, as in the house form at startRef :2888-2889 (C3 section 2). Evidence: read the block.",
+        "The block records the closure. It says MASTER-110 (00-master-index.md:298) is CLOSED done by this session's task T1, gives the remedy, and cites the closure evidence T4 measured (PC, the ls, M), each with its command or its C1 section. Evidence: read the block.",
+        "The block quotes verbatim the stale words on startRef :1567, '`Floor.cs` at 73 lines is genuinely readable next to 305 lines of behaviour'. Evidence: read the block; check the quote against the file.",
+        "The block states the startRef figures and labels them told (measured by the architect, stated in C1/C2): at 11f9562, 'wc -l' gives Floor.cs 94, FloorMethods.cs 176 and FloorObjectMethods.cs 112, so Floor's behaviour came to 288 lines. Evidence: read the block.",
+        "The block states the post-T1 figures as measured by T4 with 'wc -l', and they are Floor.cs 94 and FloorMethods.cs 282. Evidence: read the block; rerun wc -l.",
+        "The block classifies the 73 and 305 figures DRIFT, the house word for a claim true at its authoring commit (as in docs/audit/05-tests.md:102-103). It states, labelled told (measured by the orchestrator in the spec phase, since tasks have no git, and recorded in C3 section 2 item 2), that at the audit's commit 16d594b 'git show 16d594b:<path> | wc -l' gave src/DungeonMaster.Domain/Entities/Floor/Floor.cs 73, FloorMethods.cs 148 and FloorObjectMethods.cs 157, so 148 + 157 = 305. The word UNDETERMINED does not appear in the block. Evidence: read the block.",
+        "The block says that the layer verdict at startRef :2940 restates both stale figures, and that this block supersedes them there too. Evidence: read the block.",
+        "The block says the What. paragraph's state claims, that Floor 'adds a third partial' and that 'PlacedObject is not partial at all' (startRef :1561-1563), describe the pre-change state and no longer hold after T1. Evidence: read the block.",
+        "The block says the entry's locations: list is kept unchanged as a record of the pre-change state. It says FloorObjectMethods.cs:5 no longer exists, and that the other seven citations still name a partial declaration on the cited line, as T4 checked against PC's output. Evidence: read the block; rerun PC.",
+        "The block says that :2302 (inside another entry's AMENDED 6b-xvii block) and the layer verdict at :2940-2941 are deliberately left unedited, and why (C3 section 2 item 5). Evidence: read the block.",
+        "Nothing in docs/audit/01-domain-application.md is deleted. The diff to it consists only of inserted lines, all of them inside the one new block. Evidence: the task diff.",
+        "The audit file keeps its line endings. B (C1 section 7) on docs/audit/01-domain-application.md prints CR = LF = CRLF = (2950 + the inserted line count), with loneCR=0. Report the printed line and the inserted count."
+      ]
+    }
+  ]
+}
