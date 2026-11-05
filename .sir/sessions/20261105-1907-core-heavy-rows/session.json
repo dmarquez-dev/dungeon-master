@@ -2,11 +2,11 @@
   "id": "20261105-1907-core-heavy-rows",
   "name": "core-heavy-rows",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "pushed": true,
   "brief": "Close the backlog's CORE heavy rows. Rename ObjectRotation's CW90/CW180/CW270 members to Clockwise90/180/270 with a hand-filled EF data migration (Up rewrites stored PlacedObjects.Rotation strings, Down reverses) proven by migration tests against old values, a red step and two injected defects, and move the migration-count ratchet to 4 (T1). Close MASTER-157 / CORE-031 deliberately unchanged, keeping the hand-rolled dispatcher, with re-measured size (8 files, 437 lines; the audit's 233 was exact at 16d594b, DRIFT) and the three maintenance costs verified in code (T2). Close MASTER-178 / CORE-035 deliberately unchanged on a validated census (17 enums, 5 None-at-zero, 12 concrete-at-zero) with a reasoned per-enum disposition; no reachable default is a defect, so no code change (T3). Record the cleared CW90 family in MASTER-130 / CORE-024, which stays part done for the ct and obj residues, and correct the imprecise PathSegmentKind 'same blocker class / both renames' claim: it is persisted by ordinal and its members are not abbreviated (T4).",
   "started": "2026-11-05T19:07:07Z",
-  "ended": null,
+  "ended": "2026-11-05T21:56:50Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -41,11 +41,19 @@
       "started": "2026-11-05T20:55:20Z",
       "ended": "2026-11-05T21:51:22Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "1916d54c-a62a-4c4c-911e-4f9efe6a5b90",
+      "phase": "wrap",
+      "sir": "1.0.22",
+      "started": "2026-11-05T21:53:52Z",
+      "ended": "2026-11-05T21:56:50Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
-    "escalationsRaised": 0,
+    "userInteractions": 5,
+    "escalationsRaised": 1,
     "reviewRounds": 0
   }
 }
