@@ -1767,6 +1767,61 @@ re-derived against the post-change worktree by content search**, and the positio
 `measurement.md` are historical positions at the session base that are **NOT navigable at `HEAD`**. The record's
 severity, category, effort and risk are unchanged.**]**
 
+**[AMENDED 20261105-1907-core-heavy-rows, 2026-11-05 -- the `CW90` / `CW180` / `CW270` rename this entry's
+`Suggested direction.` proposes is now DONE, with the data migration the `AMENDED 6b-xvii` block above said it
+needed, and that block's comparison with `PathSegmentKind` is corrected.** The register row is `MASTER-130` at
+`00-master-index.md:318`, which stays **part done**. **Nothing below deletes any previous wording.** Every
+figure in this block is labelled either as measured by this session's task `T4` on the session worktree, or as
+told, with its source. The contract files cited below are in
+`.sir/sessions/20261105-1907-core-heavy-rows/contracts/`.
+
+*The `CW90` family, closed.* Measured by `T4`: `grep -n Clockwise` on
+`src/DungeonMaster.Domain/Entities/Floors/ObjectRotation.cs` prints `:16` `Clockwise90,`, `:21` `Clockwise180,`
+and `:26` `Clockwise270`, and `None` is unchanged at `:11`. `ls src/DungeonMaster.Infrastructure/Migrations/`
+lists `20261105195218_RenameObjectRotationClockwiseMembers.cs` and its `.Designer.cs`. The migration's `Up`
+rewrites the stored `PlacedObjects.Rotation` strings `'CW90'` to `'Clockwise90'`, `'CW180'` to `'Clockwise180'`
+and `'CW270'` to `'Clockwise270'`; its `Down` is the exact inverse; `'None'` and every other value are left
+untouched in both directions (`C2-rotation-migration.md` section 2, read by `T4` against the migration's two
+`UPDATE` statements). The proof is the test class `RenameObjectRotationClockwiseMembersMigrationTests`. P-CW
+(`C1-measurement.md` section 2) prints **0 lines**, measured by `T4` after re-running its exclusion control,
+which kept only its one must-keep line. Told, not measured by `T4`: `T1`'s review record
+(`.sir/sessions/20261105-1907-core-heavy-rows/reviews/T1.md`) reports the five migration tests passing, the
+solution build at 0 warnings and 0 errors, and the full suite at 187, 958 and 123 passed with 0 failed. The
+rename `Suggested direction.` proposes is therefore done, and done with the data migration the
+`AMENDED 6b-xvii` block said it needed, not on that paragraph's premise that persisted values are unaffected.
+
+*Correction -- the `PathSegmentKind` comparison in the `AMENDED 6b-xvii` block.* Previous wording, verbatim,
+joined across its line breaks (`:1712-1714` of this file): "**The rename is therefore the same blocker class as
+the `PathSegmentKind` row this register already parks as blocked**, and it was excluded by user decision; a
+backlog item covers both renames with real migrations." Measured by `T4`:
+`src/DungeonMaster.Domain/ValueObjects/PathSegmentKind.cs`, read in full, declares two members, `Line` at `:11`
+(`grep -n 'Line,'`) and `CubicBezier` at `:16` (`grep -n CubicBezier`); neither is abbreviated, so no rename is
+owed. `PathSegmentKind` is persisted by **ordinal**: it is the `Kind` of each `PathSegment` in the
+`Areas.Outline` JSON column, serialised with `new(JsonSerializerDefaults.General)` at
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:16`, and JC
+(`C1-measurement.md` section 3) prints nothing, after its control printed 2, so no JSON enum converter exists
+anywhere in `src`; `PathSegmentJsonRoundTripTests.cs:28-29` stores `"Kind": 0` and `"Kind": 1` accordingly.
+Renaming its members would rewrite nothing stored; renumbering them would. The blocker the register parked it
+on (`MASTER-178`, `00-master-index.md:366`) concerned adding a zero member -- a renumbering, not a rename. "The
+same blocker class" is therefore imprecise, and "both renames" is false: one rename was owed, and it is the one
+recorded above.
+
+*Line positions in the `AMENDED 6b-xvii` block, re-measured by `T4`.* In
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs`, the `Rotation` chain
+that block places at `:30`, `:31` and `:32` is now at `:39-42`: `:39` `builder.Property(obj =>`, `:40`
+`obj.Rotation)`, `:41` `.IsRequired()`, `:42` `.HasConversion<string>();`, by `grep -n Rotation`, which prints
+`:40`, and a read of the lines around it. The `Kind` chain's `.HasConversion<string>();`, which that block
+places at `:28`, is now at `:37`: `grep -n 'HasConversion<string>()'` prints `:37` and `:42`, and only `:42`
+belongs to the `Rotation` chain. In `ObjectRotation.cs`, the block's `:16`, `:21` and `:26` now hold
+`Clockwise90`, `Clockwise180` and `Clockwise270`, as measured above.
+
+*Why the entry stays part done.* The `ct` residue and the `obj` residue (`MASTER-130`, EXCLUSIONS 2 and 3) are
+unchanged and outside this session's scope; their figures in the `AMENDED 6b-xvii` block are carried as
+recorded there, not re-measured. This entry's `What.`, `Why it matters.` and `Suggested direction.` paragraphs
+and its `locations:` list are left exactly as written. **No hash for this session's commit appears in this
+block:** this session's tasks run without git and the orchestrator makes the commit. The record's severity,
+category, effort and risk are unchanged.**]**
+
 ### CORE-025 -- Six public Domain types carry no XML documentation
 
 ```yaml
