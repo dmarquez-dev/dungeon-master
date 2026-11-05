@@ -218,7 +218,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 		var obj = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(123.5f, 456.25f),
-			ObjectRotation.CW90,
+			ObjectRotation.Clockwise90,
 			1.5f);
 
 		await using (var unitOfWork = await CreateFactory().CreateAsync(CancellationToken.None))
@@ -237,7 +237,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 		var loadedObj = loaded!.Floors.Single().Objects.Single();
 		loadedObj.Id.Should().Be(obj.Id);
 		loadedObj.Position.Should().Be(new CanvasPoint(123.5f, 456.25f));
-		loadedObj.Rotation.Should().Be(ObjectRotation.CW90);
+		loadedObj.Rotation.Should().Be(ObjectRotation.Clockwise90);
 		loadedObj.Scale.Should().Be(1.5f);
 		loadedObj.FloorId.Should().Be(floor.Id);
 	}

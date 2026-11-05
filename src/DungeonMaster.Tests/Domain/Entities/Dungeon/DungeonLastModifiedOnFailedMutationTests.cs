@@ -125,7 +125,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 			floor.Id,
 			Guid.NewGuid(),
 			new CanvasPoint(10f, 10f),
-			ObjectRotation.CW90,
+			ObjectRotation.Clockwise90,
 			1f);
 
 		// Assert

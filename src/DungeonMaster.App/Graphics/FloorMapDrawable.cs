@@ -741,9 +741,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	{
 		var degrees = rotation switch
 		{
-			ObjectRotation.CW90 => 90f,
-			ObjectRotation.CW180 => 180f,
-			ObjectRotation.CW270 => 270f,
+			ObjectRotation.Clockwise90 => 90f,
+			ObjectRotation.Clockwise180 => 180f,
+			ObjectRotation.Clockwise270 => 270f,
 			_ => 0f
 		};
 

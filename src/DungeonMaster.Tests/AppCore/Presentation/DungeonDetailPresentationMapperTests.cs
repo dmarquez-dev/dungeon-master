@@ -16,7 +16,7 @@ public class DungeonDetailPresentationMapperTests
 		new(Guid.NewGuid(), name, description, notes, outline ?? []);
 
 	private static PlacedObjectDto PlacedObjectDtoWith(float scale = 1f) =>
-		new(Guid.NewGuid(), ObjectKind.DoorWood, new CanvasPoint(3f, 4f), ObjectRotation.CW90, scale);
+		new(Guid.NewGuid(), ObjectKind.DoorWood, new CanvasPoint(3f, 4f), ObjectRotation.Clockwise90, scale);
 
 	private static FloorDto FloorDtoWith(
 		string? name = "Floor",
@@ -87,7 +87,7 @@ public class DungeonDetailPresentationMapperTests
 		item.Id.Should().Be(dto.Id);
 		item.Kind.Should().Be(ObjectKind.DoorWood);
 		item.Position.Should().Be(new CanvasPoint(3f, 4f));
-		item.Rotation.Should().Be(ObjectRotation.CW90);
+		item.Rotation.Should().Be(ObjectRotation.Clockwise90);
 		item.Scale.Should().Be(2.5f);
 	}
 

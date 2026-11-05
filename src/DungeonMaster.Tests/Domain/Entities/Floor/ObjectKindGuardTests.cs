@@ -108,13 +108,13 @@ public class ObjectKindGuardTests
 			floorId,
 			ObjectKind.DoorWood,
 			position,
-			ObjectRotation.CW90,
+			ObjectRotation.Clockwise90,
 			ObjectScale.Default);
 
 		// Assert
 		obj.Kind.Should().Be(ObjectKind.DoorWood);
 		obj.FloorId.Should().Be(floorId);
 		obj.Position.Should().Be(position);
-		obj.Rotation.Should().Be(ObjectRotation.CW90);
+		obj.Rotation.Should().Be(ObjectRotation.Clockwise90);
 	}
 }

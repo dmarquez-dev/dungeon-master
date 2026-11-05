@@ -12,10 +12,10 @@ public sealed class SqliteInMemoryTestBaseTests : SqliteInMemoryTestBase
 {
 	/// <summary>
 	///		The number of migration files in <c>src/DungeonMaster.Infrastructure/Migrations</c>, excluding the designer and snapshot files.
-	///		Measured with <c>ls src/DungeonMaster.Infrastructure/Migrations/*.cs | grep -v Designer | grep -v Snapshot | wc -l</c>, which returned 3: <c>InitialCreate</c>, <c>AddFloorDescription</c>, <c>UtcDateTimeTimestampsAndScaleWithoutStoreDefault</c>.
+	///		Measured with <c>ls src/DungeonMaster.Infrastructure/Migrations/*.cs | grep -v Designer | grep -v Snapshot | wc -l</c>, which returned 4: <c>InitialCreate</c>, <c>AddFloorDescription</c>, <c>UtcDateTimeTimestampsAndScaleWithoutStoreDefault</c>, <c>RenameObjectRotationClockwiseMembers</c>.
 	///		A migration added without this constant moving fails <see cref="AppliedMigrations_CountMatchesTheMigrationFilesOnDisk"/> deliberately.
 	/// </summary>
-	private const int AppliedMigrationCount = 3;
+	private const int AppliedMigrationCount = 4;
 
 	/// <summary>
 	///		Verifies that the fixture applies every migration on disk and leaves none pending.

@@ -103,13 +103,13 @@ public class FloorObjectMethodsTests
 		var updated = floor.UpdateObject(
 			obj.Id,
 			newPos,
-			ObjectRotation.CW90,
+			ObjectRotation.Clockwise90,
 			2.0f);
 
 		// Assert
 		updated.Should().Be(MutationOutcome.Success);
 		obj.Position.Should().Be(newPos);
-		obj.Rotation.Should().Be(ObjectRotation.CW90);
+		obj.Rotation.Should().Be(ObjectRotation.Clockwise90);
 		obj.Scale.Should().Be(2.0f);
 	}
 

@@ -18,7 +18,7 @@ public class PlacedObjectTests
 			floorId,
 			ObjectKind.DoorWood,
 			pos,
-			ObjectRotation.CW90,
+			ObjectRotation.Clockwise90,
 			ObjectScale.Default);
 
 		// Assert
@@ -26,7 +26,7 @@ public class PlacedObjectTests
 		obj.FloorId.Should().Be(floorId);
 		obj.Kind.Should().Be(ObjectKind.DoorWood);
 		obj.Position.Should().Be(pos);
-		obj.Rotation.Should().Be(ObjectRotation.CW90);
+		obj.Rotation.Should().Be(ObjectRotation.Clockwise90);
 		obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 	}
 
@@ -59,11 +59,11 @@ public class PlacedObjectTests
 		var newPos = new CanvasPoint(160f, 80f);
 
 		// Act
-		obj.Update(newPos, ObjectRotation.CW180, 1.5f);
+		obj.Update(newPos, ObjectRotation.Clockwise180, 1.5f);
 
 		// Assert
 		obj.Position.Should().Be(newPos);
-		obj.Rotation.Should().Be(ObjectRotation.CW180);
+		obj.Rotation.Should().Be(ObjectRotation.Clockwise180);
 		obj.Scale.Should().BeApproximately(1.5f, 0.001f);
 	}
 
