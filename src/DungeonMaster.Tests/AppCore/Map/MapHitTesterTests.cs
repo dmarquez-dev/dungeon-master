@@ -234,8 +234,8 @@ public class MapHitTesterTests
 		// Arrange
 		// Scale and Rotation are deliberately not consulted. Were Scale consulted, the 4x4 tile
 		// object at Scale 0.1 would rank smaller than the 2x2 tile object at Scale 10 and win.
-		var largeTilesTinyScale = PlacedObject(ObjectKind.Bed, 100f, 100f, scale: 0.1f, rotation: ObjectRotation.CW90);
-		var smallTilesHugeScale = PlacedObject(ObjectKind.Chest, 100f, 100f, scale: 10f, rotation: ObjectRotation.CW270);
+		var largeTilesTinyScale = PlacedObject(ObjectKind.Bed, 100f, 100f, scale: 0.1f, rotation: ObjectRotation.Clockwise90);
+		var smallTilesHugeScale = PlacedObject(ObjectKind.Chest, 100f, 100f, scale: 10f, rotation: ObjectRotation.Clockwise270);
 
 		// Act
 		var result = MapHitTester.HitTestObject(

@@ -78,7 +78,7 @@ public sealed class AddPlacedObjectCommandHandlerTests : DungeonNotFoundHandlerT
 			floorId,
 			ObjectKind.Chair,
 			new CanvasPoint(120f, 160f),
-			ObjectRotation.CW90);
+			ObjectRotation.Clockwise90);
 
 		// Act
 		var result = await Handler.HandleAsync(command, CancellationToken.None);

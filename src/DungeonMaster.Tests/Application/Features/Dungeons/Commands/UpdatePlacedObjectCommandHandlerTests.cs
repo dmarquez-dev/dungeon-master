@@ -48,7 +48,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			floor.Id,
 			placedObject.Id,
 			new CanvasPoint(200f, 200f),
-			ObjectRotation.CW90);
+			ObjectRotation.Clockwise90);
 
 		// Act
 		var result = await Handler.HandleAsync(
@@ -58,7 +58,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 		// Assert
 		result.IsSuccess.Should().BeTrue();
 		placedObject.Position.Should().Be(new CanvasPoint(200f, 200f));
-		placedObject.Rotation.Should().Be(ObjectRotation.CW90);
+		placedObject.Rotation.Should().Be(ObjectRotation.Clockwise90);
 		placedObject.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 
 		WriteRepository
@@ -155,7 +155,7 @@ public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandl
 			floor.Id,
 			Guid.NewGuid(),
 			new CanvasPoint(999f, 999f),
-			ObjectRotation.CW180);
+			ObjectRotation.Clockwise180);
 
 		// Act
 		var result = await Handler.HandleAsync(

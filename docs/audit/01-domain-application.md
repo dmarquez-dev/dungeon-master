@@ -1767,6 +1767,61 @@ re-derived against the post-change worktree by content search**, and the positio
 `measurement.md` are historical positions at the session base that are **NOT navigable at `HEAD`**. The record's
 severity, category, effort and risk are unchanged.**]**
 
+**[AMENDED 20261105-1907-core-heavy-rows, 2026-11-05 -- the `CW90` / `CW180` / `CW270` rename this entry's
+`Suggested direction.` proposes is now DONE, with the data migration the `AMENDED 6b-xvii` block above said it
+needed, and that block's comparison with `PathSegmentKind` is corrected.** The register row is `MASTER-130` at
+`00-master-index.md:318`, which stays **part done**. **Nothing below deletes any previous wording.** Every
+figure in this block is labelled either as measured by this session's task `T4` on the session worktree, or as
+told, with its source. The contract files cited below are in
+`.sir/sessions/20261105-1907-core-heavy-rows/contracts/`.
+
+*The `CW90` family, closed.* Measured by `T4`: `grep -n Clockwise` on
+`src/DungeonMaster.Domain/Entities/Floors/ObjectRotation.cs` prints `:16` `Clockwise90,`, `:21` `Clockwise180,`
+and `:26` `Clockwise270`, and `None` is unchanged at `:11`. `ls src/DungeonMaster.Infrastructure/Migrations/`
+lists `20261105195218_RenameObjectRotationClockwiseMembers.cs` and its `.Designer.cs`. The migration's `Up`
+rewrites the stored `PlacedObjects.Rotation` strings `'CW90'` to `'Clockwise90'`, `'CW180'` to `'Clockwise180'`
+and `'CW270'` to `'Clockwise270'`; its `Down` is the exact inverse; `'None'` and every other value are left
+untouched in both directions (`C2-rotation-migration.md` section 2, read by `T4` against the migration's two
+`UPDATE` statements). The proof is the test class `RenameObjectRotationClockwiseMembersMigrationTests`. P-CW
+(`C1-measurement.md` section 2) prints **0 lines**, measured by `T4` after re-running its exclusion control,
+which kept only its one must-keep line. Told, not measured by `T4`: `T1`'s review record
+(`.sir/sessions/20261105-1907-core-heavy-rows/reviews/T1.md`) reports the five migration tests passing, the
+solution build at 0 warnings and 0 errors, and the full suite at 187, 958 and 123 passed with 0 failed. The
+rename `Suggested direction.` proposes is therefore done, and done with the data migration the
+`AMENDED 6b-xvii` block said it needed, not on that paragraph's premise that persisted values are unaffected.
+
+*Correction -- the `PathSegmentKind` comparison in the `AMENDED 6b-xvii` block.* Previous wording, verbatim,
+joined across its line breaks (`:1712-1714` of this file): "**The rename is therefore the same blocker class as
+the `PathSegmentKind` row this register already parks as blocked**, and it was excluded by user decision; a
+backlog item covers both renames with real migrations." Measured by `T4`:
+`src/DungeonMaster.Domain/ValueObjects/PathSegmentKind.cs`, read in full, declares two members, `Line` at `:11`
+(`grep -n 'Line,'`) and `CubicBezier` at `:16` (`grep -n CubicBezier`); neither is abbreviated, so no rename is
+owed. `PathSegmentKind` is persisted by **ordinal**: it is the `Kind` of each `PathSegment` in the
+`Areas.Outline` JSON column, serialised with `new(JsonSerializerDefaults.General)` at
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:16`, and JC
+(`C1-measurement.md` section 3) prints nothing, after its control printed 2, so no JSON enum converter exists
+anywhere in `src`; `PathSegmentJsonRoundTripTests.cs:28-29` stores `"Kind": 0` and `"Kind": 1` accordingly.
+Renaming its members would rewrite nothing stored; renumbering them would. The blocker the register parked it
+on (`MASTER-178`, `00-master-index.md:366`) concerned adding a zero member -- a renumbering, not a rename. "The
+same blocker class" is therefore imprecise, and "both renames" is false: one rename was owed, and it is the one
+recorded above.
+
+*Line positions in the `AMENDED 6b-xvii` block, re-measured by `T4`.* In
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs`, the `Rotation` chain
+that block places at `:30`, `:31` and `:32` is now at `:39-42`: `:39` `builder.Property(obj =>`, `:40`
+`obj.Rotation)`, `:41` `.IsRequired()`, `:42` `.HasConversion<string>();`, by `grep -n Rotation`, which prints
+`:40`, and a read of the lines around it. The `Kind` chain's `.HasConversion<string>();`, which that block
+places at `:28`, is now at `:37`: `grep -n 'HasConversion<string>()'` prints `:37` and `:42`, and only `:42`
+belongs to the `Rotation` chain. In `ObjectRotation.cs`, the block's `:16`, `:21` and `:26` now hold
+`Clockwise90`, `Clockwise180` and `Clockwise270`, as measured above.
+
+*Why the entry stays part done.* The `ct` residue and the `obj` residue (`MASTER-130`, EXCLUSIONS 2 and 3) are
+unchanged and outside this session's scope; their figures in the `AMENDED 6b-xvii` block are carried as
+recorded there, not re-measured. This entry's `What.`, `Why it matters.` and `Suggested direction.` paragraphs
+and its `locations:` list are left exactly as written. **No hash for this session's commit appears in this
+block:** this session's tasks run without git and the orchestrator makes the commit. The record's severity,
+category, effort and risk are unchanged.**]**
+
 ### CORE-025 -- Six public Domain types carry no XML documentation
 
 ```yaml
@@ -2462,6 +2517,70 @@ with ordering requirements -- the balance shifts.
 keeping it. Revisit only if the pipeline needs ordered behaviors, notifications, or query-side
 cross-cutting concerns, at which point a library becomes cheaper than growing this one.
 
+**[AMENDED 20261105-1907-core-heavy-rows, 2026-11-05 -- `MASTER-157` is CLOSED DELIBERATELY UNCHANGED by
+user decision at Gate 1, and the size this entry's `What.` paragraph gives is stale. Classification:
+DRIFT.** The register row is `MASTER-157` at `00-master-index.md:345`. **Nothing below deletes any previous
+wording.** Every figure in this block is labelled either as measured by this session's task `T2` on the
+session worktree, or as told, with its source. The contract files cited below are in
+`.sir/sessions/20261105-1907-core-heavy-rows/contracts/`.
+
+*Closure.* `MASTER-157` (`00-master-index.md:345`) is CLOSED **DELIBERATELY UNCHANGED** by user decision at
+Gate 1: the user chose to keep the hand-rolled dispatcher, which is this entry's own `Suggested direction.`
+("Keep it"). No code changed.
+
+*The stale size.* Previous wording, verbatim, from `What.` (`:2447` of this file at this session's startRef):
+"The `Common/Dispatch` folder is seven files and 233 lines". Measured by `T2`:
+`wc -l src/DungeonMaster.Application/Common/Dispatch/*.cs` lists 8 files and 437 lines in total,
+`Dispatcher.cs` 209; the eighth file is `IRequest.cs` (9 lines). Told, measured by the orchestrator in the
+spec phase and recorded in `C4-register.md` section 1.3: `16d594b` ("docs: add code-quality audit for domain
+and application", 2026-08-17) is the only commit `git log -S 'seven files and 233 lines'` prints over this
+file, and at that commit `Common/Dispatch/` held seven files -- `Dispatcher.cs` 70, `ICommand.cs` 9,
+`ICommandHandler.cs` 32, `IDispatcher.cs` 47, `IPipelineBehavior.cs` 36, `IQuery.cs` 9, `IQueryHandler.cs`
+30 -- totalling 233, by `git show 16d594b:<path>` piped to `wc -l` per file; the same method at `62ba566`
+prints 8 files and 437 lines. Classification **DRIFT**: exact at its commit, moved since.
+
+*The three costs.* `Why it matters.` names them as `CORE-010`, `CORE-011` and `CORE-012`. Their register
+rows, `MASTER-089` (`00-master-index.md:277`), `MASTER-090` (`:278`) and `MASTER-080` (`:268`), each read
+**done**: that is what the register says (told), and `T2` verified each in code rather than take it from
+there. Paths below are under `src/DungeonMaster.Application/`.
+
+*`CORE-011`, uncached reflection and `dynamic`.* DYN (`C1-measurement.md` section 4) prints nothing, its
+control re-run first. `Common/Dispatch/Dispatcher.cs:18` declares
+`private static readonly ConcurrentDictionary<Type, object> Invokers`. `grep -n 'Invokers.GetOrAdd'` on
+`Dispatcher.cs` prints `:31`, `:48` and `:67` (the two `SendAsync` overloads and `QueryAsync`), and
+`grep -n MakeGenericType` on it prints `:35`, `:52` and `:71`, each inside the `static` value factory of the
+`GetOrAdd` above it: the closed invoker type is built once per request type and cached.
+
+*`CORE-010`, the hand-maintained registration list.* `grep -n 'AddScoped<' DependencyInjection.cs` prints
+one line, `:27`, `services.AddScoped<IDispatcher, Dispatcher>();`: no handler is registered by name.
+`grep -n ScannedTypes DependencyInjection.cs` prints `:29` (the registration loop), `:99` (the self-check
+loop) and `:137` (the property, an assembly scan of the Application assembly). `ValidateHandlerRegistrations`
+(`DependencyInjection.cs:93`) asserts exactly one marker and exactly one handler per request type; it is
+exercised by `ApplicationServiceRegistrationTests.cs` (`:29`, `:46`) and is not called at app startup:
+`grep -rn ValidateHandlerRegistrations src/DungeonMaster.App --include=*.cs --exclude-dir=obj
+--exclude-dir=bin`, run from the worktree root, prints nothing.
+
+*`CORE-012`, queries bypassing the pipeline.* `Common/Dispatch/IQuery.cs:9-10` declares
+`public interface IQuery<TResult>` `: IRequest<TResult>`. `grep -n 'BuildPipeline<'` on `Dispatcher.cs`
+prints `:84` (the definition) and `:133`, `:166`, `:199`; `:199` is inside `TypedQueryInvoker`, so a query
+passes through the same `IPipelineBehavior` composition as a command. No behavior is registered for
+queries, by design: `ValidationBehavior` is registered in the two command branches
+(`DependencyInjection.cs:48-54`, whose comment at `:48-49` reads "so that no query can ever acquire a
+validation behavior", and `:64-70`). The pipeline is reachable by queries and empty for them.
+
+*The residue.* The grep of `C4-register.md` section 1.2 D, run by `T2` on `Dispatcher.cs`, prints `:92`,
+`:131`, `:164` and `:197`: handlers and behaviors are still resolved from `IServiceProvider` at dispatch
+time. That is the service-location shape `MASTER-089`'s title names. Its hand-maintained-list half is gone;
+its service-location half remains, by design, inherent in the dispatcher Gate 1 kept. The three costs are
+therefore not all fully gone, and this block does not claim they are.
+
+This entry's `What.`, `Why it matters.` and `Suggested direction.` paragraphs are left exactly as written,
+and its `locations:` list is kept unchanged as a record of the audited state; this block does not
+re-derive those lines. **No hash for this session's commit appears in this block** (the two hashes above
+are the orchestrator's, told): this session's tasks run without git and the orchestrator makes the
+commit; no code changed for this row in any case. The record's severity,
+category, effort and risk are unchanged.**]**
+
 ### CORE-032 -- Both query handlers wrap a single passthrough call in an async state machine
 
 ```yaml
@@ -2834,6 +2953,104 @@ need their three comparison sites reconsidered before a zero member is worth add
 needs a persistence decision first. (`SnapAnchor`, now class C, is no longer in this list.) The cheapest
 durable fix for `PathSegmentKind` is to register a `JsonStringEnumConverter` and migrate the stored outlines to names, after
 which its ordinals stop being load-bearing and a zero member becomes free; that is a session of its own.
+
+**[AMENDED 20261105-1907-core-heavy-rows, 2026-11-05 -- `MASTER-178` is CLOSED DELIBERATELY UNCHANGED: each of
+the twelve enums this entry leaves with a concrete member at zero now has a recorded disposition, and none is
+owed a change.** The register row is `MASTER-178` at `00-master-index.md:366`.
+**Nothing below deletes any previous wording.** Every figure in this block is labelled either as measured by
+this session's task `T3` on the session worktree, or as told, with its source. The contract files cited below are in
+`.sir/sessions/20261105-1907-core-heavy-rows/contracts/`.
+
+*Closure.* `MASTER-178` (`00-master-index.md:366`) is CLOSED **DELIBERATELY UNCHANGED** by this session. The
+rule applied is Gate 1's (told, `C3-enum-census.md` section 4): where `default(T)` is actually reachable
+**and** is a defect, add a `None` member, with a data migration if the enum is persisted; otherwise close the
+enum deliberately unchanged with a stated reason. No enum of the twelve meets both conditions, so no `None`
+member and no data migration was added, and no code changed.
+
+*The validated census.* The instrument is the Python census in `C3-enum-census.md` section 1, recreated by
+`T3` byte for byte as `census.py`; `sha256sum census.py` printed
+`2a10830e5ac1569f5f542c99ae17802a805290e4f4e1e1fae5500d3aadb5b05a`, the digest that section states. It walks
+`src/`, skips `obj/`, `bin/` and the four test projects, strips comments and string literals from each `.cs`
+file, honours explicit `= n`, and reports the member at zero of each enum. Its control ran first, on the
+fixture of `C3-enum-census.md` section 2 (the sha256 of both fixture files matched that section):
+`python -I census.py <fixture>` printed these six lines (tab-separated; tabs shown here as two spaces), whose
+CR-stripped sha256 is `db60df1b3f0d35513572960c642ee4a555a21ac2c7becad99f20586059864758`:
+
+```
+Explicit  zero=None  explicit=True  src/Prod/F.cs
+ExplicitZeroLater  zero=B  explicit=True  src/Prod/F.cs
+Hidden  zero=First  explicit=True  src/Prod/F.cs
+MustFlag  zero=Alpha  explicit=False  src/Prod/F.cs
+MustNotFlag  zero=None  explicit=False  src/Prod/F.cs
+TOTAL 5 NONE_AT_ZERO 1 CONCRETE_AT_ZERO 3 NO_ZERO 1
+```
+
+On the session worktree, `python -I census.py C:/dm-wt/20261105-1907-core-heavy-rows` prints 17 enum rows
+ending `TOTAL 17 NONE_AT_ZERO 5 CONCRETE_AT_ZERO 12 NO_ZERO 0`, CR-stripped sha256
+`8d1d455164802c1cc7495043f0983bf0b7c00de2e4d7734d03a5b9a26470d929`, the output `C3-enum-census.md` section 3
+records. The five with `None` at zero are `DrawSessionResult`, `FloorDropOwner`, `MutationOutcome`,
+`ObjectKind` and `ObjectRotation`; the twelve with a concrete member at zero are the twelve rows of the table
+below. The second predicate, the line-based `grep` of `C3-enum-census.md` section 3, which cannot share the
+parser's mistakes, prints **17** lines, one per enum the census names, the nested `private enum NotebookPane`
+included. Its exclusion control (the same pipeline with `grep -v` replaced by `grep`) prints exactly one line,
+`src/DungeonMaster.Tests/App/AsyncDiscipline/AsyncDisciplineScanner.cs:288:public enum AsyncVoidUnitKind`, so
+the test-project exclusion fires and removes only that line. The two counts agree. **Reading the census
+rows:** the script prints Python's `None` for an enum with no member at zero, so a row reading `zero=None` is
+ambiguous between "a member named `None` sits at zero" and "no member is zero" -- the fixture's `Explicit` row
+is the second case. The TOTAL line is not ambiguous (it compares against the string `'None'`), and on the
+worktree it prints `NO_ZERO 0`, so every `zero=None` row there is a member named `None`. The 12 of 17 agrees
+with the post-change figure this entry and `MASTER-178` already record for 6b-ix.
+
+*Dispositions.* One row per enum the census prints with a concrete member at zero, and none for the five with
+`None` at zero. Every citation was re-read by `T3` on the session worktree; the reasons are those of
+`C3-enum-census.md` section 4 (told), checked against that re-read. File names are short; their paths under
+`src/` are listed after the table.
+
+| # | Enum | Zero member | Disposition | Reason and evidence |
+| --- | --- | --- | --- | --- |
+| 1 | `PathSegmentKind` | `Line` | deliberately unchanged | `PathSegment` is a `record` class (`PathSegment.cs:28`) whose redeclared `Kind` initializer (`:38`) validates every value in `ValidateControlPoints` (`:43-88`), whose final `else` arm throws `ArgumentOutOfRangeException` for an undefined kind. It is persisted by ordinal in the `Areas.Outline` JSON column (`AreaConfiguration.cs:16`, `new(JsonSerializerDefaults.General)`); JC (`C1-measurement.md` section 3) prints nothing, its control re-run first. `PathSegmentJsonRoundTripTests.cs:28-29` are the two raw-JSON lines pinning `"Kind": 0` as `Line` and `"Kind": 1` as `CubicBezier`. `Line` is the most common segment and a valid one, so a `0` read from storage is correct data, not a leaked default; adding `None = 0` would reinterpret every stored outline (a JSON data migration) to fix no defect. |
+| 2 | `RotationDirection` | `Clockwise` | deliberately unchanged | Raised only at `ControlsPaletteView.xaml.cs:27` (`CounterClockwise`) and `:28` (`Clockwise`), both explicit; consumed by `==` at `DungeonDetailPage.xaml.cs:139` and `:150`. No field or property stores the type: `grep -rn RotationDirection` over production `src/` prints only the event declaration (`ControlsPaletteView.xaml.cs:14`), those four lines and the enum's own declaration. `default` is never produced; every value comes from an explicit producer. |
+| 3 | `ScaleDirection` | `Up` | deliberately unchanged | Raised only at `ControlsPaletteView.xaml.cs:29` (`Down`) and `:30` (`Up`); consumed by `==` at `DungeonDetailPage.xaml.cs:166`. No stored field: the same grep for `ScaleDirection` prints only the event declaration (`ControlsPaletteView.xaml.cs:19`), those three lines and the enum's own declaration. Unchanged for the same reason as row 2. |
+| 4 | `SnapAnchor` | `Center` | deliberately unchanged | The only production producer is `ObjectKindInfo.GetDefaultAnchor` (`ObjectKindInfo.cs:40`), whose every path returns an explicit member (`:52` `East`, `:56` `South`, `:58` `Center` as the terminal fallback). `grep -rn 'GetDefaultAnchor(' src --include=*.cs --exclude-dir=obj --exclude-dir=bin` prints that declaration and three lines of `DungeonMaster.App.UnitTests/Assets/ObjectAssets/ObjectKindInfoTests.cs` (`:108`, `:116`, `:173`), and nothing else: it has no production caller. `Center` is the repository's own stated fallback (this entry's class C reclassification) and no `default` is produced. |
+| 5 | `MapTool` | `Draw` | deliberately unchanged | The only stored `MapTool` is `MapCanvasViewModel.ActiveTool`, initialised `= MapTool.Pan` (`MapCanvasViewModel.cs:47`); `MapEditorState.SetActiveTool` takes it as a parameter (`MapEditorState.cs:148`) and stores none. The default is never observed: the one stored field is initialised explicitly. |
+| 6 | `DrawState` | `Idle` | deliberately unchanged | `public DrawState DrawState { get; private set; }` has no initializer (`MapEditorState.cs:42`), so `default` **is** reached at construction; it is then set explicitly (`:154-156`, `:162`, `:188-190`). The reachable default is `Idle`, which is the correct initial state, so this is the guideline's "most common default" branch, not a defect. |
+| 7 | `NotebookKind` | `Dungeon` | deliberately unchanged | Both carriers are `record` classes (`NotebookTarget.cs:15`, `NotebookSaveArgs.cs:14`), so their default is `null`, not a zero `Kind`; every producer passes an explicit kind (`DungeonDetailPage.xaml.cs:673` `Dungeon`, `:988` `Floor`, `:997` `Area`). `default` is never produced. |
+| 8 | `NotebookPane` | `Description` | deliberately unchanged | A `private enum` (`NotebookView.xaml.cs:17`); every call passes an explicit pane (`:159`, `:203`, `:346` `Description`; `:349` `Notes`), and no field stores the type. Private, never defaulted, and `Description` is the pane the view opens on (`:159`, `:203`). |
+| 9 | `CanvasCursorShape` | `Arrow` | deliberately unchanged | No stored field. `DungeonDetailPage.xaml.cs:1129` maps every unlisted tool to `CanvasCursorShape.Arrow` (the `_ =>` arm), and the Windows mapping falls back to the system arrow (`PlatformCanvasCursor.Windows.cs`, the `_ =>` arm of `ToSystemShape`, `:71` in the method at `:64`). `Arrow` is the ordinary cursor and the code's own fallback, so a zero `Arrow` is the most common default. |
+| 10 | `BehaviorCursorShape` | `Hand` | deliberately unchanged | `HandCursorBehavior.Shape` is initialised `= BehaviorCursorShape.Hand` (`HandCursorBehavior.cs:16`). The property is initialised explicitly, and `Hand` is the behaviour's namesake default. |
+| 11 | `FloorListBandKind` | `FloorCard` | deliberately unchanged | `FloorListBand` is a `readonly record struct` (`FloorReorderNearest.cs:88`), so `default` is constructible; it has `Height` 0, and `Resolve` skips every band with `Height <= 0` in both passes (`:166`, `:187`). The one producer sets the kind explicitly (`DungeonDetailPage.xaml.cs:2412-2413`). A defaulted band is ignored by construction, so its zero kind is never acted on. |
+| 12 | `ErrorCategory` | `Validation` | deliberately unchanged | Modelled as `ErrorCategory?` (`Result.cs:31`, `ResultOfT.cs:49`), so "no category" is `null`, not zero; failures are built with an explicit category. Absence is `null`, so the zero value never stands for "unset". |
+
+Paths under `src/`: `PathSegment.cs` and `PathSegmentKind.cs` in `DungeonMaster.Domain/ValueObjects/`;
+`AreaConfiguration.cs` in `DungeonMaster.Infrastructure/Persistence/Configurations/`;
+`PathSegmentJsonRoundTripTests.cs` in `DungeonMaster.Tests/Infrastructure/Persistence/Configurations/`;
+`ControlsPaletteView.xaml.cs` and `DungeonDetailPage.xaml.cs` in `DungeonMaster.App/Views/DungeonDetailPage/`;
+`ObjectKindInfo.cs` in `DungeonMaster.App/Assets/ObjectAssets/`; `MapCanvasViewModel.cs` in
+`DungeonMaster.App/ViewModels/`; `MapEditorState.cs` and `FloorReorderNearest.cs` in
+`DungeonMaster.App.Core/Editor/`; `NotebookTarget.cs`, `NotebookSaveArgs.cs` and `NotebookView.xaml.cs` in
+`DungeonMaster.App/Controls/NotebookView/`; `PlatformCanvasCursor.Windows.cs` in
+`DungeonMaster.App/Platforms/Windows/`; `HandCursorBehavior.cs` in `DungeonMaster.App/Behaviors/`; `Result.cs`
+and `ResultOfT.cs` in `DungeonMaster.Application/Common/Results/`.
+
+*Superseded framings.* This entry's body records `RotationDirection` and `ScaleDirection` as an open **class B
+design question**, and its body and `Suggested direction.` record `PathSegmentKind` as **blocked**. Both are
+superseded. The class B design question is decided by reachability: a zero member is owed only where the
+default is reachable and wrong, and rows 2 and 3 above show neither enum's default is ever produced. The
+`PathSegmentKind` blocker was real for *adding* a zero member, which needs a data migration of the stored
+outlines; row 1 shows no zero member is owed, so nothing is blocked. The `Suggested direction.`'s
+`JsonStringEnumConverter` route is therefore not needed for this entry.
+
+*Drifted citations,* each re-measured by `T3` with a read of the line on the session worktree:
+`ResultOfT.cs:39`, this entry's `ErrorCategory` citation, now holds `public T? Value { get; private init; }`,
+and the `ErrorCategory?` property is at `:49`. `PathSegmentJsonRoundTripTests.cs:26-28` now opens the raw
+literal at `:26`, and the two raw-JSON `"Kind"` lines are `:28-29`. `DungeonDetailPage.xaml.cs:140`, `:151` and
+`:167` are now `:139`, `:150` and `:166` for the three `==` reads quoted above. The `ControlsPaletteView.xaml.cs`
+producers cited as `:14`-`:17` are at `:27-30`; `:14` and `:19` are the two event declarations. This entry's
+`What.` paragraph, the rest of its body and its `Suggested direction.` are left exactly as written, and its
+`locations:` list is kept unchanged as a record of the audited state; this block does not re-derive those
+lines. **No hash for this session's commit appears in this block:** no code changed for this row, and this
+session's tasks run without git; the orchestrator makes the commit. The record's severity, category, effort
+and risk are unchanged.**]**
 
 ### CORE-036 -- CanvasPoint's remarks block breaks sentences mid-clause across /// lines
 

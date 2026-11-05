@@ -13,15 +13,15 @@ public enum ObjectRotation
 	/// <summary>
 	///		The object is rotated 90 degrees clockwise.
 	/// </summary>
-	CW90,
+	Clockwise90,
 
 	/// <summary>
 	///		The object is rotated 180 degrees clockwise.
 	/// </summary>
-	CW180,
+	Clockwise180,
 
 	/// <summary>
 	///		The object is rotated 270 degrees clockwise.
 	/// </summary>
-	CW270
+	Clockwise270
 }
