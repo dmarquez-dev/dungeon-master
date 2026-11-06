@@ -52,22 +52,24 @@
 		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 
 		<!-- Display name -->
-		<ApplicationTitle>DungeonMaster.App</ApplicationTitle>
+		<ApplicationTitle>Dungeon Master</ApplicationTitle>
 
 		<!-- App Identifier. Was the .NET template's com.companyname.dungeonmaster.app.
 		     "companyname" is not a defensible identity for a shipped app, so it is replaced
 		     with the reverse-DNS form of the GitHub owner (dmarquez-dev; hyphens are not legal
 		     in every platform's package identifier, hence dmarquezdev).
 
-		     THIS IS AN IDENTITY DECISION AND MAY WANT TO BE SOMETHING ELSE. Changing it after
-		     a build has been installed makes the next one a DIFFERENT application to Windows,
-		     which gets its own local app-data folder — and the SQLite database lives there, so
-		     an existing install stops seeing its dungeons. Nothing has shipped yet, so the cost
-		     is zero today and rises the moment it does. -->
+		     This id is SETTLED (MASTER-142, 2026-11-06), together with the shipping identity in
+		     Platforms/Windows/Package.appxmanifest. Do not change it casually: once the app ships
+		     as a packaged (MSIX) build, changing the id makes it a DIFFERENT application to
+		     Windows, with its own package-virtualised app-data folder, so an existing install
+		     would stop seeing its dungeons. Today's unpackaged build (WindowsPackageType None)
+		     stores the SQLite database at a fixed LocalApplicationData\DungeonMaster path
+		     (MauiProgram.cs), so the id does not move it yet. -->
 		<ApplicationId>com.dmarquezdev.dungeonmaster</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->

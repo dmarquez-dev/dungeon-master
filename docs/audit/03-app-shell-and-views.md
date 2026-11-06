@@ -2238,6 +2238,38 @@ after a first install is not a free operation, which makes this cheaper to fix n
 **Suggested direction.** Set a real package name, publisher, and starting version. The `$placeholder$`
 values are driven by properties in the `.csproj`, which is T6's file, so the two changes want coordinating.
 
+**[AMENDED 20261106-0120-shipping-identity, 2026-11-06 (UTC; local 2026-11-05) -- this entry was acted on
+in full as `MASTER-142`, together with `XCUT-015`, and its `What.` paragraph is CORRECTED: the identity values ARE substituted
+at build time, except Publisher.** Form follows the `AMENDED 6b-xvi` block on `UI-003` in this file at
+`:201`.
+
+*Correction -- the claim "the identity values are not" substituted.* `Identity Name` and
+`Identity Version` are build-substituted, exactly as the `$placeholder$` tokens are: `Name` from the
+csproj's `ApplicationId`, `Version` from `ApplicationDisplayVersion` and `ApplicationVersion`. The
+evidence is the generated manifest at
+`src/DungeonMaster.App/obj/Debug/net10.0-windows10.0.19041.0/win-x64/resizetizer/m/Package.appxmanifest`.
+Built 2026-11-03, before this change (read by task `T1` before its rebuild; the file has since been
+regenerated), it read `Name="com.dmarquezdev.dungeonmaster"
+Publisher="CN=User Name" Version="1.0.0.1"`, `DisplayName` `DungeonMaster.App` and
+`PublisherDisplayName` `User Name`, against a source manifest still reading
+`Name="maui-package-name-placeholder"` and `Version="0.0.0.0"`. So `maui-package-name-placeholder` and
+`0.0.0.0` were never values that would ship; only `Publisher` and `PublisherDisplayName` were identity
+and display values the manifest ships as literals, and the entry's "0.0.0.0 is not a version any store accepts" does not describe the shipped
+package.
+
+*Action taken.* With the user's decision, `Publisher` is now `CN=Dungeon Master` and
+`PublisherDisplayName` is `Dungeon Master`; the substituted tokens were left as tokens, with an XML
+comment above `<Identity` saying the csproj is their single source. The csproj now sets
+`ApplicationTitle` `Dungeon Master`, `ApplicationDisplayVersion` `0.1.0` and `ApplicationVersion` `1`,
+and keeps `ApplicationId` `com.dmarquezdev.dungeonmaster`. After the change, `dotnet build
+src/DungeonMaster.App/DungeonMaster.App.csproj -f net10.0-windows10.0.19041.0 -c Debug` ended `Build
+succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the regenerated manifest reads
+`Name="com.dmarquezdev.dungeonmaster" Publisher="CN=Dungeon Master" Version="0.1.0.1"`,
+`<DisplayName>Dungeon Master</DisplayName>` and `<PublisherDisplayName>Dungeon Master</PublisherDisplayName>`.
+Both `locations:` citations have drifted by the new six-line comment: `<Identity`, cited `:9`, is now
+at `Package.appxmanifest:15`, and the `<DisplayName>`/`<PublisherDisplayName>`/`<Logo>` span, cited
+`:14-16`, is now `:20-22`.]**
+
 ### UI-035 -- The Start Session button is present, prominent, and unwired in two views
 
 ```yaml

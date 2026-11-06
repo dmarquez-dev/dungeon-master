@@ -6,13 +6,19 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
-  <Identity Name="maui-package-name-placeholder" Publisher="CN=User Name" Version="0.0.0.0" />
+  <!-- Shipping identity, settled by MASTER-142 (2026-11-06). Identity Name, Identity Version and
+       every $placeholder$ below (display names, description, logos) are left as tokens on purpose:
+       the MAUI build fills them from the csproj's ApplicationId, ApplicationDisplayVersion and
+       ApplicationVersion, ApplicationTitle and the app icon/splash, so DungeonMaster.App.csproj
+       is the single source for those values. Publisher and PublisherDisplayName are not
+       substituted and are the literal values that ship. -->
+  <Identity Name="maui-package-name-placeholder" Publisher="CN=Dungeon Master" Version="0.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="09458DA2-B498-4C09-90E4-71332EE17C7F" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>$placeholder$</DisplayName>
-    <PublisherDisplayName>User Name</PublisherDisplayName>
+    <PublisherDisplayName>Dungeon Master</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
 

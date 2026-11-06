@@ -737,6 +737,39 @@ the fact that the two must agree are why it sits here.
 sees. If the identity is genuinely undecided, the honest form is an ADR saying so with the migration
 cost the comment already describes, rather than a placeholder that reads as finished.
 
+**[AMENDED 20261106-0120-shipping-identity, 2026-11-06 (UTC; local 2026-11-05) -- this entry was acted
+on in full as `MASTER-142`, together with `UI-034`: the user settled the shipping identity and BOTH halves now carry
+it in the same change.** The decision: user-visible name `Dungeon Master`, publisher `CN=Dungeon Master`
+with display name `Dungeon Master`, `ApplicationId` kept as `com.dmarquezdev.dungeonmaster`, and version
+`0.1.0` (`ApplicationDisplayVersion`) with build `1` (`ApplicationVersion`).
+
+*Project-file half.* `ApplicationTitle` is `Dungeon Master`, `ApplicationDisplayVersion` is `0.1.0` and
+`ApplicationVersion` is `1`. The `ApplicationId` comment no longer calls the identity undecided: it
+records the id as settled (MASTER-142, 2026-11-06) and keeps the warning, now scoped to packaged
+(MSIX) builds: once the app ships packaged, changing the id makes it a different app to Windows with
+its own package-virtualised app-data folder, so an existing install would stop seeing its dungeons.
+Today's unpackaged build stores the SQLite database at a fixed
+`LocalApplicationData\DungeonMaster\dungeon-master.db` that does not depend on the id
+(`src/DungeonMaster.App/MauiProgram.cs:121-125`), so the comment's original unscoped form overstated the
+present risk. No ADR was needed, since the identity is decided rather than open.
+
+*Manifest half.* `Publisher` is `CN=Dungeon Master` and `PublisherDisplayName` is `Dungeon Master`;
+these were the only identity and display values the manifest ships as literals. `Name`, `Version` and the `$placeholder$` tokens are
+build-substituted from the project file (see the `AMENDED 20261106-0120-shipping-identity` block on
+`UI-034` in `03-app-shell-and-views.md`, which corrects that entry on this point), so they were left as
+tokens with an XML comment naming the csproj as their single source. After the change, `dotnet build
+src/DungeonMaster.App/DungeonMaster.App.csproj -f net10.0-windows10.0.19041.0 -c Debug` ended `Build
+succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the generated
+`obj/Debug/net10.0-windows10.0.19041.0/win-x64/resizetizer/m/Package.appxmanifest` reads
+`Name="com.dmarquezdev.dungeonmaster" Publisher="CN=Dungeon Master" Version="0.1.0.1"`,
+`<DisplayName>Dungeon Master</DisplayName>` and `<PublisherDisplayName>Dungeon Master</PublisherDisplayName>`.
+
+*Citation drift.* The csproj citations `:29` and `:31-45` no longer point at the identity: by content,
+`<ApplicationTitle>` is at `DungeonMaster.App.csproj:55`, the `App Identifier` comment opens at `:57`,
+`<ApplicationId>` is at `:69`, and `<ApplicationDisplayVersion>`/`<ApplicationVersion>` are at `:72-73`.
+The manifest citations moved by the new six-line comment: `<Identity`, cited `:9`, is now at
+`Package.appxmanifest:15`, and `<Properties>`, cited `:13-17`, is now `:19-23`.]**
+
 ### XCUT-016 -- EF Core is pinned three patch releases behind a version the pin comment shows was evaluated
 
 ```yaml
