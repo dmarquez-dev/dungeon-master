@@ -34,4 +34,26 @@ public interface IDungeonReadRepository
 	Task<DungeonDetailDto?> GetDetailAsync(
 		Guid id,
 		CancellationToken cancellationToken);
+
+	/// <summary>
+	///		Returns the projection of a single floor of a dungeon, or <see langword="null"/> if not found.
+	/// </summary>
+	/// <param name="dungeonId">
+	///		The unique identifier of the dungeon that owns the floor.
+	/// </param>
+	/// <param name="floorId">
+	///		The unique identifier of the floor to retrieve.
+	/// </param>
+	/// <param name="cancellationToken">
+	///		Token used to cancel the operation.
+	/// </param>
+	/// <returns>
+	///		A <see cref="FloorDto"/> when the dungeon owns the floor, or <see langword="null"/> when no dungeon has the given
+	///		dungeon identifier and when that dungeon owns no floor with the given floor identifier. A floor belonging to a
+	///		different dungeon is never returned.
+	/// </returns>
+	Task<FloorDto?> GetFloorDetailAsync(
+		Guid dungeonId,
+		Guid floorId,
+		CancellationToken cancellationToken);
 }
