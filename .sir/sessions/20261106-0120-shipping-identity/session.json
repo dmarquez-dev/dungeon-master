@@ -2,7 +2,7 @@
   "id": "20261106-0120-shipping-identity",
   "name": "shipping-identity",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "criteria": [
     "C1 csproj ApplicationTitle is 'Dungeon Master'; ApplicationId stays 'com.dmarquezdev.dungeonmaster'; ApplicationDisplayVersion is '0.1.0' and ApplicationVersion is '1'.",
     "C2 The ApplicationId comment no longer says the identity is undecided ('MAY WANT TO BE SOMETHING ELSE' is gone); it records the id as settled (MASTER-142, 2026-11-06) and keeps the warning that changing it after an install moves the app-data folder holding the SQLite database.",
@@ -13,7 +13,7 @@
     "C7 Every edited file keeps its original line endings, BOM and tab indentation; no other files change."
   ],
   "started": "2026-11-06T01:20:25Z",
-  "ended": "2026-11-06T01:48:20Z",
+  "ended": "2026-11-06T01:57:26Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -23,6 +23,14 @@
       "sir": "1.0.23",
       "started": "2026-11-06T01:20:25Z",
       "ended": "2026-11-06T01:48:20Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "af19b2b6-b4d0-4650-80e1-018ee77918db",
+      "phase": "wrap",
+      "sir": "1.0.23",
+      "started": "2026-11-06T01:57:07Z",
+      "ended": "2026-11-06T01:57:26Z",
       "outcome": "complete"
     }
   ],
