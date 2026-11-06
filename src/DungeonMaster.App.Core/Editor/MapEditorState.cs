@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 
@@ -11,8 +13,15 @@ namespace DungeonMaster.App.Core.Editor;
 ///		that needs it takes it as a parameter. The in-progress vertex list likewise stays on
 ///		MapDrawingSession. Gesture plumbing, cursor shape, opacity and input transparency
 ///		toggling, and placeholder insertion all remain view work in the page.
+///		<para>
+///		The two selection facts, <see cref="SelectedFloorId"/> and <see cref="FocusedAreaId"/>,
+///		are observable: the sidebar rows bind to them, so they are the one owner of which floor is
+///		selected and which area is focused. No other member raises
+///		<see cref="PropertyChanged"/>; the drawing, drag, pan and object-interaction state is read
+///		by the page on demand and nothing binds to it.
+///		</para>
 /// </remarks>
-public sealed class MapEditorState
+public sealed class MapEditorState : INotifyPropertyChanged
 {
 	/// <summary>
 	///		The distance in device-independent units a pointer must travel before a press on an
@@ -20,18 +29,60 @@ public sealed class MapEditorState
 	/// </summary>
 	public const float ObjectDragThreshold = 6f;
 
+	private Guid? _selectedFloorId;
+
+	private Guid? _focusedAreaId;
+
+	/// <summary>
+	///		Raised after <see cref="SelectedFloorId"/> or <see cref="FocusedAreaId"/> changes to a
+	///		different value. Setting either to the value it already holds raises nothing.
+	/// </summary>
+	public event PropertyChangedEventHandler? PropertyChanged;
+
 	// -- Selection ---------------------------------------------------------------------------
 
 	/// <summary>
 	///		Gets or sets the identifier of the floor currently selected in the sidebar, or null when
 	///		no floor is selected.
 	/// </summary>
-	public Guid? SelectedFloorId { get; set; }
+	/// <remarks>
+	///		A change raises <see cref="PropertyChanged"/> once, after the new value is stored.
+	/// </remarks>
+	public Guid? SelectedFloorId
+	{
+		get => _selectedFloorId;
+		set
+		{
+			if (_selectedFloorId == value)
+			{
+				return;
+			}
+
+			_selectedFloorId = value;
+			OnPropertyChanged();
+		}
+	}
 
 	/// <summary>
 	///		Gets or sets the identifier of the area the notebook is focused on, or null when none is.
 	/// </summary>
-	public Guid? FocusedAreaId { get; set; }
+	/// <remarks>
+	///		A change raises <see cref="PropertyChanged"/> once, after the new value is stored.
+	/// </remarks>
+	public Guid? FocusedAreaId
+	{
+		get => _focusedAreaId;
+		set
+		{
+			if (_focusedAreaId == value)
+			{
+				return;
+			}
+
+			_focusedAreaId = value;
+			OnPropertyChanged();
+		}
+	}
 
 	// -- Drawing -----------------------------------------------------------------------------
 
@@ -307,4 +358,7 @@ public sealed class MapEditorState
 		IsObjectDragConfirmed = false;
 		ObjectLongPressHandled = false;
 	}
+
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
