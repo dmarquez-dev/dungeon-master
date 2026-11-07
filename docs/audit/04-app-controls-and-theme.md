@@ -593,6 +593,32 @@ most. It also forces the host page to track selection itself and push it back in
 appearance as `CommonStates` / custom visual states in each control's XAML pointing at theme
 tokens, and reduce the public methods to thin wrappers or delete them.
 
+**[AMENDED 20261106-2050-detail-page-trio, 2026-11-06 -- this entry was acted on as `MASTER-098`,
+which is closed, and its claim that the host page tracks selection and pushes it back in is now
+false.** Previous wording, verbatim, at `:589` of this file: "It also forces the host page to track
+selection itself and push it back in". **Nothing above is deleted.** Measured by task `T4` on the
+session worktree with the instruments of
+`.sir/sessions/20261106-2050-detail-page-trio/contracts/C1-measurement.md`: P-EXPW (section 4.3), the
+writes to `IsExpanded` in `src/DungeonMaster.App`, prints 0 lines (6 at session start, three in
+`DungeonDetailPage.xaml.cs` and three in `FloorSidebarItem.xaml.cs`); P-SELW, its `IsSelected`
+sibling, prints 0 (1 at session start); and the section 4.5 censuses over `src` print 0 for
+`SetAreaEditing` (3 at session start), `FocusNameEditor` (2) and `CollapseAllExcept` (2). Both
+properties are now bound, one way, to one owner: `FloorSidebarItem.IsExpanded` to whether the row's
+floor `Id` equals `DungeonDetailViewModel.Editor.SelectedFloorId`
+(`src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml:776`, a `MultiBinding` through
+the `GuidEquality` converter with `Mode="OneWay"`), and `AreaSidebarItem.IsSelected` to whether the
+row's area `Id` equals its floor row's `FocusedAreaId`
+(`src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml:345`), which the floor template
+binds to `Editor.FocusedAreaId` (`DungeonDetailPage.xaml:759`). **Suggested direction** clause (c) is
+now met in full: `grep -c 'public void'` on `FloorSidebarItem.xaml.cs` prints 1 (3 at session start),
+`FocusReorderAffordance` at `:326`, which moves keyboard focus and sets no appearance state, the case
+section 3 of `.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/artifacts/MASTER-098-verification.md`
+records as outside this entry's subject. The record's other claims stand as that 6b-vi artifact
+measured them; they are cited by path and not re-derived here. `locations:` is kept unchanged as a
+record of the audited state. The closure is recorded at `docs/audit/00-master-index.md:286`. No commit
+hash is written here, because this session's tasks run without git and make no commit; the
+orchestrator makes the commit. The record's severity, category, effort and risk are unchanged.**]**
+
 ### UIKIT-012 -- FloorSidebarItem re-declares and hand-forwards five of AreaSidebarItem's events
 
 ```yaml

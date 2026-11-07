@@ -19,7 +19,7 @@ namespace DungeonMaster.App.ViewModels;
 /// </param>
 /// <param name="context">
 ///		The dungeon-detail composition root, which owns the loaded dungeon identifier, the error
-///		channel, and the reload.
+///		channel, the floor refresh, and the whole-detail reload.
 /// </param>
 public partial class FloorListViewModel(
 	AppDispatcher dispatcher,
@@ -65,11 +65,64 @@ public partial class FloorListViewModel(
 	}
 
 	/// <summary>
+	///		Finds the position in <see cref="Items"/> of the floor with the specified identifier.
+	/// </summary>
+	/// <param name="floorId">
+	///		The unique identifier of the floor to find.
+	/// </param>
+	/// <returns>
+	///		The zero-based index of the floor, or -1 when no element of <see cref="Items"/> has that
+	///		identifier.
+	/// </returns>
+	internal int IndexOf(Guid floorId)
+	{
+		for (var index = 0; index < Items.Count; index++)
+		{
+			if (Items[index].Id == floorId)
+			{
+				return index;
+			}
+		}
+
+		return -1;
+	}
+
+	/// <summary>
+	///		Replaces the element of <see cref="Items"/> at <paramref name="index"/> with a new item
+	///		mapped from <paramref name="floor"/>. Called by the composition root when it refreshes
+	///		one floor in place.
+	/// </summary>
+	/// <remarks>
+	///		The indexer assignment raises exactly one <c>CollectionChanged</c>, with
+	///		<c>Action == Replace</c> at <paramref name="index"/>, and leaves every other element
+	///		reference-identical, which is what lets a templated floor list rebuild one row instead
+	///		of every row. The floor goes through the same translation point as
+	///		<see cref="Populate"/>, so a refreshed floor and a loaded floor map identically.
+	/// </remarks>
+	/// <param name="index">
+	///		The zero-based position of the floor being replaced.
+	/// </param>
+	/// <param name="floor">
+	///		The re-read projection of that floor.
+	/// </param>
+	internal void ReplaceAt(
+		int index,
+		FloorDto floor)
+	{
+		Items[index] = DungeonDetailPresentationMapper.ToItems([floor])[0];
+	}
+
+	/// <summary>
 	///		Adds a new floor to the loaded dungeon and reloads the detail.
 	/// </summary>
 	/// <returns>
 	///		A task that completes when the floor has been added and, on success, the detail reloaded.
 	/// </returns>
+	/// <remarks>
+	///		WHY THIS RELOADS THE WHOLE DETAIL rather than refreshing one floor: adding a floor
+	///		changes the floor list's membership. There is no existing floor to replace in place,
+	///		and the one-floor read cannot describe a list that has grown.
+	/// </remarks>
 	[RelayCommand]
 	private async Task AddFloorAsync()
 	{
@@ -105,6 +158,11 @@ public partial class FloorListViewModel(
 	/// <returns>
 	///		A task that completes when the floor has been removed and, on success, the detail reloaded.
 	/// </returns>
+	/// <remarks>
+	///		WHY THIS RELOADS THE WHOLE DETAIL rather than refreshing one floor: removing a floor
+	///		changes the floor list's membership, and it renumbers every later floor, so more than
+	///		one floor's projection changes and the removed one has nothing to be replaced by.
+	/// </remarks>
 	[RelayCommand]
 	private async Task RemoveFloorAsync(Guid floorId)
 	{
@@ -132,14 +190,14 @@ public partial class FloorListViewModel(
 	}
 
 	/// <summary>
-	///		Updates the name, description, and notes of an existing floor, then reloads the detail
-	///		so the cached floor projections carry the new values.
+	///		Updates the name, description, and notes of an existing floor, then refreshes that
+	///		floor in place so its cached projection carries the new values.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier and its new name, description, and notes.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the floor has been updated and, on success, the detail reloaded.
+	///		A task that completes when the floor has been updated and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task UpdateFloorAsync(UpdateFloorArgs args)
@@ -167,7 +225,7 @@ public partial class FloorListViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
@@ -179,6 +237,11 @@ public partial class FloorListViewModel(
 	/// <returns>
 	///		A task that completes when the floor has been moved and, on success, the detail reloaded.
 	/// </returns>
+	/// <remarks>
+	///		WHY THIS RELOADS THE WHOLE DETAIL rather than refreshing one floor: moving a floor
+	///		renumbers every floor between its old and new positions, so the change spans several
+	///		floors and their order, which a one-floor read cannot describe.
+	/// </remarks>
 	[RelayCommand]
 	private async Task ReorderFloorAsync(ReorderFloorArgs args)
 	{

@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Services.Navigation;
 using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
+using DungeonMaster.Application.Features.Dungeons.Queries.GetFloorDetail;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 
 namespace DungeonMaster.App.ViewModels;
@@ -11,11 +13,12 @@ namespace DungeonMaster.App.ViewModels;
 ///		Composition root for the dungeon detail page.
 /// </summary>
 /// <remarks>
-///		This type owns three facts and nothing else: which dungeon is loaded, how to reload it,
-///		and where a failure is shown. The editing surface lives on the three children it
+///		This type owns four facts and nothing else: which dungeon is loaded, how to refresh one
+///		floor of it or reload all of it, where a failure is shown, and the editor's selection
+///		state (<see cref="Editor"/>). The editing surface lives on the three children it
 ///		constructs — <see cref="Header"/>, <see cref="FloorList"/> and <see cref="Canvas"/> — and
 ///		they reach back through <see cref="IDungeonEditingContext"/>, which is the seam that makes
-///		the reload policy one member instead of a line copied into every command.
+///		the refresh policy two members instead of a line copied into every command.
 /// </remarks>
 public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributable, IDungeonEditingContext
 {
@@ -62,7 +65,20 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 		Header = new DungeonHeaderViewModel(dispatcher, this);
 		FloorList = new FloorListViewModel(dispatcher, this);
 		Canvas = new MapCanvasViewModel(dispatcher, this);
+
+		Editor = new MapEditorState();
 	}
+
+	/// <summary>
+	///		Gets the editor's interaction state, including the observable selection facts the
+	///		sidebar rows bind to: which floor is selected and which area is focused.
+	/// </summary>
+	/// <remarks>
+	///		This is the one instance of the page's lifetime. It is constructed here, is never null
+	///		and is never replaced, and loading, reloading or refreshing does not reset its
+	///		selection; clearing the selection stays the page's responsibility.
+	/// </remarks>
+	public MapEditorState Editor { get; }
 
 	/// <summary>
 	///		Gets or sets the full detail DTO for the currently loaded dungeon.
@@ -162,6 +178,51 @@ public partial class DungeonDetailViewModel : ObservableObject, IQueryAttributab
 	/// <inheritdoc/>
 	public Task ReloadAsync() =>
 		LoadDungeonAsync(_dungeonId);
+
+	/// <inheritdoc/>
+	/// <remarks>
+	///		Every fallback condition is judged after the floor-scoped read completes, against the
+	///		state as it stands then, so a load that landed while the read was in flight is never
+	///		patched with an index taken before it. The floor list is replaced first and the
+	///		projection second, the same order <see cref="Repopulate"/> keeps, so a handler reacting
+	///		to <see cref="Dungeon"/> changing reads a floor list that already carries the new floor.
+	/// </remarks>
+	public async Task RefreshFloorAsync(Guid floorId)
+	{
+		var floor = await _dispatcher.QueryAsync<FloorDto?>(
+			new GetFloorDetailQuery(_dungeonId, floorId),
+			CancellationToken.None);
+
+		var dungeon = Dungeon;
+		var index = FloorList.IndexOf(floorId);
+
+		// Any of these means the floor cannot be replaced in place: the floor or the dungeon was
+		// removed between the write and the read, the floor list does not show the floor, or no
+		// projection is loaded to keep consistent with it. The full reload is the correct answer
+		// to each, and it carries the not-found handling LoadDungeonAsync already owns.
+		if (floor is null
+			|| dungeon is null
+			|| index < 0
+			|| index >= dungeon.Floors.Count
+			|| dungeon.Floors[index].Id != floorId)
+		{
+			await ReloadAsync();
+
+			return;
+		}
+
+		FloorList.ReplaceAt(
+			index,
+			floor);
+
+		var floors = dungeon.Floors.ToArray();
+		floors[index] = floor;
+
+		Dungeon = dungeon with
+		{
+			Floors = floors,
+		};
+	}
 
 	/// <summary>
 	///		Loads the dungeon detail for the specified <paramref name="id"/> and repopulates the

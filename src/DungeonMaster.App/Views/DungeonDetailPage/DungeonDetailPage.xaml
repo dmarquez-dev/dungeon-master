@@ -6,6 +6,9 @@
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
     xmlns:palette="clr-namespace:DungeonMaster.App.Views.DungeonDetail"
+    xmlns:views="clr-namespace:DungeonMaster.App.Views"
+    xmlns:converters="clr-namespace:DungeonMaster.App.Converters"
+    xmlns:presentation="clr-namespace:DungeonMaster.App.Core.Presentation;assembly=DungeonMaster.App.Core"
     x:Class="DungeonMaster.App.Views.DungeonDetailPage"
     x:DataType="vm:DungeonDetailViewModel"
     Shell.NavBarIsVisible="False"
@@ -26,6 +29,10 @@
             <Setter Property="BackgroundColor" Value="Transparent" />
             <Setter Property="StrokeThickness" Value="0" />
         </Style>
+
+        <!-- The floor row template's expanded state is whether the row's floor is the editor
+             state's selected floor (MASTER-098 / UIKIT-011). -->
+        <converters:GuidEqualityConverter x:Key="GuidEquality" />
     </ContentPage.Resources>
 
     <!-- MASTER-058. The back action is owned by this page, not inferred from platform
@@ -687,7 +694,8 @@
                         x:Name="FloorListContainer"
                         Spacing="0"
                         Padding="0,0,14,0"
-                        BackgroundColor="Transparent">
+                        BackgroundColor="Transparent"
+                        BindableLayout.ItemsSource="{Binding FloorList.Items}">
 
                         <!-- THE THIRD DROP TARGET, AND IT EXISTS TO END A SILENT FAILURE
                              (escalation E6; contract C1 section 4, amended from two targets to
@@ -719,6 +727,56 @@
                                 DragOver="OnFloorListDragOver"
                                 Drop="OnFloorListDrop" />
                         </VerticalStackLayout.GestureRecognizers>
+
+                        <!-- MASTER-108 / UI-016. One row per floor, generated from FloorList.Items
+                             (the ItemsSource above) by this template rather than built by hand in
+                             code-behind. A floor-scoped refresh, which replaces ONE element of
+                             Items, touches ONE row (it is bound to the replacement) and leaves every
+                             other row instance alone; a full reload (Clear, then one Add per floor)
+                             still replaces every row with a new instance. Every per-row event and
+                             command is declared here. The drag placeholder is the one child the
+                             code-behind still inserts and removes, because it is a transient visual
+                             and not a floor.
+
+                             Each row is a heading in the sidebar's outline, one level below the
+                             FLOORS caption above, so a screen reader can jump between floors.
+
+                             THE EXPANDED STATE IS BOUND, ONE WAY, and nothing else writes it
+                             (MASTER-098 / UIKIT-011): it is whether this row's floor Id equals
+                             Editor.SelectedFloorId on the page's DungeonDetailViewModel, so the
+                             editor state is its one owner and a row built or re-bound by a refresh
+                             comes up already expanded. FocusedAreaId hands the row Editor.FocusedAreaId for
+                             its area rows' selected state the same way.
+
+                             The five area commands are the page's own, read through a RelativeSource
+                             to the page because a DataTemplate is its own name scope. Each resolves
+                             the area's floor from FloorList.Items when it runs. -->
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="presentation:FloorItem">
+                                <controls:FloorSidebarItem
+                                    Floor="{Binding .}"
+                                    SemanticProperties.HeadingLevel="Level3"
+                                    FocusedAreaId="{Binding Editor.FocusedAreaId, Source={RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}}"
+                                    AreaSelectCommand="{Binding AreaSelectCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                    AreaHoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                    AreaHoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                    AreaDeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                    AreaNotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                    DeleteRequested="OnFloorDeleteRequested"
+                                    SelectRequested="OnFloorSelectRequested"
+                                    ReorderRequested="OnFloorReorderRequested"
+                                    DragStarted="OnFloorDragStarted"
+                                    DragEnded="OnFloorDragEnded"
+                                    PlaceholderRequested="OnFloorPlaceholderRequested"
+                                    PlaceholderCleared="OnFloorPlaceholderCleared"
+                                    AddAreaRequested="OnFloorAddAreaRequested"
+                                    NotebookRequested="OnFloorNotebookRequested">
+                                    <!-- One line on purpose: the whole binding site, open tag to close
+                                         tag, so a line search for the property finds the site once. -->
+                                    <controls:FloorSidebarItem.IsExpanded><MultiBinding Converter="{StaticResource GuidEquality}" Mode="OneWay"><Binding Path="Id" /><Binding Path="Editor.SelectedFloorId" Source="{RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}" /></MultiBinding></controls:FloorSidebarItem.IsExpanded>
+                                </controls:FloorSidebarItem>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
                     </VerticalStackLayout>
                 </ScrollView>
 

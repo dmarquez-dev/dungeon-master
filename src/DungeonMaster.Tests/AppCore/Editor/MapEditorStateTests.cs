@@ -448,6 +448,173 @@ public class MapEditorStateTests
 		state.DrawState.Should().Be(DrawState.Drawing);
 	}
 
+	[Fact]
+	public void SelectedFloorId_SetFromNullToAGuid_RaisesPropertyChangedOnceWithItsNameAndTheInstanceAsSender()
+	{
+		// Arrange
+		var state = new MapEditorState();
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.SelectedFloorId = Guid.NewGuid();
+
+		// Assert
+		raised.Should().ContainSingle();
+		raised[0].Sender.Should().BeSameAs(state);
+		raised[0].PropertyName.Should().Be(nameof(MapEditorState.SelectedFloorId));
+	}
+
+	[Fact]
+	public void FocusedAreaId_SetFromNullToAGuid_RaisesPropertyChangedOnceWithItsNameAndTheInstanceAsSender()
+	{
+		// Arrange
+		var state = new MapEditorState();
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.FocusedAreaId = Guid.NewGuid();
+
+		// Assert
+		raised.Should().ContainSingle();
+		raised[0].Sender.Should().BeSameAs(state);
+		raised[0].PropertyName.Should().Be(nameof(MapEditorState.FocusedAreaId));
+	}
+
+	[Fact]
+	public void SelectedFloorId_SetToTheValueItAlreadyHolds_RaisesNothing()
+	{
+		// Arrange
+		var floorId = Guid.NewGuid();
+		var state = new MapEditorState { SelectedFloorId = floorId };
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.SelectedFloorId = floorId;
+
+		// Assert
+		raised.Should().BeEmpty();
+	}
+
+	[Fact]
+	public void FocusedAreaId_SetToTheValueItAlreadyHolds_RaisesNothing()
+	{
+		// Arrange
+		var areaId = Guid.NewGuid();
+		var state = new MapEditorState { FocusedAreaId = areaId };
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.FocusedAreaId = areaId;
+
+		// Assert
+		raised.Should().BeEmpty();
+	}
+
+	[Fact]
+	public void SelectedFloorId_FromAGuidToNullThenToTwoOtherGuids_RaisesOncePerChange()
+	{
+		// Arrange
+		var state = new MapEditorState { SelectedFloorId = Guid.NewGuid() };
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.SelectedFloorId = null;
+		state.SelectedFloorId = Guid.NewGuid();
+		state.SelectedFloorId = Guid.NewGuid();
+
+		// Assert
+		raised
+			.Select(entry => entry.PropertyName)
+			.Should()
+			.Equal(
+				nameof(MapEditorState.SelectedFloorId),
+				nameof(MapEditorState.SelectedFloorId),
+				nameof(MapEditorState.SelectedFloorId));
+	}
+
+	[Fact]
+	public void FocusedAreaId_FromAGuidToNullThenToTwoOtherGuids_RaisesOncePerChange()
+	{
+		// Arrange
+		var state = new MapEditorState { FocusedAreaId = Guid.NewGuid() };
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.FocusedAreaId = null;
+		state.FocusedAreaId = Guid.NewGuid();
+		state.FocusedAreaId = Guid.NewGuid();
+
+		// Assert
+		raised
+			.Select(entry => entry.PropertyName)
+			.Should()
+			.Equal(
+				nameof(MapEditorState.FocusedAreaId),
+				nameof(MapEditorState.FocusedAreaId),
+				nameof(MapEditorState.FocusedAreaId));
+	}
+
+	[Fact]
+	public void SelectedFloorId_APropertyChangedHandler_ReadsTheNewValueFromTheInstance()
+	{
+		// Arrange
+		var state = new MapEditorState();
+		var floorId = Guid.NewGuid();
+		Guid? readInHandler = null;
+		state.PropertyChanged += (_, _) => readInHandler = state.SelectedFloorId;
+
+		// Act
+		state.SelectedFloorId = floorId;
+
+		// Assert
+		readInHandler.Should().Be(floorId);
+	}
+
+	[Fact]
+	public void SetActiveToolAndResetDrawState_DrawStateTransitions_RaiseNoPropertyChanged()
+	{
+		// Arrange
+		var state = new MapEditorState();
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.SetActiveTool(MapTool.Draw, drawingSessionIsActive: true);
+		state.SetActiveTool(MapTool.Pan, drawingSessionIsActive: true);
+		state.ResetDrawState(aFloorIsSelected: true);
+		state.ResetDrawState(aFloorIsSelected: false);
+
+		// Assert
+		state.DrawState.Should().Be(DrawState.Idle);
+		raised.Should().BeEmpty();
+	}
+
+	[Fact]
+	public void EveryOtherPublicSetterAndTransition_RaisesNoPropertyChanged()
+	{
+		// Arrange
+		var state = new MapEditorState();
+		var raised = RecordPropertyChanged(state);
+
+		// Act
+		state.PanAnchorScreen = new CanvasPoint(1f, 2f);
+		state.GhostRotation = ObjectRotation.Clockwise90;
+		state.LastTouchPoint = new CanvasPoint(3f, 4f);
+		state.BeginMoveDrag(Guid.NewGuid(), new TilePoint(1, 1));
+		state.EndMoveDrag();
+		FillObjectInteraction(state);
+		state.ClearObjectInteraction();
+
+		// Assert
+		raised.Should().BeEmpty();
+	}
+
+	private static List<(object? Sender, string? PropertyName)> RecordPropertyChanged(MapEditorState state)
+	{
+		var raised = new List<(object? Sender, string? PropertyName)>();
+		state.PropertyChanged += (sender, args) => raised.Add((sender, args.PropertyName));
+		return raised;
+	}
+
 	// Sets every field ClearObjectInteraction is specified to clear, so a test that clears them
 	// starts from a state where each one is observably non-default.
 	private static void FillObjectInteraction(MapEditorState state)

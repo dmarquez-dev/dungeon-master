@@ -14,7 +14,7 @@ namespace DungeonMaster.App.ViewModels;
 /// </param>
 /// <param name="context">
 ///		The dungeon-detail composition root, which owns the loaded dungeon identifier, the error
-///		channel, and the reload.
+///		channel, and the whole-detail reload.
 /// </param>
 public partial class DungeonHeaderViewModel(
 	AppDispatcher dispatcher,
@@ -59,11 +59,12 @@ public partial class DungeonHeaderViewModel(
 	///		and <see cref="DungeonNotes"/>, then reloads the dungeon detail.
 	/// </summary>
 	/// <remarks>
-	///		DELIBERATE BEHAVIOUR CHANGE. Before this session the save did NOT reload: it was one
-	///		of three mutations that dispatched and returned, leaving the page showing the values
-	///		it had before the write. It now reloads like every other mutation, which is what makes
-	///		the reload policy uniform. A save that succeeds therefore repaints the header from the
-	///		persisted dungeon rather than from the text still sitting in the editor.
+	///		WHY THIS RELOADS THE WHOLE DETAIL rather than refreshing one floor: the save changes the
+	///		dungeon-level projection itself, the loaded <c>Dungeon</c> and the header fields read
+	///		from it, and no floor-scoped read carries the dungeon's name, description or notes. A
+	///		save that succeeds therefore repaints the header from the persisted dungeon rather than
+	///		from the text still sitting in the editor. (Before the reload policy was introduced the
+	///		save did not reload at all, leaving the page showing the values it had before the write.)
 	/// </remarks>
 	/// <returns>
 	///		A task that completes when the update has been sent and, on success, the detail reloaded.

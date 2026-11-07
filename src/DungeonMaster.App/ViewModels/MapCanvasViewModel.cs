@@ -29,7 +29,8 @@ namespace DungeonMaster.App.ViewModels;
 /// </param>
 /// <param name="context">
 ///		The dungeon-detail composition root, which owns the loaded dungeon identifier, the error
-///		channel, and the reload.
+///		channel, and the floor refresh. Every command here changes exactly one floor, so each one
+///		that succeeds refreshes that floor in place rather than reloading the whole detail.
 /// </param>
 public partial class MapCanvasViewModel(
 	AppDispatcher dispatcher,
@@ -58,13 +59,13 @@ public partial class MapCanvasViewModel(
 	public MapDrawingSession DrawingSession { get; } = new();
 
 	/// <summary>
-	///		Adds a new area to the specified floor and reloads the detail.
+	///		Adds a new area to the specified floor and refreshes that floor.
 	/// </summary>
 	/// <param name="floorId">
 	///		The unique identifier of the floor that will receive the new area.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the area has been added and, on success, the detail reloaded.
+	///		A task that completes when the area has been added and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task AddAreaAsync(Guid floorId)
@@ -91,17 +92,17 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(floorId);
 	}
 
 	/// <summary>
-	///		Removes an area from a floor and reloads the detail.
+	///		Removes an area from a floor and refreshes that floor.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier and the area identifier to remove.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the area has been removed and, on success, the detail reloaded.
+	///		A task that completes when the area has been removed and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task RemoveAreaAsync(RemoveAreaArgs args)
@@ -127,18 +128,18 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
-	///		Updates the name, description, and notes of an existing area, then reloads the detail
-	///		so the cached area projections carry the new values.
+	///		Updates the name, description, and notes of an existing area, then refreshes the floor
+	///		that holds it so the cached area projections carry the new values.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier, area identifier, and the area's new name, description, and notes.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the area has been updated and, on success, the detail reloaded.
+	///		A task that completes when the area has been updated and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task UpdateAreaAsync(UpdateAreaArgs args)
@@ -167,26 +168,25 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
 	///		Creates a new area on the specified floor and immediately writes the outline the user
-	///		has just drawn, then reloads the detail.
+	///		has just drawn, then refreshes that floor.
 	/// </summary>
 	/// <remarks>
 	///		Draw-to-spawn is one user operation carried by two commands: the area is created, then
 	///		its outline is written. Both dispatches are captured and branched on separately, and
-	///		the single reload sits after the second, so the page is repainted once from the
-	///		finished state rather than twice from a half-written one. Before this session the
-	///		outline write did not reload at all.
+	///		the single floor refresh sits after the second, so the floor is repainted once from the
+	///		finished state rather than twice from a half-written one.
 	/// </remarks>
 	/// <param name="args">
 	///		The floor identifier and the outline drawn by the user, in canvas coordinates.
 	/// </param>
 	/// <returns>
 	///		A task that completes when the area and its outline have been written and, on success,
-	///		the detail reloaded.
+	///		the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task AddAreaWithOutlineAsync(AddAreaWithOutlineArgs args)
@@ -228,18 +228,18 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
-	///		Persists a moved area outline and reloads the detail. Placed objects belong to the
-	///		floor and are deliberately not repositioned when an area outline moves.
+	///		Persists a moved area outline and refreshes the floor that holds it. Placed objects
+	///		belong to the floor and are deliberately not repositioned when an area outline moves.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier, the area identifier, and the translated outline.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the outline has been written and, on success, the detail reloaded.
+	///		A task that completes when the outline has been written and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task MoveAreaOutlineAsync(MoveAreaOutlineArgs args)
@@ -266,18 +266,18 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
 	///		Places a new object with the specified kind, position, rotation, and scale on the
-	///		specified floor and reloads the detail.
+	///		specified floor and refreshes that floor.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier and the new object's kind, position, rotation, and scale.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the object has been placed and, on success, the detail reloaded.
+	///		A task that completes when the object has been placed and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task AddPlacedObjectAsync(PlaceObjectArgs args)
@@ -306,17 +306,17 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
-	///		Removes a placed object from the specified floor and reloads the detail.
+	///		Removes a placed object from the specified floor and refreshes that floor.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier and the identifier of the object to remove.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the object has been removed and, on success, the detail reloaded.
+	///		A task that completes when the object has been removed and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task RemovePlacedObjectAsync(RemovePlacedObjectArgs args)
@@ -342,11 +342,12 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 
 	/// <summary>
-	///		Updates the position, rotation, and scale of a placed object and reloads the detail.
+	///		Updates the position, rotation, and scale of a placed object and refreshes the floor
+	///		that holds it.
 	/// </summary>
 	/// <param name="args">
 	///		The floor identifier, the object identifier, and the object's new position, rotation,
@@ -354,7 +355,7 @@ public partial class MapCanvasViewModel(
 	///		at <see cref="ObjectScale.Default"/>.
 	/// </param>
 	/// <returns>
-	///		A task that completes when the object has been updated and, on success, the detail reloaded.
+	///		A task that completes when the object has been updated and, on success, the floor refreshed.
 	/// </returns>
 	[RelayCommand]
 	private async Task UpdatePlacedObjectAsync(UpdatePlacedObjectArgs args)
@@ -383,6 +384,6 @@ public partial class MapCanvasViewModel(
 			return;
 		}
 
-		await context.ReloadAsync();
+		await context.RefreshFloorAsync(args.FloorId);
 	}
 }

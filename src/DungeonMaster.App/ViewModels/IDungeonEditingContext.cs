@@ -4,13 +4,29 @@ namespace DungeonMaster.App.ViewModels;
 
 /// <summary>
 ///		What a child view model needs from the dungeon-detail composition root: which dungeon is
-///		loaded, how to reload it, and where to put a failure.
+///		loaded, how to refresh one floor of it or reload all of it, and where to put a failure.
 /// </summary>
 /// <remarks>
-///		This is the seam that makes the reload policy explicit instead of implicit. Before this
-///		session the policy was a copy of <c>await LoadDungeonAsync(_dungeonId);</c> pasted at the
-///		end of some mutations and omitted from others. It is now one member every mutating
-///		command awaits.
+///		<para>
+///		This is the seam that makes the refresh policy explicit instead of implicit. Before it
+///		existed the policy was a copy of <c>await LoadDungeonAsync(_dungeonId);</c> pasted at the
+///		end of some mutations and omitted from others. Every mutating command that succeeds now
+///		awaits exactly one of two members, and which one is decided by the shape of the change:
+///		</para>
+///		<para>
+///		FLOOR-SCOPED MUTATIONS REFRESH THEIR FLOOR. A command that changes exactly one floor (an
+///		area or placed-object write, an outline move, a floor's own name, description or notes)
+///		awaits <see cref="RefreshFloorAsync"/> with that floor's identifier, which re-reads that
+///		one floor and replaces it in place.
+///		</para>
+///		<para>
+///		MEMBERSHIP- AND HEADER-SHAPED MUTATIONS RELOAD THE WHOLE DETAIL. Four commands await
+///		<see cref="ReloadAsync"/> instead, each with its reason documented at its own declaration:
+///		adding a floor and removing a floor change the floor list's membership (a removal also
+///		renumbers every later floor), reordering a floor renumbers every floor between its two
+///		positions, and saving the dungeon header changes the dungeon-level projection itself.
+///		A one-floor read cannot describe any of those changes.
+///		</para>
 /// </remarks>
 public interface IDungeonEditingContext
 {
@@ -53,12 +69,35 @@ public interface IDungeonEditingContext
 	///		child view model.
 	/// </summary>
 	/// <remarks>
-	///		The reload policy is uniform: every member that sends a mutating command and succeeds
-	///		awaits this before returning. There are no exceptions, and a member that wants one
-	///		must be given a documented reason at its own declaration.
+	///		Only the membership- and header-shaped mutations await this directly, and each states
+	///		why at its own declaration; every other successful mutation awaits
+	///		<see cref="RefreshFloorAsync"/>. A new mutation that reloads the whole detail must be
+	///		given the same documented reason at its declaration.
 	/// </remarks>
 	/// <returns>
 	///		A task that completes when the dungeon has been re-read and the children repopulated.
 	/// </returns>
 	Task ReloadAsync();
+
+	/// <summary>
+	///		Re-reads the one floor identified by <paramref name="floorId"/> and replaces it in
+	///		place, both in the floor list and in the loaded detail projection, leaving every other
+	///		floor untouched.
+	/// </summary>
+	/// <remarks>
+	///		Every successful floor-scoped mutation awaits this before returning. When the floor
+	///		cannot be refreshed in place (the floor-scoped read finds nothing, the floor is not in
+	///		the floor list, no detail projection is loaded, or the floor list and the loaded detail
+	///		projection disagree about that floor's position) it falls back to
+	///		<see cref="ReloadAsync"/>, so the page is never left showing a floor that was not
+	///		re-read.
+	/// </remarks>
+	/// <param name="floorId">
+	///		The unique identifier of the floor the mutation changed.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the floor has been replaced, or when the fallback reload has
+	///		completed.
+	/// </returns>
+	Task RefreshFloorAsync(Guid floorId);
 }
