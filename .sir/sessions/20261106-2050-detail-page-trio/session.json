@@ -2,10 +2,10 @@
   "id": "20261106-2050-detail-page-trio",
   "name": "detail-page-trio",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "brief": "Close three part-done audit rows on DungeonDetailPage. MASTER-094 (UI-007): the nine single-floor view-model commands stop re-running the whole-dungeon GetDungeonDetailQuery; a new GetFloorDetailQuery returns one FloorDto and the floor is replaced in place in FloorList.Items with one Replace notification, while AddFloor, RemoveFloor, ReorderFloor and the header Save keep the full reload with documented reasons; the page's own redundant second re-query is removed and no command result type changes. MASTER-098 (UIKIT-011): MapEditorState raises change notifications and is owned by DungeonDetailViewModel.Editor; FloorSidebarItem.IsExpanded and AreaSidebarItem.IsSelected are bound one-way to it, and every imperative write, SetAreaEditing and FocusNameEditor are deleted. MASTER-108 (UI-016): RebuildFloorList's hand-rolled loop becomes a templated BindableLayout over FloorList.Items. Four serial tasks (Application query, view models, page and controls, register); the orchestrator trims the backlog and the user observes ten runtime behaviours at Gate 3. MASTER-081 and MASTER-130 stay in the backlog.",
   "started": "2026-11-06T20:50:28Z",
-  "ended": null,
+  "ended": "2026-11-07T02:01:45Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -40,12 +40,20 @@
       "started": "2026-11-07T01:05:45Z",
       "ended": "2026-11-07T01:59:08Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "b58bbb56-fad6-4109-97b9-b4df26c90b9e",
+      "phase": "wrap",
+      "sir": "1.0.24",
+      "started": "2026-11-07T02:01:02Z",
+      "ended": "2026-11-07T02:01:45Z",
+      "outcome": "complete"
     }
   ],
   "pushed": true,
   "metrics": {
-    "userInteractions": 1,
-    "escalationsRaised": 0,
-    "reviewRounds": 0
+    "userInteractions": 9,
+    "escalationsRaised": 2,
+    "reviewRounds": 2
   }
 }
