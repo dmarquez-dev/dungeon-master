@@ -1,3 +1,4 @@
+using System.Windows.Input;
 using DungeonMaster.App.Assets.ObjectAssets;
 using Plugin.Maui.KeyListener;
 using DungeonMaster.App.Behaviors;
@@ -34,7 +35,13 @@ public partial class DungeonDetailPage : ContentPage
 	// machine stands, the area move drag, the pan anchor, the ghost rotation, and the whole
 	// object hover/select/press/drag group — lives here, in a type with no MAUI dependency that
 	// DungeonMaster.Tests exercises directly. See MapEditorState for the field-by-field mapping.
-	private readonly MapEditorState _editor = new();
+	//
+	// It is the view model's instance, DungeonDetailViewModel.Editor, never one of the page's own
+	// (contract C3 section 2): the view model constructs it once and never replaces it, so this
+	// field is an alias for that one instance, not a second copy. The floor row template binds to
+	// the same instance through the page's BindingContext, which is what makes it the one owner of
+	// which floor is expanded and which area row is selected.
+	private readonly MapEditorState _editor;
 
 	// Floor list drag-and-drop plumbing. This is view work and stays: it is the placeholder Border
 	// this page inserts into its own sidebar and the item it is currently dragging.
@@ -52,14 +59,64 @@ public partial class DungeonDetailPage : ContentPage
 	private const float ZoomStep = 0.1f;
 
 	/// <summary>
+	///		Gets the command every floor row's area rows invoke with their own area when tapped:
+	///		focuses that area, or clears the focus when it is already the focused one.
+	/// </summary>
+	/// <remarks>
+	///		This and the four commands below are read by the floor list's row template
+	///		(<c>DungeonDetailPage.xaml</c>) and handed to each <see cref="FloorSidebarItem"/>, which
+	///		hands them on to its area rows. They are the page's own rather than per row, so each one
+	///		resolves the area's floor from <c>FloorList.Items</c> when it runs.
+	/// </remarks>
+	public ICommand AreaSelectCommand { get; }
+
+	/// <summary>
+	///		Gets the command an area row invokes with its own area when the pointer enters it.
+	/// </summary>
+	public ICommand AreaHoverStartedCommand { get; }
+
+	/// <summary>
+	///		Gets the command an area row invokes with its own area when the pointer exits it.
+	/// </summary>
+	public ICommand AreaHoverEndedCommand { get; }
+
+	/// <summary>
+	///		Gets the command an area row invokes with its own area when the user requests its deletion.
+	/// </summary>
+	public ICommand AreaDeleteCommand { get; }
+
+	/// <summary>
+	///		Gets the command an area row invokes with its own area when the user requests its notebook.
+	/// </summary>
+	public ICommand AreaNotebookCommand { get; }
+
+	/// <summary>
 	///		Initializes a new instance of <see cref="DungeonDetailPage"/>, wires the map drawable,
-	///		and subscribes to view model property and floor collection changes.
+	///		and subscribes to view model property changes. The floor list needs no subscription: it
+	///		is a templated BindableLayout over <c>FloorList.Items</c>, declared in the XAML.
 	/// </summary>
 	public DungeonDetailPage(DungeonDetailViewModel viewModel)
 	{
 		InitializeComponent();
 		_viewModel = viewModel;
+		_editor = viewModel.Editor;
 		_drawable = new FloorMapDrawable();
+
+		// Assigned before the BindingContext below is set, because setting it is what lets the
+		// floor row template build rows, and every row reads these five through its binding.
+		AreaSelectCommand = new Command<AreaItem>(SelectArea);
+		AreaHoverStartedCommand = new Command<AreaItem>(area =>
+		{
+			_drawable.HoveredAreaId = area.Id;
+			MapCanvas.Invalidate();
+		});
+		AreaHoverEndedCommand = new Command<AreaItem>(_ =>
+		{
+			_drawable.HoveredAreaId = null;
+			MapCanvas.Invalidate();
+		});
+		AreaDeleteCommand = new Command<AreaItem>(OnAreaDeleteRequested);
+		AreaNotebookCommand = new Command<AreaItem>(OpenAreaNotebook);
 
 		// The tick arrives on this page's dispatcher thread, so the detector's press flag is
 		// written and read on one thread and no MainThread hop is needed inside the handler.
@@ -226,7 +283,6 @@ public partial class DungeonDetailPage : ContentPage
 		_runtimeHandlersAttached = true;
 
 		_viewModel.PropertyChanged += OnViewModelPropertyChanged;
-		_viewModel.FloorList.Items.CollectionChanged += OnFloorsChanged;
 
 		MapCanvas.HandlerChanged += OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed += OnObjectLongPressed;
@@ -256,7 +312,6 @@ public partial class DungeonDetailPage : ContentPage
 		_runtimeHandlersAttached = false;
 
 		_viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-		_viewModel.FloorList.Items.CollectionChanged -= OnFloorsChanged;
 
 		MapCanvas.HandlerChanged -= OnMapCanvasHandlerChanged;
 		_longPressDetector.LongPressed -= OnObjectLongPressed;
@@ -676,8 +731,10 @@ public partial class DungeonDetailPage : ContentPage
 			_viewModel.Header.DungeonNotes));
 	}
 
-	// Every write path below ends in a full reload that clears Floors and rebuilds every sidebar
-	// item, so no FloorItem or AreaItem may be held across the await — only identifiers survive it.
+	// Every write path below replaces what it wrote: the floor and area saves are floor-scoped and
+	// replace that one floor's FloorItem in FloorList.Items (touching only its one sidebar row), and the
+	// dungeon save reloads the whole detail, replacing every FloorItem. Either way no FloorItem or
+	// AreaItem may be held across the await — only identifiers survive it.
 	//
 	// All three branches follow one rule: description and notes are written exactly as typed, but a
 	// blank name falls back to the entity's last known good one. Each level punishes a blank name
@@ -704,9 +761,10 @@ public partial class DungeonDetailPage : ContentPage
 						_viewModel.Header.DungeonDescription = e.Description;
 						_viewModel.Header.DungeonNotes = e.Notes;
 
-						// The header's save now reloads the detail on success, like every other
-						// mutation. The page therefore no longer chases it with a second load of
-						// its own: the banner and the sidebar row repaint from that reload.
+						// The header's save reloads the whole detail on success: it changes the
+						// dungeon-level projection itself, which no floor-scoped refresh can carry.
+						// The page therefore does not chase it with a second load of its own: the
+						// banner and every sidebar row repaint from that one reload.
 						await _viewModel.Header.SaveCommand.ExecuteAsync(null);
 
 						// A blank name never overwrote DungeonName above, so it still holds the last known
@@ -774,8 +832,9 @@ public partial class DungeonDetailPage : ContentPage
 					}
 			}
 
-			// The reload replaced every floor projection, so the drawable is still pointing at the
-			// pre-save instance. Re-resolve it by id rather than reusing the captured DTO.
+			// Each save above replaced the FloorItem it touched — one floor for a floor or area save,
+			// every floor for the dungeon's full reload — so the drawable may still be pointing at the
+			// pre-save instance. Re-resolve it by id rather than reusing the captured item.
 			_drawable.Floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
 			RefreshDungeonNotebookButton();
 			MapCanvas.Invalidate();
@@ -786,230 +845,260 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
-	private void OnFloorsChanged(
-		object? sender,
-		System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
-		RebuildFloorList();
+	// ─── Floor row events ───────────────────────────────────────────────────────
+	//
+	// The floor list's row template (DungeonDetailPage.xaml) wires these nine handlers on every
+	// FloorSidebarItem it builds, and hands each row the five area commands declared above. A
+	// handler reads its row from sender and its floor from that row's Floor AT THE MOMENT IT RUNS,
+	// so none of them holds a FloorItem that a floor refresh could since have replaced.
+	//
+	// None of them writes a row's IsExpanded or an area row's IsSelected. Both are bound to the
+	// editor state in the templates, so the handlers write the editor state and the bindings do
+	// the rest (MASTER-098 / UIKIT-011).
 
-	private void RebuildFloorList()
+	private async void OnFloorDeleteRequested(object? sender, FloorItem floorToDelete)
 	{
-		FloorListContainer.Children.Clear();
-
-		foreach (var floor in _viewModel.FloorList.Items)
+		// async void: an escaping exception is UNOBSERVED and is rethrown on the
+		// synchronisation context, which takes the process down. The try opens before the
+		// first await for that reason, not as defensive style.
+		try
 		{
-			var item = new FloorSidebarItem { Floor = floor };
+			var confirmed = await Navigation.ShowConfirmPopupAsync(
+				"Delete Floor",
+				$"Delete Floor {floorToDelete.Number}? All areas on this floor will be removed.",
+				"DELETE",
+				"CANCEL",
+				isDestructive: true);
 
-			// Each floor row is a heading in the sidebar's outline, one level below the FLOORS
-			// caption the XAML carries. Without it a screen reader reads the sidebar as an
-			// undifferentiated run of controls and offers no way to jump between floors.
-			SemanticProperties.SetHeadingLevel(item, SemanticHeadingLevel.Level3);
-
-			item.DeleteRequested += async (_, floorToDelete) =>
+			if (!confirmed)
 			{
-				// async void: an escaping exception is UNOBSERVED and is rethrown on the
-				// synchronisation context, which takes the process down. The try opens before the
-				// first await for that reason, not as defensive style.
-				try
-				{
-					var confirmed = await Navigation.ShowConfirmPopupAsync(
-						"Delete Floor",
-						$"Delete Floor {floorToDelete.Number}? All areas on this floor will be removed.",
-						"DELETE",
-						"CANCEL",
-						isDestructive: true);
+				return;
+			}
 
-					if (!confirmed)
-					{
-						return;
-					}
-
-					// Deleting the selected floor must drop every piece of state that points at it,
-					// otherwise the drawable keeps rendering the deleted floor's projection.
-					// Deleting any other floor leaves the current selection untouched.
-					var wasSelected = _editor.SelectedFloorId == floorToDelete.Id;
-					if (wasSelected)
-					{
-						ClearAreaFocus();
-						_editor.SelectedFloorId = null;
-						_drawable.Floor = null;
-						_drawable.HoveredAreaId = null;
-						ResetDrawState();
-						SetMapToolbarShown(false);
-					}
-
-					await _viewModel.FloorList.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
-
-					// The deleted floor, or any of its areas, may be what the notebook is open on.
-					CloseNotebookIfOrphaned();
-
-					if (wasSelected)
-					{
-						UpdateToolbarButtonState();
-						MapCanvas.Invalidate();
-					}
-				}
-				catch (Exception exception)
-				{
-					_viewModel.ErrorMessage = $"Could not delete that floor: {exception.Message}";
-				}
-			};
-
-			item.SelectRequested += (_, _) =>
+			// Deleting the selected floor must drop every piece of state that points at it,
+			// otherwise the drawable keeps rendering the deleted floor's projection.
+			// Deleting any other floor leaves the current selection untouched.
+			var wasSelected = _editor.SelectedFloorId == floorToDelete.Id;
+			if (wasSelected)
 			{
-				// Re-tapping the floor card while an area is focused clears the focus first;
-				// a further tap falls through to the deselect branch below.
-				if (_editor.FocusedAreaId is not null && _editor.SelectedFloorId == floor.Id)
-				{
-					ClearAreaFocus();
-					return;
-				}
-
-				// Re-tapping the already-selected floor toggles it off: collapse it and route
-				// back through RefreshMap so the resulting state is identical to the page's
-				// initial no-floor-selected state rather than a hand-rolled second copy of it.
-				if (_editor.SelectedFloorId == floor.Id)
-				{
-					_editor.SelectedFloorId = null;
-					item.IsExpanded = false;
-					ResetDrawState();
-					RefreshMap();
-
-					// Collapsing the floor also closes its notebook if one is open on it or on
-					// one of its areas — the entity still exists, but its row is no longer shown
-					// selected/expanded, so keeping the notebook pinned to it reads as stale.
-					if (Notebook.CurrentId is Guid notebookId
-						&& (notebookId == floor.Id || floor.Areas.Any(areaItem => areaItem.Id == notebookId)))
-					{
-						Notebook.Close();
-					}
-
-					return;
-				}
-
-				_editor.SelectedFloorId = floor.Id;
-				CollapseAllExcept(item);
-				RefreshMap();
-			};
-
-			item.ReorderRequested += async (_, args) =>
-			{
-				// async void: an escaping exception is UNOBSERVED and is rethrown on the
-				// synchronisation context, which takes the process down. The try opens before the
-				// first await for that reason, not as defensive style.
-				try
-				{
-					_editor.SelectedFloorId = args.DraggedFloorId;
-					await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
-						new ReorderFloorArgs(args.DraggedFloorId, args.TargetNumber));
-				}
-				catch (Exception exception)
-				{
-					_viewModel.ErrorMessage = $"Could not reorder the floors: {exception.Message}";
-				}
-			};
-
-			item.DragStarted += (_, _) =>
-			{
-				_draggingItem = item;
-				item.Opacity = 0;
-			};
-
-			item.DragEnded += (_, _) =>
-			{
-				_draggingItem = null;
-				item.Opacity = 1.0;
-				ClearDragPlaceholder();
-			};
-
-			item.PlaceholderRequested += (_, _) =>
-				ShowDragPlaceholder(item);
-
-			item.PlaceholderCleared += (_, _) =>
-				ClearDragPlaceholder();
-
-			item.AddAreaRequested += async (_, _) =>
-			{
-				// async void lambda: the try opens before the first await so nothing escapes.
-				try
-				{
-					await _viewModel.Canvas.AddAreaCommand.ExecuteAsync(floor.Id);
-				}
-				catch (Exception exception)
-				{
-					_viewModel.ErrorMessage = $"Could not add an area: {exception.Message}";
-				}
-			};
-
-			// The five area commands are set on the floor item and read straight off it by each
-			// area row's template binding (MASTER-099). They used to be five subscriptions to
-			// five FloorSidebarItem events that existed only to re-raise the area row's own.
-			item.AreaSelectCommand = new Command<AreaItem>(area =>
-			{
-				if (_editor.FocusedAreaId == area.Id)
-				{
-					ClearAreaFocus();
-					return;
-				}
-
-				FocusArea(floor.Id, area);
-			});
-
-			item.AreaHoverStartedCommand = new Command<AreaItem>(area =>
-			{
-				_drawable.HoveredAreaId = area.Id;
-				MapCanvas.Invalidate();
-			});
-
-			item.AreaHoverEndedCommand = new Command<AreaItem>(_ =>
-			{
+				ClearAreaFocus();
+				_editor.SelectedFloorId = null;
+				_drawable.Floor = null;
 				_drawable.HoveredAreaId = null;
+				ResetDrawState();
+				SetMapToolbarShown(false);
+			}
+
+			await _viewModel.FloorList.RemoveFloorCommand.ExecuteAsync(floorToDelete.Id);
+
+			// The deleted floor, or any of its areas, may be what the notebook is open on.
+			CloseNotebookIfOrphaned();
+
+			if (wasSelected)
+			{
+				UpdateToolbarButtonState();
 				MapCanvas.Invalidate();
-			});
-
-			// Sidebar delete is the only way to remove an area with an empty outline —
-			// the Erase tool needs outline geometry to hit-test against.
-			item.AreaDeleteCommand = new Command<AreaItem>(async areaToDelete =>
-			{
-				// async void lambda: the try opens before the first await so nothing escapes.
-				try
-				{
-					await DeleteAreaAsync(floor.Id, areaToDelete);
-				}
-				catch (Exception exception)
-				{
-					_viewModel.ErrorMessage = $"Could not delete that area: {exception.Message}";
-				}
-			});
-
-			item.NotebookRequested += (_, floorForNotebook) =>
-				Notebook.Open(new NotebookTarget(
-					floorForNotebook.Id,
-					floorForNotebook.Id,
-					NotebookKind.Floor,
-					floorForNotebook.Name ?? string.Empty,
-					floorForNotebook.Description,
-					floorForNotebook.Notes));
-
-			item.AreaNotebookCommand = new Command<AreaItem>(areaForNotebook =>
-				Notebook.Open(new NotebookTarget(
-					areaForNotebook.Id,
-					floor.Id,
-					NotebookKind.Area,
-					areaForNotebook.Name,
-					areaForNotebook.Description,
-					areaForNotebook.Notes)));
-
-			FloorListContainer.Children.Add(item);
-
-			if (floor.Id == _editor.SelectedFloorId)
-			{
-				item.IsExpanded = true;
 			}
 		}
-
-		// A rebuild recreates the area items, so re-apply the focused area's selected visual.
-		UpdateActiveAreaSidebarHighlight();
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not delete that floor: {exception.Message}";
+		}
 	}
+
+	private void OnFloorSelectRequested(object? sender, EventArgs e)
+	{
+		if (sender is not FloorSidebarItem { Floor: { } floor })
+		{
+			return;
+		}
+
+		// Re-tapping the floor card while an area is focused clears the focus first;
+		// a further tap falls through to the deselect branch below.
+		if (_editor.FocusedAreaId is not null && _editor.SelectedFloorId == floor.Id)
+		{
+			ClearAreaFocus();
+			return;
+		}
+
+		// Re-tapping the already-selected floor toggles it off and routes back through
+		// RefreshMap, so the resulting state is identical to the page's initial
+		// no-floor-selected state rather than a hand-rolled second copy of it. Clearing the
+		// selection is what collapses the row: its IsExpanded is bound to it.
+		if (_editor.SelectedFloorId == floor.Id)
+		{
+			_editor.SelectedFloorId = null;
+			ResetDrawState();
+			RefreshMap();
+
+			// Collapsing the floor also closes its notebook if one is open on it or on
+			// one of its areas — the entity still exists, but its row is no longer shown
+			// selected/expanded, so keeping the notebook pinned to it reads as stale.
+			if (Notebook.CurrentId is Guid notebookId
+				&& (notebookId == floor.Id || floor.Areas.Any(areaItem => areaItem.Id == notebookId)))
+			{
+				Notebook.Close();
+			}
+
+			return;
+		}
+
+		SelectFloor(floor.Id);
+	}
+
+	// Selects a floor. Every row's IsExpanded is bound to the selected floor, so this one write
+	// expands that floor's row and collapses whichever row was open.
+	private void SelectFloor(Guid floorId)
+	{
+		_editor.SelectedFloorId = floorId;
+		RefreshMap();
+	}
+
+	private async void OnFloorReorderRequested(object? sender, (Guid DraggedFloorId, int TargetNumber) args)
+	{
+		// async void: an escaping exception is UNOBSERVED and is rethrown on the
+		// synchronisation context, which takes the process down. The try opens before the
+		// first await for that reason, not as defensive style.
+		try
+		{
+			_editor.SelectedFloorId = args.DraggedFloorId;
+			await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
+				new ReorderFloorArgs(args.DraggedFloorId, args.TargetNumber));
+		}
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not reorder the floors: {exception.Message}";
+		}
+	}
+
+	private void OnFloorDragStarted(object? sender, EventArgs e)
+	{
+		if (sender is not FloorSidebarItem item)
+		{
+			return;
+		}
+
+		_draggingItem = item;
+		item.Opacity = 0;
+	}
+
+	private void OnFloorDragEnded(object? sender, EventArgs e)
+	{
+		_draggingItem = null;
+
+		if (sender is FloorSidebarItem item)
+		{
+			item.Opacity = 1.0;
+		}
+
+		ClearDragPlaceholder();
+	}
+
+	private void OnFloorPlaceholderRequested(object? sender, EventArgs e)
+	{
+		if (sender is FloorSidebarItem item)
+		{
+			ShowDragPlaceholder(item);
+		}
+	}
+
+	private void OnFloorPlaceholderCleared(object? sender, EventArgs e) =>
+		ClearDragPlaceholder();
+
+	private async void OnFloorAddAreaRequested(object? sender, EventArgs e)
+	{
+		// async void: the try opens before the first await so nothing escapes.
+		try
+		{
+			if (sender is not FloorSidebarItem { Floor: { } floor })
+			{
+				return;
+			}
+
+			await _viewModel.Canvas.AddAreaCommand.ExecuteAsync(floor.Id);
+		}
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not add an area: {exception.Message}";
+		}
+	}
+
+	private void OnFloorNotebookRequested(object? sender, FloorItem floorForNotebook) =>
+		Notebook.Open(new NotebookTarget(
+			floorForNotebook.Id,
+			floorForNotebook.Id,
+			NotebookKind.Floor,
+			floorForNotebook.Name ?? string.Empty,
+			floorForNotebook.Description,
+			floorForNotebook.Notes));
+
+	// ─── Area row commands ──────────────────────────────────────────────────────
+	//
+	// The bodies of AreaSelectCommand, AreaDeleteCommand and AreaNotebookCommand. They used to
+	// close over the floor their row was built for; a template-bound command has no such floor,
+	// so each resolves it from FloorList.Items with FloorIdOf when it runs.
+
+	private void SelectArea(AreaItem area)
+	{
+		if (_editor.FocusedAreaId == area.Id)
+		{
+			ClearAreaFocus();
+			return;
+		}
+
+		// No floor holds the area any more: the row is stale, which FocusArea's own guard
+		// answers by clearing the focus.
+		if (FloorIdOf(area) is not Guid floorId)
+		{
+			ClearAreaFocus();
+			return;
+		}
+
+		FocusArea(floorId, area);
+	}
+
+	// Sidebar delete is the only way to remove an area with an empty outline —
+	// the Erase tool needs outline geometry to hit-test against.
+	private async void OnAreaDeleteRequested(AreaItem areaToDelete)
+	{
+		// async void: the try opens before the first await so nothing escapes.
+		try
+		{
+			// No floor holds the area any more, so there is nothing left to delete.
+			if (FloorIdOf(areaToDelete) is not Guid floorId)
+			{
+				return;
+			}
+
+			await DeleteAreaAsync(floorId, areaToDelete);
+		}
+		catch (Exception exception)
+		{
+			_viewModel.ErrorMessage = $"Could not delete that area: {exception.Message}";
+		}
+	}
+
+	private void OpenAreaNotebook(AreaItem areaForNotebook)
+	{
+		if (FloorIdOf(areaForNotebook) is not Guid floorId)
+		{
+			return;
+		}
+
+		Notebook.Open(new NotebookTarget(
+			areaForNotebook.Id,
+			floorId,
+			NotebookKind.Area,
+			areaForNotebook.Name,
+			areaForNotebook.Description,
+			areaForNotebook.Notes));
+	}
+
+	// The floor that holds the area now, or null when none does.
+	private Guid? FloorIdOf(AreaItem area) =>
+		_viewModel.FloorList.Items
+			.FirstOrDefault(floorItem => floorItem.Areas.Any(areaItem => areaItem.Id == area.Id))
+			?.Id;
 
 	// Confirms and removes an area from the sidebar. Placed objects belong to the floor,
 	// so they survive area deletion; only the annotation is removed.
@@ -1072,10 +1161,10 @@ public partial class DungeonDetailPage : ContentPage
 			_drawable.DragPreviewDelta = null;
 		}
 
+		// The area row's IsSelected is bound to this, so the write is the whole sidebar update.
 		_editor.FocusedAreaId = area.Id;
 		_drawable.ActiveAreaId = area.Id;
 
-		UpdateActiveAreaSidebarHighlight();
 		UpdateToolbarButtonState();
 		MapCanvas.Invalidate();
 	}
@@ -1086,7 +1175,6 @@ public partial class DungeonDetailPage : ContentPage
 		_editor.FocusedAreaId = null;
 		_drawable.ActiveAreaId = null;
 
-		UpdateActiveAreaSidebarHighlight();
 		MapCanvas.Invalidate();
 	}
 
@@ -1223,7 +1311,7 @@ public partial class DungeonDetailPage : ContentPage
 	{
 		await _viewModel.Canvas.AddPlacedObjectCommand.ExecuteAsync(
 			new PlaceObjectArgs(floorId, kind, position, rotation, scale));
-		// Reload only the floor data — do NOT call RefreshMap(), which would reset tool/context state.
+		// Re-resolve only the floor — do NOT call RefreshMap(), which would reset tool/context state.
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
 	}
@@ -1322,18 +1410,23 @@ public partial class DungeonDetailPage : ContentPage
 
 	// ─── Auto-save helpers ───────────────────────────────────────────────────────
 
-	// Reloads floor data from the VM after any auto-save operation and syncs the drawable.
-	// The dungeon identifier is the editing context's, never the page's: ReloadAsync re-runs the
-	// detail query for the dungeon the view model already holds, so nothing here re-takes an id
-	// through a null-forgiving read of Dungeon.
-	private async Task RefreshFloorAsync()
+	// Re-points the drawable at the selected floor's current FloorItem after an auto-save.
+	//
+	// IT QUERIES NOTHING (contract C3 section 4). Every caller awaits one of the nine floor-scoped
+	// view-model commands first (FinishDrawing only while a floor is selected, the only case in
+	// which this does anything), and that command has already refreshed what it changed: on
+	// success it replaces that one floor's FloorItem in FloorList.Items (and the templated floor
+	// list touches only that one row), and on its fallbacks it reloads the whole detail. Either way the
+	// FloorItem the drawable holds may be the replaced one, so it is re-resolved by id. It returns a
+	// Task only because OptimisticGhostSequence.RefreshThenClearAsync takes one.
+	private Task RefreshFloorAsync()
 	{
-		if (_editor.SelectedFloorId is null)
+		if (_editor.SelectedFloorId is not null)
 		{
-			return;
+			_drawable.Floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
 		}
-		await _viewModel.ReloadAsync();
-		_drawable.Floor = _viewModel.FloorList.Items.FirstOrDefault(floorItem => floorItem.Id == _editor.SelectedFloorId);
+
+		return Task.CompletedTask;
 	}
 
 	private void ResetDrawState()
@@ -1829,11 +1922,11 @@ public partial class DungeonDetailPage : ContentPage
 			RefreshFloorAsync,
 			_drawable.ClearGhostAreas);
 
-		// Restore the focus dim if an area was focused before the draw
+		// Restore the focus dim if an area was focused before the draw. The sidebar needs nothing:
+		// the refreshed floor's area rows bind their selected state to the same focused area.
 		if (_editor.FocusedAreaId is not null)
 		{
 			_drawable.ActiveAreaId = _editor.FocusedAreaId;
-			UpdateActiveAreaSidebarHighlight();
 		}
 
 		UpdateToolbarButtonState();
@@ -2235,24 +2328,6 @@ public partial class DungeonDetailPage : ContentPage
 
 	// ─── Sidebar helpers ────────────────────────────────────────────────────────
 
-	private void UpdateActiveAreaSidebarHighlight()
-	{
-		foreach (var child in FloorListContainer.Children)
-		{
-			if (child is not FloorSidebarItem floorItem || floorItem.Floor is not { } floor || floor.Id != _editor.SelectedFloorId)
-			{
-				continue;
-			}
-
-			foreach (var area in floor.Areas)
-			{
-				floorItem.SetAreaEditing(area.Id, area.Id == _editor.FocusedAreaId);
-			}
-
-			break;
-		}
-	}
-
 	/// <summary>
 	///		Moves the floor card that holds keyboard focus one position up or down.
 	/// </summary>
@@ -2312,12 +2387,13 @@ public partial class DungeonDetailPage : ContentPage
 		await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
 			new ReorderFloorArgs(movedFloorId, decision.TargetFloorNumber));
 
-		// REQUIRED, not a nicety. The reorder refills Items, which rebuilds the floor list, which
-		// clears FloorListContainer.Children — so the element that held focus was destroyed by the
-		// very keystroke the user just pressed. Without this the route works exactly once and then
-		// throws focus to the top of the page; observation pass O1 confirmed the repeat case
-		// working and it must not regress. The moved floor's card is a NEW instance, so it is
-		// re-found by floor ID rather than by holding the old reference.
+		// REQUIRED, not a nicety. The reorder is a full reload: Populate clears Items and adds one
+		// FloorItem per floor, and the templated BindableLayout answers the clear by removing every
+		// row and each add by building a fresh FloorSidebarItem — so the element that held focus was
+		// destroyed by the very keystroke the user just pressed. Without this the route works
+		// exactly once and then throws focus to the top of the page; observation pass O1 confirmed
+		// the repeat case working and it must not regress. The moved floor's card is a NEW
+		// instance, so it is re-found by floor ID rather than by holding the old reference.
 		RestoreFloorCardFocus(movedFloorId);
 	}
 
@@ -2333,17 +2409,6 @@ public partial class DungeonDetailPage : ContentPage
 			{
 				item.FocusReorderAffordance();
 				return;
-			}
-		}
-	}
-
-	private void CollapseAllExcept(FloorSidebarItem except)
-	{
-		foreach (var child in FloorListContainer.Children)
-		{
-			if (child is FloorSidebarItem other && !ReferenceEquals(other, except))
-			{
-				other.IsExpanded = false;
 			}
 		}
 	}
@@ -2617,13 +2682,17 @@ public partial class DungeonDetailPage : ContentPage
 		{
 			await _viewModel.FloorList.AddFloorCommand.ExecuteAsync(null);
 
+			// Selects the floor just added, so its row is open; naming it happens in the notebook,
+			// which the user opens from the row. The row's IsExpanded is bound to the selection, so
+			// selecting the last floor of Items is the whole of it — no row is reached into.
 			Dispatcher.DispatchDelayed(
 				TimeSpan.FromMilliseconds(80),
 				() =>
 				{
-					if (FloorListContainer.Children.LastOrDefault() is FloorSidebarItem lastItem)
+					if (_viewModel.FloorList.Items.LastOrDefault() is { } added
+						&& added.Id != _editor.SelectedFloorId)
 					{
-						lastItem.FocusNameEditor();
+						SelectFloor(added.Id);
 					}
 				});
 		}

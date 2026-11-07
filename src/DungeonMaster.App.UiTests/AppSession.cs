@@ -109,7 +109,8 @@ internal sealed class AppSession : IDisposable
 	/// first one to appear.
 	/// </summary>
 	/// <remarks>
-	/// RebuildFloorList adds one FloorSidebarItem per floor, so every id contract C2 section 1
+	/// The page's floor list is a templated BindableLayout over FloorList.Items, which builds one
+	/// FloorSidebarItem per floor from its row template, so every id contract C2 section 1
 	/// tables appears ONCE PER FLOOR in the UIA tree. Nothing in this project may assume a
 	/// unique match; a card's own controls are reached positionally within the card's index.
 	/// </remarks>

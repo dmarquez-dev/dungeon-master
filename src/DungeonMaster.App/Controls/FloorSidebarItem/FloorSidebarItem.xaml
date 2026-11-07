@@ -5,8 +5,13 @@
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     xmlns:presentation="clr-namespace:DungeonMaster.App.Core.Presentation;assembly=DungeonMaster.App.Core"
+    xmlns:converters="clr-namespace:DungeonMaster.App.Converters"
     x:Class="DungeonMaster.App.Controls.FloorSidebarItem"
     x:Name="Root">
+
+    <ContentView.Resources>
+        <converters:GuidEqualityConverter x:Key="GuidEquality" />
+    </ContentView.Resources>
 
     <!-- DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and the
          DmRadiusDefault corner. BackgroundColor is restated because the style inherits
@@ -317,7 +322,15 @@
                      between re-raises anything.
 
                      RelativeSource rather than x:Reference: a DataTemplate is its own name scope
-                     and cannot see the Root name declared outside it. -->
+                     and cannot see the Root name declared outside it.
+
+                     MASTER-098 / UIKIT-011: the selected appearance is BOUND, one way, to whether
+                     this row's area is the one the editor state has focused. FocusedAreaId is what
+                     the page's floor row template hands this control from Editor.FocusedAreaId, so
+                     the editor state is the one owner of the fact and nothing pushes it into a row.
+                     An area row built or re-bound after the focus was set, by a floor refresh or a
+                     full reload, therefore comes up already selected without anything re-applying
+                     it. -->
                 <BindableLayout.ItemTemplate>
                     <DataTemplate x:DataType="presentation:AreaItem">
                         <controls:AreaSidebarItem
@@ -326,7 +339,11 @@
                             HoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
                             HoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
                             DeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
-                            NotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}" />
+                            NotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}">
+                            <!-- One line on purpose: the whole binding site, open tag to close
+                                 tag, so a line search for the property finds the site once. -->
+                            <controls:AreaSidebarItem.IsSelected><MultiBinding Converter="{StaticResource GuidEquality}" Mode="OneWay"><Binding Path="Id" /><Binding Path="FocusedAreaId" Source="{RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}" /></MultiBinding></controls:AreaSidebarItem.IsSelected>
+                        </controls:AreaSidebarItem>
                     </DataTemplate>
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
