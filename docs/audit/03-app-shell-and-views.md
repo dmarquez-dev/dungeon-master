@@ -408,6 +408,47 @@ than an optimisation, since it leaves the reload obligation with the caller and 
 commands return or apply the changed projection rather than re-querying the aggregate, so the observable
 collection is patched instead of rebuilt.
 
+**[AMENDED 20261106-2050-detail-page-trio, 2026-11-06 -- this entry's second remedy was acted on as
+`MASTER-094`, which is closed, and two specifics in its `What.` paragraph were stale at this session's
+start: every view-model mutation reloaded, `AddAreaWithOutlineAsync` included.** Form follows the
+`AMENDED 6b-xvi` block on `UI-003` in this file at `:201`.
+
+*Closure.* `MASTER-094` (`docs/audit/00-master-index.md:282`) is closed `done` by this session. Measured
+by task `T4` on the session worktree: the nine floor-scoped view-model commands of C3 section 3.1 now
+await `context.RefreshFloorAsync`, which re-reads only their own floor through `GetFloorDetailQuery`
+(`src/DungeonMaster.App/ViewModels/DungeonDetailViewModel.cs:193`) and replaces that one `FloorItem` in
+`FloorList.Items` in place, falling back to the full reload on each case C3 section 3.1 lists; P-REFRESH
+(C1 section 4.2) prints 9 lines (0 at session start), and P-RELOAD (C1 section 4.1) prints 4 lines,
+against 14 at session start. The design is
+`.sir/sessions/20261106-2050-detail-page-trio/contracts/C2-floor-detail-query.md` and section 3 of
+`.sir/sessions/20261106-2050-detail-page-trio/contracts/C3-editor-state-and-floor-refresh.md`.
+
+*Correction of `What.`* The entry says "Eleven of the twelve mutating operations end with `await
+LoadDungeonAsync(_dungeonId)`" and "`AddAreaWithOutlineAsync` (line 296) is the single exception and does
+not reload". At this session's start both were stale. The reload was `context.ReloadAsync()`, and it
+ended **all** thirteen view-model mutations: P-RELOAD (C1 section 4.1), re-run by `T4` at the session's
+starting commit with read-only `git grep`, prints 14 lines, 13 in `src/DungeonMaster.App/ViewModels`
+and the page's 1 (`DungeonDetailPage.xaml.cs:1335`). `AddAreaWithOutlineAsync` reloaded once, after its
+second write (`MapCanvasViewModel.cs:231` at session start), and its doc comment there records the change
+in its `<remarks>` (`:177-183`: "Before this session the outline write did not reload at all"). No
+classification word is given: this session traced no history between the audited tree and its own.
+
+*"Why it matters.", re-stated as measured.* The `Floors.Clear()` the entry names is now `FloorList.Items`
+(`src/DungeonMaster.App/ViewModels/FloorListViewModel.cs:32`). A floor-scoped mutation no longer clears
+and refills it: `ReplaceAt` (`:108-113`) assigns the one element, which raises one `Replace` and no
+`Clear` or `Add` (C3 section 3.1), and the templated floor list (`UI-016` below) re-binds the replaced row
+and leaves every other row instance alone (**told**: measured by task `T3`'s implementer, not reproduced
+by its reviewer). The page-comment citations `DungeonDetailPage.xaml.cs:545-546` and `:587` in that
+paragraph are not re-derived, and `locations:` is kept unchanged as a record of the audited state;
+nothing above is deleted or edited.
+
+*What remains.* Four mutations still re-query the whole dungeon, by design (C3 section 3.2):
+`AddFloorCommand` changes the floor list's membership, `RemoveFloorCommand` changes membership and
+renumbers every later floor, `ReorderFloorCommand` renumbers every floor between the two positions, and
+the header `SaveCommand` changes the dungeon-level projection itself. Each still leaves `FloorList.Items`
+as `Populate` does, `Clear()` then one `Add` per floor (`FloorListViewModel.cs:42-65`). The record's
+severity, category, effort and risk are unchanged.]**
+
 ### UI-008 -- Five public async methods sit outside the command surface, three re-taking an id the type holds
 
 ```yaml
@@ -795,6 +836,38 @@ and the placeholder `Border` insertion are all genuine visual concerns.
 proposed in UI-006, leaving the page with gesture-to-intent translation and visual state only; and turn
 `RebuildFloorList`'s hand-rolled loop into a templated `BindableLayout` over `Floors` so row wiring is
 declarative.
+
+**[AMENDED 20261106-2050-detail-page-trio, 2026-11-06 -- this entry's second remedy was acted on as
+`MASTER-108`, which is closed: the floor sidebar is a templated `BindableLayout`, and the `What.`
+paragraph's "wiring twelve event handlers per row" was stale at this session's start.** Form follows the
+`AMENDED 6b-xvi` block on `UI-003` in this file at `:201`.
+
+*Closure.* `MASTER-108` (`docs/audit/00-master-index.md:296`) is closed `done` by this session. Measured
+by task `T4` on the session worktree: `FloorListContainer`
+(`src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml:694`) carries
+`BindableLayout.ItemsSource="{Binding FloorList.Items}"` (`:698`) and a `BindableLayout.ItemTemplate`
+(`:754`) whose root is `controls:FloorSidebarItem` (`:756`). The hand-rolled loop is gone: the C1
+section 4.5 census prints 0 lines for `RebuildFloorList` in `src/DungeonMaster.App` and
+`src/DungeonMaster.App.UiTests` (4 at session start), 0 for `OnFloorsChanged` (3), and 0 for
+`new FloorSidebarItem` in `src/DungeonMaster.App` (1). Row wiring is declarative: the template declares
+14 event and command attributes on `FloorSidebarItem`, read line by line, nine events at `:765-773` and
+five `Area*Command` bindings at `:760-764`, where `RebuildFloorList` wired the same nine subscriptions and
+five assignments by hand on every row (**told**, from this session's contract
+`.sir/sessions/20261106-2050-detail-page-trio/contracts/C4-register.md` section 2.1). The entry's "over
+`Floors`" names a collection that has been `FloorList.Items` since 5b split the view model.
+
+*Correction of `What.`* "wiring twelve event handlers per row" was stale at this session's start: the
+loop wired nine event subscriptions and five command assignments per row, read from
+`DungeonDetailPage.xaml.cs:807-1000` at session start (**told**, from the same contract, section 2.2).
+No classification word is given: this session traced no history between the audited tree and its own.
+
+*What stays in code-behind, as the entry says it should.* "the placeholder `Border` insertion", which the
+entry counts among the "genuine visual concerns", still lives in the page: P-CHILDMUT (C1 section 4.4)
+prints 3 lines, all the drag placeholder's, `Remove(_dragPlaceholder)` at `DungeonDetailPage.xaml.cs:2594`
+and `:2670` and `Insert(insertIdx, _dragPlaceholder)` at `:2658`, and no `Clear(` or `Add(` line. The
+first remedy (5b) is not re-assessed here. `locations:` is kept unchanged as a record of the audited
+state; nothing above is deleted or edited. The record's severity, category, effort and risk are
+unchanged.]**
 
 ### UI-017 -- Geometry and model transformation are performed in the page rather than in a testable type
 
