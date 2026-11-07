@@ -87,7 +87,8 @@ public interface IDungeonEditingContext
 	/// <remarks>
 	///		Every successful floor-scoped mutation awaits this before returning. When the floor
 	///		cannot be refreshed in place (the floor-scoped read finds nothing, the floor is not in
-	///		the floor list, or no detail projection is loaded) it falls back to
+	///		the floor list, no detail projection is loaded, or the floor list and the loaded detail
+	///		projection disagree about that floor's position) it falls back to
 	///		<see cref="ReloadAsync"/>, so the page is never left showing a floor that was not
 	///		re-read.
 	/// </remarks>
