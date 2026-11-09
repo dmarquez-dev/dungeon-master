@@ -2,11 +2,11 @@
   "id": "20261109-1641-part-done-rows",
   "name": "part-done-rows",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "pushed": true,
   "brief": "Take register rows MASTER-130 and MASTER-081 out of part done, clearing the last scheduled backlog heading. MASTER-130 (CORE-024) closes done: T1 renames the 28 remaining `ct` parameters in DungeonMaster.Tests and DungeonMaster.App, with their 15 <param> tags and every use, to `cancellationToken`; T2 renames the 11 `obj` lambda parameters and two comments in three Infrastructure files to `placedObject`, and proves with dotnet-ef that the EF model is unchanged. Both renames are pinned to exact word-rename digests. MASTER-081 (CORE-016) closes DELIBERATELY UNCHANGED with no code change, since 6b-xv's ValidateScale already removed the duplicated rule; the policy layer, PolicyResult, DomainException and an ObjectScale value object are declined. T3 rewrites both register cells, retaining their previous wording, and inserts amendment blocks on CORE-016 and CORE-024. The orchestrator removes the four covered backlog lines at Gate 3.",
   "started": "2026-11-09T16:41:05Z",
-  "ended": null,
+  "ended": "2026-11-09T19:14:03Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -41,7 +41,15 @@
       "started": "2026-11-09T18:50:55Z",
       "ended": "2026-11-09T19:08:32Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "c8f1ba6b-df0f-40c2-a959-42bec681eb05",
+      "sir": "1.0.25",
+      "started": "2026-11-09T19:12:50Z",
+      "ended": "2026-11-09T19:14:03Z",
+      "outcome": "complete"
     }
   ],
-  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+  "metrics": { "userInteractions": 4, "escalationsRaised": 0, "reviewRounds": 0 }
 }
