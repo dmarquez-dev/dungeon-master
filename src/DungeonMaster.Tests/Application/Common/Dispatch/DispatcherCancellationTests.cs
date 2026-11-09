@@ -388,10 +388,10 @@ public class DispatcherCancellationTests
 
 		public Task<Result> HandleAsync(
 			TCommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			WasCalled = true;
-			ReceivedToken = ct;
+			ReceivedToken = cancellationToken;
 
 			return Task.FromResult(Result.Success());
 		}
@@ -413,10 +413,10 @@ public class DispatcherCancellationTests
 
 		public Task<Result<int>> HandleAsync(
 			TCommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			WasCalled = true;
-			ReceivedToken = ct;
+			ReceivedToken = cancellationToken;
 
 			return Task.FromResult(Result<int>.Success(7));
 		}
@@ -438,10 +438,10 @@ public class DispatcherCancellationTests
 
 		public Task<string> HandleAsync(
 			TQuery query,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			WasCalled = true;
-			ReceivedToken = ct;
+			ReceivedToken = cancellationToken;
 
 			return Task.FromResult("queried");
 		}
@@ -467,10 +467,10 @@ public class DispatcherCancellationTests
 		public Task<TResponse> HandleAsync(
 			TRequest request,
 			Func<Task<TResponse>> next,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			WasCalled = true;
-			ReceivedToken = ct;
+			ReceivedToken = cancellationToken;
 
 			return next();
 		}
