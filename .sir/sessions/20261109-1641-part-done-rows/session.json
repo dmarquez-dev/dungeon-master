@@ -1,0 +1,47 @@
+{
+  "id": "20261109-1641-part-done-rows",
+  "name": "part-done-rows",
+  "scope": "standard",
+  "status": "MERGED",
+  "pushed": true,
+  "brief": "Take register rows MASTER-130 and MASTER-081 out of part done, clearing the last scheduled backlog heading. MASTER-130 (CORE-024) closes done: T1 renames the 28 remaining `ct` parameters in DungeonMaster.Tests and DungeonMaster.App, with their 15 <param> tags and every use, to `cancellationToken`; T2 renames the 11 `obj` lambda parameters and two comments in three Infrastructure files to `placedObject`, and proves with dotnet-ef that the EF model is unchanged. Both renames are pinned to exact word-rename digests. MASTER-081 (CORE-016) closes DELIBERATELY UNCHANGED with no code change, since 6b-xv's ValidateScale already removed the duplicated rule; the policy layer, PolicyResult, DomainException and an ObjectScale value object are declined. T3 rewrites both register cells, retaining their previous wording, and inserts amendment blocks on CORE-016 and CORE-024. The orchestrator removes the four covered backlog lines at Gate 3.",
+  "started": "2026-11-09T16:41:05Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "b5b891ae-4c01-4896-9422-daa49b297a16",
+      "sir": "1.0.25",
+      "started": "2026-11-09T16:41:05Z",
+      "ended": "2026-11-09T16:52:34Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "e7523053-5b41-4399-8859-32d58a6f3af2",
+      "sir": "1.0.25",
+      "started": "2026-11-09T16:53:55Z",
+      "ended": "2026-11-09T18:01:24Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "7f12d913-266f-44e2-a078-e8dd6e3c877b",
+      "sir": "1.0.25",
+      "started": "2026-11-09T18:02:40Z",
+      "ended": "2026-11-09T18:48:03Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "c8f1ba6b-df0f-40c2-a959-42bec681eb05",
+      "sir": "1.0.25",
+      "started": "2026-11-09T18:50:55Z",
+      "ended": "2026-11-09T19:08:32Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+}
