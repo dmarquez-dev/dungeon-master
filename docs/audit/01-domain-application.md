@@ -1058,6 +1058,83 @@ document around it changes.
 The record's severity, category, effort and risk are unchanged, and `MASTER-081` / `CORE-016` stays
 **OPEN as part done**.**]**
 
+**[AMENDED 20261109-1641-part-done-rows, 2026-11-09 -- `MASTER-081` is CLOSED DELIBERATELY UNCHANGED by user
+decision at Gate 1, with no code change: the duplicated scale rule this entry's title names was already
+removed by 6b-xv, and the policy layer it proposes was considered and declined.** The register row is
+`MASTER-081` at `00-master-index.md:269`. **Nothing below deletes any previous wording.** Every figure in this
+block is labelled either as measured by this session's task `T3` on the session worktree, or as told, with its
+source. The contract files cited below are in `.sir/sessions/20261109-1641-part-done-rows/contracts/`.
+
+*Closure.* `MASTER-081` (`00-master-index.md:269`) is CLOSED **DELIBERATELY UNCHANGED** by user decision at
+Gate 1, with no code change (told: `.sir/sessions/20261109-1641-part-done-rows/discussion.md`, Decisions).
+**The row's own subject, the duplication, is already gone** -- 6b-xv's `ValidateScale` is one helper.
+Measured by `T3`: `grep -rn ValidateScale src --include=*.cs --exclude-dir=obj --exclude-dir=bin` prints
+3 lines, the declaration `private static void ValidateScale(float scale, string paramName)` at
+`src/DungeonMaster.Domain/Entities/Floors/PlacedObjectMethods.cs:45` (a partial of `PlacedObject`) and its two
+calls, `src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:30` in the constructor and
+`PlacedObjectMethods.cs:24` in `Update`. **Considered and declined** (told: Gate 1, the same Decisions): a
+policy layer, `PolicyResult`, `DomainException` and an `ObjectScale` value object. Measured by `T3`, each is
+still absent or unchanged: `find src -type d -name Policies`, with `obj` and `bin` paths excluded, prints
+nothing, while the same command for `Floors` prints `src/DungeonMaster.Domain/Entities/Floors`;
+`grep -rnwE PolicyResult src --include=*.cs --exclude-dir=obj --exclude-dir=bin` prints nothing, and so does the
+same command for `DomainException`, while the same command for `ValidateScale` prints the 3 lines above;
+`grep -n ObjectScale src/DungeonMaster.Domain/Entities/Floors/ObjectScale.cs` prints `:6`
+`public static class ObjectScale`, the holder of the `const float` bounds and not a value object. **What the
+decision leaves, stated plainly:** the scale bounds are still checked in two layers, the entity helper and the
+two command validators' `InclusiveBetween(ObjectScale.Min, ObjectScale.Max)`, which `grep -n InclusiveBetween`
+places at
+`src/DungeonMaster.Application/Features/Dungeons/Commands/AddPlacedObject/AddPlacedObjectCommandValidator.cs:40`
+(on `Scale`) and
+`src/DungeonMaster.Application/Features/Dungeons/Commands/UpdatePlacedObject/UpdatePlacedObjectCommandValidator.cs:39`
+(on `NewScale`), each with `ObjectScale.Min,` and `ObjectScale.Max);` on the two lines below it -- both
+referencing the `ObjectScale` constants rather than restating the numbers.
+
+*Supersession.* The `AMENDED 6b-xv` block above ends with this sentence, quoted verbatim and joined across its
+line break: "The record's severity, category, effort and risk are unchanged, and
+`MASTER-081` / `CORE-016` stays **OPEN as part done**." This block supersedes that status and does not edit it.
+
+*The `AMENDED 6b-xv` block's positions have moved, measured by `T3`.* That block places the helper at
+`PlacedObject.cs:91-100`, called from `:28` and `:70`. By the `ValidateScale` grep above, the declaration is now
+at `PlacedObjectMethods.cs:45` and the two calls at `PlacedObject.cs:30` (constructor) and
+`PlacedObjectMethods.cs:24` (`Update`). No classification of the move is given, because `T3` cites no committed
+record of the session that made it; `.sir/lessons.md:70` records that `PlacedObject`'s methods were split into
+their own file (told). This entry's `locations:` list is kept unchanged as a record of the audited state.
+
+*The `Suggested direction.` is declined, not pending.* It is left exactly as written, as the record of what was
+proposed; this block, not that paragraph, is the current disposition. **The deferred "Scale value object" item
+is answered by this decision** (told: `discussion.md`, Decisions, its Not-in-scope bullet); nothing is built.
+
+*Moved citations, recorded rather than left to drift* -- the hazard the `AMENDED 6b-xv` block describes in its
+penultimate paragraph. This session inserted two blocks in this file, this one (77 lines with its trailing
+empty line) and the `AMENDED 20261109-1641-part-done-rows` block on `CORE-024` (72 lines with its trailing
+empty line), so every line below this block's insertion point moves down 77, and every line below the
+`CORE-024` block's moves down 149. CITE-IN and CITE-X (`C1-measurement.md` section 6) were run by `T3` before
+the first edit and after both insertions, and each target below was re-read by `T3` at startRef and in the
+post-`T3` file. Positions in this paragraph, and only here, are line numbers of this file: **20 citations
+were live and correct at startRef and had their target moved**, each given as cited at (startRef, then post-`T3`
+line) -> target at startRef -> target in the post-`T3` file:
+`:1054` (unmoved) -> `:1162-1167` -> `:1239-1244`, the `CORE-019` `locations:` window;
+`:1598` (now `:1675`) -> `:1567` -> `:1644`, the quoted `Floor.cs at 73 lines` sentence;
+`:1612` (now `:1689`) -> `:1561-1563` -> `:1638-1640`, the quoted `PlacedObject is not partial at all` sentence;
+`:1794` (now `:1871`) -> `:1712-1714` -> `:1789-1791`, the blocker-class sentence of `CORE-024`'s `AMENDED 6b-xvii`
+block; and seven in-file citations of `:1293` -> `:1370`, the `AMENDED 6b-xiv` opener on `CORE-019`, cited at
+`:1696` (now `:1773`), `:1867` (now `:2016`), `:1997` (now `:2146`), `:2123` (now `:2272`), `:2263` (now `:2412`),
+`:2393` (now `:2542`) and `:2661` (now `:2810`); plus nine cross-file citations of the same `:1293` -> `:1370`, in
+`03-app-shell-and-views.md` at line 208 and `04-app-controls-and-theme.md` at lines 1017, 1133, 1272, 1373, 1465,
+1555, 1686 and 1798. That is 11 in-file and 9 cross-file, 20 in all. **Not listed, by count:** 6 in-file
+citations were already dated at startRef, each dated by its own wording (`C1-measurement.md` section 6's
+table); 10 were already stale at startRef -- 1 in this file and 8 in `04-app-controls-and-theme.md` citing
+`:2156-2216`, and the 1 in `00-master-index.md`'s `MASTER-119` row citing `:2313`, which `T3` read: it holds a
+sentence of the `AMENDED 6b-xvii` block on `CORE-028`, not the `MASTER-114` / `CORE-030` record that row
+names; and 6 in-file citations target lines above both insertion points and did not move. None is re-derived
+here. **No citation is edited** -- not in this file, and not in `03-app-shell-and-views.md` or `04-app-controls-and-theme.md`,
+which no task of this session owns (decided at Gate 2). This paragraph adds citations of its own, which
+CITE-IN counts after the last edit.
+
+**No hash for this session's commit appears in this block:** no code changed for this row, and this session's
+tasks run without git; the orchestrator makes the commit. The record's severity, category, effort and risk are
+unchanged, and `MASTER-081` / `CORE-016` is CLOSED **DELIBERATELY UNCHANGED**.**]**
+
 ### CORE-017 -- ObjectKind has no zero value, so default(ObjectKind) silently means DoorWood
 
 ```yaml
@@ -1821,6 +1898,78 @@ recorded there, not re-measured. This entry's `What.`, `Why it matters.` and `Su
 and its `locations:` list are left exactly as written. **No hash for this session's commit appears in this
 block:** this session's tasks run without git and the orchestrator makes the commit. The record's severity,
 category, effort and risk are unchanged.**]**
+
+**[AMENDED 20261109-1641-part-done-rows, 2026-11-09 -- `MASTER-130` is CLOSED done: the `ct` residue and the
+`obj` residue that the `AMENDED 20261105-1907-core-heavy-rows` block above left part done are both cleared.**
+The register row is `MASTER-130` at `00-master-index.md:318`. **Nothing below deletes any previous wording.**
+Every figure in this block is labelled either as measured by this session's task `T3` on the session worktree,
+or as told, with its source. The contract files cited below are in
+`.sir/sessions/20261109-1641-part-done-rows/contracts/`, and the review records in
+`.sir/sessions/20261109-1641-part-done-rows/reviews/`.
+
+*Closure.* `MASTER-130` (`00-master-index.md:318`) is CLOSED done by this session. The `CW90` family was
+cleared by `20261105-1907-core-heavy-rows`, as the block above records; it is not re-measured here. Measured
+by `T3`, each instrument re-run after the fixture control of `C1-measurement.md` section 4.0 gave its stated
+result: **`ct` (EXCLUSION 2) is cleared** -- CT-DECL (`C1-measurement.md` section 4.1) prints 0 lines and TAG
+(section 4.2) prints 0, where the startRef figures in section 4.1 and 4.2 are 28 lines in 18 files and 15
+(told); CT-NEW prints 28 lines in 18 files and TAG-NEW 15 lines in 15 files, the 18 being exactly the files
+`T1` changed and the 15 lying within them; CT-WORD prints exactly one line,
+`src/DungeonMaster.App/Controls/NotebookView/NotebookView.xaml.cs:151`, a comment naming the argument of a
+rejected `Task.Delay` alternative and not a parameter, the one residue, left deliberately. **`obj`
+(EXCLUSION 3) is cleared** -- OBJ-WORD (section 4.3), the instrument EXCLUSION 3 used, prints only the four
+exempt `src/DungeonMaster.Domain/Entities/Entity.cs` lines, `:65`, `:69`, `:71` and `:72`, and OBJ-HEAD prints
+0 (startRef 11, told). The eleven lambda parameters in `FloorConfiguration.cs`, `PlacedObjectConfiguration.cs`
+and `DungeonReadRepository.cs` are named `placedObject`, the name this entry's `Suggested direction.` gives:
+`grep -rnwE "placedObject =>"` over `src/DungeonMaster.Infrastructure`, with `--include=*.cs` and `obj` and
+`bin` directories excluded, prints 11 lines. The two `DungeonReadRepository.cs` comments naming the parameter
+were renamed with it, `:91` and `:133` (`grep -n 'placedObject.Position'` on that file prints them beside the
+code line `:45`). **The record's "17 lines", settled** (told: orchestrator measurement in the spec phase,
+section 4.3's unit settlement): the record counted lines; at this session's startRef the same instrument gave
+28 non-exempt lines, 18 + 8 + 2, with still eleven lambdas -- DRIFT, not error. **Model and behaviour, told**
+from `reviews/T2.md`: `dotnet ef migrations has-pending-model-changes` prints `No changes have been made to the
+model since the last migration.` after the rename, and printed `Changes have been made to the model since the
+last migration. Add a new migration.` under `T2`'s injected must-fail control; the solution build is at
+0 warnings and 0 errors and the full suite passes at 217, 976 and 137 with 0 failed and 0 skipped, as
+`reviews/T1.md` also reports after the `ct` rename.
+
+*Line contents quoted by the earlier blocks now read differently, by rename rather than drift.* The
+`AMENDED 6b-xvii` block's quotation of the `Rotation` chain at `PlacedObjectConfiguration.cs:30`, and the
+`AMENDED 20261105-1907-core-heavy-rows` block's quotations of that file's `:39` and `:40`, give the lambda
+parameter its old name. Read by `T3` after `T2`, in
+`src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs`, `:39` is
+`builder.Property(placedObject =>` and `:40` is `placedObject.Rotation)` -- the same lines, now with
+`placedObject`. Those quotations are records of the pre-rename text and are not edited: QOBJ
+(`C1-measurement.md` section 4.5), re-run by `T3` before its first edit, prints 15 lines of audit text quoting
+the old lambda code, across `00-master-index.md`, this file and `02-infrastructure.md`, and none is edited.
+
+*`FloorObjectMethods.cs`, measured.* The `AMENDED 6b-xvii` block locates its `obj` clearance in
+`src/DungeonMaster.Domain/Entities/Floors/FloorObjectMethods.cs`, which `ls src/DungeonMaster.Domain/Entities/Floors/`
+no longer lists.
+`grep -rnw placedObject src/DungeonMaster.Domain --include=*.cs --exclude-dir=obj --exclude-dir=bin` finds the
+names that block describes in `src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs`: the construction
+local at `:201` (`var placedObject = new PlacedObject(`) and the lambda parameters at `:226`
+(`var objectToRemove = _objects.FirstOrDefault(placedObject =>`) and `:265`
+(`var objectToUpdate = _objects.FirstOrDefault(placedObject =>`); `grep -cw obj` on that file prints 0. No
+classification of the move is given, because `T3` cites no committed record of the session that made it;
+`.sir/lessons.md:70` records the fold of `FloorObjectMethods.cs` into `FloorMethods.cs` (told).
+
+*What remains outside the row.* Measured by `T3` with OBJ-WORD's flags over the projects outside the row's
+recorded population of Application, Infrastructure and Domain (`C1-measurement.md` section 4.3): `obj` still
+names locals and parameters in `src/DungeonMaster.App` (32 lines in 2 files) and `src/DungeonMaster.Tests`
+(46 lines in 7 files, two of the lines `obj` as a directory name inside a string), and `src/DungeonMaster.App.Tests`
+holds 1 line in 1 file; `src/DungeonMaster.App.Core`, `src/DungeonMaster.App.UnitTests` and
+`src/DungeonMaster.App.UiTests` hold 0. They are not a residue of `MASTER-130` and are recorded so that the
+closure is not read as covering them. Gate 2 left this population for later work: it is carried to
+`.sir/backlog.md` as a new item added by the orchestrator at Gate 3 (told: this session's `spec.md`, Scope).
+
+*Moved citations.* This block's insertion moves every line below it. The moved-citation paragraph of the
+`AMENDED 20261109-1641-part-done-rows` block on `CORE-016` records the citations this session's two insertions
+moved, this block's included; no citation is edited.
+
+This entry's `What.`, `Why it matters.` and `Suggested direction.` paragraphs and its `locations:` list are left
+exactly as written. **No hash for this session's commit appears in this block:** this session's tasks run
+without git and the orchestrator makes the commit. The record's severity, category, effort and risk are
+unchanged.**]**
 
 ### CORE-025 -- Six public Domain types carry no XML documentation
 

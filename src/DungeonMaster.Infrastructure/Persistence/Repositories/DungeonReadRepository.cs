@@ -38,13 +38,13 @@ public sealed class DungeonReadRepository(
 							area.Outline))
 					.ToList(),
 				floor.Objects
-					.Select(obj =>
+					.Select(placedObject =>
 						new PlacedObjectDto(
-							Id: obj.Id,
-							Kind: obj.Kind,
-							Position: obj.Position,
-							Rotation: obj.Rotation,
-							Scale: obj.Scale))
+							Id: placedObject.Id,
+							Kind: placedObject.Kind,
+							Position: placedObject.Position,
+							Rotation: placedObject.Rotation,
+							Scale: placedObject.Scale))
 					.ToList());
 
 	/// <inheritdoc/>
@@ -88,7 +88,7 @@ public sealed class DungeonReadRepository(
 
 		var detail = dbContext.Dungeons
 			// This AsNoTracking() is load-bearing, unlike the one on the summary
-			// query above. The projection below reaches Position: obj.Position, and
+			// query above. The projection below reaches Position: placedObject.Position, and
 			// PlacedObjectDto declares that member as CanvasPoint; CanvasPoint is
 			// mapped as an owned type by PlacedObjectConfiguration's
 			// OwnsOne(... Position ...) call. An owned type is an entity type in
@@ -130,7 +130,7 @@ public sealed class DungeonReadRepository(
 
 		var floorDetail = dbContext.Dungeons
 			// Load-bearing for the same reason as the AsNoTracking() in GetDetailAsync:
-			// FloorProjection reaches Position: obj.Position, an owned CanvasPoint.
+			// FloorProjection reaches Position: placedObject.Position, an owned CanvasPoint.
 			.AsNoTracking()
 			.AsSplitQuery()
 			.Where(dungeon =>

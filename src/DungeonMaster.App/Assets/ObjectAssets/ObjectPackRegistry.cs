@@ -8,13 +8,13 @@ public static class ObjectPackRegistry
 	public static IReadOnlyList<(string Id, string DisplayName)> AvailablePacks { get; } =
 		[("2_Minute_Tabletop", "2 Minute Tabletop")];
 
-	public static async Task<PackLoadResult?> LoadPackAsync(string packId, CancellationToken ct = default)
+	public static async Task<PackLoadResult?> LoadPackAsync(string packId, CancellationToken cancellationToken = default)
 	{
 		var manifestPath = $"packs/{packId}/pack.json";
 		try
 		{
 			await using var stream = await FileSystem.OpenAppPackageFileAsync(manifestPath);
-			var manifest = await JsonSerializer.DeserializeAsync<PackManifest>(stream, cancellationToken: ct);
+			var manifest = await JsonSerializer.DeserializeAsync<PackManifest>(stream, cancellationToken: cancellationToken);
 			if (manifest is null)
 			{
 				return null;

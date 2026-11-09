@@ -53,13 +53,13 @@ public abstract class CommandHandlerTestBase<THandler>
 	///		Dispatches this leaf's command with the supplied token, so a base-level test can assert which token crossed each port.
 	///		The command's arguments are irrelevant to that question; only the token this method threads through is.
 	/// </summary>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		The token to hand to the handler.
 	/// </param>
 	/// <returns>
 	///		A task that completes when the handler returns. The result is discarded.
 	/// </returns>
-	protected abstract Task InvokeWithTokenAsync(CancellationToken ct);
+	protected abstract Task InvokeWithTokenAsync(CancellationToken cancellationToken);
 
 	/// <summary>
 	///		Verifies that the exact token handed to the handler is the token the handler opens its unit of work with.

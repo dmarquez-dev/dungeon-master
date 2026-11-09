@@ -183,13 +183,13 @@ public sealed class AddPlacedObjectCommandHandlerTests : DungeonNotFoundHandlerT
 	/// <summary>
 	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
 	/// </summary>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		The token to hand to the handler.
 	/// </param>
 	/// <returns>
 	///		A task that completes when the handler returns.
 	/// </returns>
-	protected override Task InvokeWithTokenAsync(CancellationToken ct) =>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
 		Handler.HandleAsync(
 			new AddPlacedObjectCommand(
 				Guid.NewGuid(),
@@ -197,5 +197,5 @@ public sealed class AddPlacedObjectCommandHandlerTests : DungeonNotFoundHandlerT
 				ObjectKind.Chair,
 				new CanvasPoint(40f, 40f),
 				ObjectRotation.None),
-			ct);
+			cancellationToken);
 }

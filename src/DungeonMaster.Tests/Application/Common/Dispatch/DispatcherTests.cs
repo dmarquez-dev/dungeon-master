@@ -253,7 +253,7 @@ public class DispatcherTests
 		public async Task<TResponse> HandleAsync(
 			TRequest request,
 			Func<Task<TResponse>> next,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add($"{name}:enter");
 
@@ -313,7 +313,7 @@ public class DispatcherTests
 	{
 		public Task<Result> HandleAsync(
 			OrderingCommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add("handler");
 
@@ -327,7 +327,7 @@ public class DispatcherTests
 	{
 		public Task<Result<int>> HandleAsync(
 			OrderingValueCommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add("handler");
 
@@ -341,7 +341,7 @@ public class DispatcherTests
 	{
 		public Task<string> HandleAsync(
 			OrderingQuery query,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add("handler");
 
@@ -355,7 +355,7 @@ public class DispatcherTests
 	{
 		public Task<string> HandleAsync(
 			PlainQuery query,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add("handler");
 
@@ -368,7 +368,7 @@ public class DispatcherTests
 	{
 		public Task<Result> HandleAsync(
 			MemoisedCommand command,
-			CancellationToken ct) =>
+			CancellationToken cancellationToken) =>
 				Task.FromResult(Result.Success());
 	}
 
@@ -378,7 +378,7 @@ public class DispatcherTests
 	{
 		public Task<Result> HandleAsync(
 			SharedCacheCommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add("handler");
 
@@ -392,7 +392,7 @@ public class DispatcherTests
 	{
 		public Task<Result<int>> HandleAsync(
 			SharedCacheValueCommand command,
-			CancellationToken ct)
+			CancellationToken cancellationToken)
 		{
 			log.Add("handler");
 

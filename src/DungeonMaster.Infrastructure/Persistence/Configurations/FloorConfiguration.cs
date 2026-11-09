@@ -129,8 +129,8 @@ public sealed class FloorConfiguration
 		builder.HasMany(floor =>
 			floor.Objects)
 			.WithOne()
-			.HasForeignKey(obj =>
-				obj.FloorId)
+			.HasForeignKey(placedObject =>
+				placedObject.FloorId)
 			.OnDelete(DeleteBehavior.Cascade);
 
 		builder.Navigation(floor =>

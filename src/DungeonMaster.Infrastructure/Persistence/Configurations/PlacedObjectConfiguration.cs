@@ -20,42 +20,42 @@ public sealed class PlacedObjectConfiguration
 	{
 		builder.ToTable("PlacedObjects");
 
-		builder.HasKey(obj =>
-			obj.Id);
+		builder.HasKey(placedObject =>
+			placedObject.Id);
 
-		builder.Property(obj =>
-			obj.Id)
+		builder.Property(placedObject =>
+			placedObject.Id)
 			.ValueGeneratedNever();
 
-		builder.Property(obj =>
-			obj.FloorId)
+		builder.Property(placedObject =>
+			placedObject.FloorId)
 			.IsRequired();
 
-		builder.Property(obj =>
-			obj.Kind)
+		builder.Property(placedObject =>
+			placedObject.Kind)
 			.IsRequired()
 			.HasConversion<string>();
 
-		builder.Property(obj =>
-			obj.Rotation)
+		builder.Property(placedObject =>
+			placedObject.Rotation)
 			.IsRequired()
 			.HasConversion<string>();
 
-		builder.Property(obj =>
-			obj.Scale)
+		builder.Property(placedObject =>
+			placedObject.Scale)
 			.HasColumnType("REAL");
 
-		builder.Property(obj =>
-			obj.CreatedAt)
+		builder.Property(placedObject =>
+			placedObject.CreatedAt)
 			.IsRequired();
 
-		builder.Property(obj =>
-			obj.LastModified)
+		builder.Property(placedObject =>
+			placedObject.LastModified)
 			.IsRequired();
 
 		builder.OwnsOne(
-			obj =>
-				obj.Position,
+			placedObject =>
+				placedObject.Position,
 			position =>
 			{
 				position.Property(point =>
