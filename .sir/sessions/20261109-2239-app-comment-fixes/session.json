@@ -2,10 +2,10 @@
   "id": "20261109-2239-app-comment-fixes",
   "name": "app-comment-fixes",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "brief": "Close five deferred comment and doc-comment rows in DungeonMaster.App and DungeonMaster.App.Tests (backlog :44, :47, :48, :176, :177), each re-measured at 3b6e7ef. T1 (App): add a summary to ObjectAssetCatalogue.Paths; replace MapCanvasViewModel's false comment and MapTool alias with a plain using DungeonMaster.App.Core.Editor; replace INavigationService's route literal with crefs to ShellRoutes.DungeonDetail and IdQueryKey; and, per Gate 2 D1, namespace-qualify the unresolved ObjectPaletteView cref at ObjectAssetCatalogue.cs:7. T2 (App.Tests, after T1): reword FloorMapDrawableNonFiniteTests:38 'corrected when' to 'corrected after' per git history, and disambiguate RecordingCanvas's DrawString cref by naming both overloads. Evidence for crefs and summaries is a documentation-generating build, with an injected defect per task; the solution build and suite run after each task, and CRLF is proven by byte counts. The five rows are removed from .sir/backlog.md at Gate 3.",
   "started": "2026-11-09T22:39:30Z",
-  "ended": null,
+  "ended": "2026-11-10T01:23:27Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -40,10 +40,18 @@
       "started": "2026-11-10T00:57:41Z",
       "ended": "2026-11-10T01:17:01Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "9243c4a3-3cd8-4e61-b5af-3463a17bd11f",
+      "sir": "1.0.26",
+      "started": "2026-11-10T01:22:44Z",
+      "ended": "2026-11-10T01:23:27Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
+    "userInteractions": 4,
     "escalationsRaised": 0,
     "reviewRounds": 0
   },
