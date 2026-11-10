@@ -1,0 +1,98 @@
+{
+  "session": "20261110-1857-tests-audit-corrections",
+  "updatedAt": "2026-11-10T21:21:48Z",
+  "worktree": "C:/dm-wt/20261110-1857-tests-audit-corrections",
+  "branch": "agent/20261110-1857-tests-audit-corrections",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261110-1857-tests-audit-corrections/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s), exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261110-1857-tests-audit-corrections/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Failed: 0, Passed: 217 (App.UnitTests); Passed: 976 (Tests); Passed: 137 (App.Tests), exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "07f0512",
+      "commit": "453a168",
+      "model": "opus"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "07f0512",
+      "commit": "9ea49c8",
+      "model": "opus"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T1",
+      "question": "Gate 3 advisory A2 (reviews/T1.md): the TEST-032 block at docs/audit/05-tests.md:2467-2468 cites :1334 and :1348 as the register's label for a claim found true, as contract C1 section 5.7 instructed, though only :2305 is. Fixing it changes the frozen contract text: fix now, carry, or drop?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Answered at Gate 3: fix it now. Contract 5.7 amended (A1) to cite :2305 alone; T1 revised to match and re-reviewed. Manifest C1-7's matching parenthetical amended under the same answer (A2), from round-2 advisory A4.",
+      "options": [
+        {
+          "summary": "Fix it now",
+          "rationale": "A one-line wording fix in T1's file costs less than a backlog row that outlives the review",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/05-tests.md",
+              "contracts/C1-tests-audit-corrections.md"
+            ]
+          }
+        },
+        {
+          "summary": "Carry to backlog",
+          "rationale": "Leaves the merged text as reviewed and schedules the rewording",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Drop",
+          "rationale": "The block's classification is still correct; only the two peer citations are wrong",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "contracts/C1-tests-audit-corrections.md",
+      "before": "5.7: (the register's label for a claim found true, `05:2305`, `:1334`, `:1348`)",
+      "after": "5.7: (the register's label for a claim found true, `05:2305`) [amended at Gate 3, A1: `:1334` and `:1348` removed]",
+      "inFlight": []
+    },
+    {
+      "id": "A2",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "C1-7: (the register's own label, `05:2305` and peers)",
+      "after": "C1-7: (the register's own label, `05:2305`; amended at Gate 3, A2: `and peers` removed)",
+      "inFlight": []
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 1,
+    "reviewRounds": 1
+  }
+}
