@@ -2464,8 +2464,7 @@ This records the backlog row raised by session `2026-09-11-measure-then-close-th
 "did not move in between" clause. The clause, verbatim, joined across its line break at `:2238-2239` (as
 numbered at 07f0512, as is every line number in this block):
 `9 is the same line it still stood at when T4 removed it, so it did not move in between`.
-It is left standing. The classification is the register's own label for a claim found true (`:2305`,
-`:1334`, `:1348`).
+It is left standing. The classification is the register's own label for a claim found true (`:2305`).
 
 The evidence the clause lacked is section M2 of
 `.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md` (told: orchestrator measurement,
