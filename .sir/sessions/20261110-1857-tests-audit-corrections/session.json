@@ -2,9 +2,9 @@
   "id": "20261110-1857-tests-audit-corrections",
   "name": "tests-audit-corrections",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-10T18:57:29Z",
-  "ended": null,
+  "ended": "2026-11-10T21:25:17Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -39,12 +39,20 @@
       "started": "2026-11-10T20:55:27Z",
       "ended": "2026-11-10T21:21:48Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "3a657d22-0f29-4b2f-90c4-3d7ce65eb6ea",
+      "sir": "1.0.29",
+      "started": "2026-11-10T21:25:08Z",
+      "ended": "2026-11-10T21:25:17Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
-    "escalationsRaised": 0,
-    "reviewRounds": 0
+    "userInteractions": 4,
+    "escalationsRaised": 1,
+    "reviewRounds": 1
   },
   "brief": "Correct four stale or inaccurate statements in docs/audit/05-tests.md and docs/audit/06-cross-cutting.md from the backlog: restore the elided Validators path in a quoted git show command (TEST-001); record the measured evidence for coverlet's 'did not move in between' clause (TEST-032, line 9 in all 105 commits to its removal); note the DependencyInjection.cs -> InfrastructureServiceCollectionExtensions.cs rename against five citations (TEST-002, XCUT-001, XCUT-006) with as-of commits and current counterparts; reclassify TEST-023 and TEST-030 Correction 2 from UNDETERMINED to DRIFT on git evidence at 2603170; and repair TEST-029's unmatched bold closer. Corrections are dated AMENDED blocks, with two mechanical in-place fixes recorded verbatim. Each edited file keeps CRLF with zero lone CR, and the four rows leave .sir/backlog.md at Gate 3.",
   "pushed": true
