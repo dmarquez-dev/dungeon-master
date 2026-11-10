@@ -271,7 +271,7 @@ line 17 of that file at `413be78` (2026-08-17) was exactly the `_validator.Valid
 the entry cites it for:
 
 ```
-$ git show 413be78:src/.../Validators/AddAreaCommandValidatorTests.cs | sed -n '15,19p'
+$ git show 413be78:src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/AddAreaCommandValidatorTests.cs | sed -n '15,19p'
 
 		// Act
 		var result = _validator.Validate(command);
@@ -349,6 +349,26 @@ three invoker classes share no code on that axis and a dropped token is silent r
 **One residual remains and is in `.dir-sdlc/backlog.md`, deliberately not folded in here** -- the same
 discipline this block exists to record: no fact covers the *handler's* token when a behaviour is also
 registered, so a defect dropping it only on that path would pass all nine new facts.**]**
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the command in CORRECTION 6 elided its
+path, and is corrected in place.**
+This records the backlog row raised by session `2026-09-11-measure-then-close-the-test-gaps` on the elided
+`src/.../Validators/` path in the quoted `git show 413be78:` command. The command in the fence of the
+`AMENDED 6b-iii` CORRECTION 6 block, at `:274` (as numbered at 07f0512, as is every line number in this
+block), is corrected in place; that block's DRIFT classification and its finding are unaffected. Previous
+wording, verbatim:
+
+```
+$ git show 413be78:src/.../Validators/AddAreaCommandValidatorTests.cs | sed -n '15,19p'
+```
+
+The full path is
+`src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/AddAreaCommandValidatorTests.cs`,
+derived by `git ls-tree -r --name-only 413be78 | grep AddAreaCommandValidatorTests`, the same path the
+block itself quotes at `:264`. The corrected command prints the five lines the fence shows at `:275-279`
+(`:274` is the command and `:280` the closing fence). Both facts are from section M1 of
+`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md` (told: orchestrator measurement,
+20261110-1857-tests-audit-corrections).**]**
 
 ### TEST-002 -- Every persistence test builds its schema with EnsureCreated, so no test exercises a migration
 
@@ -428,6 +448,34 @@ that does not.
 **Suggested direction.** Switch the four fixtures to `Database.Migrate()` against the SQLite
 in-memory connection so the migration chain is what is under test, and consider one additional test
 that asserts the model and the migrations have not diverged.
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the file the `What.` paragraph cites has
+been renamed. Classification: DRIFT.**
+This records the backlog row raised by session `2026-10-16-infra-layer-batch` on the `DependencyInjection.cs`
+rename. The citation, verbatim, in the `What.` paragraph at `:377` (as numbered at 07f0512), for
+`db.Database.Migrate()`:
+`src/DungeonMaster.Infrastructure/DependencyInjection.cs:50`.
+Every history fact below is from section M3 of
+`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md` (told: orchestrator measurement,
+20261110-1857-tests-audit-corrections).
+
+The rename is `69e3c14` (2026-10-16), `R100`, to
+`src/DungeonMaster.Infrastructure/InfrastructureServiceCollectionExtensions.cs`.
+The citation was exact when written:
+`git rev-parse <c>:src/DungeonMaster.Infrastructure/DependencyInjection.cs` printed blob `e2c9267` at
+`2603170` (this file's authoring commit), `676a8f3` and `413be78`, and `:50` of that blob is
+`db.Database.Migrate();`. The content changed as well as the name: commits `ef0b0b6`, `33da60f`, `7b2586b`
+and `69e3c14` touched the file after `676a8f3`.
+
+The counterpart at 07f0512, which is the code now in the cited role and not the cited code, is `:59` of the
+renamed file, `await dbContext.Database.MigrateAsync(cancellationToken).ConfigureAwait(false);`, inside
+`MigrateDatabaseAsync` (re-measured in this session's worktree by
+`grep -n MigrateAsync src/DungeonMaster.Infrastructure/InfrastructureServiceCollectionExtensions.cs`,
+which printed `59:` alone). The citation names the Infrastructure file;
+`src/DungeonMaster.Application/DependencyInjection.cs` is a different file, which exists unrenamed.
+
+The front matter and the prose above are left as written, per `02-infrastructure.md:1067-1068`.
+This block makes no claim about whether the finding of this entry still holds.**]**
 
 ### TEST-003 -- RepoPaths accepts any ancestor with a .git entry without checking the App project is beneath it
 
@@ -977,7 +1025,7 @@ would have removed real coverage. It is one deletion.**
 `:92` and `:112`, and
 `git show 2603170:<that file> | sed -n '92,137p'` shows `SecondRename` already performing the
 reload-in-a-second-unit-of-work that defeats the subsumption. **The code the entry reasoned about was
-the code that exists now; the reasoning was wrong on the day it was written.
+the code that exists now; the reasoning was wrong on the day it was written.**
 
 **The `**Why it matters.**` paragraph below is corrected in place by this block**, because it rested
 on the same false premise and sits *after* the amendment, where a reader has no signal that it is
@@ -1002,6 +1050,22 @@ that exists. That is the worst of both: real coverage wearing a label that invit
 `UpdateArea_RenamePersistsAcrossReload` per CORRECTION 6 -- and rewrite the summary as a statement of
 what is guaranteed rather than of what was being investigated. If it is not wanted, delete it and check
 that nothing else covers area removal (nothing does today).
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- an unmatched bold delimiter in the
+`AMENDED 6b-ii` CORRECTION 6 block is corrected in place.**
+Found by this session's bold-parity census and in no backlog row. Line numbers are as numbered at 07f0512.
+The bold-parity instrument `.sir/sessions/20261110-1857-tests-audit-corrections/bp.py` (sha256
+`01ecfd8aefc048ee8cbf66b06c79cf1ad923521f4933405eb340a206dbc111ee`) printed `ODD (943, 990, ...)` at
+07f0512 for the `AMENDED 6b-ii` CORRECTION 6 block on this entry. The bold opened at `:979`
+(`**The code the entry reasoned about was`) is never closed, so the paragraph ending `:980` rendered
+literal asterisks. `:980` is corrected in place by appending `**` after `written.`. Previous wording,
+verbatim:
+
+```
+the code that exists now; the reasoning was wrong on the day it was written.
+```
+
+Nothing else in that block is changed.**]**
 
 ### TEST-013 -- Four geometry facts differ only in their data (the five snap-zone facts are deleted)
 
@@ -1736,6 +1800,26 @@ needs git history, which task `T8` cannot read, so this is classified UNDETERMIN
 worktree, P1 and P2 (section 1) each print nothing over the 123 `.cs` files under
 `src/DungeonMaster.Tests`.**]**
 
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the five line numbers that Correction 2
+left undetermined were exact on the audit date.**
+This records the backlog row raised by session `20261104-1726-test-hygiene-sweep` on reclassifying TEST-023
+and TEST-030. The heading of the `AMENDED 20261104-1726-test-hygiene-sweep` block's Correction 2, verbatim,
+opens `:1728` (the correction spans `:1728-1732`, as numbered at 07f0512, as is every audit-file line number
+in this block):
+
+```
+*Correction 2 -- the other five line numbers. Classification: UNDETERMINED.*
+```
+
+Reclassified: UNDETERMINED -> DRIFT. The evidence is section M4.1 of
+`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md` (told: orchestrator measurement,
+20261110-1857-tests-audit-corrections). The test tree at `2603170`, the authoring commit, was extracted with
+`git archive`, 45 `.cs` files, and P1 as defined in
+`.sir/sessions/20261104-1726-test-hygiene-sweep/contracts/C1-measurement.md` section 1 was run over it.
+P1 prints 13 lines, among them `DungeonAggregateTests.cs:29`, `:43` and `:68` and
+`DungeonReadRepositoryTests.cs:51` and `:52`: the five lines the correction left undetermined, each exact on
+the day. The title's "thirteen" was exact on the day as well. Correction 2 above is left standing.**]**
+
 ### TEST-024 -- ObjectScaleTests is the only file in the project indented with tabs
 
 ```yaml
@@ -2074,7 +2158,26 @@ into 2, `EveryDmFontIconTextIsInTheIconFontsCmap` into 2, `TheIconFontCmapParses
 into 4, `EveryRegisteredExceptionStillExistsAndStillOffends` into 3 and
 `PlaceVertex_FirstVertex_ReturnsAdded` into 3; the new names and lines are on `MASTER-139`. The
 splits grew `DungeonMaster.Tests` by 9, 943 -> 952, per the session's task reviews. **No claim is
+made about any fact other than these five.** **]**
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the closer of the block above is corrected
+in place: its last bold delimiter was unmatched.**
+This records the backlog row raised by session `20261104-1726-test-hygiene-sweep` on the TEST-029 closer.
+The last line of the `AMENDED 20261104-1726-test-hygiene-sweep` block, `:2077` (as numbered at 07f0512, as
+is every line number in this block), is corrected in place. Previous wording, verbatim:
+
+```
 made about any fact other than these five.**]**
+```
+
+Why: the `**` after `five.` closes the bold opened at `:2076` (`**No claim is`), so the final `**` was
+unmatched and rendered as a literal `]**`. The new form, ending `five.** **]**`, keeps the bold sentence
+and keeps the file's closer token `**]**`, which all 44 closers in this file used at 07f0512 (the `closers`
+census in section 4 of
+`.sir/sessions/20261110-1857-tests-audit-corrections/contracts/C1-tests-audit-corrections.md`, agreeing with
+section M4.2 of that session's `measurement.md`). The bold-parity instrument
+`.sir/sessions/20261110-1857-tests-audit-corrections/bp.py` printed `ODD (2052, 2077, ...)` for this block
+at 07f0512. Nothing else in the block above is changed.**]**
 
 ### TEST-030 -- Assertions appear inside Arrange blocks
 
@@ -2141,6 +2244,34 @@ PA prints nothing over the 123 `.cs` files under `src/DungeonMaster.Tests`. Addi
 `MASTER-137` exposed further precondition assertions in Arrange blocks (amendment A1, escalation E1);
 they were removed where a dedicated fact already asserts them and otherwise moved into a guard fact of
 their own, recorded by task and file on `MASTER-128`.**]**
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the method name and the line number that
+Correction 2 left undetermined were exact on the audit date.**
+This records the backlog row raised by session `20261104-1726-test-hygiene-sweep` on reclassifying TEST-023
+and TEST-030. The heading of the `AMENDED 20261104-1726-test-hygiene-sweep` block's Correction 2, verbatim,
+is the whole of `:2129` (the correction spans `:2129-2136`, as numbered at 07f0512, as is every audit-file
+line number in this block):
+
+```
+*Correction 2 -- the second line number and the first method name. Classification: UNDETERMINED.*
+```
+
+Reclassified: UNDETERMINED -> DRIFT. The evidence is section M4.1 of
+`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md` (told: orchestrator measurement,
+20261110-1857-tests-audit-corrections). PA (`C1-measurement.md` section 2 of that session) was run over the
+test tree at `2603170`, the authoring commit, and PA prints 2 lines:
+`UpdatePlacedObjectCommandHandlerTests.cs:145` `var theObj = floor.Objects.Should().ContainSingle().Which;`
+and `:186` `var obj = floor.Objects.Should().ContainSingle().Which;`. The method headers at `2603170`, by the
+command M4.1 names, run on the file this entry's `locations:` cites at `:2089`:
+
+```
+git show 2603170:src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs | tr -d '\r' | grep -n 'public async Task'
+```
+
+are `:133` `HandleAsync_ObjectNotFound_ReturnsSuccessWithNoChange` and `:174`
+`HandleAsync_WithCustomScale_StoresScaleOnObject`, with no header after `:174`. So `:145` lies in the first
+and `:186` in the second: the entry's method name and `:186` were exact on the day. Correction 2 above is
+left standing.**]**
 
 ### TEST-031 -- One theme ratchet is structurally incapable of failing in its current state
 
@@ -2326,6 +2457,26 @@ Total: 22`. Central Package Management intact:
 `grep -rn 'PackageReference[^>]*Version=' --include=*.csproj --include=*.props --include=*.targets`
 returns no hits, and `Directory.Packages.props` now holds **15** `PackageVersion` entries, down from
 16 -- T4's own count at `5347813`.**]**
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the coverlet clause is measured and left
+standing. Classification: not a correction -- confirmation (measured).**
+This records the backlog row raised by session `2026-09-11-measure-then-close-the-test-gaps` on the coverlet
+"did not move in between" clause. The clause, verbatim, joined across its line break at `:2238-2239` (as
+numbered at 07f0512, as is every line number in this block):
+`9 is the same line it still stood at when T4 removed it, so it did not move in between`.
+It is left standing. The classification is the register's own label for a claim found true (`:2305`).
+
+The evidence the clause lacked is section M2 of
+`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md` (told: orchestrator measurement,
+20261110-1857-tests-audit-corrections). A per-commit census over `413be78` plus
+`git rev-list 413be78..5347813^`, 105 commits, of
+`git show $c:src/DungeonMaster.Tests/DungeonMaster.Tests.csproj | grep -n coverlet` put coverlet at line 9
+in every one of them. Its control, `828327a`, where `grep -n Microsoft.NET.Test.Sdk` printed `11:`, shows
+the census can report a line other than 9; at `5347813`, the removal, the same grep prints nothing. Three
+commits touched the csproj in that range: `5347813`, `dfa49d7` and `828327a`.
+
+The limit: the census is at commit granularity and makes no claim about uncommitted working-tree states;
+the record's unit is the commit.**]**
 
 ## Layer verdict
 
