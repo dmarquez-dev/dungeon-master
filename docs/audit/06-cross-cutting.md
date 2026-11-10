@@ -150,6 +150,44 @@ command or query puts it at the dispatch and keeps the repositories unchanged. W
 building the provider with scope validation enabled would have surfaced the mismatch at startup
 rather than leaving it to be found by reading two files in two projects.
 
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the three `DependencyInjection.cs` citations
+name a file since renamed, and each was exact when written.** The history facts in this block are told:
+orchestrator measurement, 20261110-1857-tests-audit-corrections
+(`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md`, section M3). Lines of this audit
+file are cited as numbered at 07f0512. The citations are `:117`
+`src/DungeonMaster.Infrastructure/DependencyInjection.cs:30-34` and `:118`
+`src/DungeonMaster.Infrastructure/DependencyInjection.cs:45-51`, in `locations:`, and `:130`
+`DependencyInjection.cs:47`, in the `**What.**` paragraph, where the bare name is the Infrastructure file,
+inside `MigrateDatabase`. That file was renamed by `69e3c14` (2026-10-16), `R100`, to
+`src/DungeonMaster.Infrastructure/InfrastructureServiceCollectionExtensions.cs`.
+
+Exact when written: `git rev-parse <c>:src/DungeonMaster.Infrastructure/DependencyInjection.cs` printed blob
+`e2c9267` at `676a8f3` (this file's authoring commit), `2603170` and `413be78`. In that blob `:30-31` is the
+`AddDbContext<AppDbContext>` registration, `:33` and `:34` are the two `AddScoped` repository registrations,
+`:45` to `:51` is `MigrateDatabase`, and `:47` is `using var scope = services.CreateScope();`; and
+`git grep -n -e CreateScope -e CreateAsyncScope 676a8f3 -- 'src/*.cs'` printed that one line, so the "exactly
+one hit" of `:130` was exact on the day -- `Classification: DRIFT`. The content changed as well as the name:
+the commits touching the file after `676a8f3` are `ef0b0b6`, `33da60f`, `7b2586b` and `69e3c14`.
+
+The counterparts at `07f0512`, in `InfrastructureServiceCollectionExtensions.cs` (the code now in each cited
+role, not the cited code): for `:30-34`, the same span now holds `AddDbContextFactory<AppDbContext>` (`:30-31`)
+and two `AddSingleton` registrations (`:33` `IUnitOfWorkFactory`, `:34` `IDungeonReadRepository`); for `:45-51`,
+`MigrateDatabaseAsync` at `:51-60`, which resolves `IDbContextFactory<AppDbContext>` and opens no scope; for
+`:47`, none: there is no `CreateScope` in the file, and the repository-wide search over `src/` prints
+`10 lines`, every one under `src/DungeonMaster.Tests/`. This session re-ran both on the source tree at
+`07f0512`. The search
+`grep -rn -e CreateScope -e CreateAsyncScope src --include=*.cs --exclude-dir=obj --exclude-dir=bin` printed 10
+lines in two test files, 6 in `ApplicationServiceRegistrationTests.cs` and 4 in
+`CommandValidatorCoverageTests.cs`, and
+`grep -n -e AddDbContextFactory -e AddSingleton -e MigrateDatabaseAsync -e MigrateAsync -e CreateScope` on
+`InfrastructureServiceCollectionExtensions.cs` printed `30:`, `33:`, `34:`, `51:` and `59:`.
+
+The citations name the Infrastructure file: `src/DungeonMaster.Application/DependencyInjection.cs` is a
+different file that exists unrenamed, so a search on the bare file name over-reports. The front matter and
+the prose above are left as written, per `02-infrastructure.md:1067-1068`; this block is the correction. This
+block makes no claim about whether the finding of this entry still holds. It answers, for this entry, the
+backlog row from `2026-10-16-infra-layer-batch` on the `DependencyInjection.cs` rename.**]**
+
 ### XCUT-002 -- Tests targets net10.0 and App targets platform frameworks, so no test can reference App
 
 ```yaml
@@ -354,6 +392,32 @@ assemblies is not visible as a seam to anyone reading either directory.
 section lays out. This is the same move `CORE-029` proposes from inside the Application layer; the
 boundary reason and the layout reason are one edit, and doing it before `INFRA-014` gives that fix a
 place to land.
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the `DependencyInjection.cs` citation in
+`locations:` names a file since renamed, and was exact when written.** The history facts in this block are
+told: orchestrator measurement, 20261110-1857-tests-audit-corrections
+(`.sir/sessions/20261110-1857-tests-audit-corrections/measurement.md`, section M3). Lines of this audit
+file are cited as numbered at 07f0512. The citation is `:334`, in `locations:`:
+`src/DungeonMaster.Infrastructure/DependencyInjection.cs:33-34`. That file was renamed by
+`69e3c14` (2026-10-16), `R100`, to
+`src/DungeonMaster.Infrastructure/InfrastructureServiceCollectionExtensions.cs`. Exact when written:
+`git rev-parse <c>:src/DungeonMaster.Infrastructure/DependencyInjection.cs` printed blob `e2c9267` at `676a8f3`
+(this file's authoring commit), and in that blob `:33` is
+`services.AddScoped<IDungeonWriteRepository, DungeonWriteRepository>();` and `:34` is
+`services.AddScoped<IDungeonReadRepository, DungeonReadRepository>();` -- `Classification: DRIFT`.
+
+The counterpart at `07f0512`, in `InfrastructureServiceCollectionExtensions.cs` (the code now in the cited role,
+not the cited code): `:33` `AddSingleton<IUnitOfWorkFactory, UnitOfWorkFactory>` and `:34`
+`AddSingleton<IDungeonReadRepository, DungeonReadRepository>`. `IDungeonWriteRepository` is no longer registered
+in that file (`grep -c IDungeonWriteRepository` on it prints `0`), and
+`src/DungeonMaster.Infrastructure/Persistence/UnitOfWork.cs:15` constructs `DungeonWriteRepository`
+(`grep -n IDungeonWriteRepository` on `UnitOfWork.cs` prints `15:` alone); both greps were run
+by this session on the source tree at `07f0512`. The citation names the Infrastructure file:
+`src/DungeonMaster.Application/DependencyInjection.cs` is a different file that exists unrenamed, so a search on
+the bare file name over-reports. The front matter is left as written, per `02-infrastructure.md:1067-1068`; this
+block is the correction. This block makes no claim about whether the finding of this entry still holds. It
+answers, for this entry, the backlog row from `2026-10-16-infra-layer-batch` on the `DependencyInjection.cs`
+rename.**]**
 
 ### XCUT-007 -- Domain CLR type choices set Infrastructure's storage cost with no port between the two
 
@@ -768,7 +832,25 @@ succeeded.`, `0 Warning(s)`, `0 Error(s)`, and the generated
 `<ApplicationTitle>` is at `DungeonMaster.App.csproj:55`, the `App Identifier` comment opens at `:57`,
 `<ApplicationId>` is at `:69`, and `<ApplicationDisplayVersion>`/`<ApplicationVersion>` are at `:72-73`.
 The manifest citations moved by the new six-line comment: `<Identity`, cited `:9`, is now at
+`Package.appxmanifest:15`, and `<Properties>`, cited `:13-17`, is now `:19-23`.**]**
+
+**[AMENDED 20261110-1857-tests-audit-corrections, 2026-11-10 -- the last line of the block above is
+corrected in place, so its final bold delimiter is matched.** BP, this session's bold-marker parity check
+(`.sir/sessions/20261110-1857-tests-audit-corrections/bp.py`, sha256
+`01ecfd8aefc048ee8cbf66b06c79cf1ad923521f4933405eb340a206dbc111ee`), printed `blocks 1 odd 1` and
+`ODD (740, 771, ...)` for this file at `07f0512`: the `AMENDED 20261106-0120-shipping-identity` block on this
+entry, `:740-771` (as numbered at 07f0512, as is every line of this file this block cites). The opener's
+bold closes at `same change.**` (`:742`) and the body opens no bold of its own, so the final `**` of `:771`
+was unmatched and rendered a literal `]**`. `:771` is corrected in place to end `.**]**`, the closer form
+`05-tests.md` uses for all 44 of its blocks at `07f0512` (measurement.md M4.2 of this session). The
+previous line, verbatim:
+
+```
 `Package.appxmanifest:15`, and `<Properties>`, cited `:13-17`, is now `:19-23`.]**
+```
+
+Nothing else in that block is changed. The defect was found by this session's BP census (measurement.md
+M4.2 records it as in no row) and is in no backlog row.**]**
 
 ### XCUT-016 -- EF Core is pinned three patch releases behind a version the pin comment shows was evaluated
 
