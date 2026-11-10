@@ -1,0 +1,173 @@
+{
+  "session": "20261110-1618-audit-record-corrections",
+  "updatedAt": "2026-11-10T17:35:23Z",
+  "worktree": "C:/dm-wt/20261110-1618-audit-record-corrections",
+  "branch": "agent/20261110-1618-audit-record-corrections",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261110-1618-audit-record-corrections/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s), exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261110-1618-audit-record-corrections/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Failed: 0, Passed: 217 (App.UnitTests); Passed: 976 (Tests); Passed: 137 (App.Tests), exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "c90da08",
+      "model": "opus",
+      "commit": "cf8841e"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "c90da08",
+      "model": "opus",
+      "commit": "291e3d1"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T1",
+      "question": "C1-5 to C1-8 say a needle prints IN MASTER-NNN for each: must the IN list be exactly that one cell, or only contain it? as numbered at c90da08 prints all four cells (C1 2.3 requires it in every span) and R184 prints MASTER-130,MASTER-178 (C1-9 requires it), so under the exact reading C1-7, C1-8 and C1-9 are jointly unmeetable.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Adopt the containment reading and record it; no change to the work",
+          "rationale": "C1-9 says exactly where exactness is meant; C1 2.3 and 4.1 require the shared phrases in several spans",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".sir/sessions/20261110-1618-audit-record-corrections/manifest.json",
+              ".sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md"
+            ]
+          }
+        },
+        {
+          "summary": "Amend the criteria to say the IN list includes the named entry",
+          "rationale": "Removes the ambiguity in the frozen text so later reads cannot re-raise it",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Adopt the exact-list reading",
+          "rationale": "Makes C1-7, C1-8 and C1-9 jointly unmeetable, forcing a criterion amendment rather than a revision",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md"
+            ]
+          }
+        }
+      ],
+      "answer": "Amend to contains (option 2 of the merged set): the plain form in C1-5..C1-8 becomes prints an IN list containing X; no change to the work. Applied as A1."
+    },
+    {
+      "id": "E2",
+      "taskId": "T2",
+      "question": "C2-5 requires needle ERROR (attribution) to print IN CORE-022 and C2-10 requires IN CORE-016; C1 4.2 and 5.1 put the literal in both blocks, so ARC prints IN CORE-016,CORE-022 and neither exact single entry can hold.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Decide with E1: read the plain form as containment; both met as the work stands",
+          "rationale": "The purpose is that each block states its classification, which both do; C2-9 uses the containment form",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".sir/sessions/20261110-1618-audit-record-corrections/manifest.json",
+              ".sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md"
+            ]
+          }
+        },
+        {
+          "summary": "Amend C2-5 and C2-10 to expect IN CORE-016,CORE-022 for this needle",
+          "rationale": "Keeps the exact reading and removes the contradiction",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md"
+            ]
+          }
+        },
+        {
+          "summary": "Remove the literal from one block",
+          "rationale": "Breaks C1 4.2 or 5.1; not recommended",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Amend to contains, decided with E1: C2-5 and C2-10 read prints an IN list containing X; both blocks keep ERROR (attribution). Applied as A2."
+    },
+    {
+      "id": "E3",
+      "taskId": "T2",
+      "question": "C2-7 requires needle 6 lines to print IN CORE-035, but it is a substring of (176 lines), which C2-5 requires in CORE-022, so ARC prints IN CORE-022,CORE-035.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Decide with E1: read the plain form as containment; C2-7 met as the work stands",
+          "rationale": "CORE-035 states the 6-line result; the collision is in the predicate, not the work",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".sir/sessions/20261110-1618-audit-record-corrections/manifest.json",
+              ".sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md"
+            ]
+          }
+        },
+        {
+          "summary": "Amend C2-7 to a needle that cannot collide, such as 1 + 4 + 1",
+          "rationale": "Exact and unambiguous",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Amend to contains, decided with E1: C2-7 reads prints an IN list containing CORE-035; needle 6 lines kept. Applied as A3."
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "C1-5, C1-6, C1-7, C1-8: prints `IN MASTER-NNN` for each",
+      "after": "C1-5, C1-6, C1-7, C1-8: prints an IN list containing `MASTER-NNN` for each",
+      "inFlight": []
+    },
+    {
+      "id": "A2",
+      "escalation": "E2",
+      "artifact": "manifest.json",
+      "before": "C2-5: prints `IN CORE-022` for each; C2-10: prints `IN CORE-016` for each",
+      "after": "C2-5: prints an IN list containing `CORE-022` for each; C2-10: prints an IN list containing `CORE-016` for each",
+      "inFlight": []
+    },
+    {
+      "id": "A3",
+      "escalation": "E3",
+      "artifact": "manifest.json",
+      "before": "C2-7: prints `IN CORE-035` for each",
+      "after": "C2-7: prints an IN list containing `CORE-035` for each",
+      "inFlight": []
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 3,
+    "reviewRounds": 1
+  }
+}
