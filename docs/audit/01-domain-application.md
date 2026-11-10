@@ -1135,6 +1135,38 @@ CITE-IN counts after the last edit.
 tasks run without git; the orchestrator makes the commit. The record's severity, category, effort and risk are
 unchanged, and `MASTER-081` / `CORE-016` is CLOSED **DELIBERATELY UNCHANGED**.**]**
 
+**[AMENDED 20261110-1618-audit-record-corrections, 2026-11-10 -- the declined list's attribution in the
+`AMENDED 20261109-1641-part-done-rows` block above is corrected: the Decisions it cites do not name the
+policy layer.** The register row is `MASTER-081` at `00-master-index.md:269`. **Nothing below deletes any
+previous wording.** Every line number of this file cited in this block is as numbered at c90da08, before this
+session's blocks were inserted. Every figure is labelled either as measured by this session's task `T2` on the
+session worktree, or as told, with its source; this session's contract is
+`.sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md`, called C1 below.
+
+*Correction -- the attribution of the declined list.* Previous wording, verbatim, from `:1075` of this file
+(`grep -n 'the same Decisions' docs/audit/01-domain-application.md` printed `:1075` alone at c90da08):
+"(told: Gate 1, the same Decisions)". It attributes the list that follows it on `:1075-1076` -- the
+policy layer, `PolicyResult`, `DomainException` and an `ObjectScale` value object -- to the Decisions of
+`.sir/sessions/20261109-1641-part-done-rows/discussion.md`. Measured by `T2` on that session's files:
+`PolicyResult`, `DomainException` and an `ObjectScale` value object are named as considered and declined in
+`.sir/sessions/20261109-1641-part-done-rows/discussion.md:26` (Decisions), located by
+`grep -n 'were considered and declined'` on that file, which prints `:26` alone; the **policy layer** is not
+named there, and is named, with all three others, in that session's `spec.md:22-24` (Context, the bullet that
+opens `- **MASTER-081 / CORE-016**` at `:22`, `grep -n 'MASTER-081 / CORE-016'`, and ends
+`Gate 1 declined them.` at `:24`, `grep -n 'Gate 1 declined them'`). In `spec.md` the words `The policy` and
+`layer` wrap across `:23-24`, so `grep -n 'policy layer'` on `spec.md` prints only `:82` (Not in scope); on
+`discussion.md` it prints only `:16` (Context, describing the 6b-xv status cell, not the decision).
+
+*Corrected attribution.* All four were declined at Gate 1: the three named in `discussion.md:26`, and the
+policy layer with them in `spec.md:22-24`. The list itself is unaffected; only its source was wrong. It is
+classified **ERROR (attribution)** (told: C1 section 4.2): both files were in that session's record when the
+attribution was written. The `MASTER-081` cell is annotated with the same correction by this session.
+
+`:1075-1076` and the rest of the `AMENDED 20261109-1641-part-done-rows` block stay exactly as written. **No
+hash for this session's commit appears in this block:** this session's tasks run without git, and the
+orchestrator makes the commit. The record's severity, category, effort and risk are unchanged, and
+`MASTER-081` / `CORE-016` is CLOSED **DELIBERATELY UNCHANGED**.**]**
+
 ### CORE-017 -- ObjectKind has no zero value, so default(ObjectKind) silently means DoorWood
 
 ```yaml
@@ -1698,6 +1730,50 @@ are corrected. The layer verdict at `:2940-2941` stays as written, because it is
 Both line numbers are as at `11f9562`, before this block was inserted. The record's severity, category,
 effort and risk are unchanged.**]**
 
+**[AMENDED 20261110-1618-audit-record-corrections, 2026-11-10 -- the source the
+`AMENDED 20261105-0106-core-two-row-sweep` block above gives for its `11f9562` line counts is corrected: two of
+the four figures are stated only in that session's C3 contract.** The register row is `MASTER-110` at
+`00-master-index.md:298`. **Nothing below deletes any previous wording.** Every line number of this file cited
+in this block is as numbered at c90da08, before this session's blocks were inserted. Every figure is labelled
+either as measured by this session's task `T2` on the session worktree, or as told, with its source; this
+session's contract is
+`.sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md`, called C1 below.
+The other contract files cited below are in `.sir/sessions/20261105-0106-core-two-row-sweep/contracts/`.
+
+*Correction -- the attribution of the line counts.* Previous wording, verbatim, joined across its line break at
+`:1677-1678` of this file (`grep -n 'Those figures are told' docs/audit/01-domain-application.md` printed
+`:1677` alone and `grep -n 'C1 and C2 contracts' docs/audit/01-domain-application.md` printed `:1678` alone, at
+c90da08): "Those figures are told: measured by the architect and stated in this session's C1 and C2 contracts."
+Measured by `T2` in that directory: `C1-measurement.md:203-204` states `FloorMethods.cs` 176 and `Floor.cs` 94
+lines at that session's startRef, `grep -n '(176 lines)'` over its `C*.md` printing `C1-measurement.md:203` and
+`grep -n '(94 lines)'` printing `C1-measurement.md:204`. `FloorObjectMethods.cs` 112 and the 288 total are
+stated only in C3, at `C3-register.md:64-65`:
+`grep -n 'FloorObjectMethods.cs. 112' .sir/sessions/20261105-0106-core-two-row-sweep/contracts/C*.md` prints
+`C3-register.md:64` alone, and
+`grep -nw 288 .sir/sessions/20261105-0106-core-two-row-sweep/contracts/C*.md` prints `C3-register.md:65` alone.
+`C2-entity-split.md:34` cites the range `FloorObjectMethods.cs:7-112` and states no line count.
+
+*The instrument recorded for this correction over-matches.* `grep -nw -e 112 -e 288` over the same `C*.md`
+prints `C3-register.md:64` and `:65`, and also `C1-measurement.md:204` (`PlacedObject.cs` at 112 lines),
+`C2-entity-split.md:34` and `C2-entity-split.md:67` (line ranges), measured by `T2`; the two single-figure
+commands above are the ones to re-run.
+
+*Origin.* `C3-register.md:65-66` itself says `stated in C1` / `and C2.`: the block above copied section 2 item 2
+of that C3 contract, attribution included.
+
+*Corrected attribution.* `Floor.cs` 94 and `FloorMethods.cs` 176 are stated in C1
+(`C1-measurement.md:203-204`); `FloorObjectMethods.cs` 112 and the 288 total are stated in C3
+(`C3-register.md:64-65`). The figures themselves are unaffected. It is classified **ERROR (attribution)**
+(told: C1 section 5.1), supported by an orchestrator measurement (told: orchestrator measurement,
+20261110-1618-audit-record-corrections):
+`git log --format=%h -- .sir/sessions/20261105-0106-core-two-row-sweep/contracts/` printed `d097ff6` alone, so
+those contracts were committed once and never amended afterwards.
+
+The block above stays exactly as written, its classification of the line counts included. **No hash for this
+session's commit appears in this block:** this session's tasks run without git, and the orchestrator makes the
+commit. The record's severity, category, effort and risk are unchanged, and `MASTER-110` stays CLOSED
+**done**.**]**
+
 ### CORE-023 -- RotateDirection.cs declares a type named RotationDirection
 
 ```yaml
@@ -1970,6 +2046,37 @@ This entry's `What.`, `Why it matters.` and `Suggested direction.` paragraphs an
 exactly as written. **No hash for this session's commit appears in this block:** this session's tasks run
 without git and the orchestrator makes the commit. The record's severity, category, effort and risk are
 unchanged.**]**
+
+**[AMENDED 20261110-1618-audit-record-corrections, 2026-11-10 -- the zero-member wording in the
+`AMENDED 20261105-1907-core-heavy-rows` block above is annotated with the reading this register now states at
+each of its five zero-member sites.** The register row is `MASTER-130` at `00-master-index.md:318`. **Nothing
+below deletes any previous wording.** Every line number of this file cited in this block is as numbered at
+c90da08, before this session's blocks were inserted. Every figure is labelled either as measured by this
+session's task `T2` on the session worktree, or as told, with its source; this session's contract is
+`.sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md`, called C1 below.
+
+*Note on the zero-member wording.* Previous wording, verbatim, from `:1882` of this file
+(`grep -n 'a renumbering, not a rename' docs/audit/01-domain-application.md` printed `:1882` alone at c90da08):
+"a renumbering, not a rename". It calls adding a zero member to `PathSegmentKind` a renumbering, where this
+file's `CORE-035` body and the `MASTER-178` cell (`00-master-index.md:366`) call the same addition a data
+migration and not a renumbering. The wordings agree in substance: where they say "not a renumbering", the word
+means a code-only renumbering. The shared reading, stated verbatim at all five sites (C1 section 4.1):
+adding a zero member renumbers the persisted ordinals, so it is a renumbering that needs a data migration.
+
+*Evidence, measured by `T2`.* `src/DungeonMaster.Domain/ValueObjects/PathSegmentKind.cs` declares `Line` at
+`:11` (`grep -n 'Line,'`) and `CubicBezier` at `:16` (`grep -n CubicBezier`), with no explicit values
+(`grep -c '='` on that file prints 0), so inserting `None` first moves `Line` from 0 to 1 and `CubicBezier`
+from 1 to 2. The ordinal is persisted: `AreaConfiguration.cs:16` (`grep -n JsonSerializerDefaults
+src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs`) builds
+`new(JsonSerializerDefaults.General)` with no converter, and
+`src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PathSegmentJsonRoundTripTests.cs:28-29`
+(`grep -n '"Kind"'` on that file prints `:28`, `:29` and `:52`) stores `"Kind": 0` and `"Kind": 1`.
+
+The other four sites are annotated by this session in the `MASTER-130` and `MASTER-178` cells
+(`00-master-index.md:318` and `:366`) and in the `AMENDED 20261110-1618-audit-record-corrections` block on
+`CORE-035` (this file's `:3038` and `:3058`). `:1882` stays exactly as written. **No hash for this session's
+commit appears in this block:** this session's tasks run without git, and the orchestrator makes the commit.
+The record's severity, category, effort and risk are unchanged, and `MASTER-130` stays CLOSED **done**.**]**
 
 ### CORE-025 -- Six public Domain types carry no XML documentation
 
@@ -3200,6 +3307,88 @@ producers cited as `:14`-`:17` are at `:27-30`; `:14` and `:19` are the two even
 lines. **No hash for this session's commit appears in this block:** no code changed for this row, and this
 session's tasks run without git; the orchestrator makes the commit. The record's severity, category, effort
 and risk are unchanged.**]**
+
+**[AMENDED 20261110-1618-audit-record-corrections, 2026-11-10 -- the drifted `GetDefaultAnchor`,
+`RotationDirection` and `ScaleDirection` citations of this entry and its `AMENDED 20261105-1907-core-heavy-rows`
+block are recorded, that block's two greps are restated with their filters, and the body's two zero-member
+wordings are annotated.** The register row is `MASTER-178` at `00-master-index.md:366`. **Nothing below
+deletes any previous wording.** Every line number of this file cited in this block is as numbered at c90da08,
+before this session's blocks were inserted. Every figure is labelled either as measured by this session's task
+`T2` on the session worktree, or as told, with its source; this session's contract is
+`.sir/sessions/20261110-1618-audit-record-corrections/contracts/C1-register-corrections.md`, called C1 below.
+
+*`ObjectKindInfo.cs:24-28`, drifted.* This entry cites
+`src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs:24-28` for `GetDefaultAnchor` at `:2951`
+(`locations:`) and `:3033` (the `SnapAnchor` class C reclassification paragraph):
+`grep -n 'ObjectKindInfo.cs:24-28' docs/audit/01-domain-application.md` printed exactly those two lines at
+c90da08. Measured by `T2`:
+`grep -n GetDefaultAnchor src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs` prints `40:` alone, the
+declaration, so the method now begins at `ObjectKindInfo.cs:40`; and
+`grep -n 'return SnapAnchor.Center' src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs` prints `58:`
+alone, the terminal fallback the paragraph describes, now at `:58`. The `*Drifted citations,*` paragraph of the
+`AMENDED 20261105-1907-core-heavy-rows` block, at `:3192` (`grep -n 'Drifted citations'
+docs/audit/01-domain-application.md` printed `:3192` alone at c90da08), omits this drift, while its
+dispositions row 4, at `:3163`, already cites `ObjectKindInfo.cs:40` (`grep -n 'ObjectKindInfo.cs:40'
+docs/audit/01-domain-application.md` printed `:3163` alone at c90da08). Classification: DRIFT (told:
+orchestrator measurement, 20261110-1618-audit-record-corrections):
+`git log -S 'ObjectKindInfo.cs:24-28' --format=%h -- docs/audit/01-domain-application.md` printed `476b510`
+alone, and
+`git show 476b510:src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs | grep -n GetDefaultAnchor`
+printed `24:`, so the declaration lay inside `:24-28` when the citation was written. `locations:` and the
+paragraph stay as written.
+
+*The `RotationDirection` grep of dispositions row 2, restated.* Previous wording, verbatim, from row 2 at
+`:3161` (`grep -n 'over production' docs/audit/01-domain-application.md` printed `:3161` alone at c90da08):
+"`grep -rn RotationDirection` over production `src/` prints only the event declaration
+(`ControlsPaletteView.xaml.cs:14`), those four lines and the enum's own declaration." The command as quoted
+names none of the filters its figure depends on. Restated, and measured by `T2`:
+`grep -rn RotationDirection src --include=*.cs --exclude-dir=obj --exclude-dir=bin | grep -v 'Tests/'` prints
+6 lines: `ControlsPaletteView.xaml.cs:14` (the event), `:27` and `:28` (the producers),
+`DungeonDetailPage.xaml.cs:196` and `:207` (the two `==` reads) and `RotationDirection.cs:6` (the declaration).
+The figure stands, 1 + 4 + 1; the two `==` reads row 2 cites as `:139` and `:150` are now `:196` and `:207`.
+The `grep -v 'Tests/'` stage removes nothing (the same command without it also prints 6 lines); it keeps the
+scope to production code. The bare command, without these filters, also reports `Binary file ... matches` for
+build output under `bin/` and `obj/` in a built tree (told: C1 section 5.3); no count of those is stated,
+because it depends on what was built. Classification of the `==`-line moves: DRIFT (told: orchestrator
+measurement, 20261110-1618-audit-record-corrections):
+`git log -S 'DungeonDetailPage.xaml.cs:139' --format=%h -- docs/audit/01-domain-application.md` printed
+`6b3bd62` alone, and
+`git show 6b3bd62:src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs | grep -n
+'RotationDirection.Clockwise'` printed `139:` and `150:`.
+
+*The `ScaleDirection` grep of dispositions row 3, restated the same way.* Row 3, at `:3162`
+(`grep -n 'the same grep for' docs/audit/01-domain-application.md` printed `:3162` alone at c90da08), says
+"the same grep for `ScaleDirection`". Measured by `T2`, the same filtered command,
+`grep -rn ScaleDirection src --include=*.cs --exclude-dir=obj --exclude-dir=bin | grep -v 'Tests/'`, prints
+5 lines: `ControlsPaletteView.xaml.cs:19` (the event), `:29` and `:30` (the producers),
+`DungeonDetailPage.xaml.cs:223` (the `==` read) and `ScaleDirection.cs:6` (the declaration). The figure
+stands, 1 + 3 + 1; the `==` read row 3 cites as `:166` is now `:223`. Classification: DRIFT, the same way
+(told: orchestrator measurement, 20261110-1618-audit-record-corrections): the same `git show 6b3bd62` of
+`DungeonDetailPage.xaml.cs` with `grep -n 'ScaleDirection'` printed `166:`.
+
+*Note on the body's zero-member wordings.* Previous wording, verbatim, from `:3038`
+(`grep -n 'the blocker is a data migration rather than a renumbering' docs/audit/01-domain-application.md`
+printed `:3038` alone at c90da08): "the blocker is a data migration rather than a renumbering"; and from
+`:3058` (`grep -n 'data migration on a JSON column' docs/audit/01-domain-application.md` printed `:3058` alone
+at c90da08): "data migration on a JSON column, not a renumbering". The `AMENDED 20261105-1907-core-heavy-rows`
+block on `CORE-024` and the `MASTER-130` cell (`00-master-index.md:318`) call the same addition of a zero
+member to `PathSegmentKind` a renumbering. The wordings agree in substance: in "not a renumbering", the word
+means a code-only renumbering. The shared reading, stated verbatim at all five sites (C1 section 4.1):
+adding a zero member renumbers the persisted ordinals, so it is a renumbering that needs a data migration.
+Measured by `T2`: `src/DungeonMaster.Domain/ValueObjects/PathSegmentKind.cs` declares `Line` at `:11`
+(`grep -n 'Line,'`) and `CubicBezier` at `:16` (`grep -n CubicBezier`), with no explicit values
+(`grep -c '='` on that file prints 0), so inserting `None` first moves `Line` from 0 to 1 and `CubicBezier`
+from 1 to 2. The ordinal is persisted: `AreaConfiguration.cs:16` (`grep -n JsonSerializerDefaults
+src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs`) builds
+`new(JsonSerializerDefaults.General)` with no converter, and
+`src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PathSegmentJsonRoundTripTests.cs:28-29`
+(`grep -n '"Kind"'` on that file prints `:28`, `:29` and `:52`) stores `"Kind": 0` and `"Kind": 1`.
+
+This entry's `locations:` list, its body, and the `AMENDED 20261105-1907-core-heavy-rows` block with its
+dispositions table and `*Drifted citations,*` paragraph stay exactly as written. **No hash for this session's
+commit appears in this block:** this session's tasks run without git, and the orchestrator makes the commit.
+The record's severity, category, effort and risk are unchanged, and `MASTER-178` / `CORE-035` stays CLOSED
+**DELIBERATELY UNCHANGED**.**]**
 
 ### CORE-036 -- CanvasPoint's remarks block breaks sentences mid-clause across /// lines
 
