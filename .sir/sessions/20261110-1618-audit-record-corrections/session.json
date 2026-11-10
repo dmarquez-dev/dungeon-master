@@ -2,9 +2,9 @@
   "id": "20261110-1618-audit-record-corrections",
   "name": "audit-record-corrections",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-10T16:18:06Z",
-  "ended": null,
+  "ended": "2026-11-10T17:38:25Z",
   "pushed": true,
   "parent": null,
   "children": [],
@@ -40,12 +40,20 @@
       "started": "2026-11-10T17:18:35Z",
       "ended": "2026-11-10T17:35:23Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "605953f0-1299-4c24-9fde-72baff349fee",
+      "sir": "1.0.27",
+      "started": "2026-11-10T17:37:43Z",
+      "ended": "2026-11-10T17:38:25Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
-    "escalationsRaised": 0,
-    "reviewRounds": 0
+    "userInteractions": 5,
+    "escalationsRaised": 3,
+    "reviewRounds": 1
   },
   "brief": "Correct six stale or inaccurate statements in the audit register, docs/audit/00-master-index.md and docs/audit/01-domain-application.md, one per unscheduled backlog row at .sir/backlog.md:179, :182, :183, :184, :190 and :191, then remove those rows at Gate 3. Every correction is an insertion, never a rewrite: T1 adds four dated inline spans to the MASTER-081, -119, -130 and -178 cells, and T2 adds four AMENDED blocks at the end of CORE-016, -022, -024 and -035. The facts each correction states were re-measured at c90da08 and frozen in contract C1 with their commands. Classifications were settled from git history by the orchestrator: rows 182, 183 and 191 are DRIFT, and 179 and 190 are ERROR (attribution). Row 184 reconciles five zero-member wordings on one shared reading. A Python checker, ARC, proves both files keep LONE_CR 0 and that removing the insertions restores the base sha256 exactly. No source, test or build change."
 }
