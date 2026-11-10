@@ -7,8 +7,9 @@ namespace DungeonMaster.App.Services.Navigation;
 public interface INavigationService
 {
 	/// <summary>
-	///		Navigates to a route. <paramref name="route"/> is a Shell route string and may carry
-	///		a query, e.g. <c>"dungeondetail?id={guid}"</c>.
+	///		Navigates to a route.
+	///		<paramref name="route"/> is a Shell route string and may carry a query.
+	///		For example, <see cref="ShellRoutes.DungeonDetail"/> with its <see cref="ShellRoutes.IdQueryKey"/> query parameter set to a dungeon identifier.
 	/// </summary>
 	/// <param name="route">
 	///		The Shell route to navigate to.

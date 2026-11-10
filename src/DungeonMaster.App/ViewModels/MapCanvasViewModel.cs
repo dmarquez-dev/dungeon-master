@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DungeonMaster.App.Core.Editor;
 using DungeonMaster.App.Core.Map;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddArea;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddPlacedObject;
@@ -11,12 +12,6 @@ using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
-
-// Step 2 of the MapTool migration. The App-layer DungeonMaster.App.ViewModels.MapTool still
-// exists and is deleted by the task that owns it; until then a plain
-// `using DungeonMaster.App.Core.Editor;` would be shadowed by same-namespace lookup and this
-// file would silently keep binding the old enum. The alias is what actually rebinds the name.
-using MapTool = DungeonMaster.App.Core.Editor.MapTool;
 
 namespace DungeonMaster.App.ViewModels;
 

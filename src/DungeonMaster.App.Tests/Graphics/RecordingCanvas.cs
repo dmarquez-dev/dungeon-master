@@ -36,8 +36,8 @@ internal sealed class RecordingCanvas : ICanvas
 	public List<PointF[]> DrawnPaths { get; } = [];
 
 	/// <summary>
-	///		Every string handed to <see cref="DrawString"/>, in call order. Kept as the instances
-	///		passed in, so a fact can assert two frames reused one string rather than formatting two.
+	///		Every string handed to <see cref="DrawString(string, float, float, float, float, HorizontalAlignment, VerticalAlignment, TextFlow, float)"/> or <see cref="DrawString(string, float, float, HorizontalAlignment)"/>, in call order.
+	///		Kept as the instances passed in, so a fact can assert two frames reused one string rather than formatting two.
 	/// </summary>
 	public List<string> DrawnStrings { get; } = [];
 

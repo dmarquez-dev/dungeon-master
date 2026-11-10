@@ -35,7 +35,7 @@ namespace DungeonMaster.App.Tests.Graphics;
 ///		<para>
 ///		ASSIGNMENT SITES CHECKED in reaching that answer, the complete set.
 ///		They come from <c>grep -rn "ZoomLevel"</c> and <c>grep -rn "PanOffset"</c> over <c>src/</c> with <c>--include=*.cs --include=*.xaml</c>, filtered through <c>grep -Ev "[\\/](obj|bin)[\\/]"</c>, with every hit then classified by eye as a write or a read.
-///		Only the <c>ZoomLevel</c> text was corrected when <c>ZoomLevelGuard</c> was introduced, namely the two paragraphs above on <c>ZoomLevel</c> and <c>Math.Clamp</c>, list items 3 and 4, and the summary of <see cref="MathClampWithNaNReturnsNaNRatherThanABound"/>, and every line-number citation elsewhere in this file was not re-measured by that correction.
+///		Only the <c>ZoomLevel</c> text was corrected after <c>ZoomLevelGuard</c> was introduced, namely the two paragraphs above on <c>ZoomLevel</c> and <c>Math.Clamp</c>, list items 3 and 4, and the summary of <see cref="MathClampWithNaNReturnsNaNRatherThanABound"/>, and every line-number citation elsewhere in this file was not re-measured by that correction.
 ///		<list type="number">
 ///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:439</c>, the <c>ZoomLevel</c> declaration initializer <c>= 1.0f</c>, finite.</item>
 ///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:442</c>, the <c>PanOffset</c> declaration initializer <c>= PointF.Zero</c>, finite.</item>
