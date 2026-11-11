@@ -964,9 +964,17 @@ public partial class DungeonDetailPage : ContentPage
 		// first await for that reason, not as defensive style.
 		try
 		{
-			_editor.SelectedFloorId = args.DraggedFloorId;
 			await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
 				new ReorderFloorArgs(args.DraggedFloorId, args.TargetNumber));
+
+			// The drop selects the dragged floor THROUGH SelectFloor and AFTER the command, never by
+			// writing SelectedFloorId. The reorder is a full reload that replaces every FloorItem, so a
+			// bare id write expands the card while the drawable stays on the pre-reload instance and
+			// the map toolbar stays hidden until the card is collapsed and reopened. SelectFloor runs
+			// RefreshMap against the reloaded Items, which re-resolves the floor by id, shows the
+			// toolbar and resets the tool exactly as a click-selection does. OnFloorListDrop relies on
+			// this same reasoning.
+			SelectFloor(args.DraggedFloorId);
 		}
 		catch (Exception exception)
 		{
@@ -2528,9 +2536,13 @@ public partial class DungeonDetailPage : ContentPage
 				return;
 			}
 
-			_editor.SelectedFloorId = decision.DraggedFloorId;
 			await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
 				new ReorderFloorArgs(decision.DraggedFloorId, decision.TargetFloorNumber));
+
+			// Through SelectFloor and after the command, for the reason given in
+			// OnFloorReorderRequested: the reload replaces every FloorItem, and a bare
+			// SelectedFloorId write leaves the drawable stale and the drawing tools hidden.
+			SelectFloor(decision.DraggedFloorId);
 		}
 		catch (Exception exception)
 		{
