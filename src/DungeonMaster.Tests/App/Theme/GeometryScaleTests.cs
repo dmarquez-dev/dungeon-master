@@ -245,15 +245,15 @@ public class GeometryScaleTests
 
 	/// <summary>
 	///		Files still carrying a literal <c>CornerRadius</c> or a string-form
-	///		<c>RoundRectangle N</c>. One C# file remains: the two palette views now build their
-	///		thumbnails with <c>DmTheme.RadiusTight</c>, but the map page's code-behind was not in
-	///		the migrating wave's file scope. It is a mechanical conversion now that
-	///		<c>DmTheme.Radius*</c> exists, not a blocked one.
+	///		<c>RoundRectangle N</c>. Empty: the two palette views build their thumbnails with
+	///		<c>DmTheme.RadiusTight</c>, and the map page's code-behind lost its last radius literal
+	///		when the floor drag placeholder it built was deleted. It is kept rather than deleted so
+	///		the fact keeps the same shape as its siblings and a future regression has an obvious
+	///		place to be recorded.
 	/// </summary>
 	private static readonly HashSet<string> RadiusPendingMigration =
 		new(StringComparer.OrdinalIgnoreCase)
 		{
-			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
 		};
 
 	/// <summary>
@@ -330,33 +330,34 @@ public class GeometryScaleTests
 	///		was defined by spec §3 and then guarded by nothing at all in either language, so every
 	///		literal below came through the whole migration unexamined.
 	///		<para>
-	///		TWO entries, of which ONE is C#. This comment has been wrong about that number twice
-	///		already. It said "the four C# entries" of a list that had four ENTRIES, three of them
-	///		C#; it was corrected to "THREE entries, of which TWO are C#"; and that went stale in
-	///		turn when <c>AreaSidebarItem.xaml.cs</c> left. Counted from the initialiser below as it
-	///		stands rather than carried over from the last version of this sentence: two
-	///		<c>Relative(</c> calls, of which one names a <c>.cs</c> file. Recount it here on the
-	///		way past whenever an entry leaves.
+	///		ONE entry, and it is XAML; no C# entry remains. This comment has been wrong about that
+	///		number three times already. It said "the four C# entries" of a list that had four
+	///		ENTRIES, three of them C#; it was corrected to "THREE entries, of which TWO are C#";
+	///		that went stale when <c>AreaSidebarItem.xaml.cs</c> left, and its replacement, "TWO
+	///		entries, of which ONE is C#", went stale when <c>DungeonDetailPage.xaml.cs</c> left.
+	///		Counted from the initialiser below as it stands rather than carried over from the last
+	///		version of this sentence: one <c>Relative(</c> call, naming a <c>.xaml</c> file.
+	///		Recount it here on the way past whenever an entry leaves.
 	///		</para>
 	///		<para>
-	///		The XAML entry is <c>DungeonDetailPage.xaml</c>, whose map-object glyphs are stroked at
+	///		The entry is <c>DungeonDetailPage.xaml</c>, whose map-object glyphs are stroked at
 	///		<c>1.25</c> and <c>1.45</c> — values off the 1 / 1.5 / 2 ladder entirely, and the two
-	///		that most need a human decision rather than a mechanical snap. The one C# entry is
-	///		<c>DungeonDetailPage.xaml.cs</c>, a hairline built imperatively, which the ladder
-	///		already expresses; it is a conversion still to do rather than an exemption.
-	///		<c>PaletteThumb.cs</c> and <c>AreaSidebarItem.xaml.cs</c> both left this list the same
-	///		way, and had to: <see cref="EveryGeometryAllowListEntryStillOffends"/> requires the
-	///		entry and the literal to leave in the same change. PaletteThumb went when
-	///		<c>DmTheme.StrokeHairline</c> was added; AreaSidebarItem went when its selected-border
-	///		stroke moved out of <c>SetEditing</c> and into a VisualStateManager setter reading
-	///		<c>DmStrokeHairline</c>, which left the file with no non-zero stroke literal at all.
+	///		that most need a human decision rather than a mechanical snap.
+	///		<c>PaletteThumb.cs</c>, <c>AreaSidebarItem.xaml.cs</c> and
+	///		<c>DungeonDetailPage.xaml.cs</c> all left this list the same way, and had to:
+	///		<see cref="EveryGeometryAllowListEntryStillOffends"/> requires the entry and the literal
+	///		to leave in the same change. PaletteThumb went when <c>DmTheme.StrokeHairline</c> was
+	///		added; AreaSidebarItem went when its selected-border stroke moved out of
+	///		<c>SetEditing</c> and into a VisualStateManager setter reading <c>DmStrokeHairline</c>,
+	///		which left the file with no non-zero stroke literal at all; the map page's code-behind
+	///		went when the floor drag placeholder, the only thing in it carrying a stroke literal,
+	///		was deleted.
 	///		</para>
 	/// </summary>
 	private static readonly HashSet<string> StrokePendingMigration =
 		new(StringComparer.OrdinalIgnoreCase)
 		{
 			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml"),
-			Relative("Views", "DungeonDetailPage", "DungeonDetailPage.xaml.cs"),
 		};
 
 	/// <summary>

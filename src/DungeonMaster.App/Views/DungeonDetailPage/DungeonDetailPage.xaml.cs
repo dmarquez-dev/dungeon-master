@@ -43,12 +43,10 @@ public partial class DungeonDetailPage : ContentPage
 	// which floor is expanded and which area row is selected.
 	private readonly MapEditorState _editor;
 
-	// Floor list drag-and-drop plumbing. This is view work and stays: it is the placeholder Border
-	// this page inserts into its own sidebar and the item it is currently dragging.
-	private View? _dragPlaceholder;
-	private FloorSidebarItem? _draggingItem;
-	private FloorSidebarItem? _currentPlaceholderTarget;
-	private bool _placeholderAfterTarget;
+	// The opacity a floor card is drawn at while it is being dragged: dimmed in its own slot,
+	// never hidden, so the list never shows an empty card-sized gap. The page holds no other drag
+	// state; which floor is being dragged is read from the drag's own payload every time.
+	private const double DraggedFloorCardOpacity = 0.4;
 
 	// Constructed in the page constructor rather than initialized here: its timer is built on this
 	// page's Dispatcher, which is an instance member (UIKIT-017 / MASTER-062).
@@ -101,6 +99,11 @@ public partial class DungeonDetailPage : ContentPage
 		_viewModel = viewModel;
 		_editor = viewModel.Editor;
 		_drawable = new FloorMapDrawable();
+
+		// The drop indicator line is a sibling of FloorListContainer rather than a child, so the
+		// container's scrollbar-gutter padding does not reach it. Read that padding here instead
+		// of restating its value, so the line always stops where the cards do.
+		FloorDropIndicatorLine.Margin = new Thickness(0, 0, FloorListContainer.Padding.Right, 0);
 
 		// Assigned before the BindingContext below is set, because setting it is what lets the
 		// floor row template build rows, and every row reads these five through its binding.
@@ -971,39 +974,48 @@ public partial class DungeonDetailPage : ContentPage
 		}
 	}
 
+	/// <summary>
+	///		Starts a floor drag's visual state: clears whatever a lost earlier drag left behind,
+	///		then dims the dragged card in its own slot.
+	/// </summary>
+	/// <remarks>
+	///		The reset runs first because a drag the platform never finished (no drop, no
+	///		<c>DropCompleted</c>) can leave the line shown and a card dimmed, and this is the next
+	///		moment the page is certain a drag is in progress.
+	/// </remarks>
 	private void OnFloorDragStarted(object? sender, EventArgs e)
 	{
-		if (sender is not FloorSidebarItem item)
-		{
-			return;
-		}
-
-		_draggingItem = item;
-		item.Opacity = 0;
-	}
-
-	private void OnFloorDragEnded(object? sender, EventArgs e)
-	{
-		_draggingItem = null;
+		EndFloorDragVisuals();
 
 		if (sender is FloorSidebarItem item)
 		{
-			item.Opacity = 1.0;
-		}
-
-		ClearDragPlaceholder();
-	}
-
-	private void OnFloorPlaceholderRequested(object? sender, EventArgs e)
-	{
-		if (sender is FloorSidebarItem item)
-		{
-			ShowDragPlaceholder(item);
+			item.Opacity = DraggedFloorCardOpacity;
 		}
 	}
 
-	private void OnFloorPlaceholderCleared(object? sender, EventArgs e) =>
-		ClearDragPlaceholder();
+	/// <summary>
+	///		Ends a floor drag's visual state when the platform reports the drag finished, wherever
+	///		it was released.
+	/// </summary>
+	private void OnFloorDragEnded(object? sender, EventArgs e) =>
+		EndFloorDragVisuals();
+
+	/// <summary>
+	///		Moves the drop indicator line for a drag passing over a floor card.
+	/// </summary>
+	private void OnFloorCardDragOver(object? sender, DragEventArgs e) =>
+		UpdateFloorDropIndicator(e);
+
+	/// <summary>
+	///		Ends a floor drag's visual state as soon as a card receives the drop, before that card
+	///		decides whether the drop reorders anything.
+	/// </summary>
+	/// <remarks>
+	///		It runs for every outcome, including a drop on the dragged card itself, which reorders
+	///		nothing and which the platform may not follow with <c>DropCompleted</c>.
+	/// </remarks>
+	private void OnFloorCardDropReceived(object? sender, EventArgs e) =>
+		EndFloorDragVisuals();
 
 	private async void OnFloorAddAreaRequested(object? sender, EventArgs e)
 	{
@@ -2416,16 +2428,45 @@ public partial class DungeonDetailPage : ContentPage
 	// ─── The floor list as a drop target ────────────────────────────────────────
 
 	/// <summary>
-	///		Accepts a floor drag anywhere over the floor list, including the gaps between cards.
+	///		Accepts a floor drag anywhere over the floor list, including the gaps between cards,
+	///		and moves the drop indicator line to the gap the floor would land in.
 	/// </summary>
 	/// <remarks>
 	///		<c>Copy</c> is the only non-<c>None</c> member MAUI's <c>DataPackageOperation</c> has —
-	///		<c>Move</c> does not exist there — and it is what both of the other two drop targets
-	///		accept. Contract C1 section 4 records this as a refuted candidate: a task must not
+	///		<c>Move</c> does not exist there — and it is what the floor card's own drop target
+	///		accepts too. Contract C1 section 4 records this as a refuted candidate: a task must not
 	///		"fix" the reorder by reaching for <c>.Move</c>.
 	/// </remarks>
-	private void OnFloorListDragOver(object? sender, DragEventArgs e) =>
+	private void OnFloorListDragOver(object? sender, DragEventArgs e)
+	{
 		e.AcceptedOperation = DataPackageOperation.Copy;
+		UpdateFloorDropIndicator(e);
+	}
+
+	/// <summary>
+	///		Hides the drop indicator line when the drag has left the floor list itself.
+	/// </summary>
+	/// <remarks>
+	///		A card's drag-leave bubbles up to here while the pointer is still over the list, on its
+	///		way to a seam or the next card, so a leave whose position is still inside the
+	///		container's bounds keeps the line. The cards keep their opacity here because the drag
+	///		is still in progress; the drop, or the platform's <c>DropCompleted</c>, restores them.
+	/// </remarks>
+	private void OnFloorListDragLeave(object? sender, DragEventArgs e)
+	{
+		var position = e.GetPosition(FloorListContainer);
+
+		if (position is Point point
+			&& point.X >= 0
+			&& point.X < FloorListContainer.Width
+			&& point.Y >= 0
+			&& point.Y < FloorListContainer.Height)
+		{
+			return;
+		}
+
+		HideFloorDropIndicator();
+	}
 
 	/// <summary>
 	///		Resolves a drop that missed every floor card to the card it meant, and reorders.
@@ -2439,21 +2480,21 @@ public partial class DungeonDetailPage : ContentPage
 	///		feature read as broken.
 	///		</para>
 	///		<para>
-	///		THE BANDS ARE BUILT BEFORE <see cref="ClearDragPlaceholder"/> RUNS, and the order is
-	///		load-bearing: the placeholder is itself a drop target occupying a band, so a list built
-	///		after clearing it would report the placeholder's strip as unowned space and resolve a
-	///		drop the placeholder had already handled.
+	///		Every return path ends the drag's visual state first, whether or not this handler owns
+	///		the drop: a release anywhere over the list is the end of the drag.
 	///		</para>
 	///		<para>
 	///		async void: an escaping exception is UNOBSERVED and is rethrown on the synchronisation
 	///		context, which takes the process down. The try opens before the first await for that
-	///		reason, not as defensive style — the same shape as the other two drop handlers.
+	///		reason, not as defensive style — the same shape as the page's other async handlers.
 	///		</para>
 	/// </remarks>
 	private async void OnFloorListDrop(object? sender, DropEventArgs e)
 	{
 		try
 		{
+			EndFloorDragVisuals();
+
 			var position = e.GetPosition(FloorListContainer);
 
 			if (position is not Point point)
@@ -2461,32 +2502,12 @@ public partial class DungeonDetailPage : ContentPage
 				return;
 			}
 
-			var bands = new List<FloorListBand>();
-			var cards = new List<FloorSidebarItem?>();
-
-			foreach (var child in FloorListContainer.Children)
-			{
-				if (child is not View view)
-				{
-					continue;
-				}
-
-				var item = view as FloorSidebarItem;
-				var target = DropTargetWithin(view);
-
-				bands.Add(new FloorListBand(
-					item is null ? FloorListBandKind.TransientDropTarget : FloorListBandKind.FloorCard,
-					view.Y + (ReferenceEquals(target, view) ? 0 : target.Y),
-					target.Height));
-
-				cards.Add(item);
-			}
-
+			var (bands, cards) = MeasureFloorListBands();
 			var resolution = FloorReorderNearest.Resolve(bands, point.Y);
 
-			// ExistingTarget means the release landed inside a card or the placeholder, both of
-			// which carry a handler of their own. Declining here is what keeps the reorder running
-			// exactly once regardless of whether the platform bubbles the drop up to this handler.
+			// ExistingTarget means the release landed inside a card, which carries a handler of its
+			// own. Declining here is what keeps the reorder running exactly once regardless of
+			// whether the platform bubbles the drop up to this handler.
 			if (resolution.Owner != FloorDropOwner.FloorList)
 			{
 				return;
@@ -2494,15 +2515,13 @@ public partial class DungeonDetailPage : ContentPage
 
 			var nearest = cards[resolution.BandIndex];
 
-			ClearDragPlaceholder();
-
-			// The same decision the other two drop targets make, from the same owner, so the three
+			// The same decision the card's own drop target makes, from the same owner, so the two
 			// cannot drift apart. e.Data is null-conditional because MAUI hands these args a
 			// nullable package; see FloorReorderDrop's remarks.
 			var decision = FloorReorderDrop.Decide(
 				e.Data?.Properties,
-				nearest?.Floor?.Id,
-				nearest?.Floor?.Number ?? 0);
+				nearest.Floor?.Id,
+				nearest.Floor?.Number ?? 0);
 
 			if (!decision.ShouldReorder)
 			{
@@ -2548,127 +2567,117 @@ public partial class DungeonDetailPage : ContentPage
 		return child;
 	}
 
-	// ─── Drag-and-drop placeholder ──────────────────────────────────────────────
+	// ─── Drag-and-drop indicator ────────────────────────────────────────────────
 
-	private void ShowDragPlaceholder(FloorSidebarItem target)
+	/// <summary>
+	///		Measures <c>FloorListContainer</c>'s floor cards into the bands the drop resolvers read,
+	///		with the card each band belongs to at the same index.
+	/// </summary>
+	/// <remarks>
+	///		This is the one place a <see cref="FloorListBand"/> is built, so the list's drop and the
+	///		drop indicator line always resolve against the same geometry. Each band is the card's
+	///		drop target, not the whole child (see <see cref="DropTargetWithin"/>), in the container's
+	///		own coordinates.
+	/// </remarks>
+	/// <returns>
+	///		The bands in visual order, and the parallel list of cards.
+	/// </returns>
+	private (List<FloorListBand> Bands, List<FloorSidebarItem> Cards) MeasureFloorListBands()
 	{
-		if (ReferenceEquals(target, _draggingItem))
-		{
-			return;
-		}
-
-		int sourceIdx = -1, targetIdx = -1, n = 0;
+		var bands = new List<FloorListBand>();
+		var cards = new List<FloorSidebarItem>();
 
 		foreach (var child in FloorListContainer.Children)
 		{
-			if (ReferenceEquals(child, _dragPlaceholder))
+			if (child is not FloorSidebarItem card)
 			{
 				continue;
 			}
 
-			if (ReferenceEquals(child, _draggingItem))
-			{
-				sourceIdx = n;
-			}
+			var target = DropTargetWithin(card);
 
-			if (ReferenceEquals(child, target))
-			{
-				targetIdx = n;
-			}
+			bands.Add(new FloorListBand(
+				FloorListBandKind.FloorCard,
+				card.Y + (ReferenceEquals(target, card) ? 0 : target.Y),
+				target.Height));
 
-			n++;
+			cards.Add(card);
 		}
 
-		bool afterTarget = sourceIdx >= 0 && targetIdx >= 0 && sourceIdx < targetIdx;
-
-		if (ReferenceEquals(_currentPlaceholderTarget, target) && _placeholderAfterTarget == afterTarget)
-		{
-			return;
-		}
-
-		_currentPlaceholderTarget = target;
-		_placeholderAfterTarget = afterTarget;
-
-		if (_dragPlaceholder is not null)
-		{
-			FloorListContainer.Children.Remove(_dragPlaceholder);
-			_dragPlaceholder = null;
-		}
-
-		var insertIdx = FloorListContainer.Children.IndexOf(target);
-
-		if (insertIdx < 0)
-		{
-			return;
-		}
-
-		if (afterTarget)
-		{
-			insertIdx++;
-		}
-
-		var capturedTarget = target;
-		var dropGesture = new DropGestureRecognizer();
-
-		dropGesture.DragOver += (_, dragArgs) =>
-			dragArgs.AcceptedOperation = DataPackageOperation.Copy;
-
-		dropGesture.Drop += async (_, dropArgs) =>
-		{
-			// async void: an escaping exception is UNOBSERVED and is rethrown on the
-			// synchronisation context, which takes the process down. The try opens before the
-			// first await for that reason, not as defensive style.
-			try
-			{
-				ClearDragPlaceholder();
-
-				// The same decision the floor card's own drop target makes, from the same owner, so
-				// the two targets cannot drift apart. dropArgs.Data is null-conditional because
-				// MAUI hands these args a nullable package; see FloorReorderDrop's remarks.
-				var decision = FloorReorderDrop.Decide(
-					dropArgs.Data?.Properties,
-					capturedTarget.Floor?.Id,
-					capturedTarget.Floor?.Number ?? 0);
-
-				if (!decision.ShouldReorder)
-				{
-					return;
-				}
-
-				_editor.SelectedFloorId = decision.DraggedFloorId;
-				await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
-					new ReorderFloorArgs(decision.DraggedFloorId, decision.TargetFloorNumber));
-			}
-			catch (Exception exception)
-			{
-				_viewModel.ErrorMessage = $"Could not reorder the floors: {exception.Message}";
-			}
-		};
-
-		_dragPlaceholder = new Border
-		{
-			HeightRequest = 44,
-			Stroke = new SolidColorBrush(DmTheme.DragPlaceholderStroke),
-			StrokeThickness = 2,
-			StrokeShape = new RoundRectangle { CornerRadius = 3 },
-			BackgroundColor = DmTheme.DragPlaceholderFill,
-			Margin = new Thickness(0, 0, 0, 4)
-		};
-		_dragPlaceholder.GestureRecognizers.Add(dropGesture);
-		FloorListContainer.Children.Insert(insertIdx, _dragPlaceholder);
+		return (bands, cards);
 	}
 
-	private void ClearDragPlaceholder()
+	/// <summary>
+	///		Shows the drop indicator line at the gap a drag over the floor list would land the
+	///		dragged floor in, or hides it when there is no such gap.
+	/// </summary>
+	/// <param name="e">
+	///		The drag-over, from a floor card or from the list itself. The same drag reaches this
+	///		twice when the platform bubbles a card's drag-over up to the list, and the method is
+	///		idempotent so that costs nothing.
+	/// </param>
+	/// <remarks>
+	///		The dragged floor is read from the drag's payload rather than remembered from drag
+	///		start, so a row re-bound mid-drag cannot leave the page pointing at a stale card. A
+	///		missing position, an unreadable payload, a dragged floor no longer in the list, or a
+	///		drop that would change nothing all hide the line.
+	/// </remarks>
+	private void UpdateFloorDropIndicator(DragEventArgs e)
 	{
-		_currentPlaceholderTarget = null;
-
-		if (_dragPlaceholder is null)
+		// DataPackage.Properties is a mutable property set with no dictionary interface; its
+		// View is the read-only dictionary the payload parser takes.
+		if (e.GetPosition(FloorListContainer) is not Point point
+			|| !FloorReorderDrop.TryReadDraggedFloorId(e.Data?.View.Properties, out var draggedFloorId))
 		{
+			HideFloorDropIndicator();
 			return;
 		}
 
-		FloorListContainer.Children.Remove(_dragPlaceholder);
-		_dragPlaceholder = null;
+		var (bands, cards) = MeasureFloorListBands();
+		var draggedIndex = cards.FindIndex(card => card.Floor?.Id == draggedFloorId);
+		var landing = FloorDropIndicator.Locate(bands, point.Y, draggedIndex);
+
+		if (!landing.HasLanding)
+		{
+			HideFloorDropIndicator();
+			return;
+		}
+
+		// Only TranslationY and Opacity move: neither invalidates measure, so showing the line
+		// re-lays-out nothing under the pointer. The clamp keeps the 2-DIU line inside the list.
+		FloorDropIndicatorLine.TranslationY = Math.Clamp(
+			landing.LineY - 1,
+			0,
+			Math.Max(0, FloorListContainer.Height - 2));
+		FloorDropIndicatorLine.Opacity = 1;
+	}
+
+	/// <summary>
+	///		Hides the drop indicator line.
+	/// </summary>
+	private void HideFloorDropIndicator() =>
+		FloorDropIndicatorLine.Opacity = 0;
+
+	/// <summary>
+	///		Ends a floor drag's visual state: hides the drop indicator line and draws every floor
+	///		card at full opacity.
+	/// </summary>
+	/// <remarks>
+	///		The cards are reached by walking <c>FloorListContainer</c>'s children rather than through
+	///		a remembered dragged card, so a card re-bound or rebuilt mid-drag cannot be missed. No
+	///		card's <c>IsVisible</c> or visual state is touched.
+	/// </remarks>
+	private void EndFloorDragVisuals()
+	{
+		HideFloorDropIndicator();
+
+		foreach (var child in FloorListContainer.Children)
+		{
+			if (child is FloorSidebarItem card)
+			{
+				card.Opacity = 1;
+			}
+		}
 	}
 
 	// ─── Nav and dungeon-level editors ──────────────────────────────────────────
