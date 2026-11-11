@@ -249,9 +249,9 @@ public class FloorDragHandleTests
 	///		edge only.
 	/// </summary>
 	/// <remarks>
-	///		The inset is on the CONTENT rather than on the card so that the drag placeholder the
-	///		page's code-behind inserts into this same container is inset by it too; a margin on the
-	///		card would move the cards and leave the placeholder running under the bar. A top or
+	///		The inset is on the CONTENT rather than on the card, so everything the container holds
+	///		sits clear of the bar, and the page's code-behind reads this same padding to inset the
+	///		drop indicator line, a sibling of the container, by the same amount. A top or
 	///		bottom component here would be a vertical change, which contract C3 section 5 forbids,
 	///		so the shape is asserted and not merely the presence of a padding.
 	/// </remarks>

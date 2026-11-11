@@ -111,4 +111,74 @@ public class FloorReorderDropTests
 		decision.DraggedFloorId.Should().Be(Dragged);
 		decision.TargetFloorNumber.Should().Be(7);
 	}
+
+	[Fact]
+	public void TryReadDraggedFloorId_WithANullPayload_ReturnsFalseWithAnEmptyId()
+	{
+		// Act
+		var read = FloorReorderDrop.TryReadDraggedFloorId(null, out var draggedFloorId);
+
+		// Assert
+		read.Should().BeFalse();
+		draggedFloorId.Should().Be(Guid.Empty);
+	}
+
+	[Fact]
+	public void TryReadDraggedFloorId_WithTheFloorIdKeyAbsent_ReturnsFalseWithAnEmptyId()
+	{
+		// Arrange
+		var payload = new Dictionary<string, object> { ["SomethingElse"] = Dragged.ToString() };
+
+		// Act
+		var read = FloorReorderDrop.TryReadDraggedFloorId(payload, out var draggedFloorId);
+
+		// Assert
+		read.Should().BeFalse();
+		draggedFloorId.Should().Be(Guid.Empty);
+	}
+
+	/// <summary>
+	///		The value is a real <see cref="Guid"/> rather than its string form, so a parser that accepted any value through its string form would read it.
+	/// </summary>
+	[Fact]
+	public void TryReadDraggedFloorId_WithAFloorIdThatIsNotAString_ReturnsFalseWithAnEmptyId()
+	{
+		// Arrange
+		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = Dragged };
+
+		// Act
+		var read = FloorReorderDrop.TryReadDraggedFloorId(payload, out var draggedFloorId);
+
+		// Assert
+		read.Should().BeFalse();
+		draggedFloorId.Should().Be(Guid.Empty);
+	}
+
+	[Fact]
+	public void TryReadDraggedFloorId_WithAFloorIdThatDoesNotParse_ReturnsFalseWithAnEmptyId()
+	{
+		// Arrange
+		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = "not-a-guid" };
+
+		// Act
+		var read = FloorReorderDrop.TryReadDraggedFloorId(payload, out var draggedFloorId);
+
+		// Assert
+		read.Should().BeFalse();
+		draggedFloorId.Should().Be(Guid.Empty);
+	}
+
+	[Fact]
+	public void TryReadDraggedFloorId_WithADFormatFloorId_ReturnsTrueWithThatId()
+	{
+		// Arrange
+		var payload = new Dictionary<string, object> { [FloorReorderDrop.FloorIdKey] = Dragged.ToString("D") };
+
+		// Act
+		var read = FloorReorderDrop.TryReadDraggedFloorId(payload, out var draggedFloorId);
+
+		// Assert
+		read.Should().BeTrue();
+		draggedFloorId.Should().Be(Dragged);
+	}
 }

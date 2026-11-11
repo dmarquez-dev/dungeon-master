@@ -34,9 +34,11 @@ public readonly record struct FloorReorderDecision(
 /// <remarks>
 ///		<para>
 ///		There are two drop targets on the floor sidebar — the floor card's own root border and the
-///		transient gap placeholder the page inserts mid-drag — and before this type each one carried
-///		its own hand-written copy of the same five-case decision. Two copies of one fact disagree
-///		eventually; this is the one copy.
+///		floor list itself, which resolves a near-miss to a card through
+///		<see cref="FloorReorderNearest.Resolve"/> — and both hand that card to this one decision
+///		rather than each carrying a hand-written copy of it. Two copies of one fact disagree
+///		eventually; this is the one copy, and <see cref="TryReadDraggedFloorId"/> is the one
+///		parser of the payload it reads.
 ///		</para>
 ///		<para>
 ///		The payload parameter is nullable because MAUI's Windows gesture manager builds the drop
@@ -90,12 +92,7 @@ public static class FloorReorderDrop
 			return FloorReorderDecision.None;
 		}
 
-		if (!payload.TryGetValue(FloorIdKey, out var value))
-		{
-			return FloorReorderDecision.None;
-		}
-
-		if (value is not string text || !Guid.TryParse(text, out var draggedFloorId))
+		if (!TryReadDraggedFloorId(payload, out var draggedFloorId))
 		{
 			return FloorReorderDecision.None;
 		}
@@ -107,5 +104,40 @@ public static class FloorReorderDrop
 		}
 
 		return new FloorReorderDecision(true, draggedFloorId, targetFloorNumber);
+	}
+
+	/// <summary>
+	///		Reads the dragged floor's identifier out of a floor drag payload.
+	///		This is the one parser of that payload, so the drop decision and the drop indicator cannot disagree about which floor is being dragged.
+	/// </summary>
+	/// <param name="payload">
+	///		The drag's data package properties, or <see langword="null"/> when the platform supplied none.
+	/// </param>
+	/// <param name="draggedFloorId">
+	///		The dragged floor's identifier when the method returns true, and <see cref="Guid.Empty"/> otherwise.
+	/// </param>
+	/// <returns>
+	///		True only when <paramref name="payload"/> holds <see cref="FloorIdKey"/> and its value is a string that parses as a <see cref="Guid"/>.
+	///		Every other payload returns false, and nothing is thrown.
+	/// </returns>
+	public static bool TryReadDraggedFloorId(
+		IReadOnlyDictionary<string, object>? payload,
+		out Guid draggedFloorId)
+	{
+		draggedFloorId = Guid.Empty;
+
+		if (payload is null || !payload.TryGetValue(FloorIdKey, out var value))
+		{
+			return false;
+		}
+
+		if (value is not string text || !Guid.TryParse(text, out var parsed))
+		{
+			return false;
+		}
+
+		draggedFloorId = parsed;
+
+		return true;
 	}
 }

@@ -53,10 +53,10 @@ public class FloorDragHandleDropTargetTests
 	///		A drop that lands inside a card is that card's own handler's, and the list declines it.
 	/// </summary>
 	/// <remarks>
-	///		This is what makes the third drop target safe to add. Whether the platform bubbles a
-	///		drop from the card up to the list is not something this code should have to know:
-	///		declining every drop that landed inside an existing target means the reorder runs
-	///		exactly once whichever answer the platform gives.
+	///		This is what makes the list's own drop target safe beside each card's. Whether the
+	///		platform bubbles a drop from the card up to the list is not something this code should
+	///		have to know: declining every drop that landed inside an existing target means the
+	///		reorder runs exactly once whichever answer the platform gives.
 	/// </remarks>
 	[Theory]
 	[InlineData(0, 0)]
@@ -143,49 +143,6 @@ public class FloorDragHandleDropTargetTests
 	}
 
 	/// <summary>
-	///		The transient placeholder is a drop target that can be landed IN but never resolved TO.
-	/// </summary>
-	/// <remarks>
-	///		The placeholder carries its own <c>DropGestureRecognizer</c>, so a drop inside it is
-	///		already handled. It is not a floor, so it has no <c>Number</c> a reorder could name —
-	///		snapping a near-miss to it would produce a reorder against a target that does not exist.
-	/// </remarks>
-	[Fact]
-	public void ThePlaceholderIsLandedInButNeverResolvedTo()
-	{
-		// Card 0, then the placeholder in card 1's slot, then card 2.
-		var bands = new List<FloorListBand>
-		{
-			new(FloorListBandKind.FloorCard, 0, CardHeight),
-			new(FloorListBandKind.TransientDropTarget, CardPitch, 44),
-			new(FloorListBandKind.FloorCard, 2 * CardPitch, CardHeight),
-		};
-
-		FloorReorderNearest
-			.Resolve(bands, CardPitch + 20)
-			.Should()
-			.Be(
-				new FloorDropResolution(FloorDropOwner.ExistingTarget, 1),
-				"a drop inside the placeholder is the placeholder's own handler's");
-
-		// The seam just past the placeholder: a near-miss that must NOT snap back onto it.
-		var resolution = FloorReorderNearest.Resolve(bands, CardPitch + 50);
-
-		resolution
-			.Owner
-			.Should()
-			.Be(FloorDropOwner.FloorList);
-
-		bands[resolution.BandIndex]
-			.Kind
-			.Should()
-			.Be(
-				FloorListBandKind.FloorCard,
-				"the placeholder has no floor Number to reorder against, so resolving to it would "
-				+ "name a target that does not exist");
-	}
-
-	/// <summary>
 	///		Bands that are not laid out are ignored rather than treated as a zero-height line.
 	/// </summary>
 	[Fact]
@@ -235,13 +192,6 @@ public class FloorDragHandleDropTargetTests
 				FloorDropResolution.None,
 				"an unresolvable platform position must not reorder a floor the user never "
 				+ "aimed at");
-
-		FloorReorderNearest
-			.Resolve([new FloorListBand(FloorListBandKind.TransientDropTarget, 0, 44)], 100)
-			.Should()
-			.Be(
-				FloorDropResolution.None,
-				"a list holding only a placeholder has no card a near-miss could resolve to");
 
 		FloorDropResolution
 			.None

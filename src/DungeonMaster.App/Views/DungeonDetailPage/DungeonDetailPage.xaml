@@ -685,99 +685,128 @@
 
                      14 rather than 12: the reservation clears the whole overlay band the template
                      lays out, not just the bar drawn inside it. It is a padding on the CONTENT
-                     rather than a margin on the card so the drag placeholder the code-behind
-                     inserts into this same container is inset by it too. This is a width change
-                     and only a width change — contract C3 section 2's height invariant is
-                     untouched, and it was re-measured with the same instrument. -->
+                     rather than a margin on the card so everything inside this container sits
+                     clear of the bar; the drop indicator line below is a sibling of the container
+                     rather than a child, so the code-behind insets it by this same padding, read
+                     from the container rather than restated. This is a width change and only a
+                     width change — contract C3 section 2's height invariant is untouched, and it
+                     was re-measured with the same instrument. -->
                 <ScrollView Grid.Row="2">
-                    <VerticalStackLayout
-                        x:Name="FloorListContainer"
-                        Spacing="0"
-                        Padding="0,0,14,0"
-                        BackgroundColor="Transparent"
-                        BindableLayout.ItemsSource="{Binding FloorList.Items}">
+                    <!-- The Grid exists to stack the drop indicator line over the floor list
+                         without making it one of the list's children: BindableLayout is the only
+                         writer of FloorListContainer's children, and no drag handler adds,
+                         removes or reorders one. The list's right padding below is the
+                         scrollbar-gutter reservation explained above. -->
+                    <Grid>
+                        <VerticalStackLayout
+                            x:Name="FloorListContainer"
+                            Spacing="0"
+                            Padding="0,0,14,0"
+                            BackgroundColor="Transparent"
+                            BindableLayout.ItemsSource="{Binding FloorList.Items}">
 
-                        <!-- THE THIRD DROP TARGET, AND IT EXISTS TO END A SILENT FAILURE
-                             (escalation E6; contract C1 section 4, amended from two targets to
-                             three). Before this, the only two were a floor card's root Border and
-                             the transient placeholder — so a release on the 4-DIU seam between two
-                             cards, on the reserved scrollbar strip, or on any space no handler
-                             owned, was discarded with NO handler, NO error and NO trace. The
-                             reorder works end to end once the drop lands on a card; what failed
-                             was reaching one, and it failed silently, which is why the feature
-                             read as broken.
+                            <!-- THE LIST'S OWN DROP TARGET, AND IT EXISTS TO END A SILENT FAILURE
+                                 (escalation E6). Without it the only drop target was each floor card's
+                                 root Border, so a release on the 4-DIU seam between two cards, on the
+                                 reserved scrollbar strip, or on any space no handler owned, was
+                                 discarded with NO handler, NO error and NO trace. The reorder works
+                                 end to end once the drop lands on a card; what failed was reaching
+                                 one, and it failed silently, which is why the feature read as broken.
 
-                             This target does not decide what a drop MEANS. It asks
-                             FloorReorderNearest which card the release meant, then goes through
-                             the SAME FloorReorderDrop.Decide the other two targets use, so all
-                             three share one copy of contract C1 section 1's five rows. A drop
-                             landing INSIDE a card or the placeholder resolves to ExistingTarget
-                             and this handler declines it, so the reorder runs exactly once
-                             whether or not the platform bubbles the drop up to here.
+                                 This target does not decide what a drop MEANS. It asks
+                                 FloorReorderNearest which card the release meant, then goes through
+                                 the SAME FloorReorderDrop.Decide the card's own target uses, so both
+                                 share one copy of the decision's five rows. A drop landing INSIDE a
+                                 card resolves to ExistingTarget and this handler declines it, so the
+                                 reorder runs exactly once whether or not the platform bubbles the drop
+                                 up to here.
 
-                             THE TRANSPARENT BACKGROUND ABOVE IS PART OF THIS TARGET, not styling.
-                             WinUI does not hit-test an element whose Background is null, and a
-                             layout panel has none by default — so without it this recogniser would
-                             be attached to a surface the pointer passes straight through, and the
-                             fix would be inert while looking applied. Transparent is a real brush
-                             and paints nothing, so it costs no pixels and no layout. This is the
-                             same trap the drag handle has in FloorSidebarItem.xaml. -->
-                        <VerticalStackLayout.GestureRecognizers>
-                            <DropGestureRecognizer
-                                DragOver="OnFloorListDragOver"
-                                Drop="OnFloorListDrop" />
-                        </VerticalStackLayout.GestureRecognizers>
+                                 DragOver here and on every card moves the drop indicator line to the
+                                 gap the floor would land in. DragLeave hides it only when the pointer
+                                 has actually left the list; a leave bubbled up from a card while the
+                                 pointer is still over the list keeps it.
 
-                        <!-- MASTER-108 / UI-016. One row per floor, generated from FloorList.Items
-                             (the ItemsSource above) by this template rather than built by hand in
-                             code-behind. A floor-scoped refresh, which replaces ONE element of
-                             Items, touches ONE row (it is bound to the replacement) and leaves every
-                             other row instance alone; a full reload (Clear, then one Add per floor)
-                             still replaces every row with a new instance. Every per-row event and
-                             command is declared here. The drag placeholder is the one child the
-                             code-behind still inserts and removes, because it is a transient visual
-                             and not a floor.
+                                 THE TRANSPARENT BACKGROUND ABOVE IS PART OF THIS TARGET, not styling.
+                                 WinUI does not hit-test an element whose Background is null, and a
+                                 layout panel has none by default — so without it this recogniser would
+                                 be attached to a surface the pointer passes straight through, and the
+                                 fix would be inert while looking applied. Transparent is a real brush
+                                 and paints nothing, so it costs no pixels and no layout. This is the
+                                 same trap the drag handle has in FloorSidebarItem.xaml. -->
+                            <VerticalStackLayout.GestureRecognizers>
+                                <DropGestureRecognizer
+                                    DragOver="OnFloorListDragOver"
+                                    DragLeave="OnFloorListDragLeave"
+                                    Drop="OnFloorListDrop" />
+                            </VerticalStackLayout.GestureRecognizers>
 
-                             Each row is a heading in the sidebar's outline, one level below the
-                             FLOORS caption above, so a screen reader can jump between floors.
+                            <!-- MASTER-108 / UI-016. One row per floor, generated from FloorList.Items
+                                 (the ItemsSource above) by this template rather than built by hand in
+                                 code-behind. A floor-scoped refresh, which replaces ONE element of
+                                 Items, touches ONE row (it is bound to the replacement) and leaves every
+                                 other row instance alone; a full reload (Clear, then one Add per floor)
+                                 still replaces every row with a new instance. Every per-row event and
+                                 command is declared here, and this template is the only thing that
+                                 adds or removes a child of this container: a drag dims the dragged row
+                                 in place and marks the landing slot with the sibling line below.
 
-                             THE EXPANDED STATE IS BOUND, ONE WAY, and nothing else writes it
-                             (MASTER-098 / UIKIT-011): it is whether this row's floor Id equals
-                             Editor.SelectedFloorId on the page's DungeonDetailViewModel, so the
-                             editor state is its one owner and a row built or re-bound by a refresh
-                             comes up already expanded. FocusedAreaId hands the row Editor.FocusedAreaId for
-                             its area rows' selected state the same way.
+                                 Each row is a heading in the sidebar's outline, one level below the
+                                 FLOORS caption above, so a screen reader can jump between floors.
 
-                             The five area commands are the page's own, read through a RelativeSource
-                             to the page because a DataTemplate is its own name scope. Each resolves
-                             the area's floor from FloorList.Items when it runs. -->
-                        <BindableLayout.ItemTemplate>
-                            <DataTemplate x:DataType="presentation:FloorItem">
-                                <controls:FloorSidebarItem
-                                    Floor="{Binding .}"
-                                    SemanticProperties.HeadingLevel="Level3"
-                                    FocusedAreaId="{Binding Editor.FocusedAreaId, Source={RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}}"
-                                    AreaSelectCommand="{Binding AreaSelectCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
-                                    AreaHoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
-                                    AreaHoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
-                                    AreaDeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
-                                    AreaNotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
-                                    DeleteRequested="OnFloorDeleteRequested"
-                                    SelectRequested="OnFloorSelectRequested"
-                                    ReorderRequested="OnFloorReorderRequested"
-                                    DragStarted="OnFloorDragStarted"
-                                    DragEnded="OnFloorDragEnded"
-                                    PlaceholderRequested="OnFloorPlaceholderRequested"
-                                    PlaceholderCleared="OnFloorPlaceholderCleared"
-                                    AddAreaRequested="OnFloorAddAreaRequested"
-                                    NotebookRequested="OnFloorNotebookRequested">
-                                    <!-- One line on purpose: the whole binding site, open tag to close
-                                         tag, so a line search for the property finds the site once. -->
-                                    <controls:FloorSidebarItem.IsExpanded><MultiBinding Converter="{StaticResource GuidEquality}" Mode="OneWay"><Binding Path="Id" /><Binding Path="Editor.SelectedFloorId" Source="{RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}" /></MultiBinding></controls:FloorSidebarItem.IsExpanded>
-                                </controls:FloorSidebarItem>
-                            </DataTemplate>
-                        </BindableLayout.ItemTemplate>
-                    </VerticalStackLayout>
+                                 THE EXPANDED STATE IS BOUND, ONE WAY, and nothing else writes it
+                                 (MASTER-098 / UIKIT-011): it is whether this row's floor Id equals
+                                 Editor.SelectedFloorId on the page's DungeonDetailViewModel, so the
+                                 editor state is its one owner and a row built or re-bound by a refresh
+                                 comes up already expanded. FocusedAreaId hands the row Editor.FocusedAreaId for
+                                 its area rows' selected state the same way.
+
+                                 The five area commands are the page's own, read through a RelativeSource
+                                 to the page because a DataTemplate is its own name scope. Each resolves
+                                 the area's floor from FloorList.Items when it runs. -->
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="presentation:FloorItem">
+                                    <controls:FloorSidebarItem
+                                        Floor="{Binding .}"
+                                        SemanticProperties.HeadingLevel="Level3"
+                                        FocusedAreaId="{Binding Editor.FocusedAreaId, Source={RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}}"
+                                        AreaSelectCommand="{Binding AreaSelectCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaHoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaHoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaDeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaNotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        DeleteRequested="OnFloorDeleteRequested"
+                                        SelectRequested="OnFloorSelectRequested"
+                                        ReorderRequested="OnFloorReorderRequested"
+                                        DragStarted="OnFloorDragStarted"
+                                        DragEnded="OnFloorDragEnded"
+                                        DragOverReceived="OnFloorCardDragOver"
+                                        DropReceived="OnFloorCardDropReceived"
+                                        AddAreaRequested="OnFloorAddAreaRequested"
+                                        NotebookRequested="OnFloorNotebookRequested">
+                                        <!-- One line on purpose: the whole binding site, open tag to close
+                                             tag, so a line search for the property finds the site once. -->
+                                        <controls:FloorSidebarItem.IsExpanded><MultiBinding Converter="{StaticResource GuidEquality}" Mode="OneWay"><Binding Path="Id" /><Binding Path="Editor.SelectedFloorId" Source="{RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}" /></MultiBinding></controls:FloorSidebarItem.IsExpanded>
+                                    </controls:FloorSidebarItem>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- The drop indicator line: a 2-DIU rule marking the gap the dragged floor
+                             would land in. It is declared after FloorListContainer so it paints over
+                             the cards, and it is input-transparent so it never takes a drag-over or a
+                             drop from the card or the list beneath it. During a drag the code-behind
+                             writes only its TranslationY and its Opacity, neither of which
+                             invalidates measure, so moving it re-lays-out nothing under the pointer.
+                             Its right inset is FloorListContainer's right padding, set once in the
+                             page constructor. -->
+                        <BoxView
+                            x:Name="FloorDropIndicatorLine"
+                            HeightRequest="2"
+                            VerticalOptions="Start"
+                            InputTransparent="True"
+                            Opacity="0"
+                            Color="{StaticResource DmDragPlaceholderStroke}" />
+                    </Grid>
                 </ScrollView>
 
             </Grid>

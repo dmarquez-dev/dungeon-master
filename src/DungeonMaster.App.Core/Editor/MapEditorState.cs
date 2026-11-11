@@ -12,7 +12,7 @@ namespace DungeonMaster.App.Core.Editor;
 ///		The active tool is not owned here: it stays on the map canvas view model, and every method
 ///		that needs it takes it as a parameter. The in-progress vertex list likewise stays on
 ///		MapDrawingSession. Gesture plumbing, cursor shape, opacity and input transparency
-///		toggling, and placeholder insertion all remain view work in the page.
+///		toggling, and positioning the floor drop indicator line all remain view work in the page.
 ///		<para>
 ///		The two selection facts, <see cref="SelectedFloorId"/> and <see cref="FocusedAreaId"/>,
 ///		are observable: the sidebar rows bind to them, so they are the one owner of which floor is

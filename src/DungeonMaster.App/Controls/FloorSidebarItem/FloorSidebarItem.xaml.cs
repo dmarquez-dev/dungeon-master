@@ -128,14 +128,16 @@ public partial class FloorSidebarItem : ContentView
 	public event EventHandler? DragEnded;
 
 	/// <summary>
-	///		Raised when a dragged item enters this item's drop zone, requesting a placeholder insertion.
+	///		Raised on every drag-over of this item's drop zone, carrying the platform's drag
+	///		arguments so the page can read the pointer position and the dragged floor's payload.
 	/// </summary>
-	public event EventHandler? PlaceholderRequested;
+	public event EventHandler<DragEventArgs>? DragOverReceived;
 
 	/// <summary>
-	///		Raised when the drag placeholder should be removed.
+	///		Raised first thing on every drop on this item, before the reorder is decided and
+	///		whatever the decision is, so the page can end the drag's visual state.
 	/// </summary>
-	public event EventHandler? PlaceholderCleared;
+	public event EventHandler? DropReceived;
 
 	/// <summary>
 	///		Raised when the user requests deletion of this floor.
@@ -499,7 +501,7 @@ public partial class FloorSidebarItem : ContentView
 	private void OnDragOver(object? sender, DragEventArgs e)
 	{
 		e.AcceptedOperation = DataPackageOperation.Copy;
-		PlaceholderRequested?.Invoke(this, EventArgs.Empty);
+		DragOverReceived?.Invoke(this, e);
 
 		_isDragOver = true;
 		UpdateVisualState();
@@ -507,22 +509,22 @@ public partial class FloorSidebarItem : ContentView
 
 	private void OnDragLeave(object? sender, DragEventArgs e)
 	{
-		// Do NOT clear the placeholder here. Removing it while the cursor moves
-		// into the adjacent placeholder triggers DragOver then DragLeave oscillation = stutter.
-		// The placeholder is cleared when the drag ends (DropCompleted).
+		// Only this card's own hover state ends here. The page's insertion line is not hidden on a
+		// card leave: the pointer usually leaves one card for the seam or the next card while the
+		// drag goes on, and the list's own drag-over and drag-leave own the line there.
 		_isDragOver = false;
 		UpdateVisualState();
 	}
 
 	private void OnDrop(object? sender, DropEventArgs e)
 	{
-		PlaceholderCleared?.Invoke(this, EventArgs.Empty);
+		DropReceived?.Invoke(this, EventArgs.Empty);
 
 		_isDragOver = false;
 		UpdateVisualState();
 
 		// The four silent returns of contract C1 section 1 live in FloorReorderDrop.Decide, which
-		// the page's placeholder drop target calls too, so the two drop targets cannot disagree.
+		// the page's floor-list drop target calls too, so the two drop targets cannot disagree.
 		//
 		// e.Data is reached through a null-conditional because MAUI's Windows gesture manager
 		// builds these args from a NULLABLE package (GesturePlatformManager.Windows.cs, HandleDrop,

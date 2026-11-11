@@ -11,13 +11,6 @@ public enum FloorListBandKind
 	///		reorder can name as its target.
 	/// </summary>
 	FloorCard,
-
-	/// <summary>
-	///		The transient drag placeholder the page inserts mid-drag. It carries a
-	///		<c>DropGestureRecognizer</c> of its own, so a drop inside it is already handled — but
-	///		it is not a floor, so it can never be the thing a reorder names.
-	/// </summary>
-	TransientDropTarget,
 }
 
 /// <summary>
@@ -67,8 +60,8 @@ public readonly record struct FloorDropResolution(FloorDropOwner Owner, int Band
 ///		One element's vertical extent in the floor list, measured in the list's own coordinates.
 /// </summary>
 /// <param name="Kind">
-///		What this band is. Only a <see cref="FloorListBandKind.FloorCard"/> can be resolved TO; both
-///		kinds can be landed IN.
+///		What this band is. Only a <see cref="FloorListBandKind.FloorCard"/> can be resolved TO, and a
+///		band of any kind can be landed IN.
 /// </param>
 /// <param name="Top">
 ///		The top edge of the element that carries the drop target, relative to the floor list.
@@ -114,9 +107,8 @@ public readonly record struct FloorListBand(FloorListBandKind Kind, double Top, 
 ///		</para>
 ///		<para>
 ///		WHY THE FIRST PASS IS "INSIDE AN EXISTING TARGET WINS" RATHER THAN JUST "NEAREST". The
-///		floor list is now the THIRD drop target, alongside the card's root <c>Border</c> and the
-///		transient placeholder (contract C1 section 4, amended). Whether a drop landing on a card
-///		also reaches the list's handler depends on whether the platform bubbles the drop, which is
+///		floor list is a drop target in its own right, alongside each card's root <c>Border</c>.
+///		Whether a drop landing on a card also reaches the list's handler depends on whether the platform bubbles the drop, which is
 ///		not something this code should have to know: resolving "inside a target" to
 ///		<see cref="FloorDropOwner.ExistingTarget"/> makes the list decline either way, so the
 ///		reorder runs exactly once whichever answer the platform gives.
@@ -175,8 +167,8 @@ public static class FloorReorderNearest
 		}
 
 		// PASS TWO. The drop missed every target, so it is a near-miss the list resolves itself.
-		// Only a floor card can be resolved TO — the placeholder is a drop target but not a floor,
-		// and snapping to it would name a target that has no Number to reorder against.
+		// Only a floor card can be resolved TO: a band of any other kind is not a floor, and
+		// snapping to it would name a target that has no Number to reorder against.
 		int nearest = NoBand;
 		double nearestDistance = double.PositiveInfinity;
 
