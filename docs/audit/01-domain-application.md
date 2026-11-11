@@ -840,6 +840,21 @@ disposition when the floor is absent, is in `contracts/dungeon-public-surface.md
 inner `Floor` call's outcome before touching the aggregate. **`CORE-015` does not mention it at all.**
 Any design aiming at this entry's stated goal that "each wrapper collapses to two lines" has to
 address this duplication and not only the lookup.
+(AMENDED 20261111-0156-core-audit-corrections, 2026-11-11 -- the anchor of the figure above, restated. The
+**5** is a figure at `20b0b09`, the baseline Corrections 1-3 name (`:807`, `:813`, `:824`, as numbered at
+`9f9ca69`); Correction 4 itself names no commit. At `9f9ca69` the same command over the same file returns
+**1**: the one remaining match is the guard in the private helper `TouchOnSuccess`
+(`DungeonMethods.cs:462`), and each of the five methods named above now returns through it. Measured by this
+session's task on the session worktree, over `src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs`:
+`grep -c -F 'if (outcome is not MutationOutcome.Success)'` printed 1, and
+`grep -n -F 'return TouchOnSuccess('` printed 5 lines, at `DungeonMethods.cs:241`, `:279`, `:314`, `:389`
+and `:428`, one in each of the five. The rest is told: orchestrator measurement,
+20261111-0156-core-audit-corrections, `.sir/sessions/20261111-0156-core-audit-corrections/measurement.md`
+section M1: the same `grep -c` over
+`git show 20b0b09:src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs` printed 5, and
+`git log --oneline 20b0b09..9f9ca69` on that path printed one commit, `66a0b73`, 6b-xiv's own extraction of
+the floor lookup and outcome-touch helpers. These figures are this session's, not 6b-xiv's, so the provenance
+stated at the head of this block does not cover them, and nothing above is changed.)
 
 *Correction 5 -- the SECOND suggested direction was never viable as written.* The entry offers, as an
 alternative to the `RequireFloor` extraction, to "expose a narrow floor-scoped accessor from the root
@@ -1416,6 +1431,16 @@ exception is the eight-row drift table below, with the closing-line range beside
 measured at Gate 3 under amendment A1 of that session's manifest, and they *replace* a
 `measurement.md` figure this block goes on to show was false. Nothing here is re-derived by the task,
 and no line position here is inferred from a neighbouring one.
+(AMENDED 20261111-0156-core-audit-corrections, 2026-11-11 -- a qualifier to the exception above. The
+eight-row drift table and the closing-line range are excepted from "handed over with the command that
+produced it" as well (joined across its line break): they were handed over with no command. The rows came
+with a method, the one the sentence above the table states, "resolving the cited range against both commits,
+and re-measured independently" (joined across its line break), and the range came bare. The rest is told:
+orchestrator measurement, 20261111-0156-core-audit-corrections,
+`.sir/sessions/20261111-0156-core-audit-corrections/measurement.md` section M2, which reads the hand-over in
+criterion C15 of `.dir-sdlc/sessions/2026-09-29-dungeon-facade-lookup-extraction/manifest.json`. This
+session's task re-read that criterion: from "The eight rows, measured" to "(+15 to +48)" it names no `git`,
+`grep`, `awk`, `sed` or `python` command. Nothing above is changed.)
 
 *Correction A -- the "within ten lines" sentence is FALSE.* Previous wording, verbatim, from the
 `AMENDED 6b-xiii` block above, spanning `:992-993` at this session's baseline `20b0b09`: *"The
@@ -3387,6 +3412,37 @@ src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs
 This entry's `locations:` list, its body, and the `AMENDED 20261105-1907-core-heavy-rows` block with its
 dispositions table and `*Drifted citations,*` paragraph stay exactly as written. **No hash for this session's
 commit appears in this block:** this session's tasks run without git, and the orchestrator makes the commit.
+The record's severity, category, effort and risk are unchanged, and `MASTER-178` / `CORE-035` stays CLOSED
+**DELIBERATELY UNCHANGED**.**]**
+
+**[AMENDED 20261111-0156-core-audit-corrections, 2026-11-11 -- this entry's two "twelve" figures are named
+apart, and found to name the same twelve enums.** The register row is `MASTER-178`. **Nothing below deletes
+any previous wording.** Every line number of this file cited in this block is as numbered at `9f9ca69`, before
+this session's insertions, and each was re-read by this session's task on the session worktree; no census is
+re-run here.
+
+*The census twelve.* `12 of 17` is the post-change census: production enum declarations under `src/` with a
+concrete member at zero, counted by this entry's Python census re-run on the tree after its two class A changes
+(`:3080`, restated `:3086`), and counted again by the `AMENDED 20261105-1907-core-heavy-rows` block, whose
+census printed `CONCRETE_AT_ZERO 12` (`:3245`; `The 12 of 17` at `:3257`). Its unit is enum declarations in a
+source tree, so it moves when an enum gains or loses a concrete member at zero.
+
+*The table twelve.* `14 - 2 = 12` is the table census: the fourteen rows of the triage table (`:3107-3120`)
+less its two class A rows, `MutationOutcome` (`:3107`) and `DrawSessionResult` (`:3108`), giving the twelve
+this entry leaves unchanged (`:3070-3071`, restated `:3199-3200`). Its unit is rows of a table in this file,
+so it does not move with the code.
+
+*The same twelve.* The two figures come from different instruments and agree on one set: the twelve enum
+names the triage table holds after its two class A rows are the twelve names of the dispositions table in the
+`AMENDED 20261105-1907-core-heavy-rows` block (`:3267-3278`, rows 1 to 12), which says so at `:3248-3249`. So
+that block's "the twelve enums this entry leaves with a concrete member at zero" (`:3214`) and "No enum of the
+twelve" (`:3223`) hold under either reading. Measured by this session's task, comparing as sets the
+backticked names in the first cell of `:3109-3120` with those in the second cell of `:3267-3278`; the same
+finding is told: orchestrator measurement, 20261111-0156-core-audit-corrections,
+`.sir/sessions/20261111-0156-core-audit-corrections/measurement.md` section M3. Quote either figure with its
+label, `12 of 17` (census) or `14 - 2 = 12` (table census): they coincide on the tree the dispositions were
+made against, and the census figure moves with the code while the table figure does not. This entry's body
+and its earlier blocks stay exactly as written. **No hash for this session's commit appears in this block.**
 The record's severity, category, effort and risk are unchanged, and `MASTER-178` / `CORE-035` stays CLOSED
 **DELIBERATELY UNCHANGED**.**]**
 
