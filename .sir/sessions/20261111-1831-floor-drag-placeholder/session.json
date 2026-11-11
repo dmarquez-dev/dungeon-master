@@ -2,9 +2,9 @@
   "id": "20261111-1831-floor-drag-placeholder",
   "name": "floor-drag-placeholder",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-11T18:31:11Z",
-  "ended": null,
+  "ended": "2026-11-11T20:38:06Z",
   "pushed": true,
   "parent": null,
   "children": [],
@@ -40,11 +40,19 @@
       "started": "2026-11-11T20:00:02Z",
       "ended": "2026-11-11T20:34:17Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "7474572a-e5e7-4b27-be46-b139e015705e",
+      "sir": "1.0.30",
+      "started": "2026-11-11T20:36:50Z",
+      "ended": "2026-11-11T20:38:06Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
-    "escalationsRaised": 0,
+    "userInteractions": 6,
+    "escalationsRaised": 2,
     "reviewRounds": 0
   },
   "brief": "Fix the floor drag-and-drop indicator in DungeonDetailPage. Today a drag hides the dragged card (Opacity 0) and inserts a sized placeholder Border into the BindableLayout-bound FloorListContainer by index; dropping a card on its own slot shows a card-height empty space and no placeholder, and a restore-on-drag-end fix already failed on re-observation. The session replaces the placeholder with a 2-DIU insertion line that is a sibling of the list, positioned by TranslationY from one pure App.Core function (FloorDropIndicator.Locate) that shares the drop resolver, so the indicator and the drop cannot disagree; no drag handler mutates the container children; the dragged card is left visible; and the placeholder machinery and TransientDropTarget band kind are removed. T1 builds and tests the App.Core resolver; T2 builds the view. Because no automated test can start a real WinUI drag, Gate 3 human checks H1-H6 confirm the self-drop, reorders, tracking, and cancel behaviour in the running app."
