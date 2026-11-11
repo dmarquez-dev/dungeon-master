@@ -1,0 +1,32 @@
+{
+  "session": "20261111-0156-core-audit-corrections",
+  "createdAt": "2026-11-11T02:27:22Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-core-audit-corrections.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Insert the CORE-015, CORE-019 and CORE-035 corrections into the domain-application audit",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/01-domain-application.md"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "C1-1 (line endings, preserved and newly tested). ICC (C1 section 3, recreated in T1's scratch directory, its sha256 checked equal to 71f0e4e7e98e02c9a813dde6bf39b518794b936bb47d8a1d8ea5f23c0337f874 before use, run with the four arguments C1 section 3 gives) on docs/audit/01-domain-application.md after the last edit prints `CR 3608 LF 3608 CRLF 3608 LONE_CR 0`: CR, LF and CRLF equal, and equal to the startRef 3552 plus ICC's `SPEC_ADDED_LINES 56`. At startRef 9f9ca69 it prints `CR 3552 LF 3552 CRLF 3552 LONE_CR 0`. Must-fail control, run on a scratch copy of the post-change file in T1's scratch directory (never on the worktree file) and its output reported: one CRLF turned into LF prints a CR count different from the LF count (C1 section 5).",
+        "C1-2 (I1 inserted, the 2026-09-29-dungeon-facade-lookup-extraction follow-up on CORE-015 Correction 4). ICC prints `OCCURRENCES I1 1` and `AT I1 after base line 842 want 842 ok` (C1 section 2.1: the exact fenced text, after the last line of Correction 4's paragraph). At startRef it prints `OCCURRENCES I1 0`.",
+        "C1-3 (I2 inserted, the 2026-09-29-dungeon-facade-lookup-extraction follow-up on the CORE-019 AMENDED 6b-xiv preamble). ICC prints `OCCURRENCES I2 1` and `AT I2 after base line 1418 want 1418 ok` (C1 section 2.2: the exact fenced text, after the last line of the preamble paragraph that holds the exception sentence). At startRef it prints `OCCURRENCES I2 0`.",
+        "C1-4 (I3 inserted, the 2026-09-17-enum-zero-values follow-up on CORE-035's two twelves). ICC prints `OCCURRENCES I3 1` and `AT I3 after base line 3391 want 3391 ok` (C1 section 2.3: the exact fenced text, a block after the closer of the entry's last block and before the blank line preceding `### CORE-036`). At startRef it prints `OCCURRENCES I3 0`.",
+        "C1-5 (no pre-existing line deleted or changed; C1 U1). ICC prints `BASE_LINES 3552` and `BASE_MATCH yes`: with I1-I3 removed the file's sha256 is 58acb6b634b6cf4b9db16a327a686d209e9a76104517cc08204411cfb945c467, the startRef digest; and `RAW_SHA f67d81a78a4b473f633a751367cef7ced445ddc863f024cfe86f2f2cb63fe715`, the digest of the startRef file with exactly the three insertions at their anchors (C1 section 5). At startRef it prints `BASE_MATCH no (an insertion is missing or repeated)`. Must-fail controls, run on scratch copies of the post-change file in T1's scratch directory and their output reported: one byte appended to line 10 prints `BASE_MATCH no`; I1 moved after the blank line that follows its anchor prints `AT I1 after base line 843 want 842 WRONG`.",
+        "C1-6 (the figures I1 attributes to this session's task, preserved and newly tested). Run by T1 in the worktree and their output reported: `grep -c -F 'if (outcome is not MutationOutcome.Success)' src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs` prints 1; `grep -n -F 'return TouchOnSuccess(' src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs` prints exactly 5 lines, numbered 241, 279, 314, 389 and 428; control that must match, `grep -c MutationOutcome` on the same file, prints 33 (measurement.md M1's figure, so the file is the right one). ICC prints `SRC GUARD 1 462:private:TouchOnSuccess` and `SRC RETURNS 5 241:public:RemoveArea 279:public:UpdateArea 314:public:UpdateAreaOutline 389:public:RemovePlacedObject 428:public:UpdatePlacedObject`, the five methods Correction 4 names. No task changes this file, so these hold at startRef by design; the criterion is that I1's measured clause was measured.",
+        "C1-7 (the C15 re-read I2 attributes to this session's task, preserved and newly tested). ICC prints `C15 SPAN 574 IN_SPAN 0 WHOLE_LINE 1`: in criterion C15 of .dir-sdlc/sessions/2026-09-29-dungeon-facade-lookup-extraction/manifest.json (line 82), the span from `The eight rows, measured` to `(+15 to +48)` holds none of `git `, `grep`, `awk`, `sed `, `python`, while the whole line holds one (its unrelated `awk` count), the must-match control showing the census can fire.",
+        "C1-8 (every audit-file line the three insertions cite, re-read on the file as numbered at 9f9ca69; preserved and newly tested). ICC prints `CITES 33 FAILED 0` and no `CITE FAIL` line (each cited base line, reconstructed by removing the insertions, contains the text the insertion relies on), and `C4 HASHES 0 CONTROL_807 1` (Correction 4 at `:837-842` names no commit, as I1 says; `:807` names `20b0b09`). Must-fail control, run on a scratch copy and reported: one line added at the top of the file prints `CITES 33 FAILED 33`.",
+        "C1-9 (the same-twelve fact I3 attributes to this session's task). ICC prints `SETS triage_less_A 12 dispositions 12 EQUAL yes` (the names of the triage table's rows `:3109-3120` and of the dispositions table's rows `:3267-3278`, as numbered at 9f9ca69, are one set) and its near-miss `SETS_CONTROL with_class_A 14 EQUAL no` (the triage table with its two class A rows is not that set)."
+      ]
+    }
+  ]
+}

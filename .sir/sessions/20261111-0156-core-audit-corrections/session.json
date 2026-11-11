@@ -1,0 +1,51 @@
+{
+  "id": "20261111-0156-core-audit-corrections",
+  "name": "core-audit-corrections",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-11T01:56:06Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "35e8b2dd-9d96-4ac1-9719-df07800b3c49",
+      "sir": "1.0.30",
+      "started": "2026-11-11T01:56:06Z",
+      "ended": "2026-11-11T02:07:08Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "b6289992-48a7-46d3-b83a-a2067a6f6f2d",
+      "sir": "1.0.30",
+      "started": "2026-11-11T02:09:48Z",
+      "ended": "2026-11-11T16:54:36Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "2df6e693-66c6-4d94-889d-e60c2b7dc46b",
+      "sir": "1.0.30",
+      "started": "2026-11-11T16:56:48Z",
+      "ended": "2026-11-11T17:06:05Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "2167060c-86e4-4f33-a007-a5105da15a84",
+      "sir": "1.0.30",
+      "started": "2026-11-11T17:23:00Z",
+      "ended": "2026-11-11T17:50:11Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "brief": "Correct three open audit-record rows against docs/audit/01-domain-application.md, each re-measured true at 9f9ca69: restate the missing 20b0b09 anchor in CORE-015 Correction 4 (its grep prints 5 there and 1 now, after 66a0b73); qualify the CORE-019 AMENDED 6b-xiv preamble so its with-the-command universal no longer reaches the eight-row drift table and closing-line range, handed over with a method and with nothing; and name CORE-035s two twelve figures apart (12 of 17 census, 14 - 2 = 12 table census), recording that both name the same twelve enums. One task inserts three exact, frozen, attributed texts (no existing line changes), checked by the contract-embedded ICC instrument; the orchestrator removes the three rows from .sir/backlog.md at Gate 3.",
+  "pushed": true
+}
