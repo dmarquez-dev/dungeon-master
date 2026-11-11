@@ -2,9 +2,9 @@
   "id": "20261111-0156-core-audit-corrections",
   "name": "core-audit-corrections",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-11T01:56:06Z",
-  "ended": null,
+  "ended": "2026-11-11T17:58:11Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -39,10 +39,18 @@
       "started": "2026-11-11T17:23:00Z",
       "ended": "2026-11-11T17:50:11Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "2167060c-86e4-4f33-a007-a5105da15a84",
+      "sir": "1.0.30",
+      "started": "2026-11-11T17:57:44Z",
+      "ended": "2026-11-11T17:58:11Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
+    "userInteractions": 4,
     "escalationsRaised": 0,
     "reviewRounds": 0
   },
