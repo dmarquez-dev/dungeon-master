@@ -1,0 +1,126 @@
+{
+  "session": "20261111-1831-floor-drag-placeholder",
+  "updatedAt": "2026-11-11T20:34:17Z",
+  "worktree": "C:/dm-wt/20261111-1831-floor-drag-placeholder",
+  "branch": "agent/20261111-1831-floor-drag-placeholder",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261111-1831-floor-drag-placeholder/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s), exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261111-1831-floor-drag-placeholder/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Failed: 0, Passed: 217 (App.UnitTests); Passed: 976 (Tests); Passed: 137 (App.Tests), exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "startRef": "12ef199",
+      "model": "opus",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "commit": "884603b"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "startRef": "884603b",
+      "model": "opus",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "commit": "4b6e818"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T2",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "Deleting the placeholder Border removes the only StrokeThickness = 2 and CornerRadius = 3 literals in DungeonDetailPage.xaml.cs (12ef199 :2652-2653), so GeometryScaleTests.EveryGeometryAllowListEntryStillOffends fails on that file's now-stale allow-list entries (GeometryScaleTests.cs:256 and :359). The file is outside T2's frozen owns, so C2-24 cannot pass. How should it be handled?",
+      "options": [
+        {
+          "summary": "Amend T2 owns to add GeometryScaleTests.cs; T2 removes both stale entries and rewrites the counts in their doc prose (:248, :333)",
+          "rationale": "The ratchet requires the entry to leave in the same change as the literal; one task, one commit.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs",
+              "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Add a task T3 owning only GeometryScaleTests.cs, after T2",
+          "rationale": "Leaves T2's owns frozen, but T2 then commits a red solution and T3 follows.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Keep a geometry literal in the page to satisfy the ratchet",
+          "rationale": "Not recommended: reintroduces a literal the migration is retiring.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "User chose: amend T2 owns to add src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs; T2 removes the two stale DungeonDetailPage.xaml.cs allow-list entries and corrects their doc counts. Approved at the escalation stop."
+    },
+    {
+      "id": "E2",
+      "taskId": "T2",
+      "reason": "external-contract",
+      "resolved": true,
+      "question": "Contract C1 V5 says the show path reads the payload with TryReadDraggedFloorId(e.Data?.Properties, ...). On a DragEventArgs, Data is a DataPackage whose Properties is a DataPackagePropertySet with no dictionary interface, so that line does not compile at MAUI 10.0.41; T2 used e.Data?.View.Properties (DungeonDetailPage.xaml.cs:2630). DropEventArgs.Data is already a view, so Decide(e.Data?.Properties ...) still compiles (:2522). Amend V5 to say View.Properties?",
+      "options": [
+        {
+          "summary": "Amend C1 V5 to read e.Data?.View.Properties for a DragEventArgs",
+          "rationale": "Same parser, same payload, through the read-only view; the contract text is the only thing wrong, and the solution builds with 0 warnings.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs",
+              "src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs"
+            ]
+          }
+        }
+      ],
+      "answer": "User chose: amend contract C1 V5 to read e.Data?.View.Properties for a DragEventArgs. Approved at the escalation stop."
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "T2 owns 7 paths, ending src/DungeonMaster.App.Tests/Views/FloorDragIndicatorPageTests.cs",
+      "after": "T2 owns 8 paths, adding src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs",
+      "inFlight": [
+        "T2"
+      ]
+    },
+    {
+      "id": "A2",
+      "escalation": "E2",
+      "artifact": "contracts/C1-floor-drop-indicator.md",
+      "before": "V5: reads the dragged id through FloorReorderDrop.TryReadDraggedFloorId(e.Data?.Properties, ...)",
+      "after": "V5: reads the dragged id through FloorReorderDrop.TryReadDraggedFloorId(e.Data?.View.Properties, ...), with the DataPackage reason",
+      "inFlight": [
+        "T2"
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 6,
+    "escalationsRaised": 2,
+    "reviewRounds": 0
+  }
+}

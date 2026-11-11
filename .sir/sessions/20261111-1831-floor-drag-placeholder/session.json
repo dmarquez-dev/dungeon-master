@@ -1,0 +1,51 @@
+{
+  "id": "20261111-1831-floor-drag-placeholder",
+  "name": "floor-drag-placeholder",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-11T18:31:11Z",
+  "ended": null,
+  "pushed": true,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "2dc15508-f77d-4a97-8794-9e37c4ee4a56",
+      "sir": "1.0.30",
+      "started": "2026-11-11T18:31:11Z",
+      "ended": "2026-11-11T18:33:24Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "695d70f6-df78-42b9-bd83-3e02c11680c4",
+      "sir": "1.0.30",
+      "started": "2026-11-11T18:36:20Z",
+      "ended": "2026-11-11T19:08:25Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "dd3ea8e9-d82d-43d1-b46e-52898e597390",
+      "sir": "1.0.30",
+      "started": "2026-11-11T19:11:41Z",
+      "ended": "2026-11-11T19:56:08Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "7474572a-e5e7-4b27-be46-b139e015705e",
+      "sir": "1.0.30",
+      "started": "2026-11-11T20:00:02Z",
+      "ended": "2026-11-11T20:34:17Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "brief": "Fix the floor drag-and-drop indicator in DungeonDetailPage. Today a drag hides the dragged card (Opacity 0) and inserts a sized placeholder Border into the BindableLayout-bound FloorListContainer by index; dropping a card on its own slot shows a card-height empty space and no placeholder, and a restore-on-drag-end fix already failed on re-observation. The session replaces the placeholder with a 2-DIU insertion line that is a sibling of the list, positioned by TranslationY from one pure App.Core function (FloorDropIndicator.Locate) that shares the drop resolver, so the indicator and the drop cannot disagree; no drag handler mutates the container children; the dragged card is left visible; and the placeholder machinery and TransientDropTarget band kind are removed. T1 builds and tests the App.Core resolver; T2 builds the view. Because no automated test can start a real WinUI drag, Gate 3 human checks H1-H6 confirm the self-drop, reorders, tracking, and cancel behaviour in the running app."
+}
