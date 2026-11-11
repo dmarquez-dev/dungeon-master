@@ -24,7 +24,9 @@ public partial class App : Microsoft.Maui.Controls.Application
 	}
 
 	/// <summary>
-	///		Creates the main application window hosting the <see cref="AppShell"/>.
+	///		Creates the main application window hosting the <see cref="AppShell"/>. The window
+	///		takes its title from the app's display name (<c>AppInfo.Current.Name</c>, which the
+	///		csproj <c>ApplicationTitle</c> sets).
 	/// </summary>
 	/// <param name="activationState">
 	///		The activation state provided by the platform at startup.
@@ -34,6 +36,9 @@ public partial class App : Microsoft.Maui.Controls.Application
 	/// </returns>
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
-		return new Window(new AppShell());
+		return new Window(new AppShell())
+		{
+			Title = AppInfo.Current.Name,
+		};
 	}
 }

@@ -54,6 +54,13 @@
 		<!-- Display name -->
 		<ApplicationTitle>Dungeon Master</ApplicationTitle>
 
+		<!-- The unpackaged Windows build (WindowsPackageType None) names its taskbar entry from
+		     the exe's file description, which AssemblyTitle sets and which otherwise defaults to
+		     the assembly name (DungeonMaster.App). Product is set alongside it for the same
+		     reason. Both follow ApplicationTitle so the display name stays in one place. -->
+		<AssemblyTitle>$(ApplicationTitle)</AssemblyTitle>
+		<Product>$(ApplicationTitle)</Product>
+
 		<!-- App Identifier. Was the .NET template's com.companyname.dungeonmaster.app.
 		     "companyname" is not a defensible identity for a shipped app, so it is replaced
 		     with the reverse-DNS form of the GitHub owner (dmarquez-dev; hyphens are not legal

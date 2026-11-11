@@ -5,8 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:DungeonMaster.App.Views">
 
-    <!-- No Title on the Shell: on Windows it renders as a text run in the app's title bar, and
-         the app already names itself in the flag banner at the top of every page. The ShellContent
+    <!-- No Title on the Shell. The window's title, set in App.CreateWindow, is what names the app
+         in the title bar; a Shell Title would add a second text run beside it. The ShellContent
          Title below is the route's own name, not chrome, and stays. -->
 
     <ShellContent
