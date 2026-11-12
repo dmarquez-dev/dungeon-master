@@ -967,14 +967,17 @@ public partial class DungeonDetailPage : ContentPage
 			await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
 				new ReorderFloorArgs(args.DraggedFloorId, args.TargetNumber));
 
-			// The drop selects the dragged floor THROUGH SelectFloor and AFTER the command, never by
-			// writing SelectedFloorId. The reorder is a full reload that replaces every FloorItem, so a
-			// bare id write expands the card while the drawable stays on the pre-reload instance and
-			// the map toolbar stays hidden until the card is collapsed and reopened. SelectFloor runs
-			// RefreshMap against the reloaded Items, which re-resolves the floor by id, shows the
-			// toolbar and resets the tool exactly as a click-selection does. OnFloorListDrop relies on
-			// this same reasoning.
-			SelectFloor(args.DraggedFloorId);
+			// A reorder keeps the existing selection: it moves a floor, it does not pick one, so the
+			// dragged floor stays collapsed unless it was already the selected one, and no selection
+			// stays no selection. SelectedFloorId survives the reload untouched, and with it each
+			// row's bound IsExpanded. The one stale thing is the drawable: the reorder is a full
+			// reload that replaces every FloorItem, so _drawable.Floor still holds the pre-reload
+			// instance. RefreshFloorAsync re-resolves it by id against the reloaded Items and does
+			// nothing when no floor is selected. Not RefreshMap, which would reset an idle tool to
+			// Pan, re-check the area focus and re-show the toolbar; the armed tool, the focus and
+			// the toolbar all stay as they were. OnFloorListDrop relies on this same reasoning.
+			await RefreshFloorAsync();
+			MapCanvas.Invalidate();
 		}
 		catch (Exception exception)
 		{
@@ -1430,15 +1433,19 @@ public partial class DungeonDetailPage : ContentPage
 
 	// ─── Auto-save helpers ───────────────────────────────────────────────────────
 
-	// Re-points the drawable at the selected floor's current FloorItem after an auto-save.
+	// Re-points the drawable at the selected floor's current FloorItem after an auto-save or a
+	// floor reorder.
 	//
-	// IT QUERIES NOTHING (contract C3 section 4). Every caller awaits one of the nine floor-scoped
-	// view-model commands first (FinishDrawing only while a floor is selected, the only case in
-	// which this does anything), and that command has already refreshed what it changed: on
-	// success it replaces that one floor's FloorItem in FloorList.Items (and the templated floor
-	// list touches only that one row), and on its fallbacks it reloads the whole detail. Either way the
-	// FloorItem the drawable holds may be the replaced one, so it is re-resolved by id. It returns a
-	// Task only because OptimisticGhostSequence.RefreshThenClearAsync takes one.
+	// IT QUERIES NOTHING (contract C3 section 4). Each of the nine auto-save call sites awaits a
+	// floor-scoped view-model command first (FinishDrawing only while a floor is selected, the
+	// only case in which this does anything), and that command has already refreshed what it
+	// changed: on success it replaces that one floor's FloorItem in FloorList.Items (and the
+	// templated floor list touches only that one row), and on its fallbacks it reloads the whole
+	// detail. The three reorder call sites (the two drag-drop handlers and the keyboard
+	// Ctrl+arrow route) await ReorderFloorCommand first, which reloads the whole detail on
+	// success; when it returns without reloading, Items is untouched and re-resolving is harmless.
+	// Either way the FloorItem the drawable holds may be the replaced one, so it is re-resolved
+	// by id. It returns a Task only because OptimisticGhostSequence.RefreshThenClearAsync takes one.
 	private Task RefreshFloorAsync()
 	{
 		if (_editor.SelectedFloorId is not null)
@@ -2407,6 +2414,13 @@ public partial class DungeonDetailPage : ContentPage
 		await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
 			new ReorderFloorArgs(movedFloorId, decision.TargetFloorNumber));
 
+		// The selection is kept. The reload replaced every FloorItem, so the drawable still holds the
+		// pre-reload instance of the selected floor; it is re-resolved by id and the map redrawn,
+		// exactly as the two drag-drop routes do. This runs before the focus restore below so that
+		// restoring focus stays the last thing the route does.
+		await RefreshFloorAsync();
+		MapCanvas.Invalidate();
+
 		// REQUIRED, not a nicety. The reorder is a full reload: Populate clears Items and adds one
 		// FloorItem per floor, and the templated BindableLayout answers the clear by removing every
 		// row and each add by building a fresh FloorSidebarItem — so the element that held focus was
@@ -2539,10 +2553,10 @@ public partial class DungeonDetailPage : ContentPage
 			await _viewModel.FloorList.ReorderFloorCommand.ExecuteAsync(
 				new ReorderFloorArgs(decision.DraggedFloorId, decision.TargetFloorNumber));
 
-			// Through SelectFloor and after the command, for the reason given in
-			// OnFloorReorderRequested: the reload replaces every FloorItem, and a bare
-			// SelectedFloorId write leaves the drawable stale and the drawing tools hidden.
-			SelectFloor(decision.DraggedFloorId);
+			// The selection is kept, for the reason given in OnFloorReorderRequested: only the
+			// drawable's floor is re-resolved, because the reload replaced every FloorItem.
+			await RefreshFloorAsync();
+			MapCanvas.Invalidate();
 		}
 		catch (Exception exception)
 		{

@@ -1,0 +1,30 @@
+{
+  "id": "20261111-2349-floor-reorder-keeps-selection",
+  "name": "floor-reorder-keeps-selection",
+  "scope": "small",
+  "status": "MERGED",
+  "criteria": [
+    "C1: Neither drag-drop reorder handler in src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs (OnFloorReorderRequested, OnFloorListDrop) calls SelectFloor or writes _editor.SelectedFloorId; `grep -n 'SelectFloor(' src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` prints only the SelectFloor definition and the click-selection and floor-add call sites (at 54fd258: :949, :954, :2716), not the reorder sites (:977, :2545).",
+    "C2: After ReorderFloorCommand returns, each handler awaits RefreshFloorAsync (re-resolving _drawable.Floor by the unchanged _editor.SelectedFloorId against the reloaded FloorList.Items) and redraws the map, and calls neither RefreshMap nor SetActiveTool, so an armed tool, area focus and the map toolbar are left as they were (user's decision on this session's routing question: keep the tool).",
+    "C3: With no floor selected before the drop, the handlers leave the selection null and expand no row; with the dragged floor itself selected, it stays selected.",
+    "C4: The explanatory comments in both handlers describe the new behaviour (selection is kept; only the drawable's floor is re-resolved because the reload replaced every FloorItem) and no comment still says the drop selects the dragged floor; the SelectFloor comment is unchanged. (Amended at Gate 3 by the user's fix-now answer: this criterion previously also required the keyboard reorder route unchanged; C7 now governs that route.)",
+    "C7 (added at Gate 3): the keyboard reorder route (the Ctrl+arrow handler that ends in RestoreFloorCardFocus, :2413-2422 at the working tree before this fix) awaits RefreshFloorAsync and redraws the map after ReorderFloorCommand, still calls RestoreFloorCardFocus(movedFloorId) last, and calls neither SelectFloor, RefreshMap nor SetActiveTool; and the RefreshFloorAsync comment no longer says ReorderFloorCommand always reloads (it reloads on success only, FloorListViewModel.cs:250-266) and no longer calls the nine call sites nine commands.",
+    "C5: Only DungeonDetailPage.xaml.cs changes; it keeps CRLF line endings and tab indentation (Python byte count: CRLF count equals LF count); `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s) and `dotnet test src/DungeonMaster.sln` passes with a named test count.",
+    "C6 (human check at Gate 3): launch with `dotnet build C:/Users/dmarq/Development/Repos/dungeon-master/src/DungeonMaster.App/DungeonMaster.App.csproj -t:Run -f net10.0-windows10.0.19041.0`; open a dungeon with at least three floors; 1. click floor A to select it; 2. arm a drawing tool (not Pan); 3. drag floor B to a new position. Pass when A stays expanded with its map and toolbar shown and the same tool still armed, B stays collapsed, and the floor order changed."
+  ],
+  "started": "2026-11-11T23:49:20Z",
+  "ended": "2026-11-12T00:21:56Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "f88e1c79-ad17-4413-8df2-9eb356f25f94",
+      "phase": "small",
+      "sir": "1.0.32",
+      "started": "2026-11-11T23:49:20Z",
+      "ended": "2026-11-12T00:21:56Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": { "userInteractions": 3, "escalationsRaised": 1, "reviewRounds": 1 }
+}
