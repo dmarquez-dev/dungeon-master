@@ -1,0 +1,86 @@
+{
+  "id": "20261112-0153-floor-name-tooltip",
+  "name": "floor-name-tooltip",
+  "scope": "small",
+  "status": "MERGED",
+  "criteria": [
+    "C1: Hovering a floor's name in the floor sidebar shows a tooltip carrying the floor's full name, and for an unnamed floor the same `Floor N` placeholder the label shows: `ToolTipProperties.Text` on FloorNameLabel is set from the same value as `FloorNameLabel.Text` in both arms of `Populate` (src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs, :288-297 at f09f2fa), so a repopulate after a rename updates it.",
+    "C2 (E1, amended A1 by E2, A3 by E3): The expand/collapse chevron hugs its glyph: ExpandToggle's Padding (`{StaticResource DmPaddingCompact}` = 8,4 at f09f2fa) becomes 2,4,2,4 AND ExpandToggle overrides the implicit Button style's `MinimumWidthRequest` (`DmTouchTargetMinimum` = 44, Implicit.xaml at f09f2fa, which is what sized the button's width) with 0, while keeping the style's 44 `MinimumHeightRequest` so the header row height is unchanged; the button's width becomes the glyph plus 4 DIU, below the 23-DIU width minimum, as the user chose at Gate 3, so the gaps from the card's left edge and to the floor name both shrink. Only ExpandToggle changes: the implicit style, the notebook and delete Buttons, the Border's Padding, the area list indent (`Padding=\"8,4,0,0\"`), the header Grid's ColumnSpacing and every other element's spacing are unchanged.",
+    "C3 (amended A2 by E2, A4 by E3): Every comment, because-string and README sentence describing the chevron's footprint (the ExpandToggle comment in FloorSidebarItem.xaml, src/DungeonMaster.Tests/App/Accessibility/FloorExpandToggleTests.cs, the renamed UiTests fact and MinimumToggleEdge doc in src/DungeonMaster.App.UiTests/FloorSidebarAutomationTests.cs, and src/DungeonMaster.App.UiTests/README.md) is true after C2: it names the implicit Button style's 44x44 minimum as what sized the button, says the width minimum is overridden on this button only at the user's choice and the 44 height minimum is what holds the row height, and makes no claim that padding alone sets the size; the UiTests fact keeps the >= 23 height assertion and asserts a width bound that the old 44-wide button would fail (so the override cannot silently regress); FloorExpandToggleTests' assertions pass without being weakened, and any test of the implicit style or of MinimumWidthRequest literals passes. No new comment cites a line number.",
+    "C4: A test in src/DungeonMaster.App.Tests pins C1 for a named floor and an unnamed one (the tooltip text equals the label text), and was seen to fail before the C1 change (red step) or against an injected defect.",
+    "C5: Every changed file keeps CRLF line endings and tab indentation (Python byte count: CRLF count equals LF count); `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s), and `dotnet test src/DungeonMaster.sln` passes with a named test count per suite.",
+    "C6 (human check at Gate 3): with the app launched from the main checkout, hover a floor whose name is truncated and see its full name; hover an unnamed floor and see `Floor N`; see the chevron nearer the card's left edge than the area rows' indent, with the header row height and the area rows unchanged, and the chevron still expanding and collapsing the card when clicked."
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "Asked at routing: should this session cover only the floor-name tooltip (backlog 2026-09-14-make-the-floor-sidebar-operable), or also the user's earlier suggestion to reduce the space between the floor card's expand/collapse icon and the card edge (backlog 2026-09-16-floor-sidebar-keyboard-route, 'Weigh the user's suggestion'), or a different row?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Tooltip plus tighter icon spacing, specifically the expand/collapse chevron. The DIU floor-name measurement row is not in scope and stays open unless taken at Gate 3."
+    },
+    {
+      "id": "E2",
+      "question": "Gate 3 human check H3 failed: the chevron still had significant space around it, especially before the floor name, because 2,4,14,4 moved the padding to the chevron's right (right 14 + ColumnSpacing 2). Fix now by tightening both sides to 2,4,2,4 (hit width below the 23-DIU minimum the UiTests ratchet holds), ship the tooltip and defer the spacing, or commit as is?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Fix now: tighten both sides (2,4,2,4), accepting the narrower hit width; lower the UiTests width minimum, keep the height minimum, re-review and re-check by eye before committing. The approval given alongside the failed check is superseded and will be re-asked over the final diff. Advisories carried: UI size test not run, XAML tabs vs spaces, 7-line comment window."
+    },
+    {
+      "id": "E3",
+      "question": "The re-review found C2's premise false: the implicit Button style (Implicit.xaml, MinimumWidthRequest and MinimumHeightRequest = DmTouchTargetMinimum 44) sizes ExpandToggle at 44x44, so 2,4,2,4 moves nothing and the C3 text written for it is false. Override the minimum width on ExpandToggle only (keep the 44 height), ship the tooltip and defer the chevron, or look at the app first?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Override the minimum width on ExpandToggle (0), keeping its 44 minimum height; make the comments and the UI test true; re-check by eye before committing. Last revision round."
+    }
+  ],
+  "started": "2026-11-12T01:53:38Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "64a1d054-b4f8-427d-b56f-74bcf2e8681b",
+      "phase": "small",
+      "sir": "1.0.33",
+      "started": "2026-11-12T01:53:38Z",
+      "ended": "2026-11-12T17:56:35Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 3,
+    "reviewRounds": 2
+  },
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E2",
+      "criterion": "C2",
+      "before": "C2 (E1): The expand/collapse chevron sits closer to the floor card's left edge: ExpandToggle's Padding (src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml:139 at f09f2fa, `{StaticResource DmPaddingCompact}` = 8,4) becomes left 2 and right 14 with top and bottom 4 unchanged, so the button's total width and height (its hit footprint, which the UiTests ratchet FloorExpandToggleMeasuresAtLeast23By23 holds at >= 23) are unchanged and only the glyph moves 6 DIU left; the Border's Padding (:25), the area list indent (`Padding=\"8,4,0,0\"`, :313) and every other element's spacing are unchanged.",
+      "after": "C2 (E1, amended A1 by E2): The expand/collapse chevron hugs its glyph: ExpandToggle's Padding (`{StaticResource DmPaddingCompact}` = 8,4 at f09f2fa, at FloorSidebarItem.xaml:139 then) becomes 2,4,2,4, so the gap from the card's left edge and the gap to the floor name both shrink by 6 DIU and the header row height is unchanged (top and bottom 4 unchanged); the button's hit width shrinks by 12 DIU, below the 23-DIU width minimum, as the user chose at Gate 3. The Border's Padding, the area list indent (`Padding=\"8,4,0,0\"`), the header Grid's ColumnSpacing and every other element's spacing are unchanged."
+    },
+    {
+      "id": "A2",
+      "escalation": "E2",
+      "criterion": "C3",
+      "before": "C3: The comments and test text describing the chevron's pinned footprint (the ExpandToggle comment at FloorSidebarItem.xaml:105-127 and the remarks and because-strings in src/DungeonMaster.Tests/App/Accessibility/FloorExpandToggleTests.cs) stay true after C2, amended only where they describe the padding; FloorExpandToggleTests' assertions pass without being weakened. No new comment cites a line number.",
+      "after": "C3 (amended A2 by E2): The comments and test text describing the chevron's footprint (the ExpandToggle comment in FloorSidebarItem.xaml, the remarks and because-strings in src/DungeonMaster.Tests/App/Accessibility/FloorExpandToggleTests.cs, and FloorExpandToggleMeasuresAtLeast23By23 with its MinimumToggleEdge use in src/DungeonMaster.App.UiTests/FloorSidebarAutomationTests.cs) are true after C2: they say the hit width was narrowed below 23 DIU at the user's choice to remove the space around the chevron, the UiTests fact keeps the >= 23 height assertion and its width assertion no longer requires 23 (renamed if its name would otherwise be false); FloorExpandToggleTests' assertions pass without being weakened. No new comment cites a line number."
+    },
+    {
+      "id": "A3",
+      "escalation": "E3",
+      "criterion": "C2",
+      "before": "C2 (E1, amended A1 by E2): The expand/collapse chevron hugs its glyph: ExpandToggle's Padding (`{StaticResource DmPaddingCompact}` = 8,4 at f09f2fa, at FloorSidebarItem.xaml:139 then) becomes 2,4,2,4, so the gap from the card's left edge and the gap to the floor name both shrink by 6 DIU and the header row height is unchanged (top and bottom 4 unchanged); the button's hit width shrinks by 12 DIU, below the 23-DIU width minimum, as the user chose at Gate 3. The Border's Padding, the area list indent (`Padding=\"8,4,0,0\"`), the header Grid's ColumnSpacing and every other element's spacing are unchanged.",
+      "after": "C2 (E1, amended A1 by E2, A3 by E3): The expand/collapse chevron hugs its glyph: ExpandToggle's Padding (`{StaticResource DmPaddingCompact}` = 8,4 at f09f2fa) becomes 2,4,2,4 AND ExpandToggle overrides the implicit Button style's `MinimumWidthRequest` (`DmTouchTargetMinimum` = 44, Implicit.xaml at f09f2fa, which is what sized the button's width) with 0, while keeping the style's 44 `MinimumHeightRequest` so the header row height is unchanged; the button's width becomes the glyph plus 4 DIU, below the 23-DIU width minimum, as the user chose at Gate 3, so the gaps from the card's left edge and to the floor name both shrink. Only ExpandToggle changes: the implicit style, the notebook and delete Buttons, the Border's Padding, the area list indent (`Padding=\"8,4,0,0\"`), the header Grid's ColumnSpacing and every other element's spacing are unchanged."
+    },
+    {
+      "id": "A4",
+      "escalation": "E3",
+      "criterion": "C3",
+      "before": "C3 (amended A2 by E2): The comments and test text describing the chevron's footprint (the ExpandToggle comment in FloorSidebarItem.xaml, the remarks and because-strings in src/DungeonMaster.Tests/App/Accessibility/FloorExpandToggleTests.cs, and FloorExpandToggleMeasuresAtLeast23By23 with its MinimumToggleEdge use in src/DungeonMaster.App.UiTests/FloorSidebarAutomationTests.cs) are true after C2: they say the hit width was narrowed below 23 DIU at the user's choice to remove the space around the chevron, the UiTests fact keeps the >= 23 height assertion and its width assertion no longer requires 23 (renamed if its name would otherwise be false); FloorExpandToggleTests' assertions pass without being weakened. No new comment cites a line number.",
+      "after": "C3 (amended A2 by E2, A4 by E3): Every comment, because-string and README sentence describing the chevron's footprint (the ExpandToggle comment in FloorSidebarItem.xaml, src/DungeonMaster.Tests/App/Accessibility/FloorExpandToggleTests.cs, the renamed UiTests fact and MinimumToggleEdge doc in src/DungeonMaster.App.UiTests/FloorSidebarAutomationTests.cs, and src/DungeonMaster.App.UiTests/README.md) is true after C2: it names the implicit Button style's 44x44 minimum as what sized the button, says the width minimum is overridden on this button only at the user's choice and the 44 height minimum is what holds the row height, and makes no claim that padding alone sets the size; the UiTests fact keeps the >= 23 height assertion and asserts a width bound that the old 44-wide button would fail (so the override cannot silently regress); FloorExpandToggleTests' assertions pass without being weakened, and any test of the implicit style or of MinimumWidthRequest literals passes. No new comment cites a line number."
+    }
+  ],
+  "ended": "2026-11-12T17:56:35Z"
+}

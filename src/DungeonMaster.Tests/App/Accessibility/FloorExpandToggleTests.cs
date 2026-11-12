@@ -27,11 +27,19 @@ namespace DungeonMaster.Tests.App.Accessibility;
 ///			sub-session 5c's escalation E5, precisely because a <c>Button</c> grows the header
 ///			row, and it was re-taken only on the condition that the row's height does not change.
 ///			The conditions that hold that line — the glyph's own font size, a transparent
-///			background, no border, no margin, and a hit area that comes from <c>Padding</c> — are
-///			what the second fact below pins. A rendered height cannot be measured from source, so
+///			background, no border, no margin, and a padding — are what the second fact below
+///			pins; the implicit <c>Button</c> style's 44 minimum height, which the toggle leaves in
+///			place, is what the third fact pins. A rendered height cannot be measured from source, so
 ///			this guards the inputs that produced the measured one: header row 44px and floor card
 ///			54px, observed in the running app at 1920x1080 with 11 floors, unchanged from the
 ///			<c>Label</c>.
+///		</para>
+///		<para>
+///			The button's size comes from the implicit <c>Button</c> style's 44x44 minimum, not from
+///			its padding. Its hit WIDTH was later narrowed below Microsoft's 23-DIU minimum at the
+///			user's choice, to remove the visible space around the chevron: the toggle overrides
+///			the style's minimum width with 0 on this button only, and keeps the style's 44 minimum
+///			height, which is what holds the row's height.
 ///		</para>
 /// </remarks>
 public class FloorExpandToggleTests
@@ -80,8 +88,8 @@ public class FloorExpandToggleTests
 	}
 
 	/// <summary>
-	///		The toggle's footprint stays pinned: the glyph is unchanged and the hit area comes
-	///		from padding rather than from a bigger glyph or a margin.
+	///		The toggle's footprint stays pinned: the glyph is unchanged, nothing of the button is
+	///		drawn, and no margin or bigger glyph adds to its size.
 	/// </summary>
 	[Fact]
 	public void ExpandToggleKeepsItsPinnedFootprint()
@@ -111,14 +119,45 @@ public class FloorExpandToggleTests
 			.Should()
 			.Be(
 				"0",
-				"padding is the hit-area mechanism and margin is not: a margin adds space "
-				+ "OUTSIDE the target, which grows the row without growing what can be clicked");
+				"a margin adds space OUTSIDE the target, which grows the row without growing "
+				+ "what can be clicked");
 
 		Attribute(toggle, "Padding")
 			.Should()
 			.NotBeNullOrWhiteSpace(
-				"the hit area is reached by padding the glyph, so removing the padding shrinks "
-				+ "the target below the size that made a sub-minimum chevron defensible");
+				"with the minimum width zeroed, the padding is all that widens the target beyond "
+				+ "the bare chevron; the height is held by the implicit style's 44 minimum");
+	}
+
+	/// <summary>
+	///		The toggle overrides the implicit <c>Button</c> style's minimum WIDTH and only that:
+	///		the width minimum is zeroed so the button hugs its glyph, and the height minimum is
+	///		left to the style.
+	/// </summary>
+	/// <remarks>
+	///		The implicit <c>Button</c> style in <c>Resources/Theme/Implicit.xaml</c> sets both
+	///		minimums to <c>DmTouchTargetMinimum</c>, 44, and that is what sized this button: it
+	///		measured 44 wide whatever its padding. The user chose to narrow the chevron below the
+	///		touch minimum, so the width override is deliberate, and the 44 height minimum the style
+	///		supplies is what keeps the header row's height.
+	/// </remarks>
+	[Fact]
+	public void ExpandToggleOverridesOnlyTheImplicitStylesMinimumWidth()
+	{
+		var toggle = Toggle();
+
+		Attribute(toggle, "MinimumWidthRequest")
+			.Should()
+			.Be(
+				"0",
+				"the implicit Button style's 44 minimum width, not the padding, sets this button's "
+				+ "width, so without the override the space around the chevron returns");
+
+		Attribute(toggle, "MinimumHeightRequest")
+			.Should()
+			.BeNull(
+				"the implicit Button style's 44 minimum height is what holds the header row's "
+				+ "height, so the toggle must leave it to the style");
 	}
 
 	/// <summary>
@@ -171,7 +210,7 @@ public class FloorExpandToggleTests
 
 	/// <summary>
 	///		Anti-vacuity. Every element this class reads must actually be found, so that a rename
-	///		or a file move fails here rather than turning the three facts above into assertions
+	///		or a file move fails here rather than turning the four facts above into assertions
 	///		about nothing.
 	/// </summary>
 	[Fact]

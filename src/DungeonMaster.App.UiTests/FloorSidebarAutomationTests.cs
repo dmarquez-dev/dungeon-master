@@ -98,10 +98,24 @@ public sealed class FloorSidebarAutomationTests
 	private const string ScrollViewportClassName = "ScrollViewer";
 
 	/// <summary>
-	/// The smallest edge, in device-independent units, contract C3 pins the expand toggle's
-	/// footprint to. Applied to a pixel measurement; see the class remarks on units.
+	/// The smallest edge, in device-independent units, Microsoft's touch minimum sets. It still
+	/// holds the expand toggle's HEIGHT, which the implicit Button style's 44 minimum height
+	/// keeps, and both edges of the notebook control. The toggle's WIDTH is no longer held to it:
+	/// the toggle overrides the style's 44 minimum width with 0 at the user's choice, to remove
+	/// the space around the chevron. Applied to a pixel measurement; see the class remarks on
+	/// units.
 	/// </summary>
 	private const int MinimumToggleEdge = 23;
+
+	/// <summary>
+	/// The widest, in pixels, the expand toggle may measure now that its minimum width is
+	/// overridden. Before the override the implicit Button style's 44-DIU minimum width sized it,
+	/// and it measured 55 pixels at this display's 1.25 scale, 44 at 1.0; both exceed this
+	/// bound, so losing the override reddens the fact at either scale. After it, the width is
+	/// the 14-DIU chevron glyph plus 2 + 2 DIU of padding, at most 18 DIU even if the glyph's
+	/// advance were the full em: 18 pixels at 1.0 and 23 at 1.25, well inside the bound.
+	/// </summary>
+	private const int MaximumToggleWidth = 40;
 
 	/// <summary>
 	/// How far the drag handle's right edge must sit left of the scroll viewport's right edge,
@@ -174,10 +188,10 @@ public sealed class FloorSidebarAutomationTests
 	}
 
 	/// <summary>
-	/// CONTROL for <see cref="FloorExpandToggleMeasuresAtLeast23By23"/>. The notebook button sits
-	/// in the same header row and was not touched this session, so it reads the same rectangle
-	/// channel against an unchanged control. If both reddens, the measurement channel is broken;
-	/// if only the toggle reddens, contract C3's footprint has regressed.
+	/// CONTROL for <see cref="FloorExpandToggleMeasuresAtLeast23HighAndAtMost40Wide"/>. The
+	/// notebook button sits in the same header row and was not touched this session, so it reads
+	/// the same rectangle channel against an unchanged control. If both reddens, the measurement
+	/// channel is broken; if only the toggle reddens, the toggle's own footprint has regressed.
 	/// </summary>
 	[Fact]
 	public void ControlFloorNotebookButtonMeasuresAtLeast23By23()
@@ -281,8 +295,16 @@ public sealed class FloorSidebarAutomationTests
 	/// Fact (b) of contract C2 section 3's assertable set. Control:
 	/// <see cref="ControlFloorNotebookButtonMeasuresAtLeast23By23"/>.
 	/// </summary>
+	/// <remarks>
+	/// The implicit Button style gives every Button a 44x44 minimum, and that minimum, not the
+	/// padding, is what sized this toggle. The user chose to remove the space around the chevron
+	/// by overriding the style's minimum width with 0 on this button only, accepting a hit width
+	/// below the touch minimum; the card-body tap remains the larger target for the same action.
+	/// The width is therefore held from ABOVE, so that losing the override reddens here, and the
+	/// height keeps its 23 floor, which the style's untouched 44 minimum height supplies.
+	/// </remarks>
 	[Fact]
-	public void FloorExpandToggleMeasuresAtLeast23By23()
+	public void FloorExpandToggleMeasuresAtLeast23HighAndAtMost40Wide()
 	{
 		using var session = OpenFirstDungeonDetailPage();
 
@@ -290,10 +312,12 @@ public sealed class FloorSidebarAutomationTests
 		var size = toggle.Size;
 		_output.WriteLine(Line($"{FloorExpandToggleId}[0] size = {size.Width}x{size.Height}"));
 
-		size.Width.Should().BeGreaterThanOrEqualTo(MinimumToggleEdge,
-			because: "contract C3 pins the chevron's hit footprint, which comes from its Padding rather than from a larger glyph");
+		size.Width.Should().BeGreaterThan(0,
+			because: "the chevron must still render as a clickable element, though its width was narrowed below 23 at the user's choice");
+		size.Width.Should().BeLessThanOrEqualTo(MaximumToggleWidth,
+			because: "with the implicit style's minimum width overridden the toggle is the 14-DIU glyph plus 4 DIU of padding, at most 23 pixels at 1.25 scale, while the un-overridden 44-DIU minimum measured 55 pixels there and 44 at 1.0");
 		size.Height.Should().BeGreaterThanOrEqualTo(MinimumToggleEdge,
-			because: "contract C3 pins the chevron's hit footprint, which comes from its Padding rather than from a larger glyph");
+			because: "the implicit Button style's 44 minimum height, which the toggle leaves in place, is what holds the chevron's hit height and the header row's");
 	}
 
 	/// <summary>

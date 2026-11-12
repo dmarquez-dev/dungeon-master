@@ -296,6 +296,13 @@ public partial class FloorSidebarItem : ContentView
 			FloorNameLabel.TextColor = DmTheme.ScrollGoldLight;
 		}
 
+		// The label is pinned to one line and tail-truncates a name longer than its column, so the
+		// tooltip is how the full name is read. It is set from the label's own text after both arms
+		// above, so the placeholder and every rename reach it without a second copy of either.
+		ToolTipProperties.SetText(
+			FloorNameLabel,
+			FloorNameLabel.Text);
+
 		// Colour AND description together — see NotebookAffordance for why the pair is one call
 		// and not two copies.
 		NotebookAffordance.Apply(

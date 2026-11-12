@@ -112,14 +112,27 @@
                      A real Button is what Microsoft's keyboard-accessibility guidance prescribes
                      for exactly this shape, and it is what WinUI's own Expander uses.
 
-                     THE FOOTPRINT IS PINNED — contract C3. The user declined this remedy once, at
-                     sub-session 5c's escalation E5, because a Button grows the header row. So the
-                     glyph keeps the Label's FontFamily and FontSize and the visible chevron is
-                     unchanged; the hit area comes from Padding, not from a bigger glyph;
-                     Transparent + BorderWidth 0 leave nothing of the button drawn; and Margin is
-                     0 because padding is the mechanism and margin is not. Measured at 1920x1080
-                     with 11 floors, the rendered button matches the notebook and delete Buttons
-                     beside it, so the header row's height is unchanged.
+                     THE FOOTPRINT'S HEIGHT IS PINNED — contract C3. The user declined this remedy
+                     once, at sub-session 5c's escalation E5, because a Button grows the header
+                     row. So the glyph keeps the Label's FontFamily and FontSize and the visible
+                     chevron is unchanged; Transparent + BorderWidth 0 leave nothing of the button
+                     drawn; and Margin is 0, because a margin adds space outside the target. The
+                     button's SIZE is not set by its padding: the implicit Button style in
+                     Implicit.xaml gives every Button a 44x44 minimum (DmTouchTargetMinimum), and
+                     that minimum is what sized this one. Measured at 1920x1080 with 11 floors,
+                     the button was as tall as the notebook and delete Buttons beside it, so the
+                     header row's height did not change; the style's 44 minimum height is what
+                     keeps it so, and this button leaves that minimum alone.
+
+                     MinimumWidthRequest is 0 on THIS BUTTON ONLY, AT THE USER'S CHOICE: the 44
+                     minimum width left visible space around the chevron, both from the card's
+                     left edge and before the floor name. With it zeroed, the width is the glyph
+                     plus the 2 + 2 of horizontal padding, below Microsoft's 23-DIU minimum, which
+                     the user accepted; the card-body tap above remains the larger target for the
+                     same action. Top and bottom padding stay 4, as DmPaddingCompact has them. The
+                     padding sits high in the attribute list because
+                     GeometryScaleTests.NoBarePaddingValues accepts a literal padding only when a
+                     comment documenting it closes a few lines above it.
 
                      The glyph flips between ▸ and ▾ in ApplyExpanded, so the description is
                      rewritten there alongside it; the value here is the collapsed state the glyph
@@ -129,6 +142,8 @@
                     x:Name="ExpandToggle"
                     Grid.Column="0"
                     AutomationId="FloorExpandToggle"
+                    Padding="2,4,2,4"
+                    MinimumWidthRequest="0"
                     Text="&#x25B8;"
                     FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeSmall}"
@@ -136,7 +151,6 @@
                     BackgroundColor="Transparent"
                     BorderWidth="0"
                     Margin="0"
-                    Padding="{StaticResource DmPaddingCompact}"
                     CornerRadius="{StaticResource DmRadiusTight}"
                     SemanticProperties.Description="Collapsed"
                     SemanticProperties.Hint="Expands or collapses this floor's areas."

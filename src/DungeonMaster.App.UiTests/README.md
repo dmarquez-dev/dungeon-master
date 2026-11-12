@@ -111,9 +111,15 @@ share:
   `ControlOneTabPressFromPageEntryMovesFocusOffTheEntryElement`, which establishes only that a
   `Tab` reaches the app at all — so a red walk beside a green control means the chevron is
   genuinely out of the tab ring, which is what it was while it was a `Label`.
-- `FloorExpandToggleMeasuresAtLeast23By23` — the chevron's hit footprint, measured 55x55 on
-  2026-09-14. Control: `ControlFloorNotebookButtonMeasuresAtLeast23By23`, an untouched button of
-  the same header row read through the same rectangle channel.
+- `FloorExpandToggleMeasuresAtLeast23HighAndAtMost40Wide` — the chevron's hit footprint. The
+  implicit `Button` style's 44x44 minimum (`DmTouchTargetMinimum`) is what sized the button: it
+  measured 55x55 on 2026-09-14, before this change. At the user's choice the toggle overrides
+  that style's minimum width with 0 on this button only, so its width is the glyph plus 4 DIU
+  of padding, below 23; the style's 44 minimum height stays and holds the row. The fact asserts
+  height at least 23 and width at most 40 pixels, a bound the old 55-pixel button fails. The
+  narrowed width has not been measured.
+  Control: `ControlFloorNotebookButtonMeasuresAtLeast23By23`, an untouched button of the same
+  header row read through the same rectangle channel.
 - `FloorDragHandleRightEdgeClearsTheScrollViewportRightEdgeByAtLeast14` — the `MASTER-163`
   ratchet. Measured clearance 30, threshold 14. Control:
   `ControlTheSidebarScrollViewportResolvesAsAScrollViewerWiderThanAFloorCard`, which proves the
