@@ -2,7 +2,7 @@
   "id": "20261111-2349-floor-reorder-keeps-selection",
   "name": "floor-reorder-keeps-selection",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "criteria": [
     "C1: Neither drag-drop reorder handler in src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs (OnFloorReorderRequested, OnFloorListDrop) calls SelectFloor or writes _editor.SelectedFloorId; `grep -n 'SelectFloor(' src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` prints only the SelectFloor definition and the click-selection and floor-add call sites (at 54fd258: :949, :954, :2716), not the reorder sites (:977, :2545).",
     "C2: After ReorderFloorCommand returns, each handler awaits RefreshFloorAsync (re-resolving _drawable.Floor by the unchanged _editor.SelectedFloorId against the reloaded FloorList.Items) and redraws the map, and calls neither RefreshMap nor SetActiveTool, so an armed tool, area focus and the map toolbar are left as they were (user's decision on this session's routing question: keep the tool).",
@@ -13,7 +13,7 @@
     "C6 (human check at Gate 3): launch with `dotnet build C:/Users/dmarq/Development/Repos/dungeon-master/src/DungeonMaster.App/DungeonMaster.App.csproj -t:Run -f net10.0-windows10.0.19041.0`; open a dungeon with at least three floors; 1. click floor A to select it; 2. arm a drawing tool (not Pan); 3. drag floor B to a new position. Pass when A stays expanded with its map and toolbar shown and the same tool still armed, B stays collapsed, and the floor order changed."
   ],
   "started": "2026-11-11T23:49:20Z",
-  "ended": "2026-11-12T00:21:56Z",
+  "ended": "2026-11-12T00:27:54Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -24,7 +24,19 @@
       "started": "2026-11-11T23:49:20Z",
       "ended": "2026-11-12T00:21:56Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "f88e1c79-ad17-4413-8df2-9eb356f25f94",
+      "phase": "wrap",
+      "sir": "1.0.32",
+      "started": "2026-11-12T00:27:32Z",
+      "ended": "2026-11-12T00:27:54Z",
+      "outcome": "complete"
     }
   ],
-  "metrics": { "userInteractions": 3, "escalationsRaised": 1, "reviewRounds": 1 }
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 1,
+    "reviewRounds": 1
+  }
 }
