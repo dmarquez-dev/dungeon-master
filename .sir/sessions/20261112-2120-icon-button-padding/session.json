@@ -2,9 +2,9 @@
   "id": "20261112-2120-icon-button-padding",
   "name": "icon-button-padding",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-12T21:25:50Z",
-  "ended": "2026-11-12T21:52:58Z",
+  "ended": "2026-11-12T22:03:49Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -69,6 +69,14 @@
       "sir": "1.0.34",
       "started": "2026-11-12T21:25:50Z",
       "ended": "2026-11-12T21:52:58Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "d3302cd9-5590-49bd-bf63-66fef9ea0722",
+      "phase": "wrap",
+      "sir": "1.0.34",
+      "started": "2026-11-12T22:03:48Z",
+      "ended": "2026-11-12T22:03:49Z",
       "outcome": "complete"
     }
   ],
