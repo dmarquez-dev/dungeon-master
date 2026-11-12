@@ -196,6 +196,7 @@
                     x:Name="NotebookButton"
                     Grid.Column="2"
                     AutomationId="FloorNotebookButton"
+                    Style="{StaticResource DmIconButton}"
                     SemanticProperties.Description="Notebook, empty"
                     SemanticProperties.Hint="Opens the notebook for this floor."
                     Text="&#xEA8F;"
@@ -216,6 +217,7 @@
                 <Button
                     Grid.Column="3"
                     AutomationId="FloorDeleteButton"
+                    Style="{StaticResource DmIconButton}"
                     SemanticProperties.Description="Delete floor"
                     SemanticProperties.Hint="Asks for confirmation, then removes this floor and its areas."
                     Text="&#xE9FC;"

@@ -90,6 +90,58 @@
         </Setter>
     </Style>
 
+    <!-- Icon-font Buttons. They give up the 44-DIU WIDTH floor the implicit Button style
+         sets, and keep the 44 HEIGHT floor. The narrowing comes from MinimumWidthRequest 0:
+         every icon-button site supplies its own local Padding, which outranks this style's,
+         and the Padding 14,10 here is restated only for parity with the implicit style.
+
+         An explicit Style= REPLACES the implicit Button style entirely rather than
+         merging with it, so this style restates every other setter of the implicit one
+         in Implicit.xaml (Padding, MinimumHeightRequest, CornerRadius, BorderWidth and
+         the CommonStates Normal / PointerOver / Pressed opacities); omitting any of them
+         would cost these Buttons their hover and press feedback. It is deliberately NOT
+         BasedOn DmButtonBase, which adds a title font, a hairline border and a Disabled 0.45
+         state that an icon button must not inherit.
+
+         THE Disabled STATE AT 0.35 IS DELIBERATE AND A CALL SITE CANNOT SET ITS OWN OPACITY:
+         this group's setters outrank a local value, and measured, the Normal state's Opacity 1
+         overrode the DungeonListPage StartSessionButton's local Opacity 0.35, which has been
+         removed. The style
+         therefore dims a disabled icon button itself, at the same 0.35 that Button chose. -->
+    <Style x:Key="DmIconButton" TargetType="Button">
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="MinimumHeightRequest" Value="{StaticResource DmTouchTargetMinimum}" />
+        <Setter Property="MinimumWidthRequest" Value="0" />
+        <Setter Property="CornerRadius" Value="{StaticResource DmRadiusLoose}" />
+        <Setter Property="BorderWidth" Value="0" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.82" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.35" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
     <Style x:Key="DmEntryBase" TargetType="Entry">
         <Setter Property="FontFamily" Value="{StaticResource DmFontBody}" />
         <Setter Property="FontSize" Value="{StaticResource DmFontSizeBody}" />

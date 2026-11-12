@@ -96,6 +96,7 @@
                 x:Name="NotebookButton"
                 Grid.Column="2"
                 AutomationId="AreaNotebookButton"
+                Style="{StaticResource DmIconButton}"
                 Text="&#xEA8F;"
                 FontFamily="{StaticResource DmFontIcon}"
                 FontSize="{StaticResource DmIconSizeSmall}"
@@ -116,6 +117,7 @@
             <Button
                 Grid.Column="3"
                 AutomationId="AreaDeleteButton"
+                Style="{StaticResource DmIconButton}"
                 Text="&#xE9FC;"
                 FontFamily="{StaticResource DmFontIcon}"
                 FontSize="{StaticResource DmIconSizeSmall}"

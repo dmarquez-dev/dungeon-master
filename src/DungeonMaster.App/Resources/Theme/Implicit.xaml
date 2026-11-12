@@ -173,8 +173,8 @@
         of which sit on 2, 3 or 4.
 
         It is now bound to DmRadiusLoose (4). This is the most visible single change in
-        the design-system-completion sweep: every Button that carries no Style= — 16 of
-        the app's 20 — changes shape. That is intended. Buttons now match the cards,
+        the design-system-completion sweep: every Button that carries no Style= — 9 of
+        the app's 21 — changes shape. That is intended. Buttons now match the cards,
         popups, chips and panels around them.
 
         The remaining two values stay literals, and each for its own reason rather
@@ -205,9 +205,18 @@
         <!--
             Interaction states. Opacity is not colour, so this does not breach the rule
             above: the style still sets no TextColor, BackgroundColor, FontFamily or
-            FontSize. 16 of the app's 20 Buttons carry no Style= and therefore relied on
+            FontSize. 9 of the app's 21 Buttons carry no Style= and therefore relied on
             the stock implicit style for hover and press feedback; without this group they
             would have none at all.
+
+            The census counts every Button start tag in src/DungeonMaster.App XAML outside
+            bin and obj, with XML comments stripped, and tests each for a Style= attribute.
+            Command: a Python re.finditer over the comment-stripped text of each file, with
+            pattern <Button(?=[\s>/])[^>]*> and the attribute test \sStyle=. It found 21
+            Buttons, 9 without. A grep of <Button(\s|>|$) over the same files, excluding
+            lines that are comments or Button.* property elements, also finds 21. The 12
+            that carry a Style= are the 8 icon Buttons (DmIconButton) plus 2 each in
+            DmConfirmPopup and CreateDungeonPopup (DmNeutralButton, DmConfirmButton).
 
             Normal, PointerOver and Pressed are byte-identical to the stock values (1,
             0.82, 0.7), so hover and press are unchanged.
@@ -217,13 +226,18 @@
             a local value set on the element. Anything this group put on Disabled would
             silently overrule what a call site had chosen for itself.
 
-            Three unstyled Buttons do choose for themselves, all at Opacity 0.35:
+            Two unstyled Buttons choose for themselves, both at Opacity 0.35; the
+            DungeonListPage StartSessionButton carries DmIconButton (Controls.Base.xaml), which
+            replaces this style and has its OWN Disabled state at Opacity 0.35, so it sets no
+            local Opacity at all and is dimmed by the keyed style (the other two are not
+            overruled):
 
                 DungeonDetailPage StartSessionButton  local IsEnabled + Opacity, unconditional
-                DungeonListPage   StartSessionButton  Start Session icon, local IsEnabled + Opacity, unconditional
+                DungeonListPage   StartSessionButton  Start Session icon, local IsEnabled only; DmIconButton dims it
                 DungeonDetailPage UndoButton          local IsEnabled + Opacity
 
-            Named rather than cited by line: the line numbers here were wrong on all three
+            Named rather than cited by line: the line numbers here were wrong on all three of the
+            original sites
             within one wave of being written, which is the whole reason the census above was
             recounted. A name survives an edit above it.
 
@@ -233,8 +247,8 @@
             affordance — and it did not match stock either. The stock Disabled state set
             TextColor and BackgroundColor to Gray950/Gray200/Gray600 and NO Opacity at all.
 
-            Omitting the state therefore reproduces stock's opacity behaviour exactly for
-            those three sites and merely drops the greys, which was the goal: those came
+            Omitting the state here therefore reproduces stock's opacity behaviour exactly for
+            the two unstyled sites and merely drops the greys, which was the goal: those came
             from the template palette deleted with Resources/Styles/Colors.xaml in Task 10,
             and reinstating them would drag stock template colour back into the theme
             layer. A Button that wants a disabled look states it at the point of use, or

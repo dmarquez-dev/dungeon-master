@@ -61,6 +61,7 @@
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnEditClicked"
                                         AutomationId="EditDungeonButton"
+                                        Style="{StaticResource DmIconButton}"
                                         SemanticProperties.Description="Edit dungeon"
                                         SemanticProperties.Hint="Opens this dungeon in the floor and map designer"
                                         ToolTipProperties.Text="Edit dungeon">
@@ -86,8 +87,8 @@
 
                                          For the same reason it is disabled unconditionally until
                                          sessions exist, whatever the dungeon's floor count: a
-                                         local IsEnabled="False" and Opacity="0.35", the mechanism
-                                         DungeonDetailPage's UndoButton uses. It used to enable
+                                         local IsEnabled="False", dimmed to 0.35 by DmIconButton's Disabled state, not by a
+                                         local Opacity, which the keyed style would overrule. It used to enable
                                          once the dungeon had a floor, which offered a click that
                                          did nothing. Restore a floor-count gate together with the
                                          handler. -->
@@ -102,10 +103,10 @@
                                             Padding="{StaticResource DmPaddingCompact}"
                                             CommandParameter="{Binding Id}"
                                             AutomationId="StartSessionButton"
+                                            Style="{StaticResource DmIconButton}"
                                             SemanticProperties.Description="Start session"
                                             SemanticProperties.Hint="Sessions are not available yet; this button performs no action."
-                                            IsEnabled="False"
-                                            Opacity="0.35">
+                                            IsEnabled="False">
                                             <Button.Behaviors>
                                                 <behaviors:HandCursorBehavior />
                                             </Button.Behaviors>
@@ -130,6 +131,7 @@
                                         CommandParameter="{Binding Id}"
                                         Clicked="OnDeleteClicked"
                                         AutomationId="DeleteDungeonButton"
+                                        Style="{StaticResource DmIconButton}"
                                         SemanticProperties.Description="Delete dungeon"
                                         SemanticProperties.Hint="Asks for confirmation first"
                                         ToolTipProperties.Text="Delete dungeon">

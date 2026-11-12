@@ -626,6 +626,7 @@
                         HeightRequest="22"
                         MinimumHeightRequest="22"
                         AutomationId="DungeonNotebookButton"
+                        Style="{StaticResource DmIconButton}"
                         SemanticProperties.Description="Open notebook"
                         SemanticProperties.Hint="Opens this dungeon's notes and lets you rename it"
                         ToolTipProperties.Text="Open notebook"

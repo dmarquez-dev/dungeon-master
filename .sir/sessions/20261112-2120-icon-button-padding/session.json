@@ -1,0 +1,80 @@
+{
+  "id": "20261112-2120-icon-button-padding",
+  "name": "icon-button-padding",
+  "scope": "small",
+  "status": "MERGED",
+  "started": "2026-11-12T21:25:50Z",
+  "ended": "2026-11-12T21:52:58Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: A keyed style `DmIconButton` (TargetType Button) is declared exactly once, in `src/DungeonMaster.App/Resources/Theme/Controls.Base.xaml`, with no `BasedOn`. It reproduces every setter of the implicit `<Style TargetType=\"Button\">` in `src/DungeonMaster.App/Resources/Theme/Implicit.xaml` (Padding 14,10; MinimumHeightRequest DmTouchTargetMinimum; CornerRadius DmRadiusLoose; BorderWidth 0; the CommonStates group with Normal 1, PointerOver 0.82, Pressed 0.7 Opacity) except MinimumWidthRequest, which is 0. It adds exactly one thing the implicit style lacks: a Disabled VisualState in its CommonStates group setting Opacity 0.35, because a keyed style's CommonStates setters outrank a call site's local Opacity (measured: the Normal state's Opacity 1 overrode DungeonListPage StartSessionButton's local 0.35 and failed StartSessionButtonTests), so the style itself must dim a disabled icon button. Its comment says why it exists (icon buttons give up the 44-DIU width floor, keep the 44 height), why it has a Disabled state at 0.35, and that a call site cannot set its own Opacity against it. (Amended by A1, E2.)",
+    "C2: Exactly these eight Buttons carry `Style=\"{StaticResource DmIconButton}\"`, identified by AutomationId: AreaNotebookButton and AreaDeleteButton (`Controls/AreaSidebarItem/AreaSidebarItem.xaml`), FloorNotebookButton and FloorDeleteButton (`Controls/FloorSidebarItem/FloorSidebarItem.xaml`), the DungeonNotebookButton named Button (`Views/DungeonDetailPage/DungeonDetailPage.xaml`), and EditDungeonButton, StartSessionButton and DeleteDungeonButton (`Views/DungeonListPage/DungeonListPage.xaml`). No other Button gains it, the FloorExpandToggle keeps its own local `MinimumWidthRequest=\"0\"` and is otherwise unchanged, and every other attribute on the eight sites is unchanged, except that DungeonListPage StartSessionButton's local `Opacity=\"0.35\"`, overruled by DmIconButton's Disabled state, is removed. (Amended by A3, E3.) Instrument: `grep -rn DmIconButton src/DungeonMaster.App --include=*.xaml` prints the declaration plus eight uses.",
+    "C3: Comments that the change makes false are corrected: in `Implicit.xaml` the census \"16 of the app's 20 Buttons carry no Style=\" is recounted after the change and restated with the command that counted it, and the Disabled-state passage that lists DungeonListPage StartSessionButton among the unstyled Buttons choosing their own Opacity is reworded so it stays true (that Button now carries DmIconButton, which also has no Disabled state). The `Controls.Base.xaml` header claims (every style key has a call site; adoption traps) remain true.",
+    "C4: A new test class in `src/DungeonMaster.Tests/App/Theme/` parses the two dictionaries the way `ConfirmButtonStateParityTests.cs` does and asserts: DmIconButton's MinimumWidthRequest is 0; every other setter of DmIconButton (property and value, including the CommonStates opacities) equals the implicit Button style's, compared parsed-value to parsed-value rather than against literals; and DmIconButton's only state beyond the implicit style's is Disabled, at Opacity 0.35. Its discrimination is shown by injected defects applied to `Controls.Base.xaml` and reverted: (a) MinimumWidthRequest set to `{StaticResource DmTouchTargetMinimum}`, (b) the Disabled state removed, (c) PointerOver changed to 0.9, (d) Disabled Opacity changed to 0.45 — each must turn the new test red, and each revert must restore `Controls.Base.xaml` byte-identical to a copy saved in scratch before the injection (sha256 compared, with a control showing the comparison fires on a one-byte change).",
+    "C5: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s) (quoted from its summary lines), and `dotnet test src/DungeonMaster.sln` passes every test in every test project, with counts named per project; this includes ThemeDictionaryTests.NoOrphanedStyleKeys and GeometryScaleTests.",
+    "C6: Every touched file keeps its line endings and BOM state: the six XAML files are all-CRLF at a4c3c90 (Controls.Base.xaml 157/157, Implicit.xaml 320/320, AreaSidebarItem.xaml 157/157 with BOM, FloorSidebarItem.xaml 395/395 with BOM, DungeonDetailPage.xaml 835/835, DungeonListPage.xaml 180/180 with BOM; CRLF/LF counted by Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`) and stay all-CRLF with BOM state unchanged; the new test file is CRLF, tab-indented, without BOM, like `ConfirmButtonStateParityTests.cs` (290/290).",
+    "C7: Human checks at Gate 3, against a build of the change: H1 the floor card's notebook and delete buttons are visibly narrower (predicted glyph plus 4+4 DIU, about 24 DIU, from 44) with a tighter gap between them, and keep their full height; H2 the dungeon cards' edit, start-session and delete buttons are narrower (predicted about 36 DIU from 44) with tighter gaps, and the disabled start-session icon is still dimmed; H3 the area cards' notebook and delete buttons are narrower (predicted about 22 DIU); H4 the detail page's dungeon notebook button is narrower (predicted about 22 DIU); H5 hovering any of these still dims it and pressing still works. Predictions assume the glyph advance roughly equals the font size; they are not measured."
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "The backlog row (20261112-0153-floor-name-tooltip, user at Gate 3) asked at routing: do icon buttons give up the 44-DIU width minimum through a new keyed icon-button style, per-site overrides, or by dropping the width minimum from the implicit Button style app-wide; and which surfaces are in scope (floor cards, dungeon cards, area cards, detail page)?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "New DmIconButton style; all four surfaces in scope (floor cards, dungeon cards, area cards, detail page)."
+    },
+    {
+      "id": "E2",
+      "question": "T1 found that DmIconButton on DungeonListPage's disabled StartSessionButton turns StartSessionButtonTests.ListPageStartSessionButton_WithOneFloor_HasDisabledOpacity red (expected 0.35, actual 1; removing only that Style attribute makes 6/6 pass): a keyed style's Normal-state Opacity 1 outranks the button's local Opacity 0.35, and with no Disabled state the disabled button stays in Normal. C1 forbids a Disabled state and C2 requires the style on that button, so they cannot both hold. Give DmIconButton a Disabled state at Opacity 0.35 (amend C1 and C4 injection b), or leave that one button unstyled with a local MinimumWidthRequest 0 (amend C2 to seven sites)?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Give DmIconButton a Disabled VisualState at Opacity 0.35; all eight buttons keep the style. C1 and C4 amended (A1, A2)."
+    },
+    {
+      "id": "E3",
+      "question": "Gate 3 dispositions for reviewer advisories: (1) DmIconButton comment says Padding can make icon buttons narrower than 44, though every site sets its own Padding and the width change comes from MinimumWidthRequest 0; (2) the parity test inspects only Opacity setters inside states; (3) DungeonListPage StartSessionButton's local Opacity 0.35 is now dead, overruled by the style's Disabled state, and C2 required it kept. Fix now, carry, or drop each?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Fix 1 now (comment wording); carry 2 to the backlog; fix 3 now (remove the dead local Opacity, amending C2)."
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E2",
+      "criterion": "C1",
+      "before": "It adds no setter the implicit style lacks, and in particular carries NO Disabled state, because a keyed style replaces the implicit one and a Disabled VisualState setter would outrank the DungeonListPage StartSessionButton's local Opacity 0.35. Its comment says why it exists (icon buttons give up the 44-DIU width floor, keep the 44 height) and why it has no Disabled state.",
+      "after": "It adds exactly one thing the implicit style lacks: a Disabled VisualState in its CommonStates group setting Opacity 0.35, because a keyed style's CommonStates setters outrank a call site's local Opacity (measured: the Normal state's Opacity 1 overrode DungeonListPage StartSessionButton's local 0.35 and failed StartSessionButtonTests), so the style itself must dim a disabled icon button. Its comment says why it exists (icon buttons give up the 44-DIU width floor, keep the 44 height), why it has a Disabled state at 0.35, and that a call site cannot set its own Opacity against it."
+    },
+    {
+      "id": "A2",
+      "escalation": "E2",
+      "criterion": "C4",
+      "before": "and DmIconButton has no Disabled VisualState. Its discrimination is shown by injected defects applied to `Controls.Base.xaml` and reverted: (a) MinimumWidthRequest set to `{StaticResource DmTouchTargetMinimum}`, (b) a Disabled state added, (c) PointerOver changed to 0.9",
+      "after": "and DmIconButton's only state beyond the implicit style's is Disabled, at Opacity 0.35. Its discrimination is shown by injected defects applied to `Controls.Base.xaml` and reverted: (a) MinimumWidthRequest set to `{StaticResource DmTouchTargetMinimum}`, (b) the Disabled state removed, (c) PointerOver changed to 0.9, (d) Disabled Opacity changed to 0.45"
+    },
+    {
+      "id": "A3",
+      "escalation": "E3",
+      "criterion": "C2",
+      "before": "and every other attribute on the eight sites is unchanged.",
+      "after": "and every other attribute on the eight sites is unchanged, except that DungeonListPage StartSessionButton's local `Opacity=\"0.35\"`, overruled by DmIconButton's Disabled state, is removed. (Amended by A3, E3.)"
+    }
+  ],
+  "runs": [
+    {
+      "cc": "d3302cd9-5590-49bd-bf63-66fef9ea0722",
+      "phase": "small",
+      "sir": "1.0.34",
+      "started": "2026-11-12T21:25:50Z",
+      "ended": "2026-11-12T21:52:58Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 3,
+    "reviewRounds": 1
+  }
+}
