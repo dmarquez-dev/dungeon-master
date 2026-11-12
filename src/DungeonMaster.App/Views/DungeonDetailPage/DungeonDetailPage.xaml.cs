@@ -889,6 +889,10 @@ public partial class DungeonDetailPage : ContentPage
 				_drawable.Floor = null;
 				_drawable.HoveredAreaId = null;
 				ResetDrawState();
+
+				// No RefreshMap runs on this path, so nothing else resets the tool: an armed Place
+				// tool would otherwise leave the object picker open with no floor selected.
+				SetActiveTool(MapTool.Pan);
 				SetMapToolbarShown(false);
 			}
 
@@ -924,14 +928,16 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		// Re-tapping the already-selected floor toggles it off and routes back through
-		// RefreshMap, so the resulting state is identical to the page's initial
-		// no-floor-selected state rather than a hand-rolled second copy of it. Clearing the
-		// selection is what collapses the row: its IsExpanded is bound to it.
+		// Re-tapping the already-selected floor toggles it off. Clearing the selection is what
+		// collapses the row: its IsExpanded is bound to it. RefreshMap resets the tool to Pan
+		// only while a floor is selected, so the tool is disarmed here first; otherwise an armed
+		// Place tool would leave the object picker open over a map with no floor. The Pan reset
+		// is what returns the toolbar and palettes to the page's initial no-floor-selected state.
 		if (_editor.SelectedFloorId == floor.Id)
 		{
 			_editor.SelectedFloorId = null;
 			ResetDrawState();
+			SetActiveTool(MapTool.Pan);
 			RefreshMap();
 
 			// Collapsing the floor also closes its notebook if one is open on it or on
@@ -2321,6 +2327,8 @@ public partial class DungeonDetailPage : ContentPage
 
 		SetMapToolbarShown(_editor.SelectedFloorId is not null);
 
+		// Only for a selected floor. The two paths that clear the selection, the deselect
+		// re-tap and deleting the selected floor, reset the tool to Pan themselves.
 		if (_editor.SelectedFloorId is not null && _editor.DrawState == DrawState.Idle)
 		{
 			SetActiveTool(MapTool.Pan);
