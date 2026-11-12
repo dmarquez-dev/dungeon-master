@@ -2,7 +2,7 @@
   "id": "20261112-0031-floor-deselect-disarms-tool",
   "name": "floor-deselect-disarms-tool",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "criteria": [
     "C1: Collapsing the selected floor by re-tapping its card (the deselect branch of OnFloorSelectRequested in src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs, :931-935 at 7d52ed2) ends with _viewModel.Canvas.ActiveTool == MapTool.Pan through SetActiveTool(MapTool.Pan), so ObjectPalette and ControlsPalette are hidden, the ghost object is cleared and the secondary palette is dismissed, whichever tool was armed.",
     "C2: Deleting the selected floor (the wasSelected branch of OnFloorDeleteRequested, :883-891 at 7d52ed2) ends in the same Pan state as C1.",
@@ -22,6 +22,14 @@
       "started": "2026-11-12T00:31:13Z",
       "ended": "2026-11-12T00:56:52Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "239b6fd4-33ec-44c9-ad1e-0f8ff45b6a9e",
+      "phase": "wrap",
+      "sir": "1.0.32",
+      "started": "2026-11-12T00:58:47Z",
+      "ended": "2026-11-12T00:59:03Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
@@ -29,5 +37,5 @@
     "escalationsRaised": 1,
     "reviewRounds": 0
   },
-  "ended": "2026-11-12T00:56:52Z"
+  "ended": "2026-11-12T00:59:03Z"
 }
