@@ -2,7 +2,7 @@
   "id": "20261112-0153-floor-name-tooltip",
   "name": "floor-name-tooltip",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "criteria": [
     "C1: Hovering a floor's name in the floor sidebar shows a tooltip carrying the floor's full name, and for an unnamed floor the same `Floor N` placeholder the label shows: `ToolTipProperties.Text` on FloorNameLabel is set from the same value as `FloorNameLabel.Text` in both arms of `Populate` (src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs, :288-297 at f09f2fa), so a repopulate after a rename updates it.",
     "C2 (E1, amended A1 by E2, A3 by E3): The expand/collapse chevron hugs its glyph: ExpandToggle's Padding (`{StaticResource DmPaddingCompact}` = 8,4 at f09f2fa) becomes 2,4,2,4 AND ExpandToggle overrides the implicit Button style's `MinimumWidthRequest` (`DmTouchTargetMinimum` = 44, Implicit.xaml at f09f2fa, which is what sized the button's width) with 0, while keeping the style's 44 `MinimumHeightRequest` so the header row height is unchanged; the button's width becomes the glyph plus 4 DIU, below the 23-DIU width minimum, as the user chose at Gate 3, so the gaps from the card's left edge and to the floor name both shrink. Only ExpandToggle changes: the implicit style, the notebook and delete Buttons, the Border's Padding, the area list indent (`Padding=\"8,4,0,0\"`), the header Grid's ColumnSpacing and every other element's spacing are unchanged.",
@@ -45,6 +45,14 @@
       "started": "2026-11-12T01:53:38Z",
       "ended": "2026-11-12T17:56:35Z",
       "outcome": "complete"
+    },
+    {
+      "cc": "64a1d054-b4f8-427d-b56f-74bcf2e8681b",
+      "phase": "wrap",
+      "sir": "1.0.33",
+      "started": "2026-11-12T18:00:55Z",
+      "ended": "2026-11-12T18:00:55Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
@@ -82,5 +90,5 @@
       "after": "C3 (amended A2 by E2, A4 by E3): Every comment, because-string and README sentence describing the chevron's footprint (the ExpandToggle comment in FloorSidebarItem.xaml, src/DungeonMaster.Tests/App/Accessibility/FloorExpandToggleTests.cs, the renamed UiTests fact and MinimumToggleEdge doc in src/DungeonMaster.App.UiTests/FloorSidebarAutomationTests.cs, and src/DungeonMaster.App.UiTests/README.md) is true after C2: it names the implicit Button style's 44x44 minimum as what sized the button, says the width minimum is overridden on this button only at the user's choice and the 44 height minimum is what holds the row height, and makes no claim that padding alone sets the size; the UiTests fact keeps the >= 23 height assertion and asserts a width bound that the old 44-wide button would fail (so the override cannot silently regress); FloorExpandToggleTests' assertions pass without being weakened, and any test of the implicit style or of MinimumWidthRequest literals passes. No new comment cites a line number."
     }
   ],
-  "ended": "2026-11-12T17:56:35Z"
+  "ended": "2026-11-12T18:00:55Z"
 }
