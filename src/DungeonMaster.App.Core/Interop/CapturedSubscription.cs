@@ -52,7 +52,9 @@ public sealed class CapturedSubscription<T>
 	/// </param>
 	/// <param name="subscribe">Adds the handler to the resolved target.</param>
 	/// <param name="unsubscribe">Removes the handler from the captured target.</param>
-	/// <exception cref="ArgumentNullException">Any argument is <see langword="null"/>.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		Any argument is <see langword="null"/>.
+	/// </exception>
 	public CapturedSubscription(Func<T?> resolveTarget, Action<T> subscribe, Action<T> unsubscribe)
 	{
 		ArgumentNullException.ThrowIfNull(resolveTarget);

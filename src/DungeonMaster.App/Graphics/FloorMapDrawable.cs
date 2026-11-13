@@ -144,7 +144,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	///		needs an <c>Application.Current</c> that the App.Tests host, which runs outside a MAUI
 	///		host, cannot create.
 	/// </param>
-	/// <exception cref="ArgumentNullException"><paramref name="paletteSource"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="paletteSource"/> is null.
+	/// </exception>
 	public FloorMapDrawable(Func<FloorMapPalette> paletteSource)
 		: this(paletteSource, FileSystem.OpenAppPackageFileAsync, stream => PlatformImage.FromStream(stream))
 	{
@@ -171,7 +173,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	///		makes disposal observable without a MAUI host: a real <c>PlatformImage</c> cannot be asked
 	///		whether it was disposed, and it cannot be decoded at all outside a host.
 	/// </param>
-	/// <exception cref="ArgumentNullException">Any argument is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		Any argument is null.
+	/// </exception>
 	public FloorMapDrawable(
 		Func<FloorMapPalette> paletteSource,
 		Func<string, Task<Stream>> streamSource,
@@ -363,7 +367,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	/// </summary>
 	/// <param name="areaId">The area the offset applies to.</param>
 	/// <param name="offset">The offset in tiles.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="offset"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="offset"/> is null.
+	/// </exception>
 	public void SetPendingMoveOffset(Guid areaId, TilePoint offset)
 	{
 		ArgumentNullException.ThrowIfNull(offset);
@@ -386,7 +392,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	///		moment it is closed rather than from the reload that follows the write.
 	/// </summary>
 	/// <param name="outline">The closed outline polygon, in tile coordinates.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="outline"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="outline"/> is null.
+	/// </exception>
 	public void AddGhostArea(IReadOnlyList<PathSegment> outline)
 	{
 		ArgumentNullException.ThrowIfNull(outline);
@@ -409,7 +417,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 	///		Replaces the confirmed vertices of the in-progress draw with <paramref name="vertices"/>.
 	/// </summary>
 	/// <param name="vertices">The vertices, in the order they were placed.</param>
-	/// <exception cref="ArgumentNullException"><paramref name="vertices"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="vertices"/> is null.
+	/// </exception>
 	public void SetInProgressVertices(IEnumerable<TilePoint> vertices)
 	{
 		ArgumentNullException.ThrowIfNull(vertices);

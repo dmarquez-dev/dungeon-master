@@ -29,8 +29,12 @@ public interface ILongPressTimer : IDisposable
 	///		begins a new one, so only the last <see cref="Start"/> can produce an <see cref="Elapsed"/>.
 	/// </summary>
 	/// <param name="delay">How long to wait before raising <see cref="Elapsed"/>.</param>
-	/// <exception cref="ArgumentOutOfRangeException"><paramref name="delay"/> is negative.</exception>
-	/// <exception cref="ObjectDisposedException">The timer has been disposed.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		<paramref name="delay"/> is negative.
+	/// </exception>
+	/// <exception cref="ObjectDisposedException">
+	///		The timer has been disposed.
+	/// </exception>
 	void Start(TimeSpan delay);
 
 	/// <summary>

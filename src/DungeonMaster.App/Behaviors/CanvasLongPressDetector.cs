@@ -45,7 +45,9 @@ public sealed class CanvasLongPressDetector : IDisposable
 	///		The one-shot delay. In the app this is a <c>DispatcherLongPressTimer</c> built on the
 	///		page's dispatcher; a test passes a hand-driven double instead of waiting on a clock.
 	/// </param>
-	/// <exception cref="ArgumentNullException"><paramref name="timer"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="timer"/> is null.
+	/// </exception>
 	public CanvasLongPressDetector(ILongPressTimer timer)
 	{
 		ArgumentNullException.ThrowIfNull(timer);

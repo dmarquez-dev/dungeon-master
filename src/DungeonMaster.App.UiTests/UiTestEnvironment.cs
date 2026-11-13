@@ -89,7 +89,9 @@ internal static class UiTestEnvironment
 	/// walk at the wrong ancestor. <c>.git</c> is accepted as a directory or as a FILE, because the
 	/// linked-worktree layout writes a file.
 	/// </remarks>
-	/// <exception cref="InvalidOperationException">No ancestor satisfies both conditions.</exception>
+	/// <exception cref="InvalidOperationException">
+	///		No ancestor satisfies both conditions.
+	/// </exception>
 	internal static string RepositoryRoot
 	{
 		get

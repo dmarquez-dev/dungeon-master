@@ -10,7 +10,9 @@ public sealed partial class Floor
 	/// <param name="number">
 	///		The new floor number to assign.
 	/// </param>
-	/// <exception cref="ArgumentOutOfRangeException"><paramref name="number"/> is less than 1.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		<paramref name="number"/> is less than 1.
+	/// </exception>
 	internal void UpdateNumber(int number)
 	{
 		if (number < 1)

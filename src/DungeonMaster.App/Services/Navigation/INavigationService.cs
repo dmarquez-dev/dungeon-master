@@ -17,7 +17,9 @@ public interface INavigationService
 	/// <returns>
 	///		A task that completes when the navigation has been performed.
 	/// </returns>
-	/// <exception cref="ArgumentException"><paramref name="route"/> is null, empty or whitespace.</exception>
+	/// <exception cref="ArgumentException">
+	///		<paramref name="route"/> is null, empty or whitespace.
+	/// </exception>
 	Task GoToAsync(string route);
 
 	/// <summary>

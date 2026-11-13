@@ -35,7 +35,9 @@ public sealed partial class Floor : Entity
 	/// <param name="name">
 	///		The optional display name for this floor.
 	/// </param>
-	/// <exception cref="ArgumentOutOfRangeException"><paramref name="number"/> is less than 1.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	///		<paramref name="number"/> is less than 1.
+	/// </exception>
 	internal Floor(
 		Guid dungeonId,
 		int number,

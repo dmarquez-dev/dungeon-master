@@ -54,7 +54,9 @@ public sealed class HoverOrLongPressBehavior : Behavior<View>
 	///		Produces the timer for a view at the moment the behavior attaches to it. Called once per
 	///		attach; the result is disposed on detach.
 	/// </param>
-	/// <exception cref="ArgumentNullException"><paramref name="timerFactory"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="timerFactory"/> is null.
+	/// </exception>
 	public HoverOrLongPressBehavior(Func<View, ILongPressTimer> timerFactory)
 	{
 		ArgumentNullException.ThrowIfNull(timerFactory);

@@ -37,7 +37,9 @@ public sealed class DispatcherLongPressTimer : ILongPressTimer
 	///		The dispatcher whose thread the tick is delivered on. In the app this is a
 	///		<c>VisualElement</c>'s <c>Dispatcher</c>, which is the UI thread's.
 	/// </param>
-	/// <exception cref="ArgumentNullException"><paramref name="dispatcher"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	///		<paramref name="dispatcher"/> is null.
+	/// </exception>
 	public DispatcherLongPressTimer(IDispatcher dispatcher)
 	{
 		ArgumentNullException.ThrowIfNull(dispatcher);
