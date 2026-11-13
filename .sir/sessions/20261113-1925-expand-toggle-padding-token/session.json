@@ -2,9 +2,9 @@
   "id": "20261113-1925-expand-toggle-padding-token",
   "name": "expand-toggle-padding-token",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-13T19:25:00Z",
-  "ended": "2026-11-13T19:41:06Z",
+  "ended": "2026-11-13T19:43:33Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -32,6 +32,14 @@
       "sir": "1.0.37",
       "started": "2026-11-13T19:25:00Z",
       "ended": "2026-11-13T19:41:06Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "17d14536-dc6d-4181-8a0e-9ad6082c468e",
+      "phase": "wrap",
+      "sir": "1.0.37",
+      "started": "2026-11-13T19:43:20Z",
+      "ended": "2026-11-13T19:43:33Z",
       "outcome": "complete"
     }
   ],
