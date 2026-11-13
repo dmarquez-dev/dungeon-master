@@ -2,9 +2,9 @@
   "id": "20261113-1727-icon-button-follow-ups",
   "name": "icon-button-follow-ups",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-13T17:27:20Z",
-  "ended": "2026-11-13T18:13:05Z",
+  "ended": "2026-11-13T18:15:10Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -41,6 +41,14 @@
       "sir": "1.0.36",
       "started": "2026-11-13T17:27:20Z",
       "ended": "2026-11-13T18:13:05Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "09313821-255a-42ba-9e25-64097cbd057a",
+      "phase": "wrap",
+      "sir": "1.0.36",
+      "started": "2026-11-13T18:14:48Z",
+      "ended": "2026-11-13T18:15:10Z",
       "outcome": "complete"
     }
   ],
