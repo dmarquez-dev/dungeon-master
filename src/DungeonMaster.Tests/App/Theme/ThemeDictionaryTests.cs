@@ -62,7 +62,7 @@ public class ThemeDictionaryTests
 		// against a typo; a key that is not is merely pinned, and pinning is not guarding.
 		"DmSpaceXXS", "DmSpaceXS", "DmSpaceSmall", "DmSpaceMedium",
 		"DmSpaceLarge", "DmSpaceXL",
-		"DmPaddingTight", "DmPaddingCompact", "DmPaddingControl",
+		"DmPaddingTight", "DmPaddingIconToggle", "DmPaddingCompact", "DmPaddingControl",
 		"DmPaddingCard", "DmPaddingPanel", "DmPaddingPage",
 		// Font families. Bound as FontFamily="..." by Tasks 4-11; a typo in one of
 		// these fails silently at runtime rather than at build, so they are guarded.

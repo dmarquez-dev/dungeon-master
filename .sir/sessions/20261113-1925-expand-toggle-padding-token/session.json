@@ -1,0 +1,44 @@
+{
+  "id": "20261113-1925-expand-toggle-padding-token",
+  "name": "expand-toggle-padding-token",
+  "scope": "small",
+  "status": "MERGED",
+  "started": "2026-11-13T19:25:00Z",
+  "ended": "2026-11-13T19:41:06Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: `src/DungeonMaster.App/Resources/Theme/Tokens.xaml` gains `<Thickness x:Key=\"DmPaddingIconToggle\">2,4</Thickness>` inside the DmPadding* block (after `DmPaddingTight` at `:680` at daa819e or wherever the block's order reads best), preceded by a one-line comment in the same form as its neighbours naming the surface it pads (the floor card's expand chevron: 2 horizontal so the button hugs its glyph, 4 vertical as DmPaddingCompact has it). ExpandToggle in `src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml` (`Padding=\"2,4,2,4\"` at `:145` at daa819e) reads `Padding=\"{StaticResource DmPaddingIconToggle}\"`, so its rendered padding is unchanged.",
+    "C2: The fix removes the attribute-order dependency, shown by demonstration: with C1 in place, moving ExpandToggle's `Padding` attribute to the end of the element's attribute list (after `ToolTipProperties.Text`) leaves `GeometryScaleTests.NoBarePaddingValues` green; as the must-fail control, the same move applied to the base literal `Padding=\"2,4,2,4\"` turns that fact red. Both are reverted, and every revert restores FloorSidebarItem.xaml to a sha256 equal to a scratch copy taken before it, with a control showing the comparison fires on a one-byte change.",
+    "C3: The ExpandToggle comment paragraph in FloorSidebarItem.xaml drops the sentence that begins `The padding sits high in the attribute list because` (`:132-135` at daa819e), and may say the padding comes from DmPaddingIconToggle; no other sentence in that comment changes meaning, and nothing else in the file changes.",
+    "C4: `src/DungeonMaster.Tests/App/Theme/ThemeDictionaryTests.cs` lists `\"DmPaddingIconToggle\"` with the other DmPadding* keys (`:65-66` at daa819e), so a typo in the consumed key fails a test; no other entry changes.",
+    "C5: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s) (quoted from its summary lines), and `dotnet test src/DungeonMaster.sln` passes every test in every test project, with counts named per project; the baseline is the 1004, 217 and 146 that session 20261113-1727-icon-button-follow-ups recorded at 9c2f1e4 (labelled, not re-measured at daa819e, which changes no src file after it), and any difference is explained.",
+    "C6: Every touched file keeps its line endings, BOM state and indentation: at daa819e FloorSidebarItem.xaml is 397/397 CRLF with a BOM, Tokens.xaml 725/725 CRLF no BOM, ThemeDictionaryTests.cs 474/474 CRLF no BOM, none with a lone CR (Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`, `b.count(b'\\r')`); after the change each is all-CRLF with CR count equal to CRLF count, BOM state unchanged, the XAML files space-indented and the .cs file tab-indented."
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "How should ExpandToggle's literal Padding=\"2,4,2,4\" stop depending on GeometryScaleTests' 8-line comment window: a named Thickness token, widening HasDocumentingComment to measure from the element's start tag, or leaving it?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Named token (DmPaddingIconToggle in Tokens.xaml, referenced by StaticResource), asked at Gate 1 with the track confirmation."
+    }
+  ],
+  "amendments": [],
+  "runs": [
+    {
+      "cc": "17d14536-dc6d-4181-8a0e-9ad6082c468e",
+      "phase": "small",
+      "sir": "1.0.37",
+      "started": "2026-11-13T19:25:00Z",
+      "ended": "2026-11-13T19:41:06Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 1,
+    "reviewRounds": 1
+  },
+  "pushed": true
+}

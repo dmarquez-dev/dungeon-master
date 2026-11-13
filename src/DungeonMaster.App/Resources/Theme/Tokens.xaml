@@ -678,6 +678,8 @@
     ═══════════════════════════════════════════════════════════════ -->
     <!-- Compact icon buttons: the glyph is the content and the box only needs to be hittable. -->
     <Thickness x:Key="DmPaddingTight">4,2</Thickness>
+    <!-- The floor card's expand chevron: 2 across to hug its glyph, 4 down as Compact. -->
+    <Thickness x:Key="DmPaddingIconToggle">2,4</Thickness>
     <!-- Standard action buttons and tool chips. -->
     <Thickness x:Key="DmPaddingCompact">8,4</Thickness>
     <!-- Text inputs — Entry, Editor and SearchBar surfaces. -->

@@ -129,10 +129,8 @@
                      left edge and before the floor name. With it zeroed, the width is the glyph
                      plus the 2 + 2 of horizontal padding, below Microsoft's 23-DIU minimum, which
                      the user accepted; the card-body tap above remains the larger target for the
-                     same action. Top and bottom padding stay 4, as DmPaddingCompact has them. The
-                     padding sits high in the attribute list because
-                     GeometryScaleTests.NoBarePaddingValues accepts a literal padding only when a
-                     comment documenting it closes a few lines above it.
+                     same action. Top and bottom padding stay 4, as DmPaddingCompact has them, and
+                     the whole inset comes from DmPaddingIconToggle.
 
                      The glyph flips between ▸ and ▾ in ApplyExpanded, so the description is
                      rewritten there alongside it; the value here is the collapsed state the glyph
@@ -142,7 +140,7 @@
                     x:Name="ExpandToggle"
                     Grid.Column="0"
                     AutomationId="FloorExpandToggle"
-                    Padding="2,4,2,4"
+                    Padding="{StaticResource DmPaddingIconToggle}"
                     MinimumWidthRequest="0"
                     Text="&#x25B8;"
                     FontFamily="{StaticResource DmFontBody}"
