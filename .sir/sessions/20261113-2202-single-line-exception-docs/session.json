@@ -2,9 +2,9 @@
   "id": "20261113-2202-single-line-exception-docs",
   "name": "single-line-exception-docs",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-13T22:02:50Z",
-  "ended": "2026-11-13T22:37:21Z",
+  "ended": "2026-11-13T22:40:00Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -24,6 +24,14 @@
       "sir": "1.0.39",
       "started": "2026-11-13T22:02:50Z",
       "ended": "2026-11-13T22:37:21Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "e768b033-f0e7-48eb-babd-e079c030c1d4",
+      "phase": "wrap",
+      "sir": "1.0.39",
+      "started": "2026-11-13T22:40:00Z",
+      "ended": "2026-11-13T22:40:00Z",
       "outcome": "complete"
     }
   ],
