@@ -20,8 +20,11 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		<para>
 ///		<c>DmIconButton</c>'s ONLY state beyond the implicit style's is <c>Disabled</c>, at Opacity 0.35.
 ///		A keyed style's CommonStates setters outrank a call site's local Opacity (measured: the
-///		Normal state's Opacity 1 overrode the DungeonListPage StartSessionButton's local 0.35), so
-///		the style itself has to dim a disabled icon button.
+///		Normal state's Opacity 1 overrode the local 0.35 the DungeonListPage StartSessionButton
+///		carried until that local value was removed), so the style itself has to dim a disabled
+///		icon button. Only the Opacity case was measured; each state's WHOLE setter set is
+///		compared, not only its Opacity, on the reasoning that every setter in a VisualState is
+///		applied at the same precedence as that Opacity.
 ///		</para>
 ///		<para>
 ///		Both dictionaries are read off disk as DATA through <see cref="ThemeSource"/>;
@@ -61,8 +64,14 @@ public class IconButtonStyleParityTests
 	private const string DisabledState = "Disabled";
 
 	/// <summary>
+	///		The one property <c>DmIconButton</c>'s Disabled state may set.
+	/// </summary>
+	private const string OpacityProperty = "Opacity";
+
+	/// <summary>
 	///		The Opacity <c>DmIconButton</c>'s Disabled state must set: the 0.35 the disabled icon
-	///		Buttons carried locally before the keyed style began to outrank their local value.
+	///		Buttons once carried locally, a local value since removed because the keyed style
+	///		outranks it.
 	/// </summary>
 	private const double DisabledOpacity = 0.35;
 
@@ -90,9 +99,10 @@ public class IconButtonStyleParityTests
 	};
 
 	/// <summary>
-	///		Asserts that both styles are found and each yields direct setters and
-	///		<c>CommonStates</c> opacities, so the parity facts below cannot pass by comparing two
-	///		empty sets. It is a named fact so a broken scan is reported as a broken scan.
+	///		Asserts that both styles are found and each yields direct setters, at least one
+	///		<c>CommonStates</c> state, and at least one setter in each of the three shared states,
+	///		so the parity facts below cannot pass by comparing two empty sets. It is a named fact
+	///		so a broken scan is reported as a broken scan.
 	/// </summary>
 	[Fact]
 	public void TheStyleScanReachesBothStylesAndTheirSettersAndStates()
@@ -111,25 +121,44 @@ public class IconButtonStyleParityTests
 
 		foreach (var style in new[] { icon!, implicitStyle! })
 		{
+			var states = StateSetters(style);
+
 			DirectSetters(style)
 				.Keys
 				.Should()
 				.Contain(
 					GeometryProperties,
 					"the scan has to reach the geometry setters of both styles");
-			StateOpacities(style)
+			states
+				.Should()
+				.NotBeEmpty(
+					"the scan has to reach the CommonStates states of both styles");
+			states
 				.Keys
 				.Should()
 				.Contain(
 					CommonStateNames,
-					"the scan has to reach the three CommonStates opacities of both styles");
-			StateOpacities(style)
+					"the scan has to reach the three shared CommonStates states of both styles");
+
+			foreach (var state in CommonStateNames)
+			{
+				states[state]
+					.Should()
+					.NotBeEmpty(
+						$"two empty setter sets compare equal, so the {state} state has to yield "
+						+ "at least one setter in both styles");
+			}
+
+			states
 				.Values
+				.SelectMany(setters =>
+					setters.Values)
 				.Should()
 				.OnlyContain(
-					opacity =>
-						opacity.HasValue,
-					"two unparsed opacities compare equal, so each has to parse");
+					value =>
+						value != null,
+					"two absent setter values compare equal, so each state setter has to carry "
+					+ "a Value");
 		}
 	}
 
@@ -154,8 +183,9 @@ public class IconButtonStyleParityTests
 
 	/// <summary>
 	///		Asserts that every setter of <c>DmIconButton</c> other than <c>MinimumWidthRequest</c>
-	///		has the same property and parsed value as the implicit Button style's, including each
-	///		<c>CommonStates</c> opacity, and that neither side has a setter the other lacks.
+	///		has the same property and parsed value as the implicit Button style's, including every
+	///		setter of each shared <c>CommonStates</c> state, and that neither side has a setter the
+	///		other lacks.
 	/// </summary>
 	[Fact]
 	public void EveryDmIconButtonSetterOtherThanMinimumWidthEqualsTheImplicitButtonSetter()
@@ -186,50 +216,72 @@ public class IconButtonStyleParityTests
 					+ "the two have to be retuned together");
 		}
 
-		var iconOpacities = StateOpacities(icon);
-		iconOpacities.Remove(DisabledState);
-		var implicitOpacities = StateOpacities(implicitStyle);
+		var iconStates = StateSetters(icon);
+		iconStates.Remove(DisabledState);
+		var implicitStates = StateSetters(implicitStyle);
 
-		iconOpacities
+		iconStates
 			.Keys
 			.Should()
 			.BeEquivalentTo(
-				implicitOpacities.Keys,
+				implicitStates.Keys,
 				"DmIconButton must restate every CommonStates state the implicit style has, "
 				+ "and no more than the one Disabled state, which its own fact pins");
 
-		foreach (var state in implicitOpacities.Keys)
+		foreach (var state in implicitStates.Keys)
 		{
-			iconOpacities[state]
+			var iconStateSetters = iconStates[state];
+			var implicitStateSetters = implicitStates[state];
+
+			iconStateSetters
+				.Keys
 				.Should()
-				.Be(
-					implicitOpacities[state],
-					$"DmIconButton restates the implicit style's {state} opacity by hand, so "
-					+ "hover and press feedback must be retuned together");
+				.BeEquivalentTo(
+					implicitStateSetters.Keys,
+					$"a setter in DmIconButton's {state} state outranks a call site's local value, "
+					+ "so the state must set exactly the properties the implicit style's does");
+
+			foreach (var property in implicitStateSetters.Keys)
+			{
+				iconStateSetters[property]
+					.Should()
+					.Be(
+						implicitStateSetters[property],
+						$"DmIconButton restates the implicit style's {state} {property} by hand, "
+						+ "so hover and press feedback must be retuned together");
+			}
 		}
 	}
 
 	/// <summary>
-	///		Asserts that <c>DmIconButton</c> declares a <c>Disabled</c> visual state whose Opacity
-	///		parses to 0.35, because the keyed style outranks a call site's own local Opacity.
+	///		Asserts that <c>DmIconButton</c> declares a <c>Disabled</c> visual state whose only
+	///		setter is an Opacity that parses to 0.35, because the keyed style outranks a call
+	///		site's own local Opacity.
 	/// </summary>
 	[Fact]
 	public void DmIconButtonDisabledVisualStateSetsOpacityThirtyFivePercent()
 	{
-		var opacities = StateOpacities(IconStyle()!);
+		var states = StateSetters(IconStyle()!);
 
-		opacities
+		states
 			.Should()
 			.ContainKey(
 				DisabledState,
-				"the keyed style outranks the call site's local Opacity, so it has to dim a "
+				"the keyed style outranks a call site's local Opacity, so it has to dim a "
 				+ "disabled icon button itself");
-		opacities[DisabledState]
+		states[DisabledState]
+			.Keys
+			.Should()
+			.Equal(
+				new[] { OpacityProperty },
+				"a setter in the Disabled state outranks a call site's local value, so the state "
+				+ "must set Opacity and nothing else");
+		states[DisabledState][OpacityProperty]
 			.Should()
 			.Be(
 				DisabledOpacity,
-				"0.35 is the disabled opacity the icon Buttons carried locally before the keyed "
-				+ "style outranked it");
+				"0.35 is the disabled opacity the icon Buttons carried locally until that local "
+				+ "value, outranked by the keyed style, was removed");
 	}
 
 	/// <summary>
@@ -316,10 +368,10 @@ public class IconButtonStyleParityTests
 	}
 
 	/// <summary>
-	///		Returns the Opacity each <c>CommonStates</c> state of the style sets, keyed by state
-	///		name, as a parsed <c>double</c> or <c>null</c> when it will not parse.
+	///		Returns every setter of each <c>CommonStates</c> state of the style, keyed by state
+	///		name and then by <c>Property</c>, with its <c>Value</c> parsed by <see cref="Parse"/>.
 	/// </summary>
-	private static Dictionary<string, double?> StateOpacities(XElement style)
+	private static Dictionary<string, Dictionary<string, object?>> StateSetters(XElement style)
 	{
 		return style
 			.Descendants()
@@ -342,21 +394,22 @@ public class IconButtonStyleParityTests
 						state,
 						"x:Name")!,
 				state =>
-					Parse(
-						state
-							.Descendants()
-							.Where(element =>
-								IsNamed(
-									element,
-									"Setter")
-								&& AttributeValue(
-									element,
-									"Property") == "Opacity")
-							.Select(element =>
+					state
+						.Descendants()
+						.Where(element =>
+							IsNamed(
+								element,
+								"Setter"))
+						.ToDictionary(
+							element =>
 								AttributeValue(
 									element,
-									"Value"))
-							.FirstOrDefault()) as double?);
+									"Property")!,
+							element =>
+								Parse(
+									AttributeValue(
+										element,
+										"Value"))));
 	}
 
 	/// <summary>
