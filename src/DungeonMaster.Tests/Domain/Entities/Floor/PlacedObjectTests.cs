@@ -84,8 +84,10 @@ public class PlacedObjectTests
 			invalidScale);
 
 		// Assert
-		act.Should().Throw<ArgumentOutOfRangeException>()
-			.And.ParamName.Should().Be("scale");
+		var ex = act.Should().Throw<ArgumentOutOfRangeException>().Which;
+
+		ex.ParamName.Should().Be("scale");
+		ex.Message.Should().StartWith($"Scale must be between {ObjectScale.Min} and {ObjectScale.Max}.");
 	}
 
 	[Fact]
@@ -130,8 +132,10 @@ public class PlacedObjectTests
 			invalidScale);
 
 		// Assert
-		act.Should().Throw<ArgumentOutOfRangeException>()
-			.And.ParamName.Should().Be("newScale");
+		var ex = act.Should().Throw<ArgumentOutOfRangeException>().Which;
+
+		ex.ParamName.Should().Be("newScale");
+		ex.Message.Should().StartWith($"Scale must be between {ObjectScale.Min} and {ObjectScale.Max}.");
 	}
 
 	[Fact]

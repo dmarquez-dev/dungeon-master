@@ -1,0 +1,35 @@
+{
+  "id": "20261113-2302-placed-object-scale-messages",
+  "name": "placed-object-scale-messages",
+  "scope": "small",
+  "status": "MERGED",
+  "started": "2026-11-13T23:02:45Z",
+  "ended": "2026-11-15T23:23:05Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: `Constructor_InvalidScale_Throws` and `Update_InvalidScale_Throws` in `src/DungeonMaster.Tests/Domain/Entities/Floor/PlacedObjectTests.cs` each keep their five InlineData cases (NaN, PositiveInfinity, NegativeInfinity, 0.1f, 5.0f) and their existing ParamName assertion (`scale` and `newScale`), and each additionally asserts that the thrown exception's `Message` starts with `$\"Scale must be between {ObjectScale.Min} and {ObjectScale.Max}.\"`, the expected text built from the `ObjectScale` constants as at `:107`, not a literal.",
+    "C2: Injected defect: inserting `if (float.IsNaN(scale)) { throw new ArgumentOutOfRangeException(paramName, scale, \"injected\"); }` as the first statement of `ValidateScale` in `src/DungeonMaster.Domain/Entities/Floors/PlacedObjectMethods.cs` leaves every PlacedObjectTests case green against the 3d496df test file, and after the change fails exactly the two NaN cases (one per theory) and nothing else in DungeonMaster.Tests; the injection is reverted and the file's sha256 equals its pre-injection sha256.",
+    "C3: Only `PlacedObjectTests.cs` differs from 3d496df at the end; it keeps no BOM, tab indentation, and all-CRLF line endings with no lone CR (Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`, `b.count(b'\\r')` all equal; 160 each at 3d496df).",
+    "C4: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s), quoted from its summary lines, and `dotnet test src/DungeonMaster.sln --no-build` passes every test with each project's Total equal to the Total the same command printed before the change, both runs' full output saved to scratch before any filtering.",
+    "C5: On approval, the backlog row `2026-11-03 20261103-1654-test-strength Add message assertions for the NaN, infinity and below-Min arms` (`.sir/backlog.md:148` at 3d496df) is removed and no other backlog line changes."
+  ],
+  "escalations": [],
+  "amendments": [],
+  "runs": [
+    {
+      "cc": "8862f431-b012-4f76-91b4-87c844302273",
+      "phase": "small",
+      "sir": "1.0.40",
+      "started": "2026-11-13T23:02:45Z",
+      "ended": "2026-11-15T23:23:05Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}
