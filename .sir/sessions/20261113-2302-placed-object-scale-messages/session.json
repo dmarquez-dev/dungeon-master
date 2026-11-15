@@ -2,9 +2,9 @@
   "id": "20261113-2302-placed-object-scale-messages",
   "name": "placed-object-scale-messages",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-13T23:02:45Z",
-  "ended": "2026-11-15T23:23:05Z",
+  "ended": "2026-11-15T23:25:26Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -23,6 +23,14 @@
       "sir": "1.0.40",
       "started": "2026-11-13T23:02:45Z",
       "ended": "2026-11-15T23:23:05Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8862f431-b012-4f76-91b4-87c844302273",
+      "phase": "wrap",
+      "sir": "1.0.40",
+      "started": "2026-11-15T23:25:19Z",
+      "ended": "2026-11-15T23:25:26Z",
       "outcome": "complete"
     }
   ],
