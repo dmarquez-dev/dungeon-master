@@ -1,0 +1,51 @@
+{
+  "id": "20261116-2027-nonfinite-test-citations",
+  "name": "nonfinite-test-citations",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-16T20:27:12Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "97137516-fcb0-4382-a8c0-c738a8073e24",
+      "sir": "1.0.42",
+      "started": "2026-11-16T20:27:12Z",
+      "ended": "2026-11-16T20:38:34Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "1c70545a-d35c-4b4b-b39f-a027b278a00b",
+      "sir": "1.0.42",
+      "started": "2026-11-16T20:46:26Z",
+      "ended": "2026-11-16T21:19:37Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "a757b98c-e016-455c-bc85-878ba089bf15",
+      "sir": "1.0.42",
+      "started": "2026-11-16T21:26:27Z",
+      "ended": "2026-11-16T21:44:40Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "267e100a-5bac-49ad-9b60-2c17baf922e6",
+      "sir": "1.0.42",
+      "started": "2026-11-16T21:48:49Z",
+      "ended": "2026-11-16T22:07:50Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  },
+  "brief": "Re-anchor every source-location citation in the doc comments of FloorMapDrawableNonFiniteTests.cs (26 citations on 14 /// lines at 40dddd1, 22 of them drifted) on its enclosing member and statement, with the line number kept only as 'as numbered at 40dddd1' (decision E1), and re-check the claims those comments rest on. Five claims are corrected: the 'one arithmetic operation' summary, two 'persisted CanvasPoint' statements that CanvasPoint's finiteness guard and the handler's catch falsify, the 'not re-measured' sentence, and the Tokens.xaml 'comment block' wording. Nine true claims are kept and re-measured. Only /// lines change, the file stays CRLF, and the build and all three test suites stay green. One task (T1, sir-test-engineer). The backlog row asking for this re-measure is removed at Gate 3, and observations O1-O4 are reported there.",
+  "pushed": true
+}

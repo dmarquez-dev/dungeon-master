@@ -1,0 +1,46 @@
+{
+  "session": "20261116-2027-nonfinite-test-citations",
+  "createdAt": "2026-11-16T21:06:38Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": ["contracts/C1-citations-and-claims.md"],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Re-anchor and re-check every citation in FloorMapDrawableNonFiniteTests.cs doc comments",
+      "agent": "sir-test-engineer",
+      "domain": "test",
+      "owns": ["src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs"],
+      "dependsOn": [],
+      "acceptance": [
+        "C1-1 (anchors). Running C1 section 6.2 check.py on the test file at the task tip prints `P-ANCHOR missing rows 0 []`: every one of the 26 rows R1-R26 of C1 section 3 has a `///` line carrying its new token, its needles and the label `as numbered at <c>40dddd1</c>` (decision E1). At 40dddd1 it prints `missing rows 26`.",
+        "C1-2 (no stale or unmeasured citation). check.py prints `P-ANCHOR stray tokens 0 []`: every P-CITE token in the file is one of C1 section 5's allowed tokens. At 40dddd1 it prints `stray tokens 22`.",
+        "C1-3 (every citation labelled). check.py prints `P-ANCHOR unlabelled citation lines 0 []`. At 40dddd1 it prints 14 lines (8, 13, 31, 40, 41, 42, 43, 44, 45, 47, 51, 52, 64, 118).",
+        "C1-4 (finding F1, class summary arithmetic claim corrected). check.py prints `OK` on both F1 P-CLAIM lines (`the one arithmetic operation` count 0, `ends in a persisted` count 0), and the R1 line names the subtraction (needle `subtract`, checked by C1-1). At 40dddd1 both F1 lines print `NOT MET`.",
+        "C1-5 (finding F2, remarks persistence claim corrected). check.py prints `OK` on the F2 P-CLAIM line (`persists as a <c>CanvasPoint</c>` count 0), and the R5 line names `ArgumentOutOfRangeException` and `ErrorMessage` (C1-1), stating that the Place branch's `new CanvasPoint(placeCanvas.X, placeCanvas.Y)` rejects a non-finite result and the handler's catch reports it, as C1 section 4.2 F2 records. At 40dddd1 the F2 line prints `NOT MET`.",
+        "C1-6 (finding F3, per-test summary of ScreenToCanvas_WithBothPanOffsetComponentsNaN_ReturnsNaNInBothComponents corrected). check.py prints `OK` on the F3 P-CLAIM line (`becomes a fully non-finite persisted` count 0), and the R26 line names `ArgumentOutOfRangeException` (C1-1). At 40dddd1 it prints `NOT MET`.",
+        "C1-7 (finding F4, the not-re-measured sentence the task itself falsifies). check.py prints `OK` on the F4 P-CLAIM line (`was not re-measured` count 0). At 40dddd1 it prints `NOT MET`.",
+        "C1-8 (finding F5, Tokens.xaml comment claim corrected). check.py prints `OK` on both F5 P-CLAIM lines (`inside a comment block` count 0, `two separate XML comments` count at least 1). At 40dddd1 both print `NOT MET`.",
+        "C1-9 (K1 preserved, newly tested: the MAUI pointer-delivery question stays undecided). check.py prints `OK` on both K1 P-CLAIM lines (`is not decidable from this repository` and `is NOT asserted here` each count at least 1). Preserved by design: both print `OK` at 40dddd1 too; this criterion guards the rewrite, not a change.",
+        "C1-10 (K2 preserved, re-measured). The test file still contains `the only production <c>ZoomLevel</c> write` (Python `str.count` at least 1; 1 at 40dddd1), and C1 section 4.1 K2's ZoomLevel grep, re-run in the worktree at the tip, prints production writes only at FloorMapDrawable.cs:455 and DungeonDetailPage.xaml.cs:578 as C1 records, with `grep -c -F 'ApplyZoom(' src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` printing `6`.",
+        "C1-11 (K3 preserved, re-measured). The test file still contains `the one unbounded writer` (count at least 1; 1 at 40dddd1), and C1 section 4.1 K3's PanOffset grep, re-run at the tip, prints writes only at FloorMapDrawable.cs:458, DungeonDetailPage.xaml.cs:585 and :1790-1792 plus test-only FloorMapDrawableExecutionTests.cs:39, as C1 records.",
+        "C1-12 (K4 preserved, re-measured). The test file still contains `<c>grep -c BindableProperty</c>` (count at least 1; 1 at 40dddd1), and `grep -c BindableProperty src/DungeonMaster.App/Graphics/FloorMapDrawable.cs` re-run at the tip prints `0`.",
+        "C1-13 (K5 preserved, re-measured). The rewritten Tokens.xaml sentence still states that neither `.xaml` occurrence is a binding, and C1 section 4.1 K5's xaml grep re-run at the tip prints exactly src/DungeonMaster.App/Resources/Theme/Tokens.xaml:263 and :267.",
+        "C1-14 (K6 preserved, re-measured). The test file still contains `No string literal or <c>nameof</c> occurrence` (count at least 1; 1 at 40dddd1), and C1 section 4.1 K6's literal-or-nameof grep re-run at the tip prints only lines of the test file itself (one line, :37, at 40dddd1); its fixture control prints the `nameof(...)` and `\"PanOffset\"` lines and not the `PanOffset.X` line.",
+        "C1-15 (K8 preserved, re-measured). The test file still contains `clamps a finite one into <c>[0.25, 4.0]</c>` (count at least 1; 1 at 40dddd1), and `grep -n -E 'IsFinite|Math.Clamp|MinimumZoom =|MaximumZoom =' src/DungeonMaster.App/Views/DungeonDetailPage/ZoomLevelGuard.cs` re-run at the tip prints :17, :22, :43 and :53 as C1 section 4.1 K8 records.",
+        "C1-16 (K9 preserved, re-measured). The test file still contains `is not practically possible` (count at least 1; 1 at 40dddd1), and `grep -n -E 'var delta = new PointF|_editor.PanAnchorScreen = new CanvasPoint' src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` re-run at the tip prints :1789 and :1793 as C1 section 4.1 K9 records.",
+        "C1-17 (only doc comments change; preserved, newly tested). check.py prints `P-CODE lines 95 sha256 c77569a96091b5efda08e7e84e8d62ae17d985f3b50551818993bd2a24ff058a`, the value it prints at 40dddd1: no line whose text after leading whitespace does not start with `///` (test bodies, assertions, attributes, usings, blank lines) is added, removed or altered. Controls per C1 section 6.2: a one-character change in a code line changes the digest, one in a `///` line does not.",
+        "C1-18 (doc-comment format, encodes dm-conventions backend/dotnet-format.md section 9 rules at its lines 375 and 378: two-tab description indent, line breaks only at sentence boundaries). check.py prints `P-FORMAT bad lines 0 []` at the tip. Preserved, newly tested: it prints 0 at 40dddd1; the criterion guards the rewritten lines. Its controls (`controls` mode) flag a missing period and a one-tab indent.",
+        "C1-19 (CRLF kept). check.py's `P-BYTES` line at the tip shows the LF count equal to the CRLF count (`LF 169 CRLF 169` at 40dddd1; the total may change if `///` lines are added or removed). The control (`CONTROL bytes fixture: LF 2 CRLF 1 loneCR 1`) passes.",
+        "C1-20 (no lone CR). check.py's `P-BYTES` line shows `loneCR 0` at the tip (0 at 40dddd1). Preserved, newly tested; the same control shows the instrument reports a lone CR as 1.",
+        "C1-21 (no other file changes). `git -C C:/dm-wt/20261116-2027-nonfinite-test-citations status --porcelain`, run by the reviewer or orchestrator after T1 reports, lists only src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs. A `packages.lock.json` entry rewritten by the build is reported by T1, not reverted by it, and settled by the orchestrator (lessons 2026-11-02 and 2026-11-04).",
+        "C1-22 (no session path in shipping source). `grep -c -F '.sir/' src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs` prints `0` at the tip (0 at 40dddd1; preserved, newly tested). Control: the same grep on C:/Users/dmarq/Development/Repos/dungeon-master/.sir/sessions/20261116-2027-nonfinite-test-citations/discussion.md prints 2.",
+        "C1-23 (build clean). `dotnet build C:/dm-wt/20261116-2027-nonfinite-test-citations/src/DungeonMaster.sln` at the tip prints `Build succeeded.`, `0 Warning(s)` and `0 Error(s)`, quoted verbatim in the report (never measured with `grep -icE \"warning|error\"`).",
+        "C1-24 (App.Tests unchanged). `dotnet test C:/dm-wt/20261116-2027-nonfinite-test-citations/src/DungeonMaster.sln --no-build`, full output saved to T1's scratch before filtering, reports DungeonMaster.App.Tests passed 146 of 146 (146/146 at 40dddd1).",
+        "C1-25 (App.UnitTests unchanged). The same run reports DungeonMaster.App.UnitTests passed 217 of 217 (217/217 at 40dddd1).",
+        "C1-26 (DungeonMaster.Tests unchanged). The same run reports DungeonMaster.Tests passed 1004 of 1004 (1004/1004 at 40dddd1).",
+        "C1-27 (findings handed to Gate 3). T1's report lists F1-F5 of C1 section 4.2, each with the tip line number of the corrected sentence taken from `grep -n` on the test file, and states for each of O1-O4 of C1 section 4.3 whether the comment mentions it."
+      ]
+    }
+  ]
+}

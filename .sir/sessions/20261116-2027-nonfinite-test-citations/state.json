@@ -1,0 +1,42 @@
+{
+  "session": "20261116-2027-nonfinite-test-citations",
+  "updatedAt": "2026-11-16T22:07:50Z",
+  "worktree": "C:/dm-wt/20261116-2027-nonfinite-test-citations",
+  "branch": "agent/20261116-2027-nonfinite-test-citations",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261116-2027-nonfinite-test-citations/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s) Time Elapsed 00:00:45.18, exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261116-2027-nonfinite-test-citations/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Failed 0 Passed 217 Total 217 DungeonMaster.App.UnitTests.dll; Passed! Failed 0 Passed 1004 Total 1004 DungeonMaster.Tests.dll; Passed! Failed 0 Passed 146 Total 146 DungeonMaster.App.Tests.dll; exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "40dddd19dcf494430190a310e392fe198b1bffd6",
+      "model": "opus",
+      "commit": "e65ecea"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "How should each source-location citation in FloorMapDrawableNonFiniteTests.cs be anchored so a reader can find it again after line numbers move?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Gate 1, recommended option: anchor each site on its enclosing member and the statement or construct, and keep the line number only labelled 'as numbered at <base>'; an #if span is named by its enclosing member and its directive."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  }
+}
