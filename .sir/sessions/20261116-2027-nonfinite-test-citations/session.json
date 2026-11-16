@@ -2,9 +2,9 @@
   "id": "20261116-2027-nonfinite-test-citations",
   "name": "nonfinite-test-citations",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-16T20:27:12Z",
-  "ended": null,
+  "ended": "2026-11-16T22:13:47Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -39,10 +39,18 @@
       "started": "2026-11-16T21:48:49Z",
       "ended": "2026-11-16T22:07:50Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "267e100a-5bac-49ad-9b60-2c17baf922e6",
+      "sir": "1.0.42",
+      "started": "2026-11-16T22:13:46Z",
+      "ended": "2026-11-16T22:13:47Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
+    "userInteractions": 3,
     "escalationsRaised": 1,
     "reviewRounds": 0
   },
