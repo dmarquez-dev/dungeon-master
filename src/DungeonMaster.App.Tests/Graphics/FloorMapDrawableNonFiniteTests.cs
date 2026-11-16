@@ -5,12 +5,12 @@ namespace DungeonMaster.App.Tests.Graphics;
 
 /// <summary>
 ///		Pins what <see cref="FloorMapDrawable.ScreenToCanvas"/> returns for a degenerate <see cref="FloorMapDrawable.ZoomLevel"/> or a non-finite <see cref="FloorMapDrawable.PanOffset"/>, and records whether production can reach either state.
-///		The division at <c>FloorMapDrawable.cs:629-630</c> is the one arithmetic operation in the chain that ends in a persisted <c>CanvasPoint</c>: the call at <c>DungeonDetailPage.xaml.cs:1437</c> feeds the conversion at <c>DungeonDetailPage.xaml.cs:1442</c>.
+///		<c>ScreenToCanvas</c> at <c>FloorMapDrawable.cs:647-648</c> subtracts <c>PanOffset</c> and then divides by <c>ZoomLevel</c>, and those two operations are the only arithmetic in the Place-tool chain, where <c>var placeCanvas = _drawable.ScreenToCanvas(placeRaw);</c> in <c>OnMapStartInteraction</c> at <c>DungeonDetailPage.xaml.cs:1595</c> feeds <c>new CanvasPoint(placeCanvas.X, placeCanvas.Y)</c>, the position argument to <c>PlaceObjectAsync</c> at <c>DungeonDetailPage.xaml.cs:1600</c>, all three as numbered at <c>40dddd1</c>.
 ///		The drawable is constructed with <c>new FloorMapDrawable { ... }</c> and no MAUI host, exactly as <c>FloorMapDrawableExecutionTests.cs</c> does.
 /// </summary>
 /// <remarks>
 ///		<para>
-///		FINDING, on the question of whether an input reachable from <c>DungeonDetailPage.xaml.cs:1437</c> can leave <c>ZoomLevel</c> or <c>PanOffset</c> non-finite.
+///		FINDING, on the question of whether an input reaching the <c>ScreenToCanvas</c> call in <c>OnMapStartInteraction</c> at <c>DungeonDetailPage.xaml.cs:1595</c>, as numbered at <c>40dddd1</c>, can leave <c>ZoomLevel</c> or <c>PanOffset</c> non-finite.
 ///		</para>
 ///		<para>
 ///		<c>ZoomLevel</c>: NO, on every target.
@@ -28,28 +28,28 @@ namespace DungeonMaster.App.Tests.Graphics;
 ///		<c>PanOffset</c>: NOT closed by source inspection.
 ///		Its only non-constant writer accumulates raw touch coordinates as <c>_drawable.PanOffset.X + delta.X</c>, where <c>delta</c> is built from <c>e.Touches[0].X</c> and <c>.Y</c>.
 ///		Nothing on that path tests the incoming coordinate for finiteness, and no later writer sanitizes <c>PanOffset</c> except <c>ResetViewport</c>.
-///		A single non-finite touch coordinate would therefore make <c>PanOffset</c> permanently <c>NaN</c> and every subsequent <c>ScreenToCanvas</c> result <c>NaN</c>, which <c>DungeonDetailPage.xaml.cs:1442</c> then persists as a <c>CanvasPoint</c>.
+///		A single non-finite touch coordinate would therefore make <c>PanOffset</c> permanently <c>NaN</c> and every subsequent <c>ScreenToCanvas</c> result <c>NaN</c>. Such a result is not persisted through the Place-tool branch: <c>new CanvasPoint(placeCanvas.X, placeCanvas.Y)</c>, the position argument to <c>PlaceObjectAsync</c> at <c>DungeonDetailPage.xaml.cs:1600</c>, rejects it with <c>ArgumentOutOfRangeException</c> from the finiteness guard at <c>CanvasPoint.cs:94</c>, and the handler's <c>catch</c> at <c>DungeonDetailPage.xaml.cs:1652</c> reports it through <c>_viewModel.ErrorMessage</c>, all three as numbered at <c>40dddd1</c>.
 ///		Whether the MAUI Windows pointer pipeline can ever deliver such a coordinate is not decidable from this repository's source and is NOT asserted here.
 ///		Reaching <c>±Infinity</c> by accumulation alone is not practically possible, because each <c>delta</c> is bounded by the canvas pixel extent.
 ///		</para>
 ///		<para>
 ///		ASSIGNMENT SITES CHECKED in reaching that answer, the complete set.
 ///		They come from <c>grep -rn "ZoomLevel"</c> and <c>grep -rn "PanOffset"</c> over <c>src/</c> with <c>--include=*.cs --include=*.xaml</c>, filtered through <c>grep -Ev "[\\/](obj|bin)[\\/]"</c>, with every hit then classified by eye as a write or a read.
-///		Only the <c>ZoomLevel</c> text was corrected after <c>ZoomLevelGuard</c> was introduced, namely the two paragraphs above on <c>ZoomLevel</c> and <c>Math.Clamp</c>, list items 3 and 4, and the summary of <see cref="MathClampWithNaNReturnsNaNRatherThanABound"/>, and every line-number citation elsewhere in this file was not re-measured by that correction.
+///		Every line-number citation in this file names its line as numbered at <c>40dddd1</c>, and each was re-checked at that commit against the statement it names.
 ///		<list type="number">
-///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:439</c>, the <c>ZoomLevel</c> declaration initializer <c>= 1.0f</c>, finite.</item>
-///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:442</c>, the <c>PanOffset</c> declaration initializer <c>= PointF.Zero</c>, finite.</item>
-///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:520</c>, <c>_drawable.ZoomLevel = ZoomLevelGuard.Next(_drawable.ZoomLevel, raw);</c> inside <c>ApplyZoom</c> at <c>:518</c>, the only production <c>ZoomLevel</c> write, whose callers are <c>:513</c> and <c>:516</c> unfenced, <c>:528</c> inside <c>ResetViewport</c>, <c>:617</c> inside <c>#if WINDOWS</c> spanning <c>:606-619</c>, and <c>:631</c> inside <c>#elif MACCATALYST</c> spanning <c>:619-635</c>.</item>
-///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:528</c>, <c>ApplyZoom(1.0f);</c> inside <c>ResetViewport</c> at <c>:525</c>, which no longer writes <c>ZoomLevel</c> directly: its finite <c>1.0f</c> reaches the property through <c>ZoomLevelGuard.Next</c>.</item>
-///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:508</c>, <c>_drawable.PanOffset = PointF.Zero;</c> inside <c>ResetViewport</c>, finite.</item>
-///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:1632-1634</c>, the pan-drag accumulator <c>_drawable.PanOffset = new PointF(_drawable.PanOffset.X + delta.X, _drawable.PanOffset.Y + delta.Y);</c>, the one unbounded writer.</item>
+///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:455</c>, as numbered at <c>40dddd1</c>, the <c>ZoomLevel</c> declaration initializer <c>= 1.0f</c>, finite.</item>
+///		<item><c>src/DungeonMaster.App/Graphics/FloorMapDrawable.cs:458</c>, as numbered at <c>40dddd1</c>, the <c>PanOffset</c> declaration initializer <c>= PointF.Zero</c>, finite.</item>
+///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:578</c>, <c>_drawable.ZoomLevel = ZoomLevelGuard.Next(_drawable.ZoomLevel, raw);</c> inside <c>ApplyZoom</c> at <c>:576</c>, the only production <c>ZoomLevel</c> write, whose callers are <c>:571</c> in <c>OnZoomInClicked</c> and <c>:574</c> in <c>OnZoomOutClicked</c> unfenced, <c>:586</c> inside <c>ResetViewport</c>, <c>:675</c> in <c>OnMapScrollWheel</c> inside the class-level <c>#if WINDOWS</c> region spanning <c>:664-677</c>, and <c>:689</c> in <c>OnMapPinchUpdated</c> inside the <c>#elif MACCATALYST</c> arm spanning <c>:677-693</c>, all as numbered at <c>40dddd1</c>.</item>
+///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:586</c>, <c>ApplyZoom(1.0f);</c> inside <c>ResetViewport</c> at <c>:583</c>, both as numbered at <c>40dddd1</c>, which no longer writes <c>ZoomLevel</c> directly: its finite <c>1.0f</c> reaches the property through <c>ZoomLevelGuard.Next</c>.</item>
+///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:585</c>, as numbered at <c>40dddd1</c>, <c>_drawable.PanOffset = PointF.Zero;</c> inside <c>ResetViewport</c>, finite.</item>
+///		<item><c>src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:1790-1792</c>, as numbered at <c>40dddd1</c>, the pan-drag accumulator <c>_drawable.PanOffset = new PointF(_drawable.PanOffset.X + delta.X, _drawable.PanOffset.Y + delta.Y);</c> in <c>OnMapDragInteraction</c>, the one unbounded writer.</item>
 ///		</list>
-///		Two test-only writes were excluded from the reachability question: <c>FloorMapDrawableExecutionTests.cs:39-40</c> and this file.
+///		Two test-only writes were excluded from the reachability question: <c>FloorMapDrawableExecutionTests.cs:39-40</c> in <c>ScreenToCanvasInvertsPanAndZoom</c>, as numbered at <c>40dddd1</c>, and this file.
 ///		</para>
 ///		<para>
 ///		Why that grep is exhaustive over the ways either property can be set, with each part checked rather than assumed.
-///		<see cref="FloorMapDrawable"/> is declared <c>sealed class FloorMapDrawable : IDrawable, IDisposable</c> at <c>FloorMapDrawable.cs:98</c> and so is not a <c>BindableObject</c>, and <c>grep -c BindableProperty</c> over <c>FloorMapDrawable.cs</c> returns <c>0</c>, so neither property is reachable through the MAUI property system or a XAML binding.
-///		The only occurrences of <c>FloorMapDrawable</c> in any <c>.xaml</c> are two prose lines inside a comment block, at <c>Resources/Theme/Tokens.xaml:263</c> and <c>:267</c>, which are not bindings.
+///		<see cref="FloorMapDrawable"/> is declared <c>sealed class FloorMapDrawable : IDrawable, IDisposable</c> at <c>FloorMapDrawable.cs:98</c>, as numbered at <c>40dddd1</c>, and so is not a <c>BindableObject</c>, and <c>grep -c BindableProperty</c> over <c>FloorMapDrawable.cs</c> returns <c>0</c>, so neither property is reachable through the MAUI property system or a XAML binding.
+///		The only occurrences of <c>FloorMapDrawable</c> in any <c>.xaml</c> are two prose lines in two separate XML comments, the section banner <c>Feature-specific: FloorMapDrawable</c> at <c>Resources/Theme/Tokens.xaml:263</c> and the comment above <c>DmMapAreaStroke</c> at <c>:267</c>, both as numbered at <c>40dddd1</c>, and neither is a binding.
 ///		No string literal or <c>nameof</c> occurrence of either property name exists anywhere under <c>src/</c> outside this comment, so no reflective write by literal name exists either.
 ///		What remains unexcluded is a reflective write through a name assembled at run time, which no command can rule out.
 ///		</para>
@@ -61,7 +61,7 @@ namespace DungeonMaster.App.Tests.Graphics;
 public class FloorMapDrawableNonFiniteTests
 {
 	/// <summary>
-	///		A zero <c>ZoomLevel</c> with a screen point away from the pan offset leaves both numerators non-zero, so the division at <c>FloorMapDrawable.cs:629-630</c> is non-zero over zero.
+	///		A zero <c>ZoomLevel</c> with a screen point away from the pan offset leaves both numerators non-zero, so the division in <c>ScreenToCanvas</c> at <c>FloorMapDrawable.cs:647-648</c>, as numbered at <c>40dddd1</c>, is non-zero over zero.
 	/// </summary>
 	[Fact]
 	public void ScreenToCanvas_WithZeroZoomAndScreenPointAwayFromPanOffset_ReturnsSignedInfinities()
@@ -115,7 +115,7 @@ public class FloorMapDrawableNonFiniteTests
 	}
 
 	/// <summary>
-	///		Both <c>PanOffset</c> components <c>NaN</c> is the shape that reaches <c>DungeonDetailPage.xaml.cs:1442</c> and becomes a fully non-finite persisted <c>CanvasPoint</c>.
+	///		Both <c>PanOffset</c> components <c>NaN</c> is the shape that reaches the position argument to <c>PlaceObjectAsync</c> at <c>DungeonDetailPage.xaml.cs:1600</c>, as numbered at <c>40dddd1</c>, where <c>new CanvasPoint</c> rejects it with <c>ArgumentOutOfRangeException</c> instead of persisting it.
 	/// </summary>
 	[Fact]
 	public void ScreenToCanvas_WithBothPanOffsetComponentsNaN_ReturnsNaNInBothComponents()
