@@ -2,9 +2,9 @@
   "id": "20261116-1932-objectkind-ordinal-test",
   "name": "objectkind-ordinal-test",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-16T19:32:26Z",
-  "ended": "2026-11-16T20:02:44Z",
+  "ended": "2026-11-16T20:06:22Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -31,6 +31,14 @@
       "sir": "1.0.41",
       "started": "2026-11-16T19:32:26Z",
       "ended": "2026-11-16T20:02:44Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "2d926ebd-5590-4d76-ab9e-c6ee85591e5f",
+      "phase": "wrap",
+      "sir": "1.0.41",
+      "started": "2026-11-16T20:05:58Z",
+      "ended": "2026-11-16T20:06:22Z",
       "outcome": "complete"
     }
   ],
