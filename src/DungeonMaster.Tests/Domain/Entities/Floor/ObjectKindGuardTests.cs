@@ -6,7 +6,10 @@ namespace DungeonMaster.Tests.Domain.Entities.Floor;
 
 /// <summary>
 ///		Tests for the <see cref="ObjectKind.None"/> member and the single construction
-///		chokepoint on <see cref="PlacedObject"/> that rejects it.
+///		chokepoint on <see cref="PlacedObject"/> that rejects it. Only the ordinal of
+///		<see cref="ObjectKind.None"/> (0, the default) is relied on; the other
+///		members' ordinals are not persisted, because <c>PlacedObjectConfiguration</c>
+///		stores <c>Kind</c> by name, so renumbering them is free.
 /// </summary>
 public class ObjectKindGuardTests
 {
@@ -20,20 +23,6 @@ public class ObjectKindGuardTests
 		// Assert
 		noneValue.Should().Be(0);
 		defaultKind.Should().Be(ObjectKind.None);
-	}
-
-	[Fact]
-	public void DoorWoodIsOne_DoorIronIsTwo_AndWeaponRackIsThirtySeven()
-	{
-		// Act
-		var doorWoodValue = (int)ObjectKind.DoorWood;
-		var doorIronValue = (int)ObjectKind.DoorIron;
-		var weaponRackValue = (int)ObjectKind.WeaponRack;
-
-		// Assert
-		doorWoodValue.Should().Be(1);
-		doorIronValue.Should().Be(2);
-		weaponRackValue.Should().Be(37);
 	}
 
 	[Fact]
