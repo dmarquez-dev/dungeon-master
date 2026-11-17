@@ -24,6 +24,52 @@ public class TileCoordinateHelperTests
 		result.Row.Should().Be(expectedRow);
 	}
 
+	// The four facts below pin what SnapToGrid CURRENTLY returns for a non-finite coordinate.
+	// They are not a desired result: a NaN snaps to a real tile, so callers must guard against it.
+	[Fact]
+	public void SnapToGrid_NaNX_PinsCurrentBehaviourCallersMustGuardAgainst()
+	{
+		// Act
+		var result = TileCoordinateHelper.SnapToGrid(float.NaN, 40f, TileSize);
+
+		// Assert
+		result.Col.Should().Be(0, "this pins current behaviour for a NaN x, which callers must guard against");
+		result.Row.Should().Be(2, "this pins current behaviour for a NaN x, which callers must guard against");
+	}
+
+	[Fact]
+	public void SnapToGrid_NaNY_PinsCurrentBehaviourCallersMustGuardAgainst()
+	{
+		// Act
+		var result = TileCoordinateHelper.SnapToGrid(40f, float.NaN, TileSize);
+
+		// Assert
+		result.Col.Should().Be(2, "this pins current behaviour for a NaN y, which callers must guard against");
+		result.Row.Should().Be(0, "this pins current behaviour for a NaN y, which callers must guard against");
+	}
+
+	[Fact]
+	public void SnapToGrid_PositiveInfinity_PinsCurrentBehaviourCallersMustGuardAgainst()
+	{
+		// Act
+		var result = TileCoordinateHelper.SnapToGrid(float.PositiveInfinity, float.PositiveInfinity, TileSize);
+
+		// Assert
+		result.Col.Should().Be(int.MaxValue, "this pins current behaviour for positive infinity, which callers must guard against");
+		result.Row.Should().Be(int.MaxValue, "this pins current behaviour for positive infinity, which callers must guard against");
+	}
+
+	[Fact]
+	public void SnapToGrid_NegativeInfinity_PinsCurrentBehaviourCallersMustGuardAgainst()
+	{
+		// Act
+		var result = TileCoordinateHelper.SnapToGrid(float.NegativeInfinity, float.NegativeInfinity, TileSize);
+
+		// Assert
+		result.Col.Should().Be(int.MinValue, "this pins current behaviour for negative infinity, which callers must guard against");
+		result.Row.Should().Be(int.MinValue, "this pins current behaviour for negative infinity, which callers must guard against");
+	}
+
 	[Theory]
 	[InlineData(0, 0, 0f, 0f)]
 	[InlineData(1, 2, 20f, 40f)]

@@ -1753,6 +1753,16 @@ public partial class DungeonDetailPage : ContentPage
 
 	private void OnMapDragInteraction(object? sender, TouchEventArgs e)
 	{
+		// A non-finite first touch is dropped before any branch runs. This handler has no try,
+		// so the CanvasPoint the object-drag and Pan branches build would throw on it, and a NaN
+		// reaching SnapToGrid in the Move branch snaps to a real tile rather than failing. The
+		// list pattern never indexes an empty Touches, so an empty list reaches the branches as before.
+		if (e.Touches is [var firstTouch, ..]
+			&& (!float.IsFinite(firstTouch.X) || !float.IsFinite(firstTouch.Y)))
+		{
+			return;
+		}
+
 		// Object drag-to-move: active whenever a touch started on an object in Place mode.
 		if (_editor.PendingObjectClickId is not null
 			&& (_viewModel.Canvas.ActiveTool == MapTool.Place || _viewModel.Canvas.ActiveTool == MapTool.Select))
