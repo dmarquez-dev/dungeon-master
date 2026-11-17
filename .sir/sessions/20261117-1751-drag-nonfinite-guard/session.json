@@ -2,9 +2,9 @@
   "id": "20261117-1751-drag-nonfinite-guard",
   "name": "drag-nonfinite-guard",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-17T17:51:49Z",
-  "ended": null,
+  "ended": "2026-11-17T18:37:21Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -31,6 +31,14 @@
       "sir": "1.0.43",
       "started": "2026-11-17T17:51:49Z",
       "ended": "2026-11-17T18:25:32Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "06a41062-ab24-491a-a062-84c9d595daa3",
+      "phase": "wrap",
+      "sir": "1.0.43",
+      "started": "2026-11-17T18:37:20Z",
+      "ended": "2026-11-17T18:37:21Z",
       "outcome": "complete"
     }
   ],
