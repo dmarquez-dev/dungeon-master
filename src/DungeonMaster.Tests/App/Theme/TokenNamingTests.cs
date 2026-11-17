@@ -337,13 +337,12 @@ public class TokenNamingTests
 		// Both registers are non-empty by construction, so an empty scan would fill that fact's
 		// complaints list rather than empty it — but the guard is stated anyway, as a fact of its
 		// own, because "it happens to fail loudly for another reason" is a property of today's
-		// registers, not of that fact. The reason below was written when the guard sat inside
-		// that fact, so its "the whole fact" names that one.
+		// registers, not of that fact.
 		ColourTokens()
 			.Should()
 			.NotBeEmpty(
 				"every entry in both registers is resolved against this scan, so an empty scan "
-				+ "makes the whole fact meaningless");
+				+ "makes EveryRegisteredExceptionStillExistsAndStillOffends meaningless");
 	}
 
 	/// <summary>

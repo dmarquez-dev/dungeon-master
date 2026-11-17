@@ -59,8 +59,7 @@ public class IconFontCoverageTests : IClassFixture<IconFontFixture>
 	/// <remarks>
 	///		That fact's offenders list is empty both when every icon is right and when the scan
 	///		reached nothing, so on its own it passes on an empty scan. This fact is the one that
-	///		fails then. The reason below was written when the guard sat inside that fact, so its
-	///		"this fact" names that one.
+	///		fails then.
 	/// </remarks>
 	[Fact]
 	public void TheIconTextScanReachesAtLeastOneDmFontIconDeclaration()
@@ -73,7 +72,7 @@ public class IconFontCoverageTests : IClassFixture<IconFontFixture>
 			.Should()
 			.NotBeEmpty(
 				"the scan must reach at least one control declaring DmFontIcon with a literal "
-				+ "Text, or this fact guards nothing");
+				+ "Text, or EveryDmFontIconTextIsInTheIconFontsCmap guards nothing");
 	}
 
 	/// <summary>

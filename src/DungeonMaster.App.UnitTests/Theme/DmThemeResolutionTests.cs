@@ -90,9 +90,11 @@ public class DmThemeResolutionTests
 	/// <remarks>
 	///		This is the behavioural replacement for
 	///		<c>DmThemeKeysResolveTests.EveryKeyDmThemeResolvesIsDefinedInTheThemeDictionaries</c>
-	///		and <c>…_IsDeclaredAsTheTypeItIsResolvedAs</c>. Both of those read the key AND the
-	///		declaring element out of text; this one makes the call. A missing key, a key declared as
-	///		the wrong XAML element, and a read that ran too early all throw out of
+	///		and
+	///		<c>DmThemeKeysResolveTests.EveryKeyDmThemeResolvesIsDeclaredAsTheTypeItIsResolvedAs</c>.
+	///		Both of those read the key AND the declaring element out of text; this one makes the
+	///		call. A missing key, a key declared as the wrong XAML element, and a read that ran too
+	///		early all throw out of
 	///		<c>Resolve&lt;T&gt;</c> with a message naming the key, and that message is reported here
 	///		verbatim.
 	/// </remarks>
