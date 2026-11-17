@@ -2,8 +2,9 @@
   "id": "20261117-2333-test-wording-fixes",
   "name": "test-wording-fixes",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-17T23:33:40Z",
+  "ended": "2026-11-17T23:51:45Z",
   "parent": null,
   "children": [],
   "criteria": [
@@ -22,6 +23,14 @@
       "sir": "1.0.44",
       "started": "2026-11-17T23:33:40Z",
       "ended": "2026-11-17T23:47:33Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "f08754bb-317d-402d-8f01-6664f722021e",
+      "phase": "wrap",
+      "sir": "1.0.44",
+      "started": "2026-11-17T23:51:27Z",
+      "ended": "2026-11-17T23:51:45Z",
       "outcome": "complete"
     }
   ],
