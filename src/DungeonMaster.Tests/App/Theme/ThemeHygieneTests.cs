@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using FluentAssertions;
+using FluentAssertions.Execution;
 
 namespace DungeonMaster.Tests.App.Theme;
 
@@ -30,14 +31,34 @@ public class ThemeHygieneTests
 	///		stop it matching DmDivider's <c>IconFontSize</c> bindable property; an exact name
 	///		comparison cannot make that mistake in the first place.
 	///		</para>
+	///		<para>
+	///		It is matched in two forms: as an attribute name, and as the <c>Property</c> of a <c>Setter</c> whose <c>Value</c> is bare.
+	///		Both forms use the same <see cref="IsProperty"/> comparison, so <c>IconFontSize</c> is outside the reach of either.
+	///		</para>
 	/// </summary>
 	private const string FontSizeProperty = "FontSize";
 
 	/// <summary>
 	///		The XAML property whose bare font-family name this ratchet forbids. See
 	///		<see cref="FontSizeProperty"/> for why this is a name rather than a pattern.
+	///		It is matched in the same two forms, as an attribute name and as a <c>Setter</c>'s <c>Property</c>.
 	/// </summary>
 	private const string FontFamilyProperty = "FontFamily";
+
+	/// <summary>
+	///		The local name of the style element whose <c>Property</c> and <c>Value</c> attributes set a property indirectly.
+	/// </summary>
+	private const string SetterElement = "Setter";
+
+	/// <summary>
+	///		The <c>Setter</c> attribute that names the property being set.
+	/// </summary>
+	private const string SetterPropertyAttribute = "Property";
+
+	/// <summary>
+	///		The <c>Setter</c> attribute that carries the value being set.
+	/// </summary>
+	private const string SetterValueAttribute = "Value";
 
 	// The C# forms of the two typography literals. (?<![A-Za-z]) keeps IconFontSize out, and
 	// =(?!>) keeps expression-bodied members out. Both patterns match an assignment only —
@@ -134,11 +155,13 @@ public class ThemeHygieneTests
 	/// <summary>
 	///		Asserts that numeric font sizes appear only in the theme dictionaries, in markup and
 	///		in code-behind alike.
+	///		In markup it reads both the attribute form and the <c>Setter</c> form.
 	/// </summary>
 	[Fact]
 	public void NoBareFontSizesOutsideTheThemeDictionaries()
 	{
-		XamlAttributeOffenders(
+		XamlPropertyOffenders(
+				ScannedXamlDocuments(),
 				FontSizeProperty,
 				IsBareFontSize)
 			.Concat(CSharpOffenders(CSharpBareFontSizePattern))
@@ -149,16 +172,102 @@ public class ThemeHygieneTests
 	/// <summary>
 	///		Asserts that font family names appear only in the theme dictionaries, in markup and
 	///		in code-behind alike.
+	///		In markup it reads both the attribute form and the <c>Setter</c> form.
 	/// </summary>
 	[Fact]
 	public void NoBareFontFamiliesOutsideTheThemeDictionaries()
 	{
-		XamlAttributeOffenders(
+		XamlPropertyOffenders(
+				ScannedXamlDocuments(),
 				FontFamilyProperty,
 				IsBareFontFamily)
 			.Concat(CSharpOffenders(CSharpBareFontFamilyPattern))
 			.Should()
 			.BeEmpty();
+	}
+
+	/// <summary>
+	///		Asserts that the probe the two typography facts call reports a bare FontSize Setter and a bare FontFamily Setter, each with its file, line and text.
+	///		The document is synthetic because no application file carries a bare Setter, so nothing else shows that the probe reaches the Setter form.
+	/// </summary>
+	[Fact]
+	public void BareFontSizeAndFontFamilySettersAreReportedByTheTypographyProbe()
+	{
+		// Arrange
+		var document = SyntheticDocument(
+			"<Setter Property=\"FontSize\" Value=\"14\" />",
+			"<Setter Property=\"FontFamily\" Value=\"EBGaramondRegular\" />");
+		var relative = NativeRelativePath(document);
+
+		// Act
+		var fontSizes = XamlPropertyOffenders(
+				[document],
+				FontSizeProperty,
+				IsBareFontSize)
+			.ToList();
+
+		var fontFamilies = XamlPropertyOffenders(
+				[document],
+				FontFamilyProperty,
+				IsBareFontFamily)
+			.ToList();
+
+		// Assert
+		using (new AssertionScope())
+		{
+			fontSizes.Should().Equal($"{relative}:4 -> Setter Property=\"FontSize\" Value=\"14\"");
+			fontFamilies.Should().Equal($"{relative}:5 -> Setter Property=\"FontFamily\" Value=\"EBGaramondRegular\"");
+		}
+	}
+
+	/// <summary>
+	///		Asserts that the probe the FontSize fact calls reports neither a Setter whose Value is a token reference nor a Setter whose Property is IconFontSize.
+	/// </summary>
+	[Fact]
+	public void TokenValuedAndIconFontSizeSettersAreNotReportedByTheTypographyProbe()
+	{
+		// Arrange
+		var document = SyntheticDocument(
+			"<Setter Property=\"FontSize\" Value=\"{StaticResource DmFontSizeBody}\" />",
+			"<Setter Property=\"IconFontSize\" Value=\"16\" />");
+
+		// Act
+		var offenders = XamlPropertyOffenders(
+				[document],
+				FontSizeProperty,
+				IsBareFontSize)
+			.ToList();
+
+		// Assert
+		offenders.Should().BeEmpty();
+	}
+
+	/// <summary>
+	///		Asserts that the allow-list self-check counts a bare Setter as an offence, so an entry whose only offence is a bare Setter is not reported stale.
+	///		The token-valued row is the near miss that keeps the two bare rows from passing on something else in the synthetic document.
+	/// </summary>
+	/// <param name="setter">
+	///		The one Setter the synthetic document carries.
+	/// </param>
+	/// <param name="expected">
+	///		Whether the document should still count as offending.
+	/// </param>
+	[Theory]
+	[InlineData("<Setter Property=\"FontSize\" Value=\"14\" />", true)]
+	[InlineData("<Setter Property=\"FontFamily\" Value=\"EBGaramondRegular\" />", true)]
+	[InlineData("<Setter Property=\"FontSize\" Value=\"{StaticResource DmFontSizeBody}\" />", false)]
+	public void ADocumentWhoseOnlyTypographyIsASetterStillOffendsOnlyWhenTheSetterValueIsBare(
+		string setter,
+		bool expected)
+	{
+		// Arrange
+		var document = SyntheticDocument(setter);
+
+		// Act
+		var offends = StillOffends(document);
+
+		// Assert
+		offends.Should().Be(expected);
 	}
 
 	/// <summary>
@@ -267,11 +376,17 @@ public class ThemeHygieneTests
 			|| document
 				.Document
 				.Descendants()
-				.SelectMany(element =>
-					element.Attributes())
-				.Any(attribute =>
-					(IsProperty(attribute.Name, FontSizeProperty) && IsBareFontSize(attribute.Value))
-					|| (IsProperty(attribute.Name, FontFamilyProperty) && IsBareFontFamily(attribute.Value)));
+				.Any(element =>
+					PropertyOffences(
+							element,
+							FontSizeProperty,
+							IsBareFontSize)
+						.Any()
+					|| PropertyOffences(
+							element,
+							FontFamilyProperty,
+							IsBareFontFamily)
+						.Any());
 	}
 
 	/// <summary>
@@ -345,41 +460,130 @@ public class ThemeHygieneTests
 	}
 
 	/// <summary>
-	///		Reports every attribute whose name is the named property and whose value the predicate
-	///		calls bare. This is the object-model form of an attribute pattern, and it is exact
-	///		where the pattern was approximate: an attribute NAMED FontSize is the only thing that
-	///		matches, so IconFontSize and a nameof(FontSize) in prose are outside its reach without
-	///		a lookbehind.
+	///		Reports, for every document given, each place an element sets the named property to a value the predicate calls bare, with the file, the line and the offending text.
+	///		This is the one probe the typography facts and their synthetic controls share, so a control cannot stay green while the facts' reach shrinks.
+	///		See <see cref="PropertyOffences"/> for the two forms it reads.
 	/// </summary>
+	/// <param name="documents">
+	///		The parsed documents to read.
+	/// </param>
 	/// <param name="property">
 	///		The property name, compared after any attached-property prefix.
 	/// </param>
 	/// <param name="isBare">
-	///		Whether the attribute's value is a literal rather than a token reference.
+	///		Whether a value is a literal rather than a token reference.
 	/// </param>
-	private static IEnumerable<string> XamlAttributeOffenders(
+	private static IEnumerable<string> XamlPropertyOffenders(
+		IEnumerable<ThemeDocument> documents,
 		string property,
 		Func<string, bool> isBare)
 	{
-		foreach (var document in ScannedXamlDocuments())
+		foreach (var document in documents)
 		{
 			var relative = NativeRelativePath(document);
 
 			foreach (var element in document.Document.Descendants())
 			{
-				foreach (var attribute in element.Attributes())
-				{
-					if (!IsProperty(attribute.Name, property)
-						|| !isBare(attribute.Value))
-					{
-						continue;
-					}
+				var offences = PropertyOffences(
+					element,
+					property,
+					isBare);
 
-					yield return $"{relative}:{LineOf(attribute)} -> "
-						+ $"{attribute.Name.LocalName}=\"{attribute.Value}\"";
+				foreach (var offence in offences)
+				{
+					yield return $"{relative}:{offence.Line} -> {offence.Text}";
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	///		Every place one element sets the named property to a value the predicate calls bare, with the line it is on and the text to report.
+	///		Two forms are read: an attribute whose name is the property, and a <c>Setter</c> whose <c>Property</c> names the property and whose <c>Value</c> is bare.
+	///		Both forms use the <see cref="IsProperty"/> comparison, which is exact where a text pattern was approximate, so IconFontSize and a nameof(FontSize) in prose are outside its reach without a lookbehind.
+	///		The probe and the allow-list self-check both call this, so the two cannot disagree about what offends.
+	/// </summary>
+	/// <param name="element">
+	///		The element to examine.
+	/// </param>
+	/// <param name="property">
+	///		The property name, compared after any attached-property prefix.
+	/// </param>
+	/// <param name="isBare">
+	///		Whether a value is a literal rather than a token reference.
+	/// </param>
+	private static IEnumerable<(int Line, string Text)> PropertyOffences(
+		XElement element,
+		string property,
+		Func<string, bool> isBare)
+	{
+		foreach (var attribute in element.Attributes())
+		{
+			if (IsProperty(
+					attribute.Name.LocalName,
+					property)
+				&& isBare(attribute.Value))
+			{
+				yield return (
+					LineOf(attribute),
+					$"{attribute.Name.LocalName}=\"{attribute.Value}\"");
+			}
+		}
+
+		// Compared on the local name: the element sits in the MAUI default namespace, so its full
+		// XName is never the bare string "Setter".
+		if (element.Name.LocalName != SetterElement)
+		{
+			yield break;
+		}
+
+		var setterProperty = element.Attribute(SetterPropertyAttribute);
+		var setterValue = element.Attribute(SetterValueAttribute);
+
+		if (setterProperty is null
+			|| setterValue is null
+			|| !IsProperty(
+				setterProperty.Value,
+				property)
+			|| !isBare(setterValue.Value))
+		{
+			yield break;
+		}
+
+		yield return (
+			LineOf(element),
+			$"{SetterElement} {SetterPropertyAttribute}=\"{setterProperty.Value}\" "
+				+ $"{SetterValueAttribute}=\"{setterValue.Value}\"");
+	}
+
+	/// <summary>
+	///		Builds an in-memory application document whose one implicit style carries the given Setters, one per line from line 4.
+	/// </summary>
+	/// <param name="setters">
+	///		The Setter elements, as XAML text.
+	/// </param>
+	private static ThemeDocument SyntheticDocument(params string[] setters)
+	{
+		var lines = new List<string>
+		{
+			"<ContentPage xmlns=\"http://schemas.microsoft.com/dotnet/2021/maui\">",
+			"\t<ContentPage.Resources>",
+			"\t\t<Style TargetType=\"Label\">",
+		};
+
+		lines.AddRange(setters);
+		lines.Add("\t\t</Style>");
+		lines.Add("\t</ContentPage.Resources>");
+		lines.Add("</ContentPage>");
+
+		return new ThemeDocument(
+			"Synthetic.xaml",
+			"Views/Synthetic.xaml",
+			XDocument.Parse(
+				string.Join(
+					'\n',
+					lines),
+				LoadOptions.SetLineInfo));
 	}
 
 	private static IEnumerable<string> CSharpOffenders(Regex pattern)
@@ -436,26 +640,25 @@ public class ThemeHygieneTests
 	}
 
 	/// <summary>
-	///		Whether an attribute name IS the named property, ignoring any attached-property
-	///		prefix. <c>Label.FontSize</c> is a FontSize; <c>IconFontSize</c> is not.
+	///		Whether a property name, either an attribute's local name or a <c>Setter</c>'s <c>Property</c> value, IS the named property, ignoring any <c>Type.</c> prefix.
+	///		<c>Label.FontSize</c> is a FontSize; <c>IconFontSize</c> is not.
 	/// </summary>
 	/// <param name="name">
-	///		The attribute name to test.
+	///		The property name to test.
 	/// </param>
 	/// <param name="property">
 	///		The property name to test it against.
 	/// </param>
 	private static bool IsProperty(
-		XName name,
+		string name,
 		string property)
 	{
-		var local = name.LocalName;
-		var dot = local.LastIndexOf('.');
+		var dot = name.LastIndexOf('.');
 
 		return string.Equals(
 			dot < 0
-				? local
-				: local[(dot + 1)..],
+				? name
+				: name[(dot + 1)..],
 			property,
 			StringComparison.Ordinal);
 	}
