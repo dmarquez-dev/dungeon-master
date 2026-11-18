@@ -1,0 +1,51 @@
+{
+  "id": "20261118-0114-backlog-triage",
+  "name": "backlog-triage",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-18T01:15:05Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "8757226e-a46b-4cbc-b574-3a0185d46d83",
+      "phase": "discuss",
+      "sir": "1.0.45",
+      "started": "2026-11-18T01:15:05Z",
+      "ended": "2026-11-18T01:20:38Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "3aa9c113-4d84-4ea9-bd77-5119ac0f26ae",
+      "phase": "spec",
+      "sir": "1.0.45",
+      "started": "2026-11-18T01:24:21Z",
+      "ended": "2026-11-18T17:20:01Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "e340658d-9c8d-41a4-b527-59ce28838a70",
+      "phase": "implement",
+      "sir": "1.0.45",
+      "started": "2026-11-18T17:28:25Z",
+      "ended": "2026-11-18T18:54:32Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "e65afb0f-0b73-4e98-8949-e9777d728828",
+      "phase": "review",
+      "sir": "1.0.45",
+      "started": "2026-11-18T19:04:51Z",
+      "ended": "2026-11-18T20:54:13Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 2,
+    "reviewRounds": 0
+  },
+  "brief": "Triage every open row of .sir/backlog.md at 4d874be: 132 rows (MASTER-158 under Permanently deferred is untouched). Six parallel tasks (T1-T6) re-measure one backlog range each and write a record block per row to .sir/sessions/20261118-0114-backlog-triage/triage/, giving each row a disposition (remove, keep, rewrite, lesson, or decided) with the command and output behind it, checked by contracts/C1-check.py. The 23 Decide rows (21 questions) are re-measured in the spec phase and answered by the user at Gate 2; the answers are frozen into contracts/C2-gate2-decisions.md. T7 then applies the records and C2 to .sir/backlog.md and .sir/lessons.md, keeping both CRLF with no lone CR: rows removed, rewritten as work with a check, or routed to lessons.md as tagged standing rules. Human and Appium checks are rewritten as numbered steps with a pass condition and a commit anchor. No src, test or docs change.",
+  "pushed": true
+}
