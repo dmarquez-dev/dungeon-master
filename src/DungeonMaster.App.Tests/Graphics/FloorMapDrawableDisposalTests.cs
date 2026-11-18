@@ -235,6 +235,9 @@ public class FloorMapDrawableDisposalTests
 			.Skip(ObjectCatalogueScope.ShippedPackKinds.Count)
 			.ToList();
 
+		// Unfailable while the count assertion above holds, and kept on purpose: if that
+		// assertion is ever weakened, an empty refilled would let the Assert.All below pass
+		// vacuously, so this guard is what still makes the fact fail.
 		Assert.NotEmpty(refilled);
 		Assert.All(
 			refilled,
