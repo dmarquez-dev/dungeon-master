@@ -2,9 +2,9 @@
   "id": "20261118-0052-c3-census-citation",
   "name": "c3-census-citation",
   "scope": "small",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-18T00:53:54Z",
-  "ended": "2026-11-18T01:03:28Z",
+  "ended": "2026-11-18T01:08:55Z",
   "parent": null,
   "children": [],
   "escalations": [
@@ -23,6 +23,14 @@
       "sir": "1.0.45",
       "started": "2026-11-18T00:53:54Z",
       "ended": "2026-11-18T01:03:28Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8757226e-a46b-4cbc-b574-3a0185d46d83",
+      "phase": "wrap",
+      "sir": "1.0.45",
+      "started": "2026-11-18T01:08:36Z",
+      "ended": "2026-11-18T01:08:55Z",
       "outcome": "complete"
     }
   ],
