@@ -2,7 +2,7 @@ using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
 
-namespace DungeonMaster.Tests.Domain.Entities.Floor;
+namespace DungeonMaster.Tests.Domain.Entities.Floors;
 
 public class PlacedObjectTests
 {

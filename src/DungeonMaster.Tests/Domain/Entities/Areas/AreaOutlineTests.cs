@@ -1,9 +1,9 @@
+using DungeonMaster.Domain.Entities.Dungeons;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
 
-namespace DungeonMaster.Tests.Domain.Entities.Area;
+namespace DungeonMaster.Tests.Domain.Entities.Areas;
 
 public class AreaOutlineTests
 {
@@ -11,7 +11,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_SetsOutline()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
@@ -38,7 +38,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_WithUnknownFloor_IsNoOp()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 
 		// Act
 		var act = () => dungeon.UpdateAreaOutline(
@@ -54,7 +54,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_WithUnknownArea_IsNoOp()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 
 		// Act
@@ -71,7 +71,7 @@ public class AreaOutlineTests
 	public void SetOutline_DoesNotMoveFloorObjects()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
 		var obj = floor.AddObject(
@@ -99,7 +99,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_WithNullOutline_Throws()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
@@ -118,7 +118,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_WithEmptyOutline_OnAKnownArea_Throws()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
@@ -137,7 +137,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_WithTwoSegments_Throws_AndLeavesTheOutlineUntouched()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 
@@ -170,7 +170,7 @@ public class AreaOutlineTests
 	public void UpdateAreaOutline_WithThreeSegments_Succeeds()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Room", null)!;
 

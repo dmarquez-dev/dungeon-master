@@ -1,17 +1,16 @@
 using DungeonMaster.Domain.Entities;
+using DungeonMaster.Domain.Entities.Dungeons;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
-using DomainFloor = DungeonMaster.Domain.Entities.Floors.Floor;
 
-namespace DungeonMaster.Tests.Domain.Entities.Floor;
+namespace DungeonMaster.Tests.Domain.Entities.Floors;
 
 public class FloorObjectMethodsTests
 {
-	private static DomainFloor CreateFloor()
+	private static Floor CreateFloor()
 	{
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		return dungeon.AddFloor(null);
 	}
 
@@ -134,7 +133,7 @@ public class FloorObjectMethodsTests
 	public void RemoveArea_LeavesObjectsInPlace()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test");
+		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
 		var obj = floor.AddObject(

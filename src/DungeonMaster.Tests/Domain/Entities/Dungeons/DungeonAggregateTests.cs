@@ -1,10 +1,10 @@
 using DungeonMaster.Domain.Entities;
+using DungeonMaster.Domain.Entities.Dungeons;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
 
-namespace DungeonMaster.Tests.Domain.Entities.Dungeon;
+namespace DungeonMaster.Tests.Domain.Entities.Dungeons;
 
 public class DungeonAggregateTests
 {
@@ -12,7 +12,7 @@ public class DungeonAggregateTests
 	public void AddFloor_IncrementsFloorCount()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 
 		// Act
 		dungeon.AddFloor("Entry Level");
@@ -27,7 +27,7 @@ public class DungeonAggregateTests
 	public void AddFloor_AssignsSequentialNumbers()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 
 		// Act
 		dungeon.AddFloor(null);
@@ -42,7 +42,7 @@ public class DungeonAggregateTests
 	public void RemoveFloor_RemovesAndRenumbers()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("First");
 		var second = dungeon.AddFloor("Second");
 		dungeon.AddFloor("Third");
@@ -59,7 +59,7 @@ public class DungeonAggregateTests
 	public void RemoveFloor_WithNonExistentId_IsNoOp()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor(null);
 
 		// Act
@@ -74,7 +74,7 @@ public class DungeonAggregateTests
 	public void ReorderFloor_MovesFloorAndRenumbersOthers()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("First");
 		dungeon.AddFloor("Second");
 		var third = dungeon.AddFloor("Third");
@@ -93,7 +93,7 @@ public class DungeonAggregateTests
 	public void AddArea_AddsToCorrectFloor()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -109,7 +109,7 @@ public class DungeonAggregateTests
 	public void RemoveArea_RemovesFromCorrectFloor()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
 
@@ -124,7 +124,7 @@ public class DungeonAggregateTests
 	public void Update_SetsAllThreeFields()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Old Name", "Old Desc");
+		var dungeon = new Dungeon("Old Name", "Old Desc");
 
 		// Act
 		dungeon.Update("New Name", "New Desc", "DM Notes");
@@ -139,7 +139,7 @@ public class DungeonAggregateTests
 	public void RemoveFloor_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 
 		// Act
@@ -154,7 +154,7 @@ public class DungeonAggregateTests
 	public void RemoveFloor_WithKnownFloorId_ReturnsSuccess()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -169,7 +169,7 @@ public class DungeonAggregateTests
 	public void ReorderFloor_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 
 		// Act
@@ -185,7 +185,7 @@ public class DungeonAggregateTests
 	public void ReorderFloor_WithNumberBelowOne_ReturnsOutOfRange()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var first = dungeon.AddFloor("Entry");
 		dungeon.AddFloor("Cellar");
 
@@ -203,7 +203,7 @@ public class DungeonAggregateTests
 	public void ReorderFloor_WithNumberAboveFloorCount_ReturnsOutOfRange()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var first = dungeon.AddFloor("Entry");
 		dungeon.AddFloor("Cellar");
 
@@ -221,7 +221,7 @@ public class DungeonAggregateTests
 	public void ReorderFloor_WithUnchangedNumber_ReturnsSuccess()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var first = dungeon.AddFloor("Entry");
 		dungeon.AddFloor("Cellar");
 
@@ -239,7 +239,7 @@ public class DungeonAggregateTests
 	public void UpdateFloor_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 
 		// Act
@@ -257,7 +257,7 @@ public class DungeonAggregateTests
 	public void AddArea_WithUnknownFloorId_ReturnsNull()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 
 		// Act
 		var act = () =>
@@ -275,7 +275,7 @@ public class DungeonAggregateTests
 	public void RemoveArea_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
 
@@ -293,7 +293,7 @@ public class DungeonAggregateTests
 	public void RemoveArea_WithUnknownAreaId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -309,7 +309,7 @@ public class DungeonAggregateTests
 	public void UpdateArea_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
 
@@ -330,7 +330,7 @@ public class DungeonAggregateTests
 	public void UpdateArea_WithUnknownAreaId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -349,7 +349,7 @@ public class DungeonAggregateTests
 	public void UpdateAreaOutline_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
 
@@ -367,7 +367,7 @@ public class DungeonAggregateTests
 	public void UpdateAreaOutline_WithUnknownAreaId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -384,7 +384,7 @@ public class DungeonAggregateTests
 	public void RemovePlacedObject_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var placed = dungeon.AddPlacedObject(
 			floor.Id,
@@ -407,7 +407,7 @@ public class DungeonAggregateTests
 	public void RemovePlacedObject_WithUnknownObjectId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -423,7 +423,7 @@ public class DungeonAggregateTests
 	public void UpdatePlacedObject_WithUnknownFloorId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var originalPosition = new CanvasPoint(10f, 10f);
 		var placed = dungeon.AddPlacedObject(
@@ -450,7 +450,7 @@ public class DungeonAggregateTests
 	public void UpdatePlacedObject_WithUnknownObjectId_ReturnsNotFound()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -472,7 +472,7 @@ public class DungeonAggregateTests
 	public void Constructor_WithNullOrWhitespaceName_ThrowsArgumentException(string? name)
 	{
 		// Act
-		var act = () => new DomainDungeon(name!);
+		var act = () => new Dungeon(name!);
 
 		// Assert
 		act.Should().Throw<ArgumentException>();
@@ -485,7 +485,7 @@ public class DungeonAggregateTests
 	public void Update_WithNullOrWhitespaceName_ThrowsArgumentException(string? name)
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 
 		// Act
 		var act = () => dungeon.Update(
@@ -504,7 +504,7 @@ public class DungeonAggregateTests
 	public void AddArea_WithNullOrWhitespaceNameOnExistingFloor_ThrowsArgumentException(string? name)
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -524,7 +524,7 @@ public class DungeonAggregateTests
 	public void UpdateArea_WithNullOrWhitespaceNameOnExistingArea_ThrowsArgumentException(string? name)
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(floor.Id, "Grand Foyer", null)!;
 
@@ -544,7 +544,7 @@ public class DungeonAggregateTests
 	public void ReorderFloor_WithNegativeNumber_ReturnsOutOfRangeAndLeavesNumberUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var first = dungeon.AddFloor("Entry");
 		dungeon.AddFloor("Cellar");
 
@@ -562,7 +562,7 @@ public class DungeonAggregateTests
 	public void AddPlacedObject_ReturnsObjectWithGivenKindPositionRotationAndScale()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var position = new CanvasPoint(64f, 96f);
 
@@ -587,7 +587,7 @@ public class DungeonAggregateTests
 	public void AddPlacedObject_OnUnknownFloorId_ReturnsNull()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 
 		// Act

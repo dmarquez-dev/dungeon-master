@@ -1,9 +1,9 @@
 using DungeonMaster.Domain.Entities;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Domain.Entities.Floors;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
-using DomainFloor = DungeonMaster.Domain.Entities.Floors.Floor;
 
-namespace DungeonMaster.Tests.Domain.Entities.Floor;
+namespace DungeonMaster.Tests.Domain.Entities.Floors;
 
 public class FloorNumberGuardTests
 {
@@ -11,7 +11,7 @@ public class FloorNumberGuardTests
 	public void Constructor_WithZeroNumber_Throws()
 	{
 		// Act
-		var act = () => new DomainFloor(
+		var act = () => new Floor(
 			Guid.NewGuid(),
 			0,
 			"Entry");
@@ -25,7 +25,7 @@ public class FloorNumberGuardTests
 	public void Constructor_WithNegativeNumber_Throws()
 	{
 		// Act
-		var act = () => new DomainFloor(
+		var act = () => new Floor(
 			Guid.NewGuid(),
 			-1,
 			"Entry");
@@ -39,7 +39,7 @@ public class FloorNumberGuardTests
 	public void Constructor_WithNumberOne_Succeeds()
 	{
 		// Act
-		var floor = new DomainFloor(
+		var floor = new Floor(
 			Guid.NewGuid(),
 			1,
 			"Entry");
@@ -52,7 +52,7 @@ public class FloorNumberGuardTests
 	public void UpdateNumber_WithZero_Throws()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -67,7 +67,7 @@ public class FloorNumberGuardTests
 	public void UpdateNumber_WithNegative_Throws()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 
 		// Act
@@ -82,7 +82,7 @@ public class FloorNumberGuardTests
 	public void UpdateNumber_WithOne_Succeeds()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		dungeon.AddFloor("Entry");
 		var second = dungeon.AddFloor("Cellar");
 
@@ -97,7 +97,7 @@ public class FloorNumberGuardTests
 	public void ReorderFloor_WithTargetZero_ReturnsOutOfRange()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var first = dungeon.AddFloor("Entry");
 		dungeon.AddFloor("Cellar");
 
