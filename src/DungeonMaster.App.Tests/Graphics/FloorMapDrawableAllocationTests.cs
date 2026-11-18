@@ -88,6 +88,7 @@ public class FloorMapDrawableAllocationTests
 	///		allocate 17,208. The difference the offsets used to cost -- 6,816 bytes a frame -- is
 	///		now exactly zero, which is a sharp assertion, while the 17,208 that remains is almost
 	///		all <c>PathF</c> and its point lists and would need a wide, uninformative ceiling.
+	///		The <c>moved &lt;= unmoved</c> assertion cannot see an unconditional per-frame allocation regression, one paid on every frame whether or not any area moved, because such an allocation lands on both sides of the comparison and leaves the difference unchanged.
 	/// </remarks>
 	[Fact]
 	public void MovedAreas_AllocateNoMorePerFrameThanUnmovedOnes()
