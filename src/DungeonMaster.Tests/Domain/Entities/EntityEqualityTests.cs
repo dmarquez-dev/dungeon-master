@@ -1,8 +1,8 @@
 using DungeonMaster.Domain.Entities;
+using DungeonMaster.Domain.Entities.Areas;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Domain.Entities.Floors;
 using FluentAssertions;
-using DomainArea = DungeonMaster.Domain.Entities.Areas.Area;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
-using DomainFloor = DungeonMaster.Domain.Entities.Floors.Floor;
 
 namespace DungeonMaster.Tests.Domain.Entities;
 
@@ -15,8 +15,8 @@ public class EntityEqualityTests
 		// Arrange
 		var dungeonId = Guid.NewGuid();
 		var sharedId = Guid.NewGuid();
-		var first = new DomainFloor(dungeonId, 1, "Entry");
-		var second = new DomainFloor(dungeonId, 2, "Cellar");
+		var first = new Floor(dungeonId, 1, "Entry");
+		var second = new Floor(dungeonId, 2, "Cellar");
 
 		ForceId(first, sharedId);
 		ForceId(second, sharedId);
@@ -37,8 +37,8 @@ public class EntityEqualityTests
 		// Arrange
 		var dungeonId = Guid.NewGuid();
 		var sharedId = Guid.NewGuid();
-		var first = new DomainFloor(dungeonId, 1, "Entry");
-		var second = new DomainFloor(dungeonId, 2, "Cellar");
+		var first = new Floor(dungeonId, 1, "Entry");
+		var second = new Floor(dungeonId, 2, "Cellar");
 
 		ForceId(first, sharedId);
 		ForceId(second, sharedId);
@@ -59,8 +59,8 @@ public class EntityEqualityTests
 		// Arrange
 		var dungeonId = Guid.NewGuid();
 		var sharedId = Guid.NewGuid();
-		var first = new DomainFloor(dungeonId, 1, "Entry");
-		var second = new DomainFloor(dungeonId, 2, "Cellar");
+		var first = new Floor(dungeonId, 1, "Entry");
+		var second = new Floor(dungeonId, 2, "Cellar");
 
 		ForceId(first, sharedId);
 		ForceId(second, sharedId);
@@ -80,9 +80,9 @@ public class EntityEqualityTests
 	public void Contains_WithADistinctFloorCarryingTheTrackedFloorsId_ReturnsTrue()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var tracked = dungeon.AddFloor("Entry");
-		var clone = new DomainFloor(dungeon.Id, 1, "Entry");
+		var clone = new Floor(dungeon.Id, 1, "Entry");
 
 		ForceId(clone, tracked.Id);
 
@@ -100,8 +100,8 @@ public class EntityEqualityTests
 	{
 		// Arrange
 		var dungeonId = Guid.NewGuid();
-		var first = new DomainFloor(dungeonId, 1, "Entry");
-		var second = new DomainFloor(dungeonId, 2, "Cellar");
+		var first = new Floor(dungeonId, 1, "Entry");
+		var second = new Floor(dungeonId, 2, "Cellar");
 
 		// Act
 		var equal = first.Equals(second);
@@ -118,8 +118,8 @@ public class EntityEqualityTests
 	{
 		// Arrange
 		var sharedId = Guid.NewGuid();
-		var floor = new DomainFloor(Guid.NewGuid(), 1, "Entry");
-		var area = new DomainArea(floor.Id, "Guard Room", null);
+		var floor = new Floor(Guid.NewGuid(), 1, "Entry");
+		var area = new Area(floor.Id, "Guard Room", null);
 
 		ForceId(floor, sharedId);
 		ForceId(area, sharedId);
@@ -141,8 +141,8 @@ public class EntityEqualityTests
 		// A second instance carries the object-overload null case: the compiler's nullable flow
 		// analysis marks a receiver maybe-null after it has been compared against null, so two
 		// consecutive null comparisons on one receiver would not compile.
-		var floor = new DomainFloor(Guid.NewGuid(), 1, "Entry");
-		var another = new DomainFloor(Guid.NewGuid(), 2, "Cellar");
+		var floor = new Floor(Guid.NewGuid(), 1, "Entry");
+		var another = new Floor(Guid.NewGuid(), 2, "Cellar");
 
 		// Act
 		var againstItself = floor.Equals(floor);
@@ -160,19 +160,18 @@ public class EntityEqualityTests
 	// DISCRIMINATING: the equality half fails against reference equality. The hash half exists to
 	// catch a GetHashCode that reads mutable state, so it asserts that LastModified really changed.
 	[Fact]
-	public async Task GetHashCode_AfterAMutationThatTouchesLastModified_IsUnchanged()
+	public void GetHashCode_AfterAMutationThatTouchesLastModified_IsUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
-		var clone = new DomainFloor(dungeon.Id, 1, "Entry");
+		var clone = new Floor(dungeon.Id, 1, "Entry");
 
 		ForceId(clone, floor.Id);
+		BackdateLastModified(floor, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
 		var hashBefore = floor.GetHashCode();
 		var modifiedBefore = floor.LastModified;
-
-		await Task.Delay(20);
 
 		// Act
 		var outcome = dungeon.UpdateFloor(
@@ -193,4 +192,9 @@ public class EntityEqualityTests
 		typeof(Entity)
 			.GetProperty(nameof(Entity.Id))!
 			.SetValue(entity, id);
+
+	private static void BackdateLastModified(Entity entity, DateTime lastModified) =>
+		typeof(Entity)
+			.GetProperty(nameof(Entity.LastModified))!
+			.SetValue(entity, lastModified);
 }

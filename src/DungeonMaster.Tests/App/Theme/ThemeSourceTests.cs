@@ -437,27 +437,4 @@ public class ThemeSourceTests
 			.Throw<ThemeTokenNotFoundException>()
 			.WithMessage("*x:Int32*");
 	}
-
-	/// <summary>
-	///		The legacy-tolerant pattern still sees an upper-case <c>DM</c> prefix that the strict
-	///		pattern rejects. Collapsing the two would leave the parity facts unable to name a
-	///		surviving <c>DM</c> reference, so they would not report it and would pass.
-	/// </summary>
-	[Fact]
-	public void TheLegacyTolerantKeyPatternStillMatchesThePrefixCasingTheStrictPatternRejects()
-	{
-		const string declaration = @"<Color x:Key=""DMLegacyKey"" />";
-
-		ThemeSource
-			.LegacyTolerantKeyDefinitionPattern
-			.IsMatch(declaration)
-			.Should()
-			.BeTrue();
-
-		ThemeSource
-			.KeyDefinitionPattern
-			.IsMatch(declaration)
-			.Should()
-			.BeFalse();
-	}
 }

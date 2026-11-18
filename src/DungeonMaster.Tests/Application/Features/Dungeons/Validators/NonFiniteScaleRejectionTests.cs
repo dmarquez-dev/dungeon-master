@@ -18,6 +18,7 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Validators;
 ///		The <c>NaN</c> verdict is worth stating explicitly because it does not follow from C# comparison operators.
 ///		Both <c>float.NaN &lt; ObjectScale.Min</c> and <c>float.NaN &gt; ObjectScale.Max</c> are <c>false</c>, so a range check written in the NEGATIVE operator form — <c>if (v &lt; Min || v &gt; Max) fail;</c> — would ACCEPT <c>NaN</c>. The claim is limited to that form: the positive form <c>if (!(v &gt;= Min &amp;&amp; v &lt;= Max)) fail;</c> rejects <c>NaN</c>, because <c>float.NaN &gt;= ObjectScale.Min</c> is <c>false</c> as well.
 ///		<c>InclusiveBetween</c> compares through <c>FluentValidation.Validators.ComparableComparer&lt;float&gt;.Instance</c> instead, whose total order places <c>NaN</c> below every other value.
+///		That mechanism was observed in FluentValidation 12.1.1, the version <c>Directory.Packages.props</c> pins.
 ///		Nothing in this class asserts that mechanism, only the verdict, which is what was run.
 ///		<para>
 ///		<see cref="Validate_WithScaleAtDefault_IsValidOnBothValidators"/> is the positive control.

@@ -1,7 +1,7 @@
 using DungeonMaster.Domain.Entities.Floors;
 using FluentAssertions;
 
-namespace DungeonMaster.Tests.Domain.Entities.Floor;
+namespace DungeonMaster.Tests.Domain.Entities.Floors;
 
 public class ObjectScaleTests
 {

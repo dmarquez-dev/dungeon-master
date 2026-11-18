@@ -1,10 +1,10 @@
 using DungeonMaster.Domain.Entities;
+using DungeonMaster.Domain.Entities.Dungeons;
 using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 using FluentAssertions;
-using DomainDungeon = DungeonMaster.Domain.Entities.Dungeons.Dungeon;
 
-namespace DungeonMaster.Tests.Domain.Entities.Dungeon;
+namespace DungeonMaster.Tests.Domain.Entities.Dungeons;
 
 public class DungeonLastModifiedOnFailedMutationTests
 {
@@ -14,7 +14,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	public void RemoveArea_WithExistingFloorAndMissingArea_ReturnsNotFoundAndLeavesLastModifiedUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
 
@@ -34,7 +34,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	public void UpdateArea_WithExistingFloorAndMissingArea_ReturnsNotFoundAndLeavesLastModifiedUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
 
@@ -57,7 +57,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	public void UpdateAreaOutline_WithExistingFloorAndMissingArea_ReturnsNotFoundAndLeavesLastModifiedUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		IReadOnlyList<PathSegment> outline =
 		[
@@ -96,7 +96,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	public void RemovePlacedObject_WithExistingFloorAndMissingObject_ReturnsNotFoundAndLeavesLastModifiedUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
 
@@ -116,7 +116,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	public void UpdatePlacedObject_WithExistingFloorAndMissingObject_ReturnsNotFoundAndLeavesLastModifiedUnchanged()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
 
@@ -139,7 +139,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	public void UpdateArea_WithExistingFloorAndExistingArea_ReturnsSuccessAndAdvancesLastModified()
 	{
 		// Arrange
-		var dungeon = new DomainDungeon("Test Dungeon");
+		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
 		var area = dungeon.AddArea(
 			floor.Id,
@@ -172,7 +172,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 	/// <returns>
 	///		The captured <see cref="Entity.LastModified"/> value.
 	/// </returns>
-	private static DateTime CaptureLastModifiedAndWaitForClockToAdvance(DomainDungeon dungeon)
+	private static DateTime CaptureLastModifiedAndWaitForClockToAdvance(Dungeon dungeon)
 	{
 		var captured = dungeon.LastModified;
 
