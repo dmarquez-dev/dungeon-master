@@ -10,6 +10,10 @@ namespace DungeonMaster.Tests.App.Theme;
 ///		<c>.Should()</c> in Arrange names whichever test happened to call the helper first.
 ///		</para>
 /// </summary>
+/// <remarks>
+///		This type is the documented throw of the token lookups <see cref="ThemeSource.DoubleToken"/>, <see cref="ThemeSource.Int32Token"/> and <see cref="ThemeSource.StringToken"/>, each of which names it in an <c>exception</c> tag.
+///		It stays because each of those lookups returns the token's value rather than an optional one, so a missing or mistyped key must surface as an exception that names its own cause.
+/// </remarks>
 internal sealed class ThemeTokenNotFoundException : Exception
 {
 	/// <summary>
