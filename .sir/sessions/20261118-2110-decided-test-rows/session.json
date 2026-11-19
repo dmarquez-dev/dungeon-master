@@ -2,9 +2,9 @@
   "id": "20261118-2110-decided-test-rows",
   "name": "decided-test-rows",
   "scope": "standard",
-  "status": "MERGED",
+  "status": "WRAPPED",
   "started": "2026-11-18T21:10:07Z",
-  "ended": null,
+  "ended": "2026-11-19T00:04:23Z",
   "parent": null,
   "children": [],
   "runs": [
@@ -39,10 +39,18 @@
       "started": "2026-11-18T23:49:39Z",
       "ended": "2026-11-18T23:58:05Z",
       "outcome": "complete"
+    },
+    {
+      "phase": "wrap",
+      "cc": "7e77b1ab-a698-4c31-ad90-86d95bf39e3c",
+      "sir": "1.0.46",
+      "started": "2026-11-19T00:03:53Z",
+      "ended": "2026-11-19T00:04:23Z",
+      "outcome": "complete"
     }
   ],
   "metrics": {
-    "userInteractions": 1,
+    "userInteractions": 3,
     "escalationsRaised": 0,
     "reviewRounds": 0
   },
