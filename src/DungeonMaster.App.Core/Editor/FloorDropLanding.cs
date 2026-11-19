@@ -16,6 +16,10 @@ namespace DungeonMaster.App.Core.Editor;
 ///		The vertical position of that gap in the floor list's own coordinates.
 ///		It is <see cref="double.NaN"/> when there is no landing.
 /// </param>
+/// <remarks>
+///		A default value reports <see cref="HasLanding"/> as true, because default sets <see cref="TargetIndex"/> to 0 and not to <see cref="FloorReorderNearest.NoBand"/>.
+///		Use <see cref="None"/>, not default, to mean that there is no landing.
+/// </remarks>
 public readonly record struct FloorDropLanding(
 	int TargetIndex,
 	int GapIndex,
