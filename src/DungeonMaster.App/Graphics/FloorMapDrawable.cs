@@ -667,15 +667,15 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 			return;
 		}
 
-		foreach (var obj in Floor.Objects)
+		foreach (var placedObject in Floor.Objects)
 		{
-			DrawPlacedObject(canvas, obj, in palette);
+			DrawPlacedObject(canvas, placedObject, in palette);
 		}
 	}
 
-	private void DrawPlacedObject(ICanvas canvas, PlacedObjectItem obj, in FloorMapPalette palette)
+	private void DrawPlacedObject(ICanvas canvas, PlacedObjectItem placedObject, in FloorMapPalette palette)
 	{
-		var isDragging = DraggingObjectId == obj.Id;
+		var isDragging = DraggingObjectId == placedObject.Id;
 
 		// Object position is floor-absolute canvas pixels, center of bounding box.
 		float centerX, centerY;
@@ -686,18 +686,18 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 		}
 		else
 		{
-			centerX = obj.Position.X;
-			centerY = obj.Position.Y;
+			centerX = placedObject.Position.X;
+			centerY = placedObject.Position.Y;
 		}
 
-		var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(obj.Kind);
-		var boxW = wTiles * TileSize * obj.Scale;
-		var boxH = hTiles * TileSize * obj.Scale;
+		var (wTiles, hTiles) = ObjectKindInfo.GetObjectSize(placedObject.Kind);
+		var boxW = wTiles * TileSize * placedObject.Scale;
+		var boxH = hTiles * TileSize * placedObject.Scale;
 
 		var drawX = centerX - boxW / 2f;
 		var drawY = centerY - boxH / 2f;
 
-		var image = LoadOrGetImage(obj.Kind);
+		var image = LoadOrGetImage(placedObject.Kind);
 
 		// Compute the actual rendered image rect (aspect-fit) so the highlight
 		// wraps the visible image rather than the full bounding box.
@@ -724,9 +724,9 @@ public sealed class FloorMapDrawable : IDrawable, IDisposable
 			canvas.Alpha = 0.55f;
 		}
 
-		ApplyRotation(canvas, obj.Rotation, centerX, centerY);
+		ApplyRotation(canvas, placedObject.Rotation, centerX, centerY);
 
-		if (!isDragging && HoveredObjectId == obj.Id)
+		if (!isDragging && HoveredObjectId == placedObject.Id)
 		{
 			canvas.FillColor = palette.ObjectHighlightFill;
 			canvas.FillRoundedRectangle(imgX - 2, imgY - 2, imgW + 4, imgH + 4, 3);

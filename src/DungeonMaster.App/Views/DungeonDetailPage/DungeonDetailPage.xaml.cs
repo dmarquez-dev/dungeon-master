@@ -164,12 +164,12 @@ public partial class DungeonDetailPage : ContentPage
 		};
 
 		AttachPopupButtonBehavior(
-			PopupBtnCCW,
+			PopupRotateCounterClockwise,
 			goldHover: true,
 			() =>
 				RotateObjectAsync(clockwise: false));
 		AttachPopupButtonBehavior(
-			PopupBtnCW,
+			PopupRotateClockwise,
 			goldHover: true,
 			() =>
 				RotateObjectAsync(clockwise: true));
@@ -1182,7 +1182,9 @@ public partial class DungeonDetailPage : ContentPage
 			AbortInProgressDraw();
 		}
 
-		// Abort any in-progress move drag
+		// Abort any in-progress move drag. Order matters: when a draw was in progress,
+		// AbortInProgressDraw above has already run ResetDrawState, which clears IsMoveDragging, so
+		// this guard reads the flag after that reset and only ends a move drag that is still live.
 		if (_editor.IsMoveDragging)
 		{
 			_editor.EndMoveDrag();
@@ -2102,9 +2104,9 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _editor.SelectedObjectId);
+		var selectedObject = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _editor.SelectedObjectId);
 
-		if (obj is null)
+		if (selectedObject is null)
 		{
 			_editor.PopupBounds = null;
 			ObjectActionPopup.IsVisible = false;
@@ -2112,8 +2114,8 @@ public partial class DungeonDetailPage : ContentPage
 		}
 
 		// Position above the object center in screen space (5 x 32px buttons + 2 dividers + padding ~= 182x40)
-		var screenX = obj.Position.X * _drawable.ZoomLevel + _drawable.PanOffset.X;
-		var screenY = obj.Position.Y * _drawable.ZoomLevel + _drawable.PanOffset.Y - 48;
+		var screenX = selectedObject.Position.X * _drawable.ZoomLevel + _drawable.PanOffset.X;
+		var screenY = selectedObject.Position.Y * _drawable.ZoomLevel + _drawable.PanOffset.Y - 48;
 
 		const float PopupWidth = 182f;
 		const float PopupHeight = 40f;
@@ -2191,24 +2193,24 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _editor.SelectedObjectId);
+		var selectedObject = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == _editor.SelectedObjectId);
 
-		if (obj is null)
+		if (selectedObject is null)
 		{
 			return;
 		}
 
 		var newRotation = clockwise
-			? (ObjectRotation)(((int)obj.Rotation + 1) % 4)
-			: (ObjectRotation)(((int)obj.Rotation + 3) % 4);
+			? (ObjectRotation)(((int)selectedObject.Rotation + 1) % 4)
+			: (ObjectRotation)(((int)selectedObject.Rotation + 3) % 4);
 
 		await _viewModel.Canvas.UpdatePlacedObjectCommand.ExecuteAsync(
 			new UpdatePlacedObjectArgs(
 				_editor.SelectedFloorId.Value,
 				_editor.SelectedObjectId.Value,
-				obj.Position,
+				selectedObject.Position,
 				newRotation,
-				obj.Scale));
+				selectedObject.Scale));
 
 		await RefreshFloorAsync();
 		// Re-pin popup to the refreshed object position.
@@ -2227,24 +2229,24 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj =>
+		var selectedObject = _drawable.Floor.Objects.FirstOrDefault(placedObj =>
 			placedObj.Id == _editor.SelectedObjectId.Value);
 
-		if (obj is null)
+		if (selectedObject is null)
 		{
 			return;
 		}
 
 		var newScale = down
-			? ObjectScale.StepDown(obj.Scale)
-			: ObjectScale.StepUp(obj.Scale);
+			? ObjectScale.StepDown(selectedObject.Scale)
+			: ObjectScale.StepUp(selectedObject.Scale);
 
 		await _viewModel.Canvas.UpdatePlacedObjectCommand.ExecuteAsync(
 			new UpdatePlacedObjectArgs(
 				_editor.SelectedFloorId.Value,
 				_editor.SelectedObjectId.Value,
-				obj.Position,
-				obj.Rotation,
+				selectedObject.Position,
+				selectedObject.Rotation,
 				newScale));
 
 		await RefreshFloorAsync();
@@ -2263,9 +2265,9 @@ public partial class DungeonDetailPage : ContentPage
 			return;
 		}
 
-		var obj = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == objectId);
+		var placedObject = _drawable.Floor.Objects.FirstOrDefault(placedObj => placedObj.Id == objectId);
 
-		if (obj is null || obj.Position == newPosition)
+		if (placedObject is null || placedObject.Position == newPosition)
 		{
 			return;
 		}
@@ -2279,8 +2281,8 @@ public partial class DungeonDetailPage : ContentPage
 				_editor.SelectedFloorId.Value,
 				objectId,
 				newPosition,
-				obj.Rotation,
-				obj.Scale));
+				placedObject.Rotation,
+				placedObject.Scale));
 
 		await RefreshFloorAsync();
 		MapCanvas.Invalidate();
