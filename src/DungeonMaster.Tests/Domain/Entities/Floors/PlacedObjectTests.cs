@@ -14,7 +14,7 @@ public class PlacedObjectTests
 		var pos = new CanvasPoint(120f, 200f);
 
 		// Act
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			floorId,
 			ObjectKind.DoorWood,
 			pos,
@@ -22,19 +22,19 @@ public class PlacedObjectTests
 			ObjectScale.Default);
 
 		// Assert
-		obj.Id.Should().NotBeEmpty();
-		obj.FloorId.Should().Be(floorId);
-		obj.Kind.Should().Be(ObjectKind.DoorWood);
-		obj.Position.Should().Be(pos);
-		obj.Rotation.Should().Be(ObjectRotation.Clockwise90);
-		obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
+		placedObject.Id.Should().NotBeEmpty();
+		placedObject.FloorId.Should().Be(floorId);
+		placedObject.Kind.Should().Be(ObjectKind.DoorWood);
+		placedObject.Position.Should().Be(pos);
+		placedObject.Rotation.Should().Be(ObjectRotation.Clockwise90);
+		placedObject.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 	}
 
 	[Fact]
 	public void Constructor_WithCustomScale_SetsScale()
 	{
 		// Act
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
 			new CanvasPoint(0f, 0f),
@@ -42,14 +42,14 @@ public class PlacedObjectTests
 			scale: 2.0f);
 
 		// Assert
-		obj.Scale.Should().BeApproximately(2.0f, 0.001f);
+		placedObject.Scale.Should().BeApproximately(2.0f, 0.001f);
 	}
 
 	[Fact]
 	public void Update_ChangesPositionRotationAndScale()
 	{
 		// Arrange
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
 			new CanvasPoint(40f, 40f),
@@ -59,12 +59,12 @@ public class PlacedObjectTests
 		var newPos = new CanvasPoint(160f, 80f);
 
 		// Act
-		obj.Update(newPos, ObjectRotation.Clockwise180, 1.5f);
+		placedObject.Update(newPos, ObjectRotation.Clockwise180, 1.5f);
 
 		// Assert
-		obj.Position.Should().Be(newPos);
-		obj.Rotation.Should().Be(ObjectRotation.Clockwise180);
-		obj.Scale.Should().BeApproximately(1.5f, 0.001f);
+		placedObject.Position.Should().Be(newPos);
+		placedObject.Rotation.Should().Be(ObjectRotation.Clockwise180);
+		placedObject.Scale.Should().BeApproximately(1.5f, 0.001f);
 	}
 
 	[Theory]
@@ -118,7 +118,7 @@ public class PlacedObjectTests
 	public void Update_InvalidScale_Throws(float invalidScale)
 	{
 		// Arrange
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
 			new CanvasPoint(0f, 0f),
@@ -126,7 +126,7 @@ public class PlacedObjectTests
 			ObjectScale.Default);
 
 		// Act
-		var act = () => obj.Update(
+		var act = () => placedObject.Update(
 			new CanvasPoint(10f, 10f),
 			ObjectRotation.None,
 			invalidScale);
@@ -142,7 +142,7 @@ public class PlacedObjectTests
 	public void Update_InvalidScale_ReportsRejectedValue()
 	{
 		// Arrange
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			Guid.NewGuid(),
 			ObjectKind.Chair,
 			new CanvasPoint(0f, 0f),
@@ -150,7 +150,7 @@ public class PlacedObjectTests
 			ObjectScale.Default);
 
 		// Act
-		var act = () => obj.Update(
+		var act = () => placedObject.Update(
 			new CanvasPoint(10f, 10f),
 			ObjectRotation.None,
 			0.1f);

@@ -242,18 +242,21 @@ public class AreaOutlineGeometryTests
 	[Fact]
 	public void ContainsPoint_EmptyPolygon_ReturnsFalse()
 	{
+		// Pins the documented intent of the n < 3 guard in ContainsPoint rather than covering live logic: an empty polygon encloses no area, so the answer is false.
 		AreaOutlineGeometry.ContainsPoint([], 0f, 0f).Should().BeFalse();
 	}
 
 	[Fact]
 	public void ContainsPoint_PolygonOfOneVertex_ReturnsFalse()
 	{
+		// Pins the documented intent of the n < 3 guard in ContainsPoint rather than covering live logic: a single vertex encloses no area, so the answer is false.
 		AreaOutlineGeometry.ContainsPoint([(0f, 0f)], 0f, 0f).Should().BeFalse();
 	}
 
 	[Fact]
 	public void ContainsPoint_PolygonOfTwoVertices_ReturnsFalse()
 	{
+		// Pins the documented intent of the n < 3 guard in ContainsPoint rather than covering live logic: two vertices enclose no area, so the answer is false.
 		AreaOutlineGeometry.ContainsPoint([(0f, 0f), (40f, 40f)], 20f, 20f).Should().BeFalse();
 	}
 

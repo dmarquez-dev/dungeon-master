@@ -22,18 +22,18 @@ public class FloorObjectMethodsTests
 		var pos = new CanvasPoint(80f, 120f);
 
 		// Act
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Chair,
 			pos,
 			ObjectRotation.None,
 			ObjectScale.Default);
 
 		// Assert
-		obj.Kind.Should().Be(ObjectKind.Chair);
-		obj.Position.Should().Be(pos);
-		obj.Rotation.Should().Be(ObjectRotation.None);
-		obj.FloorId.Should().Be(floor.Id);
-		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
+		addedObject.Kind.Should().Be(ObjectKind.Chair);
+		addedObject.Position.Should().Be(pos);
+		addedObject.Rotation.Should().Be(ObjectRotation.None);
+		addedObject.FloorId.Should().Be(floor.Id);
+		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == addedObject.Id);
 	}
 
 	[Fact]
@@ -43,7 +43,7 @@ public class FloorObjectMethodsTests
 		var floor = CreateFloor();
 
 		// Act
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Barrel,
 			new CanvasPoint(10f, 10f),
 			ObjectRotation.None,
@@ -51,7 +51,7 @@ public class FloorObjectMethodsTests
 
 		// Assert
 		floor.Areas.Should().BeEmpty();
-		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
+		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == addedObject.Id);
 	}
 
 	[Fact]
@@ -59,14 +59,14 @@ public class FloorObjectMethodsTests
 	{
 		// Arrange
 		var floor = CreateFloor();
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Barrel,
 			new CanvasPoint(40f, 40f),
 			ObjectRotation.None,
 			ObjectScale.Default);
 
 		// Act
-		var removed = floor.RemoveObject(obj.Id);
+		var removed = floor.RemoveObject(addedObject.Id);
 
 		// Assert
 		removed.Should().Be(MutationOutcome.Success);
@@ -91,7 +91,7 @@ public class FloorObjectMethodsTests
 	{
 		// Arrange
 		var floor = CreateFloor();
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(0f, 0f),
 			ObjectRotation.None,
@@ -100,16 +100,16 @@ public class FloorObjectMethodsTests
 
 		// Act
 		var updated = floor.UpdateObject(
-			obj.Id,
+			addedObject.Id,
 			newPos,
 			ObjectRotation.Clockwise90,
 			2.0f);
 
 		// Assert
 		updated.Should().Be(MutationOutcome.Success);
-		obj.Position.Should().Be(newPos);
-		obj.Rotation.Should().Be(ObjectRotation.Clockwise90);
-		obj.Scale.Should().Be(2.0f);
+		addedObject.Position.Should().Be(newPos);
+		addedObject.Rotation.Should().Be(ObjectRotation.Clockwise90);
+		addedObject.Scale.Should().Be(2.0f);
 	}
 
 	[Fact]
@@ -136,7 +136,7 @@ public class FloorObjectMethodsTests
 		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(50f, 50f),
 			ObjectRotation.None,
@@ -147,6 +147,6 @@ public class FloorObjectMethodsTests
 
 		// Assert
 		floor.Areas.Should().BeEmpty();
-		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == obj.Id);
+		floor.Objects.Should().ContainSingle(placedObject => placedObject.Id == addedObject.Id);
 	}
 }
