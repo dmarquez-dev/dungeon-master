@@ -1,0 +1,51 @@
+{
+  "id": "20261118-2110-decided-test-rows",
+  "name": "decided-test-rows",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-18T21:10:07Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "a01601df-2911-4b0b-a270-9ffc87cd7577",
+      "sir": "1.0.46",
+      "started": "2026-11-18T21:10:07Z",
+      "ended": "2026-11-18T21:14:06Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "a60207a2-096d-438d-b2ca-c8237e8af331",
+      "sir": "1.0.46",
+      "started": "2026-11-18T21:17:12Z",
+      "ended": "2026-11-18T22:15:44Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "3e13b8eb-9482-492a-8ee1-410dd68a11e9",
+      "sir": "1.0.46",
+      "started": "2026-11-18T22:23:36Z",
+      "ended": "2026-11-18T23:44:30Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "7e77b1ab-a698-4c31-ad90-86d95bf39e3c",
+      "sir": "1.0.46",
+      "started": "2026-11-18T23:49:39Z",
+      "ended": "2026-11-18T23:58:05Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "brief": "Clear seven .sir/backlog.md rows whose remedy the 20261118-0114-backlog-triage gates already chose, all inside the test projects: drop the two Task.Delay waits in EntityEqualityTests and FloorMethodsTests by backdating LastModified through reflection; trim ThemeSource's dead surface (ThemeFileText, the two key patterns and their pin test) and make ThemeDirectory and StaticResourceKeys private; comment the Assert.NotEmpty guard in FloorMapDrawableDisposalTests; widen ThemeHygieneTests to report bare FontSize and FontFamily Setters outside Resources/Theme, with a synthetic control; record the allocation test's blind spot to unconditional per-frame allocations in its remark; rename the singular Area, Dungeon and Floor test folders and namespaces to plural, dropping aliases the singular forced; and pin the FluentValidation 12.1.1 version in the NonFiniteScaleRejectionTests remark. No production code changes. The rows are removed from the backlog at Gate 3.",
+  "pushed": true
+}
