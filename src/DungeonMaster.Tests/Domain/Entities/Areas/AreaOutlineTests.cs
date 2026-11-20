@@ -74,7 +74,7 @@ public class AreaOutlineTests
 		var dungeon = new Dungeon("Test");
 		var floor = dungeon.AddFloor(null);
 		var area = dungeon.AddArea(floor.Id, "Chapel", null)!;
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(100f, 100f),
 			ObjectRotation.None,
@@ -91,7 +91,7 @@ public class AreaOutlineTests
 			]);
 
 		// Assert
-		obj.Position.Should().Be(new CanvasPoint(100f, 100f));
+		addedObject.Position.Should().Be(new CanvasPoint(100f, 100f));
 		area.Outline.Should().HaveCount(3);
 	}
 

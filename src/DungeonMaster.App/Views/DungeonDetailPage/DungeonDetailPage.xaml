@@ -467,9 +467,9 @@
                              migration replaces them and takes the numbers with it. Each is
                              corrected on X because Translation applies AFTER Rotation, in screen
                              space. -->
-                        <Border x:Name="PopupBtnCCW"
+                        <Border x:Name="PopupRotateCounterClockwise"
                                 Style="{StaticResource PopupIconButton}"
-                                AutomationId="PopupBtnCCW"
+                                AutomationId="PopupRotateCounterClockwise"
                                 SemanticProperties.Description="Rotate anticlockwise"
                                 ToolTipProperties.Text="Rotate anticlockwise">
                             <Border.StrokeShape>
@@ -488,9 +488,9 @@
                                    AutomationProperties.IsInAccessibleTree="False"
                                    InputTransparent="True" />
                         </Border>
-                        <Border x:Name="PopupBtnCW"
+                        <Border x:Name="PopupRotateClockwise"
                                 Style="{StaticResource PopupIconButton}"
-                                AutomationId="PopupBtnCW"
+                                AutomationId="PopupRotateClockwise"
                                 SemanticProperties.Description="Rotate clockwise"
                                 ToolTipProperties.Text="Rotate clockwise">
                             <Border.StrokeShape>

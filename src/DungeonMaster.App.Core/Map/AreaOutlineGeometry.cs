@@ -143,6 +143,8 @@ public static class AreaOutlineGeometry
 		ArgumentNullException.ThrowIfNull(polygon);
 
 		var n = polygon.Count;
+		// This guard is documented intent rather than live logic: fewer than three vertices enclose no area, so the answer is false.
+		// The filing found that replacing it with n < 0 changes no answer; the guard is kept so the result for such polygons is stated rather than left to the crossing loop.
 		if (n < 3)
 		{
 			return false;

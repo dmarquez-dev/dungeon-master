@@ -215,7 +215,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 		// Arrange
 		var dungeon = new Dungeon("Sunken Temple", "A flooded ruin.");
 		var floor = dungeon.AddFloor(null);
-		var obj = floor.AddObject(
+		var addedObject = floor.AddObject(
 			ObjectKind.Chair,
 			new CanvasPoint(123.5f, 456.25f),
 			ObjectRotation.Clockwise90,
@@ -235,7 +235,7 @@ public sealed class DungeonWriteRepositoryTests : SqliteInMemoryTestBase
 
 		// Assert
 		var loadedObj = loaded!.Floors.Single().Objects.Single();
-		loadedObj.Id.Should().Be(obj.Id);
+		loadedObj.Id.Should().Be(addedObject.Id);
 		loadedObj.Position.Should().Be(new CanvasPoint(123.5f, 456.25f));
 		loadedObj.Rotation.Should().Be(ObjectRotation.Clockwise90);
 		loadedObj.Scale.Should().Be(1.5f);

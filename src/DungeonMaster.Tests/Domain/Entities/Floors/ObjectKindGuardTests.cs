@@ -93,7 +93,7 @@ public class ObjectKindGuardTests
 		var position = new CanvasPoint(120f, 200f);
 
 		// Act
-		var obj = new PlacedObject(
+		var placedObject = new PlacedObject(
 			floorId,
 			ObjectKind.DoorWood,
 			position,
@@ -101,9 +101,9 @@ public class ObjectKindGuardTests
 			ObjectScale.Default);
 
 		// Assert
-		obj.Kind.Should().Be(ObjectKind.DoorWood);
-		obj.FloorId.Should().Be(floorId);
-		obj.Position.Should().Be(position);
-		obj.Rotation.Should().Be(ObjectRotation.Clockwise90);
+		placedObject.Kind.Should().Be(ObjectKind.DoorWood);
+		placedObject.FloorId.Should().Be(floorId);
+		placedObject.Position.Should().Be(position);
+		placedObject.Rotation.Should().Be(ObjectRotation.Clockwise90);
 	}
 }
