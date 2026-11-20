@@ -1,0 +1,164 @@
+{
+  "session": "2026-09-16-core-domain-invariants",
+  "updatedAt": "2026-09-16T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-vii",
+  "branch": "dir/2026-09-16-core-domain-invariants",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "dff976d59a7bb08d4074d31dd25bd5286461e2e8",
+      "commit": "d371ff27f8f0ef72a7fc6f24bf5c1a1773fe5f4d"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "d371ff27f8f0ef72a7fc6f24bf5c1a1773fe5f4d",
+      "commit": "401166256abe2cd8b552935a3a2778677565a0e8"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "401166256abe2cd8b552935a3a2778677565a0e8",
+      "commit": "2014e09416ce505b7a83f2b5b696ebd0f926a13d"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-168: what should Area.SetOutline reject? An Area is documented as carrying an optional outline and is constructed without one, so rejecting empty is not obviously correct.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Reject null, and reject any outline with fewer than three segments. Empty is included in the rejection; no ClearOutline affordance is added in this session.",
+      "options": [
+        {
+          "summary": "Reject null and fewer than 3 segments.",
+          "rationale": "A closed polygon cannot be formed from fewer than three segments, and nothing reachable regresses: the command validator already blocks null and empty, and EF rehydrates into the _outline field directly rather than through SetOutline.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs:38",
+              "src/DungeonMaster.Application/Features/Dungeons/Commands/UpdateAreaOutline/UpdateAreaOutlineCommandValidator.cs",
+              "src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:82-97"
+            ]
+          }
+        },
+        {
+          "summary": "Reject null and empty only, matching the Application validator.",
+          "rationale": "Stops the domain depending on a caller it does not control, but leaves the degenerate one- and two-segment case accepted.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Application/Features/Dungeons/Commands/UpdateAreaOutline/UpdateAreaOutlineCommandValidator.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Reject null and fewer than 3, but allow empty as an explicit clear.",
+          "rationale": "Matches Area's documented optional outline and keeps an erase path open, at the cost of an invariant with an exception in it.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Areas/Area.cs:6"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-169: how should Floor reject a zero or negative floor number, given that Floor..ctor and UpdateNumber are both internal and have no MutationOutcome return channel?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Throw ArgumentOutOfRangeException when number is less than 1, at both Floor..ctor and FloorMethods.UpdateNumber, matching the PlacedObject precedent. The aggregate keeps returning MutationOutcome.OutOfRange at its public edge. A FloorNumber value object was considered and rejected as a larger session.",
+      "options": [
+        {
+          "summary": "Throw ArgumentOutOfRangeException in both the constructor and UpdateNumber.",
+          "rationale": "Matches PlacedObject, the domain's own precedent for an out-of-range numeric guarded identically in a constructor and an updater; both Floor members are internal, so a throw is the only rejection available in place.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:30",
+              "src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs:82",
+              "src/DungeonMaster.Domain/Entities/Floors/Floor.cs:27",
+              "src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs:13"
+            ]
+          }
+        },
+        {
+          "summary": "Guard the constructor only.",
+          "rationale": "Smaller change, but leaves the mutator the entry names first unguarded and re-opens the entry as soon as a new caller appears.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Floors/FloorMethods.cs:13"
+            ]
+          }
+        },
+        {
+          "summary": "Introduce a FloorNumber value object so the illegal value is unrepresentable.",
+          "rationale": "Strongest form and consistent with the deferred Scale value-object backlog item, but it touches EF mapping, every call site and the App layer.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/backlog.md"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "question": "MASTER-170: where should the PathSegment Kind/control-point correspondence be enforced, given that a validating record constructor runs on every database read because AreaConfiguration deserializes the outline JSON through it?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Validate in the record constructor, both directions: CubicBezier requires both control points non-null and Line requires both null. The consequence was stated and accepted at the gate: a corrupt or hand-edited row now throws on load rather than rendering silently wrong.",
+      "options": [
+        {
+          "summary": "Validate in the record constructor, both directions.",
+          "rationale": "Makes the illegal state unrepresentable everywhere including on read. Low risk here because all 26 construction sites pass null, null for Line and every CubicBezier construction is in a test, so no curve has ever been persisted.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:18-22",
+              "src/DungeonMaster.App.Core/Map/MapDrawingSession.cs:122",
+              "src/DungeonMaster.Infrastructure/Persistence/Configurations/AreaConfiguration.cs:82-97"
+            ]
+          }
+        },
+        {
+          "summary": "Validate in the record constructor, one direction only.",
+          "rationale": "Matches the entry's wording exactly and narrows the blast radius on read, but leaves a Line carrying stray control points legal and round-trippable.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:11-17"
+            ]
+          }
+        },
+        {
+          "summary": "Leave the record permissive and validate at the domain boundary in SetOutline.",
+          "rationale": "Guarantees no read-path regression, but the value object still permits the state its own doc comment denies, and a future direct consumer is unguarded.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Areas/AreaMethods.cs:38"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 3,
+    "reviewRounds": 0
+  }
+}

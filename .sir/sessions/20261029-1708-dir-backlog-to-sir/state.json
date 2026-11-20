@@ -1,0 +1,63 @@
+{
+  "session": "20261029-1708-dir-backlog-to-sir",
+  "updatedAt": "2026-10-29T18:47:14Z",
+  "worktree": "C:/dm-wt/sir-backlog",
+  "branch": "sir/20261029-1708-dir-backlog-to-sir",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/sir-backlog/src/DungeonMaster.sln --no-restore",
+      "runnable": false,
+      "probe": "error NETSDK1004: Assets file 'C:\\dm-wt\\sir-backlog\\src\\DungeonMaster.App.UnitTests\\obj\\project.assets.json' not found. Run a NuGet package restore to generate this file. (0 Warning(s), 10 Error(s)) -- re-probed at session tip ef847fc, Gate 3: unchanged, 0 Warning(s), 10 Error(s), exit=1; the session changed nothing outside .sir/ and the worktree was never restored"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/sir-backlog/src/DungeonMaster.sln --no-build --no-restore",
+      "runnable": false,
+      "probe": "no output at all, exit=0 -- zero test assemblies built in the fresh worktree, so zero tests ran; re-probed at session tip ef847fc, Gate 3: unchanged, no output, exit=0"
+    },
+    {
+      "command": "python -I <script> (Python 3.13.14)",
+      "runnable": true,
+      "probe": "Python 3.13.14"
+    },
+    {
+      "command": "git -C C:/dm-wt/sir-backlog (read-only)",
+      "runnable": true,
+      "probe": "git version 2.53.0.windows.1; rev-parse HEAD -> 03fa5b33343a9da391375796471c97edec203c16"
+    }
+  ],
+  "tasks": [
+    { "id": "T1", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "f1f6c5a92e023afde93705825d2f76aa446113f0" },
+    { "id": "T2", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "c62ea61b6be01f079bff7243a859a114ce79d4bb" },
+    { "id": "T3", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "930246626de66f048146bd06863990457e810323" },
+    { "id": "T4", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "403603246a7bd6ea2ad97bf81f09bc1f4ca31d5f" },
+    { "id": "T5", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "0e9a379b619fda1b378e90fa6e96003104b0e28c" },
+    { "id": "T6", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "d3af46a96e7ce26140b4e4b7b4f3b7a88a2f70bd" },
+    { "id": "T7", "status": "done", "revisionRounds": 1, "redispatches": 0, "startRef": "03fa5b33343a9da391375796471c97edec203c16", "commit": "c070457b2aa77ed7c190d792459538c779f1b5b3" },
+    { "id": "T8", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "c070457b2aa77ed7c190d792459538c779f1b5b3", "commit": "ef847fca8c334f05b59cda0aa08059bb8a37d879" }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "T7 criterion 11: for FORM 1, 3-8 and 10, whose cited BRIEF-6b-xix row names no learning session, does 'the DIR session that learned the lesson, as its cited source records it' mean the true first-learning session (proved by a census of .dir-sdlc/sessions) or the cited brief's own session (2026-10-09-uikit-layer-batch), and may an earlier session be named in the text rather than in the date/session slot?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Census for first learner: keep a per-line learning session, re-derived for each form by a census of the whole .dir-sdlc/sessions tree over the form's family of spellings.",
+      "options": [
+        { "summary": "Cited source's session: date FORM 1-10 to 2026-10-09-uikit-layer-batch; drop every unproven 'earliest record' claim; name an earlier session only where a cited record names it", "rationale": "Mechanically checkable and cannot be falsified the way B2 was; records the compiling session, not the learning one", "evidence": "repo" },
+        { "summary": "Learning session by census: keep per-line attributions, but re-derive each by a census of the whole .dir-sdlc/sessions tree, with a second record supplying the date", "rationale": "Matches the criterion's purpose; the first search missed earlier records for both forms it was checked on", "evidence": "judgment" },
+        { "summary": "Amend criterion 11: FORM 1-10 carry the brief's session, plus an optional 'first recorded:' clause held to a census", "rationale": "Keeps the verifiable slot and the useful provenance, at the cost of a census per clause", "evidence": "judgment" }
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "T7 criterion 11: date and session are the DIR session that learned the lesson, as its cited source records it; an earlier session the cited record names is named.",
+      "after": "T7 criterion 11 adds: where the cited source names no learning session, date and session are the earliest DIR record found by a census of the whole .dir-sdlc/sessions tree over the form's spellings, named as path:line; no 'earliest' claim without that census, and the census is reported.",
+      "inFlight": []
+    }
+  ],
+  "metrics": { "userInteractions": 5, "escalationsRaised": 1, "reviewRounds": 1 }
+}

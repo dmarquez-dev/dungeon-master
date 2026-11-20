@@ -1,0 +1,59 @@
+{
+  "id": "20261103-1654-test-strength",
+  "name": "test-strength",
+  "scope": "standard",
+  "status": "WRAPPED",
+  "started": "2026-11-03T16:54:45Z",
+  "ended": "2026-11-03T18:42:31Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "58a78a14-6346-4ab9-b729-d056c0d5a0bf",
+      "phase": "discuss",
+      "sir": "1.0.14",
+      "started": "2026-11-03T16:54:45Z",
+      "ended": "2026-11-03T16:58:09Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "923f1176-177c-43e6-85e8-4d860fcb851f",
+      "phase": "spec",
+      "sir": "1.0.14",
+      "started": "2026-11-03T16:59:38Z",
+      "ended": "2026-11-03T17:19:12Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "31bdb24f-5aa0-43dd-a947-12f97fcc9682",
+      "phase": "implement",
+      "sir": "1.0.14",
+      "started": "2026-11-03T17:21:57Z",
+      "ended": "2026-11-03T18:22:39Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "dffe73a5-938f-4b5b-bc09-ac1926472ba8",
+      "phase": "review",
+      "sir": "1.0.14",
+      "started": "2026-11-03T18:24:33Z",
+      "ended": "2026-11-03T18:40:18Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "dffe73a5-938f-4b5b-bc09-ac1926472ba8",
+      "phase": "wrap",
+      "sir": "1.0.14",
+      "started": "2026-11-03T18:42:14Z",
+      "ended": "2026-11-03T18:42:39Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "brief": "Strengthen eight tests in src/DungeonMaster.Tests that cannot fail on the defect they guard (backlog .sir/backlog.md:102-105,109,110,112,113; S1-S8). All eight re-measured live at e22840e. Seven sequential test-engineer tasks, one test file each: the IsInEnum-only validator rejects 999; the ObjectKind ordinal test pins WeaponRack == 37; the MutationOutcome.None arm is pinned by its message; the handler token is captured on each behaviour-present dispatch path; AddPlacedObject asserts a 2.0 scale; the invalid-scale message assertion pins the range sentence instead of Contain(\"5\"); Floor.Objects caching places an object, and all five cached wrappers get a read-mutate-reread test. Each new assertion is shown red under a named, reverted, cmp-verified production injection with a control that stays green. No production code is committed.",
+  "pushed": true
+}

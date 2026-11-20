@@ -1,0 +1,30 @@
+# Session log — 2026-08-17-pin-the-build
+
+- 2026-08-17 — Scope routed to Standard: ten audit entries across build configuration in five projects, plus a repository-wide indent reformat.
+- 2026-08-17 — Gate 1 presented (goal, track, base branch `chore/repo-audit`). Approved.
+- 2026-08-17 — Baseline captured on `chore/repo-audit` @ 48a91f1: `dotnet build` succeeded, 0 warnings, 0 errors, both App target frameworks built on Windows; `dotnet test` 292 passed, 0 failed.
+- 2026-08-17 — `dir-git init-session`: worktree `.claude-worktrees/dir-2026-08-17-pin-the-build`, branch `dir/2026-08-17-pin-the-build`, base HEAD 48a91f1.
+- 2026-08-17 — Escalations E1 (prerelease `Plugin.Maui.KeyListener`) and E2 (analysis-enforcement aggressiveness) raised as one batched ask. Both resolved: pin-and-defer for E1, `Recommended` with a suppression backlog for E2.
+- 2026-08-17 — `dir-architect` decomposition returned: 3 serial tasks (T1 → T2 → T3), 3 contracts. spec.md assembled.
+- 2026-08-17 — Gate 2 presented.
+- 2026-08-17 — Gate 2 approved. manifest.json and contracts/ frozen. Phase → implement.
+- 2026-08-17 — T1 dispatched (dir-architect, opus). startRef 48a91f1.
+- 2026-08-17 — T1 reported done; dir-reviewer dispatched (opus). One deviation flagged by the implementer: a leading blank line removed from the .sln beyond contract §5's two changes.
+- 2026-08-17 — T1 review PASS (0 blocking, 2 advisory). Committed 66e41ef `build: pin SDK version and normalize build configuration`. T1 done.
+- 2026-08-17 — T2 dispatched (dir-architect, opus). startRef 66e41ef.
+- 2026-08-17 — T2 reported done (all 12 criteria met; transitive-pinning risk did not materialise; SQLitePCLRaw pin deleted as EF 10.0.11 resolves 2.1.12 on its own; 12 CA rules suppressed, IDE0055 left at suggestion). dir-reviewer dispatched (opus).
+- 2026-08-17 - T2 review round 1: CHANGES REQUIRED. B1: IDE0055 backlog count wrong (58 stated, 62 measured), and the miscount concealed that five already-tab-indented files carry intra-line alignment violations, making T3's frozen criteria unsatisfiable. Migrations exemption verified working; SQLitePCLRaw deletion independently verified safe.
+- 2026-08-17 - Escalation E3 raised and resolved: widen T3 to the measured 62-file set. contracts/editorconfig.md sections 5-8 and the manifest T3 entry amended under that authority.
+- 2026-08-17 - T2 revision round 1 dispatched.
+- 2026-08-17 - T2 revision round 1 returned: IDE0055 comment corrected to 62, both contract defects amended. Re-review dispatched.
+- 2026-08-17 - T2 re-review PASS; criterion 9 met. Round-2 finding B2 raised against the orchestrator's contract amendment, not T2's deliverable: its LF/CRLF premise disproved by a byte-level count (178/178 CRLF), its BOM and scope-leak premises upheld. contracts/editorconfig.md section 7 amended to require --include scoping to the 62 paths and to permit BOM removal per repository-root-config section 6.
+- 2026-08-17 - T2 committed cf49081 'build: adopt central package management and pin analyzer set'. T2 done.
+- 2026-08-17 - T3 dispatched (dir-architect, opus). startRef cf49081.
+- 2026-08-17 - T3 reported done (62 files reformatted, IDE0055 flipped to warning, build 0/0 with a positive control, 292 tests). 45 leading-space lines the formatter ignored were fixed by hand. dir-reviewer dispatched.
+- 2026-08-17 - T3 review PASS, zero blocking (1181 string literals compared byte-for-byte, reviewer's own negative control confirmed IDE0055 fails the build).
+- 2026-08-17 - T3 committed. First attempt ffff029 carried stray '@' here-string delimiters in the message body; message-only amend to 413be78, tree sha e434b87 and parent unchanged. Authorised as an exception because T3 was the final task, the tip, with nothing concurrent.
+- 2026-08-17 - Gate 3 presented.
+- 2026-08-17 - Gate 3 approved. Backlog: the E1-derived Plugin.Maui.KeyListener item deferred as written, plus four advisory items (unscoped dotnet format CHARSET failure, residual BOMs and .csproj indentation, the mixed indent at DungeonDetailPage.xaml.cs:481, and three pieces of stale contract wording). Five appended to .dir-sdlc/backlog.md.
+- 2026-08-17 - merge-session: dir/2026-08-17-pin-the-build merged into chore/repo-audit as merge commit 079195f. Session complete: 26 of 26 acceptance criteria met, 0 unresolved blocking findings.
+- Metrics note: userInteractions 6 counts Gate 1, the batched E1+E2 escalation, Gate 2, escalation E3, Gate 3, and the push question asked immediately after this commit.
+- 2026-08-17 - Post-merge verification in the main checkout initially FAILED: 12 IDE0055 errors in PathSegmentKind.cs. Root cause was not the session's commits. Two .cs files predating the session carried LF working-tree endings in the main checkout while the other 176 were CRLF; the session worktree, being a fresh checkout under core.autocrlf=true, had CRLF for all 178, so every in-worktree verification was clean and honest. Git reports such files clean because text=auto normalises to LF in the index and both forms hash identically. Resolved by re-checking out the two files -- blob hashes de023ed and b8d28ec identical before and after, so no content changed. Main checkout now builds 0/0 with 292 tests passing. Carried to the backlog as a standing trap.

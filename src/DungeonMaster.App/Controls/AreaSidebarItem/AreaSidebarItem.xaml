@@ -6,6 +6,9 @@
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     x:Class="DungeonMaster.App.Controls.AreaSidebarItem">
 
+    <!-- BackgroundColor, Stroke and StrokeThickness are stated as attributes because they are the
+         FIRST FRAME, before any visual state has been entered. From the first GoToState on, the
+         SelectionStates group below owns all three. -->
     <Border
         x:Name="ItemBorder"
         AutomationId="AreaRow"
@@ -14,6 +17,52 @@
         StrokeThickness="0"
         StrokeShape="Rectangle"
         Padding="{StaticResource DmPaddingTight}">
+
+        <!-- THE SELECTED AND HOVER APPEARANCE LIVES HERE AND NOWHERE ELSE (MASTER-098). It used to
+             be six code-behind assignments in SetEditing and the two hover handlers, driven by a
+             private bool that no theme dictionary could see, let alone reach.
+
+             The group is named SelectionStates rather than CommonStates on purpose: MAUI drives
+             CommonStates itself, and its automatic PointerOver would outrank Selected whenever the
+             pointer rested on the focused row. UpdateVisualState in the code-behind is the single
+             owner of the transition and states the precedence once: Selected, then Hovered, then
+             Normal. That is what the two "if (!_isSelected)" guards used to say twice.
+
+             Stroke takes DmAreaSelectedBorder, which is a Color rather than a Brush.
+             BindableProperty.TryConvert widens Color to Brush (measured and recorded in
+             TokenTypeMatchesTargetPropertyTests), which is why the old "new SolidColorBrush(...)"
+             wrapper is gone rather than moved.
+
+             Every state sets all three properties. A state that named only some of them would let
+             MAUI restore the rest to the attributes above on entry, which is the class of bug the
+             two mechanisms driving one property used to produce. -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="SelectionStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="Transparent" />
+                            <Setter Property="Stroke" Value="Transparent" />
+                            <Setter Property="StrokeThickness" Value="0" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Hovered">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmGoldHoverTint}" />
+                            <Setter Property="Stroke" Value="Transparent" />
+                            <Setter Property="StrokeThickness" Value="0" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Selected">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmAreaSelectedTint}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmAreaSelectedBorder}" />
+                            <Setter Property="StrokeThickness" Value="{StaticResource DmStrokeHairline}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
 
         <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
@@ -47,6 +96,7 @@
                 x:Name="NotebookButton"
                 Grid.Column="2"
                 AutomationId="AreaNotebookButton"
+                Style="{StaticResource DmIconButton}"
                 Text="&#xEA8F;"
                 FontFamily="{StaticResource DmFontIcon}"
                 FontSize="{StaticResource DmIconSizeSmall}"
@@ -67,6 +117,7 @@
             <Button
                 Grid.Column="3"
                 AutomationId="AreaDeleteButton"
+                Style="{StaticResource DmIconButton}"
                 Text="&#xE9FC;"
                 FontFamily="{StaticResource DmFontIcon}"
                 FontSize="{StaticResource DmIconSizeSmall}"
@@ -89,10 +140,20 @@
             <TapGestureRecognizer Tapped="OnItemTapped" />
         </Border.GestureRecognizers>
 
+        <!-- MASTER-175. The row body carries a TapGestureRecognizer above, so it is a clickable
+             surface, and it is the largest one in an expanded floor — but it had no
+             HandCursorBehavior at all while the two Buttons inside it did, so the pointer went
+             from hand to arrow to hand as it crossed the row. This is ABSENCE being closed, not
+             the inertness MASTER-165 alleges: measurement.md section 2 observed the hand cursor
+             working on all three floor-card configurations, including the as-shipped one, so the
+             behavior itself is sound. The attachment matches FloorSidebarItem.xaml:88, the same
+             fix on the floor card body. It is a behavior and nothing else — no size, no padding,
+             no margin, no gesture and no visual state changes here. -->
         <Border.Behaviors>
             <behaviors:HoverOrLongPressBehavior
                 HoverEntered="OnHoverEntered"
                 HoverExited="OnHoverExited" />
+            <behaviors:HandCursorBehavior />
         </Border.Behaviors>
     </Border>
 </ContentView>

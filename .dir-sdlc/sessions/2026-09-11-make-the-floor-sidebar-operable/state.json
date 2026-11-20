@@ -1,0 +1,221 @@
+{
+  "session": "2026-09-11-make-the-floor-sidebar-operable",
+  "updatedAt": "2026-09-14T10:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-iv",
+  "branch": "dir/2026-09-11-make-the-floor-sidebar-operable",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "b3b164103c63de5176c30690c1e5fe52fd34e4da",
+      "commit": "5d4d0b7febff8f9ed4cb59cd111f61f935ca3d3d"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "5d4d0b7febff8f9ed4cb59cd111f61f935ca3d3d",
+      "commit": "5146e6d149182944e6df80ba124eeb037537c1a9"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "5146e6d149182944e6df80ba124eeb037537c1a9",
+      "commit": "c5197816f2de7dab0ace17309daba6bdd81ffab0"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c5197816f2de7dab0ace17309daba6bdd81ffab0",
+      "commit": "280c7009540b39dec2862694f679cbf646e397d7"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "280c7009540b39dec2862694f679cbf646e397d7",
+      "commit": "66056de277a80ea8fc540371dd9cf34b8537b9a7"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "280c7009540b39dec2862694f679cbf646e397d7",
+      "commit": "3448ecdfa72c6fd8cab0dfd9d15669f8b4f0b0f5"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-164's prescribed remedy (convert ExpandToggle from Label to transparent glyph Button) was declined by the user at sub-session 5c's escalation E5 because the siblings render 55x55 against the Label's 16x23, changing header-row height. Re-decide it, now that measurement shows the 55x55 is WinUI's default Button minimum rather than a chosen size and can be overridden.",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Resolved by the documentation research round the user requested. The focusable-card-body option is NOT VIABLE: IsTabStop, TabIndex and ITabStopElement are absent from .NET MAUI 10's public API, and MAUI 9 deliberately removed layout focus (its own what's-new example is a VerticalStackLayout whose Focus handler 'isn't executed because only input controls can gain focus'); at the platform layer a Border/Grid/StackPanel is not a WinUI Control and so supports neither focus nor tab navigation. The remedy is therefore the transparent glyph Button, which is what Microsoft's keyboard-accessibility guidance explicitly prescribes for this exact anti-pattern and which needs no platform code, satisfying both of the user's stated priorities. The header-height objection that caused the 5c E5 decline is resolvable: keep the ~16x23 visual and pad the hit area to >=23x23, which Microsoft's touch guidance sanctions for a progressive-disclosure control whose function is redundant with another target. Two things documentation could not settle and which the implementing task must verify by running: whether MinimumWidthRequest/MinimumHeightRequest override the WinUI default Button minimum, and whether the header row height changes."
+    },
+    {
+      "id": "E2",
+      "question": "What instrument verifies MASTER-163 and MASTER-164 against the running application? src/DungeonMaster.App.UiTests is an existing Appium harness proven 2026-09-04 that drives the real unpackaged exe, but it is deliberately outside src/DungeonMaster.sln and needs an Appium server plus Developer Mode.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Extend the existing Appium harness in src/DungeonMaster.App.UiTests. The floor-sidebar facts become repeatable tests that survive the session and guard the fix, accepting the Appium-server and Developer-Mode prerequisites the project's README already documents. Constrained at Gate 2 by the measured finding that synthetic input cannot drive native WinUI drag-and-drop and that Appium's ability to do so is unproven: T5 carries an explicit fallback rather than a criterion resting on that instrument."
+    },
+    {
+      "id": "E3",
+      "question": "The cursor claims behind MASTER-161 and MASTER-165 cannot be settled by any automated instrument or by the orchestrator driving the app. HandCursorBehavior sets WinUI's non-public ProtectedCursor, which another process cannot read, and the repository already records that a GetCursorInfo probe measures the apparatus rather than the change. Cursor claims need a human observer.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Ran a discriminating probe with all three attach configurations observable in a single launch, varied by floor number. The user observed the hand cursor on ALL THREE configurations including the untouched as-shipped one. MASTER-161's remedy therefore works and the entry closes done; MASTER-165's claim is falsified. The surviving half of the original 2026-09-01 observation is AreaSidebarItem's card body, which carries no HandCursorBehavior at all - absence, not inertness - and was scoped into T3 at Gate 2 as MASTER-175."
+    },
+    {
+      "id": "E4",
+      "question": "MASTER-166's suspected mechanism needs frame-complete capture to settle; the original 60ms burst is roughly 4x too slow to sample a single-frame event. A candidate remedy (move ClearGhostAreas after RefreshFloorAsync) is justifiable independently of settling the observation, because it also closes a window in which neither the ghost nor the persisted area exists.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Instrument and settle the mechanism by measurement rather than by frame capture: establish whether the awaited AddAreaWithOutline write returns inside one frame interval, which decides whether the ghost is structurally unreachable at local-database latency. The remedy follows from that measurement instead of preceding it. Assigned to T4, whose criteria forbid overstating a consistent observation as a proven cause."
+    },
+    {
+      "id": "E5",
+      "taskId": "T1",
+      "question": "Three acceptance criteria (T1 c3, T2 c6, T3 c5) are met only by a person looking at the running application. The owning task cannot execute them, and dir-reviewer judges against the criteria and nothing else. Who executes them, and how does the reviewer reach the evidence?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "The orchestrator runs each observation with the user when its task reports done, and hands the observation transcript to dir-reviewer alongside the diff. The task's deliverable is the observation protocol, stated precisely enough to be executed unchanged. Absent a transcript the criterion is UNDETERMINED rather than met, so a missing observation cannot be silently scored as a pass. The alternative of folding all three into one post-T3 session was rejected because it would serialize the reviews on top of an already-serial task chain.",
+      "options": [
+        {
+          "summary": "Orchestrator runs each observation when its task reports done and hands the transcript to the reviewer",
+          "rationale": "Keeps the serial chain moving and gives the reviewer reachable evidence for a criterion its own rules would otherwise leave unjudgeable.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-11-make-the-floor-sidebar-operable/measurement.md",
+              ".dir-sdlc/sessions/2026-09-11-measure-then-close-the-test-gaps/coverage.md"
+            ]
+          }
+        },
+        {
+          "summary": "Fold all three observations into one session after T3 lands",
+          "rationale": "One app launch instead of three, but T1's and T2's reviews then block on T3, serializing the reviews as well as the tasks.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Downgrade all three to advisory and let the structural criteria carry the tasks",
+          "rationale": "Cheapest and wrong: the reorder defect is only observable, and T3's finding came from a human in the first place.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-11-make-the-floor-sidebar-operable/measurement.md"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "taskId": "T1",
+      "question": "T1's premise is void. The controlled observation shows the floor reorder works end to end - UI and database agree, Guest Rooms moved 3->7 and persisted. The failure recorded in measurement.md was taken in a scrolling, non-maximized window with the overlay scrollbar rendered; this run had no scrollbar. So the 'new unrecorded functional defect' is a symptom of MASTER-163 (a drop that misses every drop target is discarded silently - FloorListContainer has no DropGestureRecognizer), not a peer defect. manifest.json is frozen and MASTER-163's severity was to be corrected DOWNWARD by T6; the observation argues it should go UP, and MASTER-174's characterisation is now wrong.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Amend. MASTER-163 becomes the session's primary defect and its severity is corrected UPWARD, not downward: when a drop misses every drop target the operation fails silently with no error and no feedback, which is why the feature reads as broken. T3 gains a criterion that a missed drop no longer fails silently - either FloorListContainer accepts drops, or the miss is surfaced. T6's instruction flips accordingly, and MASTER-174 is filed as 'a drop that misses every drop target is discarded silently' rather than 'the reorder does not reorder', which is false. T1's work stands: a behaviour-preserving refactor plus the first tests on the gesture-to-command path, and it correctly declined to ship a speculative fix. Separately: the user chose to leave Test Dungeon #1 with Guest Rooms at position 7 rather than restore it."
+    },
+    {
+      "id": "E7",
+      "taskId": "T2",
+      "question": "T2 shipped the expand toggle at 44x44 rather than contract C3 section 1's pinned ~23x23, because MinimumWidthRequest=\"23\" is a bare literal that fails GeometryScaleTests.NoBareGeometryValues, and the legal remedy - a token in Resources/Theme/Tokens.xaml - lives in a file T2 does not own.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Keep 44x44 as shipped. It matches the three sibling Buttons in the same header row exactly, clears the touch-target minimum outright rather than relying on the progressive-disclosure redundancy carve-out, and introduces no new theme token. Accepted cost is horizontal only: chevron column 13 -> 44, floor-name label 160 -> 129. Height unchanged, which is the invariant that mattered. Declined: adding a DmDisclosureTargetMinimum token to pin 29x27, and recording the file in MinimumSizePendingMigration - the latter would degrade a ratchet that documents undecided legacy cases by using it to wave through a deliberate new value.",
+      "options": [
+        {
+          "summary": "Keep 44x44 as shipped",
+          "rationale": "Matches the three sibling Buttons in the same row, clears the touch minimum outright, needs no new token.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml"
+            ]
+          }
+        },
+        {
+          "summary": "Add a DmDisclosureTargetMinimum token and pin 29x27",
+          "rationale": "Closest to the contract's stated intent and keeps 15px more room for floor names, but needs an owner for Tokens.xaml.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Resources/Theme/Tokens.xaml"
+            ]
+          }
+        },
+        {
+          "summary": "Record the file in MinimumSizePendingMigration",
+          "rationale": "Cheapest, and recommended against by both T2 and the orchestrator: that census documents undecided legacy cases, not exemptions for deliberate new values.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "c7 cannot be satisfied from T3's owns set. The criterion asserts DungeonDetailPage.xaml being owned means no ownership change is needed, but XAML event handlers resolve against DungeonDetailPage.xaml.cs, which is T4's file; and the command-bound route needs DungeonDetailViewModel, owned by nobody. Both acceptable shapes therefore require a file T3 does not own.",
+      "answer": "Grant T3 src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs and src/DungeonMaster.App.Core/Editor/FloorReorder*.cs, and re-dispatch T3 for c7 alone. The orchestrator verified this creates no unordered ownership intersection: T4 already depends on T3 and T3 already depends on T1, so both new overlaps carry a direct dependsOn edge, and neither task is running. Keeps the fix attached to the task whose report and contract amendment describe it. T3 recommends shape (a) - FloorListContainer accepts drops - on the evidence that the drag placeholder already previews where the floor will land, so a release on that gap is an expressed intention rather than a meaningless drop.",
+      "options": [
+        {
+          "summary": "Grant T3 the two files and re-dispatch for c7 alone",
+          "rationale": "No unordered intersection is created and neither task is running; keeps the fix with the task that documented it.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-11-make-the-floor-sidebar-operable/manifest.json",
+              ".dir-sdlc/sessions/2026-09-11-make-the-floor-sidebar-operable/state.json"
+            ]
+          }
+        },
+        {
+          "summary": "Fold c7 into T4",
+          "rationale": "T4 already owns DungeonDetailPage.xaml.cs and runs next, but its criteria say nothing about the silent discard and it is the ghost-frame measurement task.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-11-make-the-floor-sidebar-operable/manifest.json"
+            ]
+          }
+        },
+        {
+          "summary": "Leave c7 unmet and file the silent discard for a later session",
+          "rationale": "Honest but leaves E6's finding unremedied and records 'nothing happens' at the observation a second time.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E9",
+      "taskId": "T3",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T3 reports a discipline conflict it did not escalate as blocking: the frontend discipline requires every interactive element be reachable and operable by keyboard alone, and floor reordering is pointer-only - OnKeyDown at DungeonDetailPage.xaml.cs:361-430 has no reorder key, as contract C1 section 3 records. T3's task is layout-only and the contract freezes the gesture host, so it did not act.",
+      "answer": "File it as a new numbered audit entry, MASTER-176, carrying T3's evidence. It is a genuine accessibility gap and a discipline-conformance failure, not merely a nicety: MASTER-164 restored keyboard access to a floor's areas this session, which makes reorder the remaining pointer-only operation in the sidebar. Filed this session, not fixed."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 9,
+    "escalationsRaised": 9,
+    "reviewRounds": 3
+  }
+}

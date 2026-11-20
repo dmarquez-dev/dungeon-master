@@ -1,0 +1,37 @@
+{
+  "id": "20261111-1806-windows-window-identity",
+  "name": "windows-window-identity",
+  "scope": "small",
+  "status": "WRAPPED",
+  "criteria": [
+    "C1 `App.CreateWindow` (`src/DungeonMaster.App/App.xaml.cs`) returns a `Window` hosting `AppShell` whose `Title` is set from `AppInfo.Current.Name`, not a literal, so the csproj `ApplicationTitle` stays the single source (the build already emits `AssemblyMetadata(\"Microsoft.Maui.ApplicationModel.AppInfo.Name\", \"Dungeon Master\")` into `obj/Debug/net10.0-windows10.0.19041.0/win-x64/DungeonMaster.App.AssemblyInfo.cs`); the method's doc comment says the window takes its title from the app's display name.",
+    "C2 `src/DungeonMaster.App/DungeonMaster.App.csproj` sets `AssemblyTitle` and `Product` to `$(ApplicationTitle)`, with a comment saying the unpackaged Windows build names its taskbar entry from the exe's file description, which `AssemblyTitle` sets and which otherwise defaults to the assembly name; after a Debug build of the windows target the regenerated `DungeonMaster.App.AssemblyInfo.cs` reads `AssemblyTitleAttribute(\"Dungeon Master\")` and `AssemblyProductAttribute(\"Dungeon Master\")` (base `d6ef093`: both `DungeonMaster.App`).",
+    "C3 The comment in `src/DungeonMaster.App/AppShell.xaml` no longer leaves a reader believing the title bar is meant to be blank: it says the window's title, set in `App.CreateWindow`, is what names the app in the title bar, and that a Shell `Title` would add a second text run; the Shell still carries no `Title`.",
+    "C4 `docs/audit/00-master-index.md` row 142's status cell gains a clause recording that the 2026-11-11 human check found the running window untitled and the taskbar entry `DungeonMaster.App`, fixed by session 20261111-1806-windows-window-identity; nothing else in the row changes.",
+    "C5 `dotnet build src/DungeonMaster.App/DungeonMaster.App.csproj -f net10.0-windows10.0.19041.0 -c Debug` reports 0 warnings and 0 errors, and `dotnet test src/DungeonMaster.App.UnitTests` passes with no failures.",
+    "C6 Every edited file keeps CRLF line endings, no BOM and its existing indentation (tabs in .cs/.csproj, its own in .xaml and .md); no file outside the four named changes."
+  ],
+  "started": "2026-11-11T18:06:38Z",
+  "ended": "2026-11-11T18:21:55Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "98b181f8-95c3-48de-a334-626febc8fc1f",
+      "phase": "small",
+      "sir": "1.0.30",
+      "started": "2026-11-11T18:06:38Z",
+      "ended": "2026-11-11T18:18:48Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "98b181f8-95c3-48de-a334-626febc8fc1f",
+      "phase": "wrap",
+      "sir": "1.0.30",
+      "started": "2026-11-11T18:21:33Z",
+      "ended": "2026-11-11T18:21:55Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": { "userInteractions": 1, "escalationsRaised": 0, "reviewRounds": 0 }
+}

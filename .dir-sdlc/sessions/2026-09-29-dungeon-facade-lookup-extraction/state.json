@@ -1,0 +1,229 @@
+{
+  "session": "2026-09-29-dungeon-facade-lookup-extraction",
+  "updatedAt": "2026-09-30T03:20:00Z",
+  "phase": "awaiting-final",
+  "worktree": "C:/dm-wt/6b-xiv",
+  "branch": "dir/2026-09-29-dungeon-facade-lookup-extraction",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "20b0b0908292194e45cf7ec28a9b1c634b941eb5",
+      "commit": "aa5d7ac118c819756b76b82de35a3af2809d3782"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "aa5d7ac118c819756b76b82de35a3af2809d3782",
+      "commit": "66a0b73"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 2,
+      "redispatches": 0,
+      "startRef": "20b0b0908292194e45cf7ec28a9b1c634b941eb5",
+      "commit": "e2315e3, a70fc95"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T2",
+      "question": "Definition-of-done items 7 and 8 require each floor-absent test be shown discriminating by injected defect. That is a property of a task's report, which this session's dispatch constraint forbids a criterion from constraining, and no repository artifact records it. How should it be verified?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Resolved by the orchestrator at rung 1, without a user stop: keep it as a dispatch instruction on T2 inside B9, citing test.md Coverage. The framework already carries it -- test.md binds every implementer, the agent brief's report format mandates showing a test can fail, and dir-reviewer receives the implementer's report -- so the demonstration is owed and checked, and only the formal per-criterion verdict is foregone. B9's verdict is the clean final file state. Recorded as coverage row 7a, uncovered.",
+      "options": [
+        {
+          "summary": "Keep it as a dispatch instruction on T2 inside B9; the reviewer verifies it from T2's report, and B9's verdict is the clean final file state.",
+          "rationale": "test.md Coverage already binds every implementer and the agent brief already mandates showing a test can fail, so nothing is lost but the formal verdict.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "disciplines/test.md",
+              "agents/dir-reviewer.md",
+              "agents/dir-backend-engineer.md"
+            ]
+          }
+        },
+        {
+          "summary": "Relax the report-constraint for this one clause and make it a T2 criterion.",
+          "rationale": "The reviewer would render a verdict on it, at the cost of the constraint that keeps every criterion falsifiable from the tree alone.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Require T2 to land a permanent test of the extracted helper itself.",
+          "rationale": "Does not answer the question -- it is another test needing its own discrimination evidence, and it asserts private structure against test.md's rule on private state.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "taskId": "T3",
+      "question": "Definition-of-done item 12 requires the backlog item at .dir-sdlc/backlog.md:427 be recorded as falsified. The spec's Scope names only the two docs/audit files, so the falsified item stays live in the backlog. Should T3's ownership extend to that file?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "No -- record the falsification in 01-domain-application.md only; the orchestrator retires the backlog item at Gate 3.",
+          "rationale": "Scope names two files, the backlog is the orchestrator's to append at Gate 3 by the framework's own rule, and .dir-sdlc/backlog.md carries 8 pre-existing lone CR characters that C16's line-ending criterion would fail on through no fault of T3's.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "spec.md#scope",
+              ".dir-sdlc/backlog.md"
+            ]
+          }
+        },
+        {
+          "summary": "Yes -- add .dir-sdlc/backlog.md to T3's owns so both items are annotated in place.",
+          "rationale": "Leaves no live false finding anywhere, but C16 must then exempt that file explicitly because of its 8 pre-existing lone CR.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/backlog.md"
+            ]
+          }
+        }
+      ],
+      "answer": "Gate 2, user decision: NO. T3's ownership is not extended. T3 records the falsification in docs/audit/01-domain-application.md only, and the orchestrator retires the backlog item at Gate 3, which is where the framework puts backlog writes anyway. This also keeps T3 away from .dir-sdlc/backlog.md's 8 pre-existing lone CR characters, which C16's line-ending criterion would have failed on through no fault of T3's."
+    },
+    {
+      "id": "E3",
+      "question": "dir-architect authored contracts/dungeon-public-surface.md against spec.md's explicit declaration of 'None'. Accept the contract?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Accepted by the orchestrator at rung 1, without a user stop, and spec.md's Contracts section was rewritten to record it and why. The argument is decisive rather than stylistic: criteria B4, B5 and B6 all rest on 'unchanged from 20b0b09', and a task cannot invoke git, so without a handed-over baseline those three are uncheckable by the task they judge. The contract is that baseline and holds declarations only. All eight SHA-256 digests in its section 5 were re-verified independently by the orchestrator with sha256sum in the worktree and all eight match.",
+      "options": [
+        {
+          "summary": "Accept the contract.",
+          "rationale": "B4, B5 and B6 rest on 'unchanged from 20b0b09' and a task cannot invoke git; the contract is the handed-over baseline that makes them checkable, and the 12 signatures are a real boundary T2 must not change and T1 calls.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "manifest.json",
+              "contracts/dungeon-public-surface.md"
+            ]
+          }
+        },
+        {
+          "summary": "Reject it and inline the baseline into the criteria.",
+          "rationale": "Works, but duplicates about ninety lines of signature text across two tasks' criteria with no single frozen source -- which is how the drift this session exists to correct starts.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "taskId": "T3",
+      "question": "Frozen criterion C15 prescribes a drift range for CORE-015's eight locations, '+13 to +51', that T3's reviewer measured as false and the orchestrator confirmed. The true opening-line range is +12 to +40. T3 wrote the prescribed figure into a permanent audit record, faithfully and as instructed, having been forbidden git. Amending a frozen criterion requires authorisation: what should land in the record?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Gate-3-phase user decision: replace the range with an eight-row per-location table (member, cited range, current declaration line, drift), stating that drift is measured at each declaration's opening line. Strictly more informative than a range, removes the opening-versus-closing-line ambiguity that let the wrong figure pass unchallenged, and matches the two commit-by-commit tables the block already carries. Amendment A1 applied to manifest.json by the orchestrator.",
+      "options": [
+        {
+          "summary": "Amend C15 to require the eight-row per-location table instead of a range.",
+          "rationale": "Strictly more informative, removes the opening-versus-closing-line ambiguity entirely, and this register block already uses commit-by-commit tables twice.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md",
+              "reviews/T3.md"
+            ]
+          }
+        },
+        {
+          "summary": "Amend C15 to the corrected range '+12 to +40, measured at each declaration's opening line'.",
+          "rationale": "Minimal edit preserving the sentence shape, but a reader still cannot check it without redoing the eight reads.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md:761-768"
+            ]
+          }
+        },
+        {
+          "summary": "Amend C15 to drop the quantifier entirely.",
+          "rationale": "Cannot be wrong, but discards the measurement and weakens the entry.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "taskId": "T3",
+      "question": "T3's round-2 reviewer filed a contradicts finding: the sentence C15 prescribes -- 'that row is the only row in measurement.md section 1 with no command named beside it' -- is itself a false universal. Section 1 has 6 claims against 3 command bullets; claims 4, 5 and 6 all lack one, so claim 4 was one of three. The false sentence is in the session branch and in measurement.md. What should land?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Gate 3, user decision: narrow the clause to what is true and keep the signal -- 'one of three rows ... and the only one of the three that states a figure; the other two state qualitative verdicts.' Amendment A2 applied to C15 by the orchestrator; measurement.md corrected by the orchestrator in the same pass, since that file is orchestrator-owned and asserts the same falsehood about itself.",
+      "options": [
+        {
+          "summary": "Narrow the clause to what is true and keep the signal.",
+          "rationale": "Same rhetorical force, and the corollary about figures-without-commands becomes sharper rather than weaker.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-29-dungeon-facade-lookup-extraction/measurement.md"
+            ]
+          }
+        },
+        {
+          "summary": "Drop the uniqueness claim entirely.",
+          "rationale": "Cheapest edit and cannot be wrong, but loses the stands-out-among-peers force that makes the corollary land.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-29-dungeon-facade-lookup-extraction/measurement.md"
+            ]
+          }
+        },
+        {
+          "summary": "Leave it and annotate it in the same block as a third self-found defect.",
+          "rationale": "Needs no amendment, but knowingly ships a false sentence plus its own correction; the reviewer found no precedent for that in this register.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E4",
+      "artifact": "manifest.json",
+      "before": "C15 required the drift of CORE-015's eight locations be stated as '+13 to +51'.",
+      "after": "C15 requires an eight-row per-location table (member, cited range, declaration line at 20b0b09, drift), drift measured at each declaration's opening line, plus one sentence naming the original error's cause.",
+      "inFlight": [
+        "T2"
+      ]
+    },
+    {
+      "id": "A2",
+      "escalation": "E5",
+      "artifact": "manifest.json",
+      "before": "C15 required the sentence 'that row is the ONLY row in measurement.md section 1 with no command named beside it'.",
+      "after": "C15 requires 'one of three rows ... and the only one of the three that states a figure', with the other two named as qualitative verdicts.",
+      "inFlight": []
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 5,
+    "reviewRounds": 0
+  }
+}

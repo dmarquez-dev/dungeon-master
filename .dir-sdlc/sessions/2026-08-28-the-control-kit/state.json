@@ -1,0 +1,303 @@
+{
+  "session": "2026-08-28-the-control-kit",
+  "updatedAt": "2026-09-01T23:59:00Z",
+  "phase": "awaiting-final",
+  "worktree": "C:\\dm-wt\\2026-08-28-the-control-kit",
+  "branch": "dir/2026-08-28-the-control-kit",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "df9b8f642703fadc6906a551e5678caf9f60a936",
+      "commit": "fda46b7"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "fda46b7",
+      "commit": "b66f54d"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "b66f54d",
+      "commit": "64c4253"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "64c4253",
+      "commit": "aae18a8"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "aae18a8",
+      "commit": "0c8f98f"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "0c8f98f",
+      "commit": "7a0b506"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "7a0b506",
+      "commit": "795c839"
+    },
+    {
+      "id": "T8",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "795c839",
+      "commit": "7929e50"
+    },
+    {
+      "id": "T9",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "f09343d",
+      "commit": "541f1c7"
+    },
+    {
+      "id": "T10",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "7929e50",
+      "commit": "f09343d"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "Five of the seven backlog items inherited from 5b are unscoped. Are they in or out of 5c?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Scope the CreateDungeonPopup item only, as a new task, because it is unfinished work with a falsified comment sitting in the tree that 5b's own T6 disproved in the same session. The other four inherited items stay out of 5c and remain open in the backlog; T9 records them as still-open rather than closed. Added as T10; the architect placed it after T8 rather than after T2 so it would not run concurrently with T3-T8 and confound the XAML compilation that is its entire evidence, and so no signed-off dependsOn edge needed editing.",
+      "options": [
+        {
+          "summary": "Add the CreateDungeonPopup item only, as a new task after T2",
+          "rationale": "It is the only one of the five that is unfinished work with a falsified comment sitting in the tree: 5b's T6 proved the per-binding x:DataType={x:Null} technique in the same session whose T4 wrote the comment saying it was impossible. XS effort, improves 6 of 7 bindings from reflection-based to compiled.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/backlog.md",
+              "src/DungeonMaster.App/Views/CreateDungeonPopup/CreateDungeonPopup.xaml:15-47",
+              "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml:58"
+            ]
+          }
+        },
+        {
+          "summary": "Leave all five for a later session",
+          "rationale": "5c is already nine serial tasks and carries the session's only high-risk entry, MASTER-105. Four of the five are advisory or explicitly do-not-fix.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/backlog.md"
+            ]
+          }
+        },
+        {
+          "summary": "Add all five",
+          "rationale": "Clears the 5b debt entirely, but the n < 3 guard item is explicitly do-not-fix and do-not-delete, so it is a documentation edit that inflates the manifest without closing anything. Not recommended by the architect.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "taskId": "T2",
+      "question": "DmCard's trailing actions (Edit, Start Session, Delete) are unreachable by keyboard because the reveal is pointer-gated. Every remedy changes the reveal design. How should they become keyboard-reachable?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Keep the presenter always laid out, swap IsVisible for Opacity, and reveal on focus as well as hover",
+          "rationale": "TrailingPresenter stays IsVisible=true with Opacity=0; hover sets 1 as now, and DmCard additionally reveals when a descendant takes focus. Tab then lands on Edit/Start/Delete and they become visible as focus arrives, so nothing is ever focused while invisible. Preserves the hover affordance exactly. The trailing region already reserves its width when shown - the title Text measures 1349x34 unrevealed and 1161x34 revealed - so making it permanent removes a reflow rather than adding one.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "scratch T2/repro/before2-initial.tree.txt",
+              "scratch T2/repro/before2-hover.tree.txt",
+              "src/DungeonMaster.App/Controls/DmCard/DmCard.xaml.cs:84"
+            ]
+          }
+        },
+        {
+          "summary": "Make the trailing content permanently visible",
+          "rationale": "Simplest, no new event wiring, no invisible focusable elements. Cost: the hover-reveal disappears from the product's visual language, and AreaSidebarItem.xaml:92-96 wires the same behavior the same way, so the two card types would diverge unless changed together.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Controls/AreaSidebarItem/AreaSidebarItem.xaml:92-96"
+            ]
+          }
+        },
+        {
+          "summary": "Leave the reveal pointer-only and add a separate keyboard route",
+          "rationale": "For example Enter on the focused card opens the editor, plus an accelerator or context menu for delete. Cost: two divergent interaction models for the same affordances, and Delete needs new UI it does not have.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Option 1: keep TrailingPresenter always laid out, swap IsVisible for Opacity, and reveal on focus as well as hover. Implement it inside T2 now rather than deferring it - T2 already owns DmCard and DungeonListPage, has a working DPI-corrected UIA probe built, and has made no code change yet, so this is the cheapest moment it will ever be. This authorises adding acceptance criteria to the frozen T2 entry; a new audit entry must still be filed for the defect, which is T9's to record."
+    },
+    {
+      "id": "E3",
+      "taskId": "T6",
+      "question": "T6's MASTER-098 fix removed the last StrokeThickness literal from AreaSidebarItem.xaml.cs, so its StrokePendingMigration entry is now stale and the suite is red. The one-line fix is in GeometryScaleTests.cs, which is T3's ownership, not T6's. Who makes the edit?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Grant T6 the one-line edit in GeometryScaleTests.cs:327",
+          "rationale": "The guard's own doc comment prescribes exactly this and names the PaletteThumb precedent from T3: the entry and the literal must leave in the same change. Extending T6's ownership by one line keeps the change atomic, which is what the guard is designed to enforce. The doc comment above the set also needs its C#-entry count corrected in the same edit.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:313-330"
+            ]
+          }
+        },
+        {
+          "summary": "Dispatch it to a fresh task owning GeometryScaleTests.cs",
+          "rationale": "Preserves the ownership boundary the manifest froze at Gate 2. Same one-line change, correct owner, costs a dispatch and a review round in an already-serial chain.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-08-28-the-control-kit/manifest.json"
+            ]
+          }
+        },
+        {
+          "summary": "Revert AreaSidebarItem to an imperative StrokeThickness",
+          "rationale": "Keeps the suite green without touching the guard, but fails criterion 5 and leaves two mechanisms driving one property. T6 does not recommend it and neither do I.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Grant T6 the one-line edit at GeometryScaleTests.cs:327, extending its ownership by that line only, and correct the doc comment's C#-entry count in the same edit. The guard's own doc prescribes this and names T3's PaletteThumb precedent: the entry and the literal must leave in the same change, so keeping it atomic is what the guard exists to enforce."
+    },
+    {
+      "id": "E4",
+      "taskId": "T6",
+      "question": "MASTER-161's hand cursor cannot be verified by an automated probe. Criterion 2 requires a Windows observation. Does a human check it, or does the entry close on structure alone?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Human observation at the keyboard, then flip MASTER-161 to done",
+          "rationale": "MASTER-039 was closed exactly this way in Session 4 and for exactly this reason: a SetCursorPos/GetCursorInfo probe reports ARROW everywhere because HandCursorBehavior sets WinUI's non-public ProtectedCursor per element, which another process cannot read. Ten seconds of hovering a floor card body.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md:419",
+              "src/DungeonMaster.App/Behaviors/HandCursorBehavior.cs:109-161"
+            ]
+          }
+        },
+        {
+          "summary": "Close MASTER-161 on structure alone",
+          "rationale": "The behavior is attached and the build is clean. But criterion 2 forbids it, and T6 agrees with the criterion. Recording it done without the observation would put an unverified user-facing claim in the index.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "The user will observe the hand cursor at the keyboard, as MASTER-039 was closed in Session 4. MASTER-161's status is set from that observation; the code change lands regardless."
+    },
+    {
+      "id": "E5",
+      "taskId": "T6",
+      "question": "The floor card body and its expand toggle are unreachable by keyboard, measured over a 40-tab walk, so no floor's areas can be reached by keyboard alone. Pre-existing, not introduced by T6, and it has no audit entry. Fix now or record it?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Record it as a backlog item and a new audit entry",
+          "rationale": "The only fix inside T6's ownership converts ExpandToggle from a Label to a focusable Button, which measurably grows the header row - the sibling buttons render 55x55 against the Label's 16x23 - an unverifiable visual regression on the session's largest control, in a task already carrying two escalations.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml:130-165"
+            ]
+          }
+        },
+        {
+          "summary": "Fix it now inside T6",
+          "rationale": "Closes a real accessibility gap while the control is open and the probe is built, at the cost of a header-row height change nobody has signed off and which T6 cannot verify as acceptable.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Record it rather than fix it: a new audit entry plus a backlog item, carrying T6's measured 40-tab evidence and the ExpandToggle-to-Button remedy. Not fixed in T6 - the header-row height change is an unverifiable visual regression on the session's largest control."
+    },
+    {
+      "id": "E6",
+      "taskId": "T6",
+      "question": "Criterion 11 names floor drag-and-drop among the required running-app observations. A synthetic SendInput drag does not start WinUI's OLE drag loop - it failed identically on the unchanged baseline - so the behaviour is unobserved, and it is one of the paths this diff rewrote (OnDragOver now sets both Stroke and BackgroundColor where it previously set only Stroke). Observe it, or record MASTER-098 as part done?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "The user is observing both the hand cursor and the drag in one manual pass at the keyboard. MASTER-161 and MASTER-098 are both set from that observation.",
+      "options": [
+        {
+          "summary": "Fold the drag observation into the manual pass already running for the hand cursor",
+          "rationale": "The user is at the keyboard for criterion 2 anyway; expanding a floor, dragging its card over another and confirming the drop-target highlight and the resulting order costs seconds and closes the criterion with the evidence it asked for. No code change, no revision round.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "manifest T6 acceptance[1]",
+              "docs/audit/00-master-index.md:415"
+            ]
+          }
+        },
+        {
+          "summary": "Accept criterion 11 as partially met and hold MASTER-098 at part done",
+          "rationale": "contracts/audit-status-vocabulary.md \u00a73 supplies part done for exactly this shape, and T6 already uses it for MASTER-161 in the same block, so the record stays honest without another round.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "contracts/audit-status-vocabulary.md"
+            ]
+          }
+        },
+        {
+          "summary": "Reduce the unobserved surface by giving DragOver the hover fill instead",
+          "rationale": "Reviewer could not confirm a regression and states this as belief, not fact - during a WinUI OLE drag the pointer events are very likely suppressed, in which case old and new backgrounds are identical and this changes nothing. Trades a real question for a guess.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 6,
+    "escalationsRaised": 6,
+    "reviewRounds": 1
+  }
+}

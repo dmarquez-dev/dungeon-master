@@ -1,0 +1,83 @@
+{
+  "session": "20261103-2239-app-follow-ups",
+  "updatedAt": "2026-11-04T01:38:51Z",
+  "worktree": "C:/dm-wt/20261103-2239-app-follow-ups",
+  "branch": "agent/20261103-2239-app-follow-ups",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:29.27"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261103-2239-app-follow-ups/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed:     0, Passed:   187, Skipped:     0, Total:   187 - DungeonMaster.App.UnitTests.dll (net10.0) | Passed!  - Failed:     0, Passed:   943, Skipped:     0, Total:   943 - DungeonMaster.Tests.dll (net10.0) | Passed!  - Failed:     0, Passed:   139, Skipped:     0, Total:   139 - DungeonMaster.App.Tests.dll (net10.0)"
+    }
+  ],
+  "tasks": [
+    { "id": "T1", "status": "done", "revisionRounds": 0, "startRef": "2a7d27bfddbd1eb3e0f608001d9f90177410a764", "model": "opus", "commit": "b27f6615a796ec942a7264eb1404470e1eea2bfc" },
+    { "id": "T2", "status": "done", "revisionRounds": 0, "startRef": "b27f6615a796ec942a7264eb1404470e1eea2bfc", "model": "opus", "commit": "754020a2dfdf8a49aa386818fdc8b7f65b505a6e" },
+    { "id": "T3", "status": "done", "revisionRounds": 0, "startRef": "754020a2dfdf8a49aa386818fdc8b7f65b505a6e", "model": "opus", "commit": "b50645af9f9c62c877f20ed49bc6f599caa9839d" },
+    { "id": "T4", "status": "done", "revisionRounds": 0, "startRef": "2a7d27bfddbd1eb3e0f608001d9f90177410a764", "model": "opus", "commit": "5361708ebbeb95be7fd2484f592256fb898dcd25" },
+    { "id": "T5", "status": "done", "revisionRounds": 0, "startRef": "b50645af9f9c62c877f20ed49bc6f599caa9839d", "model": "opus", "commit": "1e978a4e53ed4e68a2126b1bdf84c73c3958237d" }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T5",
+      "question": "Is T5 in scope? FloorMapDrawableNonFiniteTests' class remarks (:16-19, :22-26, :42-43) were already partly stale at startRef: they say every ZoomLevel site writes the literal 1.0f or Math.Clamp, and that the NaN hole is latent on MacCatalyst, but the previous session's guard closed it. Most of the block's line citations are stale (:500/:507 against the real :520/:527). T2 then directly falsifies list item 4 ('ResetViewport ... = 1.0f').",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Keep T5 narrow, as drafted: correct only the ZoomLevel claims and list items 3-4, and add one sentence saying the other line citations were not re-measured. The remaining stale citations in the block are left out of scope and are carried to the backlog at Gate 3.",
+      "options": [
+        {
+          "summary": "Keep T5 as drafted: correct only the ZoomLevel claims and list items 3-4, and add one sentence saying the other citations were not re-measured.",
+          "rationale": "The session should not knowingly land a comment that its own T2 falsifies, and the narrow scope stays bounded.",
+          "evidence": { "kind": "repo", "sources": ["src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs:16-19", "src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs:22-26", "src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs:42-43"] }
+        },
+        {
+          "summary": "Drop T5 and append a backlog row to refresh the whole remarks block.",
+          "rationale": "The staleness predates this session, and the user's scope was five rows. D12 becomes out of scope.",
+          "evidence": { "kind": "judgment" }
+        },
+        {
+          "summary": "Widen T5 to a full refresh of every citation and universal claim in the block.",
+          "rationale": "This is the complete fix, but it re-runs a whole reachability audit inside a follow-up session.",
+          "evidence": { "kind": "judgment" }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "taskId": "T5",
+      "question": "T5 criterion 7 says a 0-warning solution build means every <see cref> in the edited remarks resolves. The repository falsifies that premise: no build file sets GenerateDocumentationFile, so a normal build never checks crefs. The crefs were checked instead by a doc-mode App.Tests build (no diagnostic in the file; an injected NextX cref produced CS1574). How should C7 be settled?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Accept C7 as met: the doc-mode App.Tests build (no diagnostic in the file) and the implementer's NextX injection (CS1574) are the cref evidence. No frozen text changes. Carry 'a normal build does not diagnose crefs' to lessons and the backlog at Gate 3.",
+      "options": [
+        {
+          "summary": "Accept C7 as met, with the doc-mode build and the injection as the cref evidence, and carry 'a normal build does not diagnose crefs' into lessons/backlog.",
+          "rationale": "The intended property was measured and holds; no frozen text changes.",
+          "evidence": { "kind": "repo", "sources": ["src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs", "src/DungeonMaster.App.Tests/Graphics/RecordingCanvas.cs"] }
+        },
+        {
+          "summary": "Amend C7's evidence clause in manifest.json to name the doc-mode App.Tests build, treating RecordingCanvas.cs CS0419 as pre-existing.",
+          "rationale": "Makes the frozen standard match the instrument that actually measures it.",
+          "evidence": { "kind": "repo", "sources": ["src/DungeonMaster.App.Tests/Graphics/RecordingCanvas.cs"] }
+        },
+        {
+          "summary": "Enable GenerateDocumentationFile repo-wide so normal builds check crefs.",
+          "rationale": "Fixes the instrument permanently, but is out of scope: it would fail on the existing CS0419 and likely surface CS1591 everywhere.",
+          "evidence": { "kind": "judgment" }
+        }
+      ]
+    }
+  ],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 2,
+    "reviewRounds": 0
+  }
+}

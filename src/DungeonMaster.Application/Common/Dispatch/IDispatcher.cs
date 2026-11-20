@@ -8,6 +8,22 @@ namespace DungeonMaster.Application.Common.Dispatch;
 public interface IDispatcher
 {
 	/// <summary>
+	///		Sends a command that produces no value through the pipeline and returns the result.
+	/// </summary>
+	/// <param name="command">
+	///		The command to dispatch.
+	/// </param>
+	/// <param name="cancellationToken">
+	///		Token used to cancel the operation.
+	/// </param>
+	/// <returns>
+	///		A <see cref="Result"/> representing the outcome of the command.
+	/// </returns>
+	Task<Result> SendAsync(
+		ICommand command,
+		CancellationToken cancellationToken = default);
+
+	/// <summary>
 	///		Sends a command through the pipeline and returns the result.
 	/// </summary>
 	/// <typeparam name="TResult">
@@ -16,7 +32,7 @@ public interface IDispatcher
 	/// <param name="command">
 	///		The command to dispatch.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -24,7 +40,7 @@ public interface IDispatcher
 	/// </returns>
 	Task<Result<TResult>> SendAsync<TResult>(
 		ICommand<TResult> command,
-		CancellationToken ct = default);
+		CancellationToken cancellationToken = default);
 
 	/// <summary>
 	///		Sends a query to its handler and returns the result.
@@ -35,7 +51,7 @@ public interface IDispatcher
 	/// <param name="query">
 	///		The query to dispatch.
 	/// </param>
-	/// <param name="ct">
+	/// <param name="cancellationToken">
 	///		Token used to cancel the operation.
 	/// </param>
 	/// <returns>
@@ -43,5 +59,5 @@ public interface IDispatcher
 	/// </returns>
 	Task<TResult> QueryAsync<TResult>(
 		IQuery<TResult> query,
-		CancellationToken ct = default);
+		CancellationToken cancellationToken = default);
 }

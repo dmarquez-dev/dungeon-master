@@ -1,5 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using DungeonMaster.Domain.ValueObjects;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
@@ -32,4 +32,4 @@ public record UpdatePlacedObjectCommand(
 	CanvasPoint NewPosition,
 	ObjectRotation NewRotation,
 	float NewScale = ObjectScale.Default)
-		: ICommand<bool>;
+		: ICommand;

@@ -1,0 +1,195 @@
+{
+  "session": "2026-09-11-measure-then-close-the-test-gaps",
+  "updatedAt": "2026-09-11T17:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-iii",
+  "branch": "dir/2026-09-11-measure-then-close-the-test-gaps",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "1407090a3c534a09f096b64518fa64c66dc085d1",
+      "commit": "6871900"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "6871900f2ebb3195a0628dea365177ce8ea53747",
+      "commit": "aeac7b7"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "aeac7b755a14c7dd0bf8003f6874ff444c0d0c22",
+      "commit": "925fb55"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "925fb555db0a8accdc85725d1e21384c66d21915",
+      "commit": "5347813"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 0,
+      "startRef": "5347813b1a8e226c75b8b9efe39a102a0a26565a",
+      "commit": "7f3ecc5"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-155 / TEST-032 states an explicit either/or: remove coverlet.collector, or add the .runsettings and the CI step that uses it. Re-measurement changed both branches' cost - coverlet is referenced by three test projects rather than one, and CI would be greenfield (zero YAML tracked in the repository, and App.Tests needs a Windows runner with the Windows App SDK). Which branch?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Remove coverlet. Drop the PackageReference from all three test projects and the PackageVersion from Directory.Packages.props, accepting the packages.lock.json regeneration. CI and .runsettings are not adopted this session.",
+      "options": [
+        {
+          "summary": "Remove coverlet.collector from all three test projects and Directory.Packages.props",
+          "rationale": "Closes the finding honestly and stops the repository carrying a package nothing invokes. The record itself argues a coverage percentage would not surface the gaps it cares about.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/DungeonMaster.Tests.csproj:9",
+              "src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj:26",
+              "src/DungeonMaster.App.UnitTests/DungeonMaster.App.UnitTests.csproj:20",
+              "Directory.Packages.props:20",
+              "docs/audit/05-tests.md:1633-1636"
+            ]
+          }
+        },
+        {
+          "summary": "Add a root .runsettings plus a first CI workflow that invokes it",
+          "rationale": "Buys a coverage number and a place to hang a regression gate, but is greenfield in this repository and requires a Windows runner for the App.Tests sub-suite.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj:58-73",
+              "src/DungeonMaster.App.UiTests/DungeonMaster.App.UiTests.csproj:6-11"
+            ]
+          }
+        },
+        {
+          "summary": "Correct the record only and defer the either/or to the backlog",
+          "rationale": "The non-optional part is amending TEST-032 so its CollectionBehavior suggestion is not implemented in good faith; the package decision could wait.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-02-app-sub-suite-rebuild/spike-parallelism-report.md:204-205"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "Re-measuring MASTER-086 / TEST-020 surfaced three unguarded production inputs rather than test gaps: Area.SetOutline accepts a degenerate or null outline (P1), Floor number accepts zero and negatives (P2), and PathSegment permits CubicBezier with null control points (P3). A test cannot assert behaviour that does not exist, so each needs a design decision first. How much belongs in a session scoped to test coverage?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "File P1, P2 and P3 as new master-index entries carrying this session's measurement as their evidence. This session does the pure test work only - the boundary tests against guards that already exist. MASTER-086 stays a test entry.",
+      "options": [
+        {
+          "summary": "File P1-P3 as new entries; this session writes only the tests whose guards already exist",
+          "rationale": "Keeps a production design decision out of a coverage session and keeps MASTER-086 within its filed category. The Application validator already rejects the P1 case, so nothing ships unguarded in the meantime.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Area/AreaMethods.cs:38-44",
+              "src/DungeonMaster.Domain/Entities/Floor/Floor.cs:27",
+              "src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:18-22"
+            ]
+          }
+        },
+        {
+          "summary": "Fix P1 now with its tests, file P2 and P3",
+          "rationale": "P1 is the one the record's own clause (d) points at, and the domain and the validator currently disagree about who owns the rule.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Area/AreaMethods.cs:38-44",
+              "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/UpdateAreaOutlineCommandValidatorTests.cs:89"
+            ]
+          }
+        },
+        {
+          "summary": "Fix all three invariants now",
+          "rationale": "Closes the whole class, at the cost of three Domain behaviour changes in a session scoped to test coverage.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "question": "MASTER-167's prescribed fix mirrors NotNullConverter and guards the binding sentinel only. Re-measurement found the sentinel is one row of a six-row defect: under Invert, GreaterThanZeroConverter returns true for null, double, long and string as well. How wide should the guard be?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Reject any non-int before the Invert block, closing the whole defect class rather than the sentinel row alone. Intended behaviour - zero under Invert returning true - must be preserved.",
+      "options": [
+        {
+          "summary": "Guard any non-int: if (value is not int n) return false; above the Invert block",
+          "rationale": "Closes the entire class the measurement found, and leaves the intended zero-under-Invert behaviour untouched. Deviates from the entry's prescribed shape, which this session has already shown is not authoritative.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Converters/GreaterThanZeroConverter.cs:38-45"
+            ]
+          }
+        },
+        {
+          "summary": "Guard the sentinel only, mirroring NotNullConverter exactly",
+          "rationale": "Minimal and consistent with the existing in-repo precedent the entry names, but leaves null, double, long and string still returning true under Invert.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Converters/NotNullConverter.cs:41"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "question": "The P4 row of this session's measurement.md is falsified. It recorded RotateDirection as a dead type with zero references; the measuring agent grepped the file name. The file declares enum RotationDirection, which has five live references in the App views. Should MASTER-171 be filed as a file-name/type-name mismatch, or dropped with only the falsification recorded in the MASTER-086 amendment?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "File MASTER-171 as a file-name/type-name mismatch and record the falsification with both commands",
+          "rationale": "The naming defect is real and previously unrecorded, and a measurement error caught during decomposition is exactly what the index's inheritance note asks to be written down rather than propagated.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Floor/RotateDirection.cs:3",
+              "src/DungeonMaster.App/Views/DungeonDetailPage/ControlsPaletteView.xaml.cs:8"
+            ]
+          }
+        },
+        {
+          "summary": "Drop P4 entirely; record only the falsification inside the MASTER-086 amendment",
+          "rationale": "The approved plan's P4 no longer exists as described, and filing a fresh naming entry is scope Gate 1 did not see.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "File MASTER-171 as a file-name/type-name mismatch, and record the falsification of this session's own P4 row with both commands in the MASTER-086 amendment. The manifest stands as written."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 4,
+    "reviewRounds": 1
+  }
+}

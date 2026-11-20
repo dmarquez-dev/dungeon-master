@@ -1,0 +1,30 @@
+{
+  "session": "20261102-1907-domain-invariants",
+  "updatedAt": "2026-11-02T21:15:24Z",
+  "worktree": "C:/dm-wt/domain-invariants",
+  "branch": "sir/20261102-1907-domain-invariants",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/domain-invariants/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:42.70"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/domain-invariants/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed: 0, Passed: 30, Total: 30 - DungeonMaster.App.UnitTests.dll | Passed!  - Failed: 0, Passed: 900, Total: 900 - DungeonMaster.Tests.dll | Passed!  - Failed: 0, Passed: 108, Total: 108 - DungeonMaster.App.Tests.dll"
+    }
+  ],
+  "tasks": [
+    { "id": "T1", "status": "done", "startRef": "fd429e3ddcd9695531f0fee67be3a822b0250546", "revisionRounds": 0, "redispatches": 0, "commit": "4be3fc06205611796798d1fa1c602c5ceda68f4b" },
+    { "id": "T2", "status": "done", "startRef": "4be3fc06205611796798d1fa1c602c5ceda68f4b", "revisionRounds": 1, "redispatches": 0, "commit": "34f9febfee90cddcbad1f9ebb4dd832ae5b408a1" },
+    { "id": "T3", "status": "done", "startRef": "34f9febfee90cddcbad1f9ebb4dd832ae5b408a1", "revisionRounds": 0, "redispatches": 0, "commit": "375037d557c047cd21e632ce71e1d38cd6e1faaa" },
+    { "id": "T4", "status": "done", "startRef": "375037d557c047cd21e632ce71e1d38cd6e1faaa", "revisionRounds": 0, "redispatches": 0, "commit": "ce871e29db89b15ce4227bde87d8dfbc67dcfd28" },
+    { "id": "T5", "status": "done", "startRef": "ce871e29db89b15ce4227bde87d8dfbc67dcfd28", "revisionRounds": 0, "redispatches": 0, "commit": "5ecfca82e4dc22649ee03dbfa06a31b420c7377a" },
+    { "id": "T6", "status": "done", "startRef": "5ecfca82e4dc22649ee03dbfa06a31b420c7377a", "revisionRounds": 0, "redispatches": 0, "commit": "eb53bd61d51e9e1304e73a5266c1aa80c80f3a4a" },
+    { "id": "T7", "status": "done", "startRef": "eb53bd61d51e9e1304e73a5266c1aa80c80f3a4a", "revisionRounds": 0, "redispatches": 0, "commit": "5d6449427c050adcfcdd1277357c2bb731b094f3" },
+    { "id": "T8", "status": "done", "startRef": "5d6449427c050adcfcdd1277357c2bb731b094f3", "revisionRounds": 0, "redispatches": 0, "commit": "e76de0486cdaaf1a2864e084b0372b343ccc49bc" }
+  ],
+  "escalations": [],
+  "metrics": { "userInteractions": 4, "escalationsRaised": 0, "reviewRounds": 1 }
+}

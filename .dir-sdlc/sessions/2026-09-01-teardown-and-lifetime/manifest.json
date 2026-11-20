@@ -1,0 +1,144 @@
+{
+  "session": "2026-09-01-teardown-and-lifetime",
+  "createdAt": "2026-09-01T18:30:00Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/maui-host-fixture.md",
+    "contracts/floor-map-drawable-lifetime.md",
+    "contracts/long-press-timer.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "MAUI application-host test fixture, testhost.pri build step, and the MauiProgram database-location seam",
+      "agent": "dir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj",
+        "src/DungeonMaster.App.Tests/Hosting/**",
+        "src/DungeonMaster.App/MauiProgram.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj sets <WindowsAppSdkBootstrapInitialize>true</WindowsAppSdkBootstrapInitialize>, and a build step in that same csproj copies $(OutDir)DungeonMaster.App.pri to $(OutDir)testhost.pri. The copy is part of the build, not a manual step: after `dotnet clean src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj` followed by `dotnet build src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj`, the file src/DungeonMaster.App.Tests/bin/Debug/net10.0-windows10.0.19041.0/testhost.pri exists with no copy performed by hand. Run the clean-then-build sequence TWICE and report the file present both times; the spike copied it by hand every run and nothing resting on the host is checkable twice until this is automated (spike-host-report.md sections 2b, 2d, 5).",
+        "src/DungeonMaster.App.Tests/Hosting/ contains MauiHostFixture and MauiHostCollection with exactly the public surface frozen in contracts/maui-host-fixture.md section 1 -- member names, parameter and return types, and nullability as written. Report any member you added beyond it; report a needed change as a contract-change escalation rather than editing the contract.",
+        "A test class joining MauiHostCollection proves the host is genuinely up, by behaviour rather than by inspection: inside host.Invoke(...) it constructs DungeonMaster.App.Controls.DmCard (a ContentView with XAML and StaticResource lookups) and a ContentPage and asserts both non-null, and it asserts host.Resolve<DungeonMaster.App.Views.DungeonDetailPage>() returns non-null. Spike section 2c probe P21/P22 measured all three under this host shape.",
+        "That host test is shown able to fail. Remove <WindowsAppSdkBootstrapInitialize> from the csproj, run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj`, and quote the observed failure verbatim; restore the property and quote the pass. Spike section 2d recorded `Test host process crashed` for that removal, so a run that still passes without the property means the fixture is not exercising the host and the criterion is NOT met.",
+        "MauiProgram.DatabasePathOverride is implemented exactly as contracts/maui-host-fixture.md section 3 declares: read once where the connection string is built, null/empty/whitespace leaving today's %LOCALAPPDATA%\\DungeonMaster\\dungeon-master.db behaviour byte-for-byte, no branch on an environment name and no environment-variable read, and no change to the existing catch filter in CreateMauiApp. Backend discipline, Configuration: the value is a declared configuration value, not an inferred one.",
+        "The test run does not write the user's real database. The fixture sets MauiProgram.DatabasePathOverride to a path under Path.GetTempPath() before the WinUI application starts. Evidence: record the last-write time and SHA-256 of %LOCALAPPDATA%\\DungeonMaster\\dungeon-master.db immediately before and immediately after the App.Tests run and report both values, unchanged; if the file does not exist beforehand, report that it still does not exist afterwards. Name the command that produced each value. The spike itself migrated the real database (spike section 5) -- this criterion is the one that stops that recurring.",
+        "The fixture does not blanket-mask startup failures. Every unhandled exception it marks Handled during startup is recorded and exposed on the fixture, and this task's report names the type and message of each one -- including the unidentified InvalidOperationException spike section 5 flagged -- or states that none occurred. Do not assert anything about that exception's identity that you did not observe in this session.",
+        "Build is clean under TreatWarningsAsErrors for both App target frameworks: `dotnet build src/DungeonMaster.App/DungeonMaster.App.csproj` reports `0 Warning(s)` and `0 Error(s)` for net10.0-windows10.0.19041.0 and for net10.0-maccatalyst. No criterion here asserts observed macCatalyst behaviour; it cannot be run on this machine (ADR-001).",
+        "Both suites pass, quoted per assembly because this repository has no aggregate test count -- a solution-wide `dotnet test` prints one result line per assembly. `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --no-build --nologo` reports `Failed: 0` with Passed at least 30, and `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --no-build --nologo` reports `Failed: 0, Passed: 640, Total: 640`. Quote both result lines verbatim. Baseline measured 2026-09-01: 30 and 640.",
+        "Every C# file added or edited is tab-indented, matching the files beside it, and is CRLF throughout. Verify line endings by comparing `tr -cd '\\r' | wc -c` with `tr -cd '\\n' | wc -c` on each changed file and reporting the two numbers as equal, or by `file`. Do NOT use `grep -c '^\\t'` or `grep -cv $'\\r$'`: both have returned confidently wrong numbers in this repository. Do not run sed -i on any source file; it rewrites CRLF as LF and breaks the build."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "FloorMapDrawable: IDisposable, observable disposal, and the load seams that make it testable (MASTER-013 drawable half, MASTER-160)",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Graphics/FloorMapDrawable.cs",
+        "src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableDisposalTests.cs",
+        "src/DungeonMaster.App.Tests/Graphics/RecordingImage.cs",
+        "src/DungeonMaster.App.Tests/Graphics/FakeAssetSource.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "FloorMapDrawable implements IDisposable and exposes public bool IsDisposed and the three-argument constructor (Func<FloorMapPalette>, Func<string, Task<Stream>>, Func<Stream, IImage>) exactly as contracts/floor-map-drawable-lifetime.md declares, with the parameterless and single-argument constructors delegating to it using FileSystem.OpenAppPackageFileAsync and PlatformImage.FromStream as defaults, so production and test run the same code path. Each null delegate throws ArgumentNullException naming its parameter.",
+        "A test built on the three-argument seam with a recording IImage asserts that Dispose() disposed EVERY cached image -- including kinds never drawn -- that IsDisposed is true afterwards, and that a second Dispose() disposes nothing further and does not throw. This is MASTER-013's drawable half; the source record UIKIT-001 asks for exactly this (`dispose the remainder from Dispose()`).",
+        "A test asserts ClearObjectImageCache() disposes each cached image, leaves IsDisposed false, and that a following PreloadObjectImagesAsync() refills the cache. Session 4 already landed the disposal inside ClearObjectImageCache(); this criterion is the no-regression guard on it, not a claim that it is new work.",
+        "MASTER-160: a test injects a stream whose Dispose() throws AFTER a successful decode, and asserts the decoded image was disposed before the cache entry was set to null -- i.e. no non-null entry is ever replaced by null while undisposed. Shown able to fail by demonstrated discrimination: restore the old shape (`using var stream = ...; cache[kind] = imageFactory(stream);`), run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter FullyQualifiedName~FloorMapDrawableDisposal`, and quote the failure; then restore the fix and quote the pass.",
+        "Per-entry isolation survives: a test where streamSource throws for exactly one kind asserts every other kind still loaded. State the expected number of loaded kinds together with the artifact it was counted from (DungeonMaster.App/Assets/ObjectAssets, ObjectAssetCatalogue.Paths) and the command used to count it. Do not carry over the figure 37 from the Session 4 outcome paragraph without recounting it in this session.",
+        "After Dispose(), PreloadObjectImagesAsync() completes without loading and without throwing, and Draw over the existing RecordingCanvas completes without throwing. Neither throws ObjectDisposedException: the framework can drive the drawable after page teardown and turning that into an exception would convert a leak into a crash (contract, Error cases).",
+        "No test in this task asserts over source text, and every test name states its condition and its expected outcome (test discipline, Naming and Behavior over implementation). Structural assertion over source is the evidence class the user rejected in Session 4 and is the reason MASTER-013 is in this session.",
+        "Build clean under TreatWarningsAsErrors for both App target frameworks (`dotnet build src/DungeonMaster.App/DungeonMaster.App.csproj` -> `0 Warning(s)`, `0 Error(s)` for net10.0-windows10.0.19041.0 and net10.0-maccatalyst), and both suites pass, quoted per assembly: App.Tests `Failed: 0` with Passed at least 30, and `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --no-build --nologo` -> `Failed: 0, Passed: 640, Total: 640`.",
+        "Every C# file added or edited is tab-indented and CRLF throughout, verified by comparing `tr -cd '\\r' | wc -c` with `tr -cd '\\n' | wc -c` per file and reporting both numbers. Never `grep -c '^\\t'` or `grep -cv $'\\r$'`; never sed -i."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "ILongPressTimer: a one-shot timer that ticks on the calling thread, its dispatcher implementation, and its test double (MASTER-062 fix shape)",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App.Core/Timing/ILongPressTimer.cs",
+        "src/DungeonMaster.App/Behaviors/DispatcherLongPressTimer.cs",
+        "src/DungeonMaster.App.Tests/Behaviors/FakeLongPressTimer.cs",
+        "src/DungeonMaster.App.Tests/Behaviors/LongPressTimerTests.cs"
+      ],
+      "dependsOn": [
+        "T1"
+      ],
+      "acceptance": [
+        "ILongPressTimer exists at src/DungeonMaster.App.Core/Timing/ILongPressTimer.cs with exactly the shape in contracts/long-press-timer.md section 1, and DungeonMaster.App.Core.csproj gains no PackageReference and no ProjectReference -- `git diff -- src/DungeonMaster.App.Core/DungeonMaster.App.Core.csproj` is empty. The abstraction must stay MAUI-free or its consumers cannot be tested without a host.",
+        "FakeLongPressTimer exists with exactly the surface in contracts/long-press-timer.md section 3 and honours every guarantee and error case in section 1. Host-free tests in this task cover, each as its own named test: one-shot delivery (a single Start yields at most one Elapsed); Stop before elapse yields no Elapsed; Start while running restarts so only the last Start can elapse; Start after Dispose throws ObjectDisposedException; Stop after Dispose is a no-op; a negative delay throws ArgumentOutOfRangeException naming `delay`; a throwing Elapsed handler propagates rather than being swallowed.",
+        "No test in this task sleeps or waits on the wall clock. FakeLongPressTimer.Tick() is the only thing that makes a delay elapse in the host-free tests, and the one host test below waits on a TaskCompletionSource with a timeout rather than Thread.Sleep or Task.Delay (test discipline, Determinism).",
+        "DispatcherLongPressTimer is implemented over IDispatcher.CreateTimer() with IsRepeating false, throws ArgumentNullException on a null dispatcher, and is proven to deliver on the calling thread: a test class joining MauiHostCollection obtains a real IDispatcher from a MAUI element inside host.Invoke(...), captures Environment.CurrentManagedThreadId at the Start call and again inside the Elapsed handler, and asserts they are equal. NotebookView already uses Dispatcher.CreateTimer() for its debounce, so the pattern is the layer's own (UIKIT-017, Suggested direction).",
+        "That same-thread test is shown able to fail by demonstrated discrimination: swap the dispatcher timer inside DispatcherLongPressTimer for a System.Timers.Timer, run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter FullyQualifiedName~LongPressTimer`, and quote the observed failure; restore and quote the pass. A test that cannot be made to fail has not been shown to test anything.",
+        "This task's report states plainly that nothing here demonstrates the memory-visibility race UIKIT-017 describes, and that no test can: the source record itself says the misfire was never observed, and spike-host-report.md section 4 places the race at tier 3. What is demonstrated is that the fixed shape has no cross-thread read left to reorder. Do not write, in code comments or in the report, that the race was reproduced or fixed-and-verified.",
+        "Build clean under TreatWarningsAsErrors for both App target frameworks (`0 Warning(s)`, `0 Error(s)` for net10.0-windows10.0.19041.0 and net10.0-maccatalyst), and both suites pass, quoted per assembly: App.Tests `Failed: 0` with Passed at least 30, and DungeonMaster.Tests `Failed: 0, Passed: 640, Total: 640`.",
+        "Every C# file added or edited is tab-indented and CRLF throughout, verified by comparing `tr -cd '\\r' | wc -c` with `tr -cd '\\n' | wc -c` per file and reporting both numbers. Never `grep -c '^\\t'` or `grep -cv $'\\r$'`; never sed -i."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "HoverOrLongPressBehavior: detach the pan recogniser and move the long-press timer onto the UI thread (MASTER-006, MASTER-062 behavior half)",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Behaviors/HoverOrLongPressBehavior.cs",
+        "src/DungeonMaster.App.Tests/Behaviors/HoverOrLongPressBehaviorTests.cs"
+      ],
+      "dependsOn": [
+        "T1",
+        "T3"
+      ],
+      "acceptance": [
+        "MASTER-006: the PanGestureRecognizer is held in a field beside _pointer, and OnDetachingFrom unsubscribes PanUpdated and removes it from bindable.GestureRecognizers, mirroring the existing pointer teardown exactly as UIKIT-003's suggested direction states.",
+        "Behavioural evidence under the host, not a source assertion: a test class joining MauiHostCollection attaches the behavior to a BoxView inside host.Invoke(...), asserts view.GestureRecognizers.Count is 2, removes the behavior from view.Behaviors, and asserts the count is 0. Spike section 2c probe P22 A measured 2 after attach and 1 after detach on the UNFIXED code; 1 is the leak and 0 is the fix.",
+        "That test is shown able to fail by demonstrated discrimination: revert the pan detach, run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter FullyQualifiedName~HoverOrLongPressBehavior`, and quote the failure showing 1 where 0 was expected; restore and quote the pass.",
+        "The duplicate-recogniser consequence UIKIT-003 names is covered: a test attaches, detaches, and re-attaches the same behavior instance to the same view under the host and asserts the recogniser count is 2, not 3. UIKIT-003: `a re-attach adds a second pan recogniser on top of the first -- both would arm the long-press timer for one gesture`.",
+        "MASTER-062 behavior half: the System.Timers.Timer and the MainThread.BeginInvokeOnMainThread hop inside its Elapsed handler are both gone. The behavior takes its ILongPressTimer (contracts/long-press-timer.md) from an injectable seam defaulting to new DispatcherLongPressTimer(bindable.Dispatcher) created in OnAttachedTo, and OnDetachingFrom disposes it. _touching is written and read on one thread only.",
+        "A host test drives the pan lifecycle with a FakeLongPressTimer injected through that seam, casting the attached recogniser to Microsoft.Maui.Controls.IPanGestureController, and asserts three named cases: SendPanStarted starts the timer; Tick() then raises LongPressed exactly once, on the calling thread; and SendPanCompleted followed by Tick() raises nothing. If IPanGestureController proves unreachable from the test assembly, STOP AND ESCALATE with what you observed -- do not substitute an assertion over source text, which is the evidence class the user rejected in Session 4. [AMENDED AT GATE 3, 2026-09-02, by the user's decision on reviewer finding C1: the interface is public at Microsoft.Maui.Controls.IPanGestureController; no Internals type of that name exists in Microsoft.Maui.Controls.dll, verified by reflection over the built assembly by both the implementer and the reviewer. The criterion's stop-and-escalate trigger was written for unreachability, which was not the problem, so continuing was correct]",
+        "The released-press case is shown able to fail by demonstrated discrimination: make OnPanUpdated skip clearing _touching on GestureStatus.Completed, run the filtered test, and quote the failure; restore and quote the pass. [AMENDED AT GATE 3, 2026-09-02, by the user's decision on reviewer finding C2: this injection does NOT discriminate against the criterion-6 released-press test, which stays green under it: the same code arm calls _longPressTimer?.Stop(), FakeLongPressTimer.Tick() returns early when !IsRunning, and the _touching guard is never reached. The discrimination target is instead a test that re-arms the timer after the release - ATickArrivingAfterThePressWasReleasedRaisesNothing - which the task shipped and the reviewer reproduced red under the injection]",
+        "This task's report states plainly that nothing here demonstrates the memory-visibility race UIKIT-017 describes, and that no test can (spike-host-report.md section 4, tier 3; UIKIT-017's own `I have not observed the misfire`). Claim only that the cross-thread read is gone.",
+        "Build clean under TreatWarningsAsErrors for both App target frameworks (`0 Warning(s)`, `0 Error(s)` for net10.0-windows10.0.19041.0 and net10.0-maccatalyst), and both suites pass, quoted per assembly: App.Tests `Failed: 0` with Passed at least 30, and DungeonMaster.Tests `Failed: 0, Passed: 640, Total: 640`.",
+        "Every C# file added or edited is tab-indented and CRLF throughout, verified by comparing `tr -cd '\\r' | wc -c` with `tr -cd '\\n' | wc -c` per file and reporting both numbers. Never `grep -c '^\\t'` or `grep -cv $'\\r$'`; never sed -i."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "DungeonDetailPage teardown, captured scroll-zoom unsubscribe, and the canvas long-press timer (MASTER-013 page half, MASTER-055, MASTER-062 detector half)",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs",
+        "src/DungeonMaster.App/Behaviors/CanvasLongPressDetector.cs",
+        "src/DungeonMaster.App.Core/Interop/CapturedSubscription.cs",
+        "src/DungeonMaster.App.Tests/Views/DungeonDetailPageTeardownTests.cs",
+        "src/DungeonMaster.App.Tests/Behaviors/CanvasLongPressDetectorTests.cs",
+        "src/DungeonMaster.App.Tests/Interop/CapturedSubscriptionTests.cs"
+      ],
+      "dependsOn": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "acceptance": [
+        "MASTER-013 page half: DungeonDetailPage disposes its FloorMapDrawable at the one genuine teardown point -- inside OnHandlerChanged when Handler is null, beside the existing _longPressDetector.Dispose() call, which the file's own comment already identifies as `the only genuine teardown point`. UIKIT-001's suggested direction: `The owning page would then dispose the drawable when the page's handler is torn down`.",
+        "Evidence under the host: a test class joining MauiHostCollection resolves the page with host.Resolve<DungeonDetailPage>() inside host.Invoke(...), reads the drawable via page.FindByName<GraphicsView>(\"MapCanvas\")!.Drawable cast to FloorMapDrawable (x:Name=\"MapCanvas\" is declared in DungeonDetailPage.xaml), asserts IsDisposed is false, connects a minimal IViewHandler to the page and THEN sets page.Handler = null, and asserts IsDisposed is true. IsDisposed is frozen in contracts/floor-map-drawable-lifetime.md; do not reach for a private field instead. [AMENDED AT GATE 3, 2026-09-02, by the user's decision on reviewer finding C1: a bare page.Handler = null raises no OnHandlerChanged at all - MAUI's Element handler setter returns early when assigned the value it already holds, and a DI-resolved page's handler is already null. The reviewer proved the connect step load-bearing by deleting it against correct code and watching the test fail. The stub must implement IViewHandler, not IElementHandler, because VisualElement.Handler is typed IViewHandler]",
+        "That teardown test is shown able to fail by demonstrated discrimination: remove the _drawable.Dispose() call, run `dotnet test src/DungeonMaster.App.Tests/DungeonMaster.App.Tests.csproj --filter FullyQualifiedName~DungeonDetailPageTeardown`, and quote the failure; restore and quote the pass.",
+        "MASTER-055: the Windows scroll-zoom subscription is captured rather than re-resolved. AttachScrollZoom records the FrameworkElement it subscribed to in a CapturedSubscription<T> (src/DungeonMaster.App.Core/Interop/CapturedSubscription.cs), DetachScrollZoom unsubscribes from that captured reference and clears it afterwards, and DetachScrollZoom no longer reads MapCanvas.Handler?.PlatformView. UI-018's suggested direction, verbatim: `Capture the FrameworkElement in a field when subscribing and unsubscribe from the captured reference, clearing the field afterwards, so detach cannot depend on the handler still being resolvable`.",
+        "Evidence for MASTER-055 is host-free and behavioural: tests over CapturedSubscription<T> with a fake target that records subscribe and unsubscribe calls assert that Detach() unsubscribes from the originally captured target exactly once EVEN WHEN the resolver that produced it now yields null, that a second Detach() unsubscribes nothing, and that Attach() twice does not double-subscribe. Shown able to fail by demonstrated discrimination: change Detach() to re-resolve from the now-null resolver and quote the resulting failure; restore and quote the pass. NOTE: no criterion in this task asserts that MapCanvas acquires a real handler or native FrameworkElement under the host -- spike-host-report.md section 5 records that as unsettled, and a criterion resting on it would be unmeetable.",
+        "MASTER-062 detector half: CanvasLongPressDetector takes an ILongPressTimer (contracts/long-press-timer.md), drops System.Timers.Timer and the MainThread.BeginInvokeOnMainThread hop, and DungeonDetailPage constructs it with new DispatcherLongPressTimer(Dispatcher). _active is written and read on one thread only. The page's single construction site is updated in the same change, so the solution never has to build in a half-converted state.",
+        "Host-free tests with FakeLongPressTimer assert, each as its own named test: TouchStarted() then Tick() raises LongPressed exactly once on the calling thread; TouchStarted() then TouchEnded() then Tick() raises nothing; Dispose() stops and disposes the timer and a later Tick() raises nothing. The released-press case is shown able to fail by demonstrated discrimination: make TouchEnded() skip clearing _active, quote the failure, restore, quote the pass. [AMENDED AT GATE 3, 2026-09-02, by the user's decision on reviewer finding C2: same defect as T4 criterion 7: removing the _active clear leaves this criterion's own named test green, because TouchEnded() also calls _timer.Stop() and a stopped FakeLongPressTimer ignores Tick(). The discrimination target is instead a test that re-arms the timer after the release - ATickDeliveredAfterAReleaseRaisesNothingEvenWhenTheTimerIsArmedAgain - shipped by the task and reproduced red by the reviewer]",
+        "This task's report, and a comment at the changed site in CanvasLongPressDetector, state plainly that the memory-visibility race UIKIT-017 describes is NOT demonstrated by these tests and cannot be -- UIKIT-017 itself records `I have not observed the misfire and cannot state it as fact`, and spike-host-report.md section 4 places the race at tier 3. Claim only that the cross-thread read is gone.",
+        "The macCatalyst branches of AttachScrollZoom and DetachScrollZoom still compile: `dotnet build src/DungeonMaster.App/DungeonMaster.App.csproj` reports `0 Warning(s)` and `0 Error(s)` for net10.0-maccatalyst as well as net10.0-windows10.0.19041.0 under TreatWarningsAsErrors. No criterion asserts observed macCatalyst behaviour; it cannot be run on this machine (ADR-001).",
+        "Both suites pass, quoted per assembly because there is no aggregate count: App.Tests `Failed: 0` with Passed at least 30, and `dotnet test src/DungeonMaster.Tests/DungeonMaster.Tests.csproj --no-build --nologo` -> `Failed: 0, Passed: 640, Total: 640`.",
+        "Every C# file added or edited is tab-indented and CRLF throughout, verified by comparing `tr -cd '\\r' | wc -c` with `tr -cd '\\n' | wc -c` per file and reporting both numbers. Never `grep -c '^\\t'` or `grep -cv $'\\r$'`; never sed -i. If any XAML file is touched, match its existing SPACE indentation rather than the tabs .editorconfig declares for it."
+      ]
+    }
+  ]
+}

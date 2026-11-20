@@ -1,0 +1,41 @@
+# Session log — 2026-09-17-enum-zero-values
+
+- 2026-09-17 gate 1 — scope approved: enum zero-value sweep, full triage of the concrete-at-zero production enums. Track: Standard.
+- 2026-09-17 setup — worktree C:/dm-wt/6b-ix, branch dir/2026-09-17-enum-zero-values at 80beda9, base chore/repo-audit.
+- 2026-09-17 setup — disciplines composed for backend, database, frontend, test (bundled bases only; no project fragments, no config.json).
+- 2026-09-17 measurement — measurement.md written: 17 production enums, 14 concrete at zero; MutationOutcome.Success confirmed from source.
+- 2026-09-17 dispatch — dir-architect (decomposition, claude-opus-5) for manifest, contracts and coverage mapping.
+- 2026-09-17 gate 2 — spec, manifest and contracts signed off. Three draft edits applied first: C2 row accepted uncovered; C6 wins over C3 on SnapAnchor; B12 injection E added to T2.
+- 2026-09-17 freeze — manifest.json and contracts/enum-zero-values.md frozen. 3 tasks, serial DAG T1 -> T2 -> T3.
+- 2026-09-17 dispatch — T1 (dir-backend-engineer, claude-opus-5), startRef 80beda9. Harness sed instruction suspended for src/ files in favour of the Edit tool.
+- 2026-09-17 T1 implemented — 4 files, verified by orchestrator as exactly the owns set, all CRLF-clean in binary.
+- 2026-09-17 dispatch — dir-reviewer for T1 (claude-opus-5), told to be sceptical about the redundant None switch arm and the missing red step for A6.
+- 2026-09-17 T1 review — PASS, 0 blocking, 4 advisory. Reviewer's unprompted third injection proved the None switch arm behaviourally decorative.
+- 2026-09-17 T1 committed as df72096; message read back against git show --stat, no unsupported claim.
+- 2026-09-17 dispatch — T2 (dir-frontend-engineer, claude-opus-5), startRef df72096.
+- 2026-09-17 T2 implemented — 2 files (of 3 owned; MapDrawingSessionTests.cs deliberately untouched as injection controls). App/ diff is 0 lines.
+- 2026-09-17 dispatch — dir-reviewer for T2 (claude-opus-5), told to be sceptical about whether B5 reaches all three outcomes or three assertions on one branch.
+- 2026-09-17 T2 review — PASS, 0 blocking, 4 advisory. Reviewer traced B5 statically and confirmed it dynamically. sed -i measured as destructive: 134 CRLF -> LF across a whole file.
+- 2026-09-17 T2 committed as df0e0c3; message read back against git show --stat, no unsupported claim.
+- 2026-09-17 dispatch — T3 (dir-architect, implementer mode, claude-opus-5), startRef df0e0c3. No discipline exists for the architecture domain.
+- 2026-09-17 T3 implemented — 3 docs/audit files, 251 insertions 0 deletions, CRLF unchanged. Orchestrator re-ran the index survey: 179 rows, contiguous, 12 cells each.
+- 2026-09-17 dispatch — dir-reviewer for T3 (claude-opus-5), told to verify the fourteen enums' zero members against source rather than against the report.
+- 2026-09-17 T3 review round 1 — CHANGES REQUIRED. 1 blocking (C13: four uncited counts, two of them false), 3 advisory.
+- 2026-09-17 T3 revision round 1 dispatched (dir-architect, claude-opus-5). revisionRounds=1, reviewRounds=1.
+- 2026-09-17 T3 revision 1 returned — 4 findings fixed plus 4 more C13 exposures the implementer found itself. Deletions still 0 on all three files.
+- 2026-09-17 dispatch — dir-reviewer for T3 round 2 (claude-opus-5), told the revision added ~70 lines of new prose that can carry new uncited counts.
+- 2026-09-17 T3 re-review round 2 — PASS, 0 blocking, 4 advisory. Reviewer caught and corrected its own wrong enum predicate mid-review.
+- 2026-09-17 orchestrator re-ran the census on the post-change tree: 12 of 17, five None-at-zero. The record's 14 of 17 is as-found and needed dating.
+- 2026-09-17 T3 revision round 2 dispatched for 3 advisories (date the figure, fix a non-verbatim quotation, cite two derived counts). revisionRounds=2 — cap reached.
+- 2026-09-17 T3 revision 2 returned — figure dated, quotation made verbatim, two counts cited. Implementer re-implemented the census independently rather than restating the orchestrator's figure.
+- 2026-09-17 dispatch — dir-reviewer for T3 final review (claude-opus-5). Cap reached: a blocking finding now carries to Gate 3 unresolved rather than triggering a round.
+- 2026-09-17 T3 final review — PASS, 0 blocking, 1 new advisory (two distinct twelves in CORE-035). Reviewer counted the census a third way and closed the shared blind spot.
+- 2026-09-17 T3 committed as 476b510; message read back against git show --stat, no unsupported claim.
+- 2026-09-17 coverage.md end state filled. Both C1 not-called predictions confirmed; two rows record a hand-written deviation from the search rule.
+- 2026-09-17 gate 3 — approved. All three section-4 advisories carried to the backlog, plus the session's environment and discipline findings (15 items total). Merge approved; push deferred to a separate question.
+- 2026-09-17 merge — 02178be, --no-ff, HEAD^1 80beda9 / HEAD^2 476b510. main untouched at 45495c1.
+- 2026-09-17 verified in the MAIN CHECKOUT after merge: 960 passed, 0 failed, 0 warnings (Tests 840, App.Tests 97, App.UnitTests 23). CRLF intact on all nine touched files.
+- 2026-09-17 closures — 147fa13. MASTER-177 done; MASTER-178 and MASTER-179 open. Survey re-run: 179 rows, 126 closed / 50 open / 3 part done, zero UNCLASSIFIED, no open S1 or S2.
+- 2026-09-17 backlog — appended 15 items, 367 -> 401 lines. Lone CR measured 8 before and 8 after; still 6b-iv's, still unrepaired.
+- 2026-09-17 note — .dir-sdlc/log.md has never existed in this project across 17 sessions; not created. Gate 3 decisions recorded here instead.
+

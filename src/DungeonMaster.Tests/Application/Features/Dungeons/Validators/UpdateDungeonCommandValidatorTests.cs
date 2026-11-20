@@ -1,55 +1,105 @@
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
 using FluentAssertions;
+using FluentValidation;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Validators;
 
-public class UpdateDungeonCommandValidatorTests
+/// <summary>
+///		The shared Name-rule behaviour, run against <see cref="UpdateDungeonCommandValidator"/>, plus its Description and Notes length rules.
+/// </summary>
+public sealed class UpdateDungeonCommandValidatorTests
+	: NameOnlyValidatorTestBase<UpdateDungeonCommand>
 {
-    private readonly UpdateDungeonCommandValidator _validator = new();
+	/// <inheritdoc/>
+	protected override IValidator<UpdateDungeonCommand> Validator { get; } = new UpdateDungeonCommandValidator();
 
-    [Fact]
-    public void Validate_WithValidCommand_Passes()
-    {
-        // Arrange
-        var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", null, null);
+	/// <inheritdoc/>
+	protected override string NamePropertyName =>
+		nameof(UpdateDungeonCommand.Name);
 
-        // Act
-        var result = _validator.Validate(command);
+	/// <inheritdoc/>
+	protected override UpdateDungeonCommand CreateCommandWithName(string? name) =>
+		new(Guid.NewGuid(), name!, null, null);
 
-        // Assert
-        result.IsValid.Should().BeTrue();
-    }
+	[Fact]
+	public void Validate_WithDescriptionOf2001Characters_FailsWithSingleDescriptionError()
+	{
+		// Arrange
+		var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", new string('A', 2001), null);
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public void Validate_WithEmptyName_Fails(string? name)
-    {
-        // Arrange
-        var command = new UpdateDungeonCommand(Guid.NewGuid(), name!, null, null);
+		// Act
+		var result = Validator.Validate(command);
 
-        // Act
-        var result = _validator.Validate(command);
+		// Assert
+		result.IsValid.Should().BeFalse();
+		result.Errors.Should().ContainSingle()
+			.Which.PropertyName.Should().Be(nameof(UpdateDungeonCommand.Description));
+	}
 
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e =>
-            e.PropertyName == nameof(UpdateDungeonCommand.Name));
-    }
+	[Fact]
+	public void Validate_WithDescriptionOfExactly2000Characters_Passes()
+	{
+		// Arrange
+		var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", new string('A', 2000), null);
 
-    [Fact]
-    public void Validate_WithNameExceedingMaxLength_Fails()
-    {
-        // Arrange
-        var command = new UpdateDungeonCommand(Guid.NewGuid(), new string('Z', 101), null, null);
+		// Act
+		var result = Validator.Validate(command);
 
-        // Act
-        var result = _validator.Validate(command);
+		// Assert
+		result.IsValid.Should().BeTrue();
+	}
 
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e =>
-            e.PropertyName == nameof(UpdateDungeonCommand.Name));
-    }
+	[Fact]
+	public void Validate_WithNullDescription_Passes()
+	{
+		// Arrange
+		var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", null, null);
+
+		// Act
+		var result = Validator.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeTrue();
+	}
+
+	[Fact]
+	public void Validate_WithNotesOf4001Characters_FailsWithSingleNotesError()
+	{
+		// Arrange
+		var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", null, new string('A', 4001));
+
+		// Act
+		var result = Validator.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeFalse();
+		result.Errors.Should().ContainSingle()
+			.Which.PropertyName.Should().Be(nameof(UpdateDungeonCommand.Notes));
+	}
+
+	[Fact]
+	public void Validate_WithNotesOfExactly4000Characters_Passes()
+	{
+		// Arrange
+		var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", null, new string('A', 4000));
+
+		// Act
+		var result = Validator.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeTrue();
+	}
+
+	[Fact]
+	public void Validate_WithNullNotes_Passes()
+	{
+		// Arrange
+		var command = new UpdateDungeonCommand(Guid.NewGuid(), "Valid Name", null, null);
+
+		// Act
+		var result = Validator.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeTrue();
+	}
 }

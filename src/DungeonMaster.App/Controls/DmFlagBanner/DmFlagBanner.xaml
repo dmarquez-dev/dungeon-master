@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
-    xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     x:Class="DungeonMaster.App.Controls.DmFlagBanner"
     x:Name="Root">
 
@@ -34,19 +33,6 @@
             FontSize="{StaticResource DmFontSizeBanner}"
             CharacterSpacing="2"
             TextColor="{StaticResource DmTextTavern}" />
-
-        <!-- Inline editor (shown when IsTitleEditable=True) -->
-        <controls:DmInlineEditor
-            x:Name="TitleEditor"
-            IsVisible="False"
-            HorizontalOptions="Fill"
-            VerticalOptions="Center"
-            Margin="24,0"
-            FontFamily="{StaticResource DmFontTitleDecorative}"
-            FontSize="{StaticResource DmFontSizeBanner}"
-            TextHorizontalAlignment="Center"
-            AcceptsReturn="False"
-            TextCommitted="OnTitleCommitted" />
 
     </Grid>
 </ContentView>

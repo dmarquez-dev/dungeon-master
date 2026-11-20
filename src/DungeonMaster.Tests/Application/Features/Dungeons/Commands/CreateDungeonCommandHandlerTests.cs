@@ -1,6 +1,7 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -9,115 +10,134 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="CreateDungeonCommandHandler"/>.
 /// </summary>
-public class CreateDungeonCommandHandlerTests
+public sealed class CreateDungeonCommandHandlerTests : CommandHandlerTestBase<CreateDungeonCommandHandler>
 {
-    private readonly IDungeonWriteRepository _writeRepository;
-    private readonly CreateDungeonCommandHandler _handler;
+	/// <inheritdoc />
+	protected override CreateDungeonCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
-    /// <summary>
-    ///		Initializes the test class with a substituted repository and a real handler instance.
-    /// </summary>
-    public CreateDungeonCommandHandlerTests()
-    {
-        _writeRepository = Substitute.For<IDungeonWriteRepository>();
-        _handler = new CreateDungeonCommandHandler(_writeRepository);
-    }
+	/// <summary>
+	///		Verifies that a valid command produces a successful result containing a non-empty Guid,
+	///		and that <see cref="IDungeonWriteRepository.Add"/> is called exactly once and then committed.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithValidCommand_CreatesAndReturnsId()
+	{
+		// Arrange
+		var command = new CreateDungeonCommand(
+			"The Sunken Vaults",
+			"A flooded ruin beneath the city.");
 
-    /// <summary>
-    ///		Verifies that a valid command produces a successful result containing a non-empty Guid,
-    ///		and that <see cref="IDungeonWriteRepository.AddAsync"/> is called exactly once.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_WithValidCommand_CreatesAndReturnsId()
-    {
-        // Arrange
-        _writeRepository
-            .AddAsync(
-                Arg.Any<Dungeon>(),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        var command = new CreateDungeonCommand(
-            "The Sunken Vaults",
-            "A flooded ruin beneath the city.");
+		// Assert
+		result.IsSuccess.Should().BeTrue();
+		result.Value.Should().NotBeEmpty();
 
-        // Act
-        var result = await _handler.HandleAsync(
-            command,
-            CancellationToken.None);
+		WriteRepository
+			.Received(1)
+			.Add(Arg.Any<Dungeon>());
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeEmpty();
+		await UnitOfWork
+			.Received(1)
+			.CommitAsync(Arg.Any<CancellationToken>());
+	}
 
-        await _writeRepository
-            .Received(1)
-            .AddAsync(
-                Arg.Any<Dungeon>(),
-                Arg.Any<CancellationToken>());
-    }
+	/// <summary>
+	///		Verifies that the dungeon passed to the repository carries the exact Name and Description from the command.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithValidCommand_PassesCorrectDataToRepository()
+	{
+		// Arrange
+		Dungeon? captured = null;
 
-    /// <summary>
-    ///		Verifies that the dungeon passed to the repository carries the exact Name and Description from the command.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_WithValidCommand_PassesCorrectDataToRepository()
-    {
-        // Arrange
-        Dungeon? captured = null;
+		WriteRepository.Add(Arg.Do<Dungeon>(dungeon =>
+			captured = dungeon));
 
-        _writeRepository
-            .AddAsync(
-                Arg.Do<Dungeon>(dungeon =>
-                captured = dungeon),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+		var command = new CreateDungeonCommand(
+			"Ember Crypts",
+			"Smouldering catacombs beneath the volcano.");
 
-        var command = new CreateDungeonCommand(
-            "Ember Crypts",
-            "Smouldering catacombs beneath the volcano.");
+		// Act
+		await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Act
-        await _handler.HandleAsync(
-            command,
-            CancellationToken.None);
+		// Assert
+		captured.Should().NotBeNull();
+		captured!.Name.Should().Be(command.Name);
+		captured.Description.Should().Be(command.Description);
+	}
 
-        // Assert
-        captured.Should().NotBeNull();
-        captured!.Name.Should().Be(command.Name);
-        captured.Description.Should().Be(command.Description);
-    }
+	/// <summary>
+	///		Verifies that a command with a null Description produces a successful result
+	///		and that the persisted dungeon also has a null Description.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithNullDescription_CreatesWithNullDescription()
+	{
+		// Arrange
+		Dungeon? captured = null;
 
-    /// <summary>
-    ///		Verifies that a command with a null Description produces a successful result
-    ///		and that the persisted dungeon also has a null Description.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_WithNullDescription_CreatesWithNullDescription()
-    {
-        // Arrange
-        Dungeon? captured = null;
+		WriteRepository.Add(Arg.Do<Dungeon>(dungeon =>
+			captured = dungeon));
 
-        _writeRepository
-            .AddAsync(
-                Arg.Do<Dungeon>(dungeon =>
-                captured = dungeon),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+		var command = new CreateDungeonCommand(
+			"Silent Tombs",
+			null);
 
-        var command = new CreateDungeonCommand(
-            "Silent Tombs",
-            null);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Act
-        var result = await _handler.HandleAsync(
-            command,
-            CancellationToken.None);
+		// Assert
+		result.IsSuccess.Should().BeTrue();
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
+		captured.Should().NotBeNull();
+		captured!.Description.Should().BeNull();
+	}
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the commit boundary is crossed with.
+	///		This handler commits without loading, so the commit boundary needs a test here rather than on a shared base.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToUnitOfWorkCommitAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
 
-        captured.Should().NotBeNull();
-        captured!.Description.Should().BeNull();
-    }
+		// Act
+		await Handler.HandleAsync(
+			new CreateDungeonCommand(
+				"Commit Token Probe",
+				null),
+			token);
+
+		// Assert
+		await UnitOfWork
+			.Received(1)
+			.CommitAsync(token);
+	}
+
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="cancellationToken">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
+		Handler.HandleAsync(
+			new CreateDungeonCommand(
+				"Token Probe",
+				null),
+			cancellationToken);
 }

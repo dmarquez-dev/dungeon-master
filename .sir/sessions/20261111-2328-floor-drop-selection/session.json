@@ -1,0 +1,40 @@
+{
+  "id": "20261111-2328-floor-drop-selection",
+  "name": "floor-drop-selection",
+  "scope": "small",
+  "status": "WRAPPED",
+  "criteria": [
+    "C1 In `src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs`, neither `OnFloorReorderRequested` nor `OnFloorListDrop` assigns `_editor.SelectedFloorId` directly any more (base `4b7d9e0`: `:967` and `:2531`); each selects the dragged floor by calling `SelectFloor(<dragged id>)` after `ReorderFloorCommand.ExecuteAsync` returns, so `RefreshMap` runs against the reloaded `FloorList.Items` -- the drawable's floor is re-resolved by id, the map toolbar is shown and the tool reset, exactly as a click-selection does. Decision (inferred from the tree, rung 1): a reorder drop selects the dragged floor, since both handlers already wrote its id and `OnAddFloorClicked` selects through `SelectFloor`.",
+    "C2 A comment at the call (or one shared statement both sites point to) says why the selection goes through `SelectFloor` after the command: the reorder reloads every `FloorItem`, so a direct `SelectedFloorId` write leaves the drawable on a stale instance and the drawing tools hidden. The keyboard reorder route (`FloorReorderKeys.Decide` caller) is unchanged.",
+    "C3 `dotnet build src/DungeonMaster.App/DungeonMaster.App.csproj -f net10.0-windows10.0.19041.0 -c Debug` reports 0 warnings and 0 errors, and `dotnet test src/DungeonMaster.sln` reports no failures.",
+    "C4 Only `DungeonDetailPage.xaml.cs` changes among source files; it keeps CRLF line endings (Python byte count: CRLF equals LF, lone CR 0), no BOM, and tab indentation.",
+    "C5 (orchestrator, at Gate 3) `.sir/backlog.md` loses the 20261111-1831-floor-drag-placeholder row on reorder-drop selection and, at the user's request, the five empty audit headings at its top (`TEST six-row sweep`, `CORE two-row sweep`, `CORE heavy rows`, `MASTER-142 alone`, `Part-done register rows`), the audit register having no open or part-done row (classifier over `docs/audit/00-master-index.md` at `4b7d9e0`: 169 done, 6 deliberately unchanged, 5 falsified or filed found-and-fixed (MASTER-113, 124, 125, 165, 175), and MASTER-158's empty cell, permanently deferred by the backlog)."
+  ],
+  "started": "2026-11-11T23:30:40Z",
+  "ended": "2026-11-11T23:45:53Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "f7c6ee17-7db9-4e98-b96b-dec98db83c2f",
+      "phase": "small",
+      "sir": "1.0.32",
+      "started": "2026-11-11T23:30:40Z",
+      "ended": "2026-11-11T23:42:51Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "f7c6ee17-7db9-4e98-b96b-dec98db83c2f",
+      "phase": "wrap",
+      "sir": "1.0.32",
+      "started": "2026-11-11T23:45:30Z",
+      "ended": "2026-11-11T23:45:53Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}

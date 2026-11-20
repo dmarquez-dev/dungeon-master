@@ -1,8 +1,5 @@
 namespace DungeonMaster.App.Behaviors;
 
-/// <summary>Cursor shape options for <see cref="HandCursorBehavior"/>.</summary>
-public enum BehaviorCursorShape { Hand, IBeam, Arrow }
-
 /// <summary>
 ///		A MAUI behavior that changes the mouse cursor when hovering over the attached view.
 ///		Defaults to <see cref="BehaviorCursorShape.Hand"/>. Use <see cref="Shape"/> to select IBeam for text inputs.
@@ -11,6 +8,11 @@ public enum BehaviorCursorShape { Hand, IBeam, Arrow }
 /// </summary>
 public class HandCursorBehavior : Behavior<View>
 {
+	/// <summary>
+	///		Selects which system cursor is shown while the pointer is over the attached view.
+	///		Defaults to <see cref="BehaviorCursorShape.Hand"/>; set <see cref="BehaviorCursorShape.IBeam"/>
+	///		for text inputs or <see cref="BehaviorCursorShape.Arrow"/> to show the ordinary arrow.
+	/// </summary>
 	public BehaviorCursorShape Shape { get; set; } = BehaviorCursorShape.Hand;
 
 	private View? _view;
@@ -65,7 +67,9 @@ public class HandCursorBehavior : Behavior<View>
 	private void OnHandlerChanged(object? sender, EventArgs e)
 	{
 		if (_view?.Handler?.PlatformView is not UIKit.UIView nativeView)
+		{
 			return;
+		}
 
 		// Remove any previously attached hover recognizer to avoid duplicates on handler recycling.
 		if (_hoverRecognizer is not null)
@@ -106,27 +110,59 @@ public class HandCursorBehavior : Behavior<View>
 	}
 #endif
 
+#if WINDOWS
+	/// <summary>
+	///		The non-public <c>Microsoft.UI.Xaml.UIElement.ProtectedCursor</c> property, resolved once for the
+	///		process rather than on every pointer event. Null when the running WinUI version does not expose it;
+	///		<see cref="SetCursor"/> then returns without setting a cursor, and because the lookup lives here it
+	///		is performed once and never retried per pointer event.
+	/// </summary>
+	private static readonly System.Reflection.PropertyInfo? ProtectedCursorProperty =
+		typeof(Microsoft.UI.Xaml.UIElement)
+			.GetProperty(
+				"ProtectedCursor",
+				System.Reflection.BindingFlags.Instance |
+				System.Reflection.BindingFlags.NonPublic |
+				System.Reflection.BindingFlags.Public);
+
+	/// <summary>
+	///		One system cursor per <see cref="BehaviorCursorShape"/>, created once and shared by every view
+	///		carrying this behavior. System cursors are immutable, process-lifetime resources; they are never
+	///		closed here and the same instance may be assigned to any number of elements.
+	/// </summary>
+	private static readonly Microsoft.UI.Input.InputSystemCursor HandCursor =
+		Microsoft.UI.Input.InputSystemCursor.Create(Microsoft.UI.Input.InputSystemCursorShape.Hand);
+
+	/// <inheritdoc cref="HandCursor"/>
+	private static readonly Microsoft.UI.Input.InputSystemCursor IBeamCursor =
+		Microsoft.UI.Input.InputSystemCursor.Create(Microsoft.UI.Input.InputSystemCursorShape.IBeam);
+
+	/// <inheritdoc cref="HandCursor"/>
+	private static readonly Microsoft.UI.Input.InputSystemCursor ArrowCursor =
+		Microsoft.UI.Input.InputSystemCursor.Create(Microsoft.UI.Input.InputSystemCursorShape.Arrow);
+
+	private static Microsoft.UI.Input.InputSystemCursor CachedCursor(BehaviorCursorShape shape) =>
+		shape switch
+		{
+			BehaviorCursorShape.IBeam => IBeamCursor,
+			BehaviorCursorShape.Arrow => ArrowCursor,
+			_ => HandCursor
+		};
+#endif
+
 	private void SetCursor(bool active)
 	{
 #if WINDOWS
+		// The ProtectedCursor lookup failed once, at type initialization. There is nothing to set and
+		// nothing to retry, so every later pointer event leaves the cursor alone.
+		if (ProtectedCursorProperty is null)
+		{
+			return;
+		}
+
 		if (_view?.Handler?.PlatformView is Microsoft.UI.Xaml.UIElement element)
 		{
-			var shape = active
-				? Shape switch
-				{
-					BehaviorCursorShape.IBeam => Microsoft.UI.Input.InputSystemCursorShape.IBeam,
-					BehaviorCursorShape.Arrow => Microsoft.UI.Input.InputSystemCursorShape.Arrow,
-					_                         => Microsoft.UI.Input.InputSystemCursorShape.Hand
-				}
-				: Microsoft.UI.Input.InputSystemCursorShape.Arrow;
-
-			typeof(Microsoft.UI.Xaml.UIElement)
-				.GetProperty(
-					"ProtectedCursor",
-					System.Reflection.BindingFlags.Instance |
-					System.Reflection.BindingFlags.NonPublic |
-					System.Reflection.BindingFlags.Public)
-				?.SetValue(element, Microsoft.UI.Input.InputSystemCursor.Create(shape));
+			ProtectedCursorProperty.SetValue(element, active ? CachedCursor(Shape) : ArrowCursor);
 		}
 #endif
 	}

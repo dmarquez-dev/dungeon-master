@@ -1,9 +1,10 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdatePlacedObject;
-using DungeonMaster.Domain.Entities.Floor;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Floors;
+using DungeonMaster.Domain.Entities.Dungeons;
 using DungeonMaster.Domain.ValueObjects;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -12,194 +13,224 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="UpdatePlacedObjectCommandHandler"/>.
 /// </summary>
-public class UpdatePlacedObjectCommandHandlerTests
+public sealed class UpdatePlacedObjectCommandHandlerTests : DungeonNotFoundHandlerTestBase<UpdatePlacedObjectCommandHandler>
 {
-    private readonly IDungeonWriteRepository _writeRepository;
-    private readonly UpdatePlacedObjectCommandHandler _handler;
+	/// <inheritdoc />
+	protected override UpdatePlacedObjectCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
-    /// <summary>
-    ///		Initializes the test class with a substituted repository and a real handler instance.
-    /// </summary>
-    public UpdatePlacedObjectCommandHandlerTests()
-    {
-        _writeRepository = Substitute.For<IDungeonWriteRepository>();
-        _handler = new UpdatePlacedObjectCommandHandler(_writeRepository);
-    }
+	/// <summary>
+	///		Verifies that a valid command updates the object's position and rotation, then returns success.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_ValidCommand_UpdatesObjectAndReturnsSuccess()
+	{
+		// Arrange
+		var dungeon = new Dungeon("D");
+		var floor = dungeon.AddFloor("F");
 
-    /// <summary>
-    ///		Verifies that a valid command updates the object's position and rotation, then returns success.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_ValidCommand_UpdatesObjectAndReturnsSuccess()
-    {
-        // Arrange
-        var dungeon = new Dungeon("D");
-        var floor = dungeon.AddFloor("F");
+		dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.Throne,
+			new CanvasPoint(0f, 0f),
+			ObjectRotation.None,
+			ObjectScale.Default);
 
-        dungeon.AddPlacedObject(
-            floor.Id,
-            ObjectKind.Throne,
-            new CanvasPoint(0f, 0f),
-            ObjectRotation.None);
+		var placedObject = floor.Objects[0];
+		WriteRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
 
-        var obj = floor.Objects[0];
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
+		var command = new UpdatePlacedObjectCommand(
+			dungeon.Id,
+			floor.Id,
+			placedObject.Id,
+			new CanvasPoint(200f, 200f),
+			ObjectRotation.Clockwise90);
 
-        var command = new UpdatePlacedObjectCommand(
-            dungeon.Id,
-            floor.Id,
-            obj.Id,
-            new CanvasPoint(200f, 200f),
-            ObjectRotation.CW90);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+		// Assert
+		result.IsSuccess.Should().BeTrue();
+		placedObject.Position.Should().Be(new CanvasPoint(200f, 200f));
+		placedObject.Rotation.Should().Be(ObjectRotation.Clockwise90);
+		placedObject.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        obj.Position.Should().Be(new CanvasPoint(200f, 200f));
-        obj.Rotation.Should().Be(ObjectRotation.CW90);
-        obj.Scale.Should().BeApproximately(ObjectScale.Default, 0.001f);
+		WriteRepository
+			.Received(1)
+			.Update(dungeon);
+	}
 
-        await _writeRepository
-            .Received(1)
-            .UpdateAsync(dungeon, Arg.Any<CancellationToken>());
-    }
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
+	{
+		var result = await Handler.HandleAsync(
+			new UpdatePlacedObjectCommand(
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				new CanvasPoint(40f, 40f),
+				ObjectRotation.None),
+			CancellationToken.None);
 
-    /// <summary>
-    ///		Verifies that a missing dungeon returns a not-found failure.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_DungeonNotFound_ReturnsNotFound()
-    {
-        // Arrange
-        _writeRepository
-            .LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns((Dungeon?)null);
+		return (result.IsSuccess, result.ErrorCategory);
+	}
 
-        var command = new UpdatePlacedObjectCommand(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            new CanvasPoint(40f, 40f),
-            ObjectRotation.None);
+	/// <summary>
+	///		Verifies that an unknown floor identifier reports not-found and does not write the unchanged aggregate back.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownFloorId_ReturnsNotFoundAndDoesNotSave()
+	{
+		// Arrange
+		var dungeon = new Dungeon("D", null);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+		WriteRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
-    }
+		var command = new UpdatePlacedObjectCommand(
+			dungeon.Id,
+			Guid.NewGuid(),
+			Guid.NewGuid(),
+			new CanvasPoint(0f, 0f),
+			ObjectRotation.None);
 
-    /// <summary>
-    ///		Verifies that an unknown floor ID is a silent no-op at the domain level;
-    ///		the handler still persists the aggregate and returns success.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_FloorNotFound_ReturnsSuccessWithNoChange()
-    {
-        // Arrange
-        var dungeon = new Dungeon("D", null);
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        var command = new UpdatePlacedObjectCommand(
-            dungeon.Id,
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            new CanvasPoint(0f, 0f),
-            ObjectRotation.None);
+		// Assert
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+		WriteRepository
+			.DidNotReceive()
+			.Update(Arg.Any<Dungeon>());
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
+	}
 
-        await _writeRepository
-            .Received(1)
-            .UpdateAsync(dungeon, Arg.Any<CancellationToken>());
-    }
+	/// <summary>
+	///		Verifies that an unknown object identifier on a valid floor reports not-found, leaves existing objects untouched, and does not write the unchanged aggregate back.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownObjectId_ReturnsNotFoundAndDoesNotSave()
+	{
+		// Arrange
+		var dungeon = new Dungeon("D");
+		var floor = dungeon.AddFloor("F");
 
-    /// <summary>
-    ///		Verifies that an unknown object ID on a valid floor is a silent no-op at the domain level;
-    ///		the handler still persists the aggregate and returns success, leaving existing objects untouched.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_ObjectNotFound_ReturnsSuccessWithNoChange()
-    {
-        // Arrange
-        var dungeon = new Dungeon("D");
-        var floor = dungeon.AddFloor("F");
+		dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.Chair,
+			new CanvasPoint(10f, 10f),
+			ObjectRotation.None,
+			ObjectScale.Default);
 
-        dungeon.AddPlacedObject(
-            floor.Id,
-            ObjectKind.Chair,
-            new CanvasPoint(10f, 10f),
-            ObjectRotation.None);
+		var placedObject = floor.Objects.Single();
+		var originalPos = placedObject.Position;
+		WriteRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
 
-        var theObj = floor.Objects.Should().ContainSingle().Which;
-        var originalPos = theObj.Position;
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
+		var command = new UpdatePlacedObjectCommand(
+			dungeon.Id,
+			floor.Id,
+			Guid.NewGuid(),
+			new CanvasPoint(999f, 999f),
+			ObjectRotation.Clockwise180);
 
-        var command = new UpdatePlacedObjectCommand(
-            dungeon.Id,
-            floor.Id,
-            Guid.NewGuid(),
-            new CanvasPoint(999f, 999f),
-            ObjectRotation.CW180);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+		// Assert
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		placedObject.Position.Should().Be(originalPos);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        theObj.Position.Should().Be(originalPos);
+		WriteRepository
+			.DidNotReceive()
+			.Update(Arg.Any<Dungeon>());
 
-        await _writeRepository
-            .Received(1)
-            .UpdateAsync(dungeon, Arg.Any<CancellationToken>());
-    }
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
+	}
 
-    /// <summary>
-    ///		Verifies that a custom scale specified in the command is stored on the updated placed object.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_WithCustomScale_StoresScaleOnObject()
-    {
-        // Arrange
-        var dungeon = new Dungeon("D");
-        var floor = dungeon.AddFloor("F");
+	/// <summary>
+	///		Verifies that a custom scale specified in the command is stored on the updated placed object.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithCustomScale_StoresScaleOnObject()
+	{
+		// Arrange
+		var dungeon = new Dungeon("D");
+		var floor = dungeon.AddFloor("F");
 
-        dungeon.AddPlacedObject(
-            floor.Id,
-            ObjectKind.Chair,
-            new CanvasPoint(10f, 10f),
-            ObjectRotation.None);
+		dungeon.AddPlacedObject(
+			floor.Id,
+			ObjectKind.Chair,
+			new CanvasPoint(10f, 10f),
+			ObjectRotation.None,
+			ObjectScale.Default);
 
-        var obj = floor.Objects.Should().ContainSingle().Which;
-        _writeRepository
-            .LoadAsync(dungeon.Id, Arg.Any<CancellationToken>())
-            .Returns(dungeon);
+		var placedObject = floor.Objects.Single();
+		WriteRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
 
-        var command = new UpdatePlacedObjectCommand(
-            dungeon.Id,
-            floor.Id,
-            obj.Id,
-            obj.Position,
-            obj.Rotation,
-            NewScale: 1.5f);
+		var command = new UpdatePlacedObjectCommand(
+			dungeon.Id,
+			floor.Id,
+			placedObject.Id,
+			placedObject.Position,
+			placedObject.Rotation,
+			NewScale: 1.5f);
 
-        // Act
-        await _handler.HandleAsync(command, CancellationToken.None);
+		// Act
+		await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Assert
-        obj.Scale.Should().BeApproximately(1.5f, 0.001f);
-    }
+		// Assert
+		placedObject.Scale.Should().BeApproximately(1.5f, 0.001f);
+	}
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="cancellationToken">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
+		Handler.HandleAsync(
+			new UpdatePlacedObjectCommand(
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				Guid.NewGuid(),
+				new CanvasPoint(40f, 40f),
+				ObjectRotation.None),
+			cancellationToken);
 }

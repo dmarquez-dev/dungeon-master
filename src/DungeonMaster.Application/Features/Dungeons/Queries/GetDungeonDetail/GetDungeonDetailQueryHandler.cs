@@ -1,5 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 
 namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeonDetail;
 
@@ -13,8 +13,8 @@ public sealed class GetDungeonDetailQueryHandler(
 	/// <inheritdoc/>
 	public async Task<DungeonDetailDto?> HandleAsync(
 		GetDungeonDetailQuery query,
-		CancellationToken ct)
+		CancellationToken cancellationToken)
 		=> await readRepository.GetDetailAsync(
 			query.Id,
-			ct);
+			cancellationToken);
 }

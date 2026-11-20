@@ -1,19 +1,21 @@
-using DungeonMaster.Application.Features.Dungeons;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Application.Common.Interfaces;
+using DungeonMaster.Domain.Entities.Dungeons;
 using Microsoft.EntityFrameworkCore;
 
 namespace DungeonMaster.Infrastructure.Persistence.Repositories;
 
 /// <summary>
 ///		Provides write-side data access operations for <see cref="Dungeon"/> aggregates.
+///		The context is owned by the <see cref="UnitOfWork"/> that constructed this repository; nothing here saves or disposes it.
 /// </summary>
 public sealed class DungeonWriteRepository(
 	AppDbContext dbContext)
 		: IDungeonWriteRepository
 {
 	/// <inheritdoc/>
-	public async Task<Dungeon?> LoadAsync(Guid id, CancellationToken ct)
-		=> await dbContext.Dungeons
+	public async Task<Dungeon?> LoadAsync(Guid id, CancellationToken cancellationToken)
+	{
+		var query = dbContext.Dungeons
 			.Include(dungeon =>
 				dungeon.Floors)
 			.ThenInclude(floor =>
@@ -22,36 +24,40 @@ public sealed class DungeonWriteRepository(
 				dungeon.Floors)
 			.ThenInclude(floor =>
 				floor.Objects)
-			.FirstOrDefaultAsync(dungeon =>
-				dungeon.Id == id, ct);
+			.AsSplitQuery()
+			.Where(dungeon =>
+				dungeon.Id == id);
 
-	/// <inheritdoc/>
-	public async Task AddAsync(Dungeon dungeon, CancellationToken ct)
-	{
-		await dbContext.Dungeons.AddAsync(dungeon, ct);
-		await dbContext.SaveChangesAsync(ct);
+		return await query.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
-	public async Task UpdateAsync(Dungeon dungeon, CancellationToken ct)
+	public void Add(Dungeon dungeon) =>
+		dbContext.Dungeons.Add(dungeon);
+
+	/// <inheritdoc/>
+	public void Update(Dungeon dungeon)
 	{
 		if (dbContext.Entry(dungeon).State is EntityState.Detached)
 		{
-			dbContext.Attach(dungeon);
+			dbContext.Update(dungeon);
 		}
-
-		await dbContext.SaveChangesAsync(ct);
 	}
 
 	/// <inheritdoc/>
-	public async Task DeleteAsync(Guid id, CancellationToken ct)
+	public async Task<bool> RemoveAsync(
+		Guid id,
+		CancellationToken cancellationToken)
 	{
-		var dungeon = await dbContext.Dungeons.FindAsync([id], ct);
+		var dungeon = await dbContext.Dungeons.FindAsync([id], cancellationToken).ConfigureAwait(false);
 
-		if (dungeon is not null)
+		if (dungeon is null)
 		{
-			dbContext.Dungeons.Remove(dungeon);
-			await dbContext.SaveChangesAsync(ct);
+			return false;
 		}
+
+		dbContext.Dungeons.Remove(dungeon);
+
+		return true;
 	}
 }

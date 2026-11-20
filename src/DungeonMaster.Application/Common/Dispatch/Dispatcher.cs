@@ -1,70 +1,209 @@
+using System.Collections.Concurrent;
 using DungeonMaster.Application.Common.Results;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DungeonMaster.Application.Common.Dispatch;
 
 /// <summary>
-///		Routes commands and queries to their registered handlers, passing commands through the behavior pipeline.
+///		Routes commands and queries to their registered handlers, passing every request through the behavior pipeline.
+///		Reflection runs once per concrete request type: the type-erasing invoker built on the first dispatch is cached and reused for the life of the process.
 /// </summary>
+/// <param name="serviceProvider">
+///		The provider used to resolve handlers and behaviors for each dispatch.
+/// </param>
 public sealed class Dispatcher(
 	IServiceProvider serviceProvider)
 		: IDispatcher
 {
+	private static readonly ConcurrentDictionary<Type, object> Invokers = new();
+
+	/// <summary>
+	///		Gets the single invoker cache, keyed on the concrete request type. Exposed for tests that assert the memoisation and single-cache invariants.
+	/// </summary>
+	internal static IReadOnlyDictionary<Type, object> InvokerCache =>
+		Invokers;
+
 	/// <inheritdoc/>
-	public async Task<Result<TResult>> SendAsync<TResult>(
-		ICommand<TResult> command,
-		CancellationToken ct = default)
+	public Task<Result> SendAsync(
+		ICommand command,
+		CancellationToken cancellationToken = default)
 	{
-		var handlerType = typeof(ICommandHandler<,>)
-			.MakeGenericType(
-				command.GetType(),
-				typeof(TResult));
+		var invoker = (CommandInvoker)Invokers.GetOrAdd(
+			command.GetType(),
+			static commandType =>
+				Activator.CreateInstance(
+					typeof(TypedCommandInvoker<>).MakeGenericType(commandType))!);
 
-		dynamic handler = serviceProvider.GetRequiredService(handlerType);
+		return invoker.InvokeAsync(
+			serviceProvider,
+			command,
+			cancellationToken);
+	}
 
-		var behaviorType = typeof(IPipelineBehavior<,>)
-			.MakeGenericType(
-				command.GetType(),
-				typeof(TResult));
+	/// <inheritdoc/>
+	public Task<Result<TResult>> SendAsync<TResult>(
+		ICommand<TResult> command,
+		CancellationToken cancellationToken = default)
+	{
+		var invoker = (CommandInvoker<TResult>)Invokers.GetOrAdd(
+			command.GetType(),
+			static commandType =>
+				Activator.CreateInstance(
+					typeof(TypedCommandInvoker<,>).MakeGenericType(
+						commandType,
+						typeof(TResult)))!);
 
+		return invoker.InvokeAsync(
+			serviceProvider,
+			command,
+			cancellationToken);
+	}
+
+	/// <inheritdoc/>
+	public Task<TResult> QueryAsync<TResult>(
+		IQuery<TResult> query,
+		CancellationToken cancellationToken = default)
+	{
+		var invoker = (QueryInvoker<TResult>)Invokers.GetOrAdd(
+			query.GetType(),
+			static queryType =>
+				Activator.CreateInstance(
+					typeof(TypedQueryInvoker<,>).MakeGenericType(
+						queryType,
+						typeof(TResult)))!);
+
+		return invoker.InvokeAsync(
+			serviceProvider,
+			query,
+			cancellationToken);
+	}
+
+	/// <summary>
+	///		Folds the registered behaviors around the handler, first-registered outermost. This is the only place the chain is built, so the ordering cannot differ between the three request paths.
+	/// </summary>
+	private static Func<Task<TResponse>> BuildPipeline<TRequest, TResponse>(
+		IServiceProvider serviceProvider,
+		TRequest request,
+		Func<Task<TResponse>> handler,
+		CancellationToken cancellationToken)
+			where TRequest : IRequest<TResponse>
+	{
 		var behaviors = serviceProvider
-			.GetServices(behaviorType)
-			.Cast<dynamic>()
+			.GetServices<IPipelineBehavior<TRequest, TResponse>>()
 			.Reverse()
 			.ToList();
 
-		Func<Task<Result<TResult>>> pipeline = () =>
-			(Task<Result<TResult>>)handler.HandleAsync(
-				(dynamic)command,
-				ct);
+		var pipeline = handler;
 
 		foreach (var behavior in behaviors)
 		{
 			var next = pipeline;
 			pipeline = () =>
-				(Task<Result<TResult>>)behavior.HandleAsync(
-					(dynamic)command,
+				behavior.HandleAsync(
+					request,
 					next,
-					ct);
+					cancellationToken);
 		}
 
-		return await pipeline();
+		return pipeline;
 	}
 
-	/// <inheritdoc/>
-	public async Task<TResult> QueryAsync<TResult>(
-		IQuery<TResult> query,
-		CancellationToken ct = default)
+	private abstract class CommandInvoker
 	{
-		var handlerType = typeof(IQueryHandler<,>)
-			.MakeGenericType(
-				query.GetType(),
-				typeof(TResult));
+		public abstract Task<Result> InvokeAsync(
+			IServiceProvider serviceProvider,
+			ICommand command,
+			CancellationToken cancellationToken);
+	}
 
-		dynamic handler = serviceProvider.GetRequiredService(handlerType);
+	private sealed class TypedCommandInvoker<TCommand>
+		: CommandInvoker
+			where TCommand : ICommand
+	{
+		public override Task<Result> InvokeAsync(
+			IServiceProvider serviceProvider,
+			ICommand command,
+			CancellationToken cancellationToken)
+		{
+			var typed = (TCommand)command;
 
-		return await (Task<TResult>)handler.HandleAsync(
-			(dynamic)query,
-			ct);
+			var handler = serviceProvider
+				.GetRequiredService<ICommandHandler<TCommand>>();
+
+			return BuildPipeline<TCommand, Result>(
+				serviceProvider,
+				typed,
+				() =>
+					handler.HandleAsync(
+						typed,
+						cancellationToken),
+				cancellationToken)();
+		}
+	}
+
+	private abstract class CommandInvoker<TResult>
+	{
+		public abstract Task<Result<TResult>> InvokeAsync(
+			IServiceProvider serviceProvider,
+			ICommand<TResult> command,
+			CancellationToken cancellationToken);
+	}
+
+	private sealed class TypedCommandInvoker<TCommand, TResult>
+		: CommandInvoker<TResult>
+			where TCommand : ICommand<TResult>
+	{
+		public override Task<Result<TResult>> InvokeAsync(
+			IServiceProvider serviceProvider,
+			ICommand<TResult> command,
+			CancellationToken cancellationToken)
+		{
+			var typed = (TCommand)command;
+
+			var handler = serviceProvider
+				.GetRequiredService<ICommandHandler<TCommand, TResult>>();
+
+			return BuildPipeline<TCommand, Result<TResult>>(
+				serviceProvider,
+				typed,
+				() =>
+					handler.HandleAsync(
+						typed,
+						cancellationToken),
+				cancellationToken)();
+		}
+	}
+
+	private abstract class QueryInvoker<TResult>
+	{
+		public abstract Task<TResult> InvokeAsync(
+			IServiceProvider serviceProvider,
+			IQuery<TResult> query,
+			CancellationToken cancellationToken);
+	}
+
+	private sealed class TypedQueryInvoker<TQuery, TResult>
+		: QueryInvoker<TResult>
+			where TQuery : IQuery<TResult>
+	{
+		public override Task<TResult> InvokeAsync(
+			IServiceProvider serviceProvider,
+			IQuery<TResult> query,
+			CancellationToken cancellationToken)
+		{
+			var typed = (TQuery)query;
+
+			var handler = serviceProvider
+				.GetRequiredService<IQueryHandler<TQuery, TResult>>();
+
+			return BuildPipeline<TQuery, TResult>(
+				serviceProvider,
+				typed,
+				() =>
+					handler.HandleAsync(
+						typed,
+						cancellationToken),
+				cancellationToken)();
+		}
 	}
 }

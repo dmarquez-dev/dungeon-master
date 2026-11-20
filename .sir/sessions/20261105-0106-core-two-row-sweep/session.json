@@ -1,0 +1,59 @@
+{
+  "id": "20261105-0106-core-two-row-sweep",
+  "name": "core-two-row-sweep",
+  "scope": "standard",
+  "status": "WRAPPED",
+  "brief": "Close audit row MASTER-110 (CORE-022) by bringing Floor and PlacedObject to the conventions' two-file entity split: FloorObjectMethods.cs is folded into FloorMethods.cs and deleted, and PlacedObject becomes partial, split into PlacedObject.cs (constructors, properties) and PlacedObjectMethods.cs (Update, ValidateScale), with no behaviour, namespace or test change. In the same session, finish MASTER-180's two follow-ups by re-breaking sentence-splitting /// lines in ResultOfT.cs and AreaOutlineGeometry.cs (CORE) and ShellRoutes.cs and ObjectPaletteView.xaml.cs (App), changing no words. A docs task closes the MASTER-110 register cell and adds a CORE-022 AMENDED block classifying its stale 73/305-line figures as DRIFT. Four tasks: T1 entity split, T2 and T3 doc reflows chained behind it for build serialisation, T4 register beside them. The orchestrator removes the four backlog rows at Gate 3.",
+  "started": "2026-11-05T01:06:37Z",
+  "ended": "2026-11-05T18:10:16Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "0f339df5-7174-47e9-b17c-63b0a896ae1a",
+      "phase": "discuss",
+      "sir": "1.0.21",
+      "started": "2026-11-05T01:06:37Z",
+      "ended": "2026-11-05T01:09:02Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8fcef071-ae46-4dcf-a728-b52ff86b88fd",
+      "phase": "spec",
+      "sir": "1.0.21",
+      "started": "2026-11-05T01:10:12Z",
+      "ended": "2026-11-05T01:56:48Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "fdde2611-ce47-44cc-a9c3-8fb663d88b41",
+      "phase": "implement",
+      "sir": "1.0.21",
+      "started": "2026-11-05T01:58:41Z",
+      "ended": "2026-11-05T02:27:10Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "47c5211b-3fb3-48b3-850c-5ea782b01a91",
+      "phase": "review",
+      "sir": "1.0.21",
+      "started": "2026-11-05T16:37:03Z",
+      "ended": "2026-11-05T18:06:03Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "d91f332a-7493-49a1-88a7-46ce121b01af",
+      "phase": "wrap",
+      "sir": "1.0.21",
+      "started": "2026-11-05T18:09:14Z",
+      "ended": "2026-11-05T18:10:16Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}

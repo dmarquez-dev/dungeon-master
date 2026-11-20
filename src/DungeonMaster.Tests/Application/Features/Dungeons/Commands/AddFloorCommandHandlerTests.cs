@@ -1,51 +1,59 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.AddFloor;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class AddFloorCommandHandlerTests
+public sealed class AddFloorCommandHandlerTests : DungeonNotFoundHandlerTestBase<AddFloorCommandHandler>
 {
-    private readonly IDungeonWriteRepository _writeRepository;
-    private readonly AddFloorCommandHandler _handler;
+	/// <inheritdoc />
+	protected override AddFloorCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
-    public AddFloorCommandHandlerTests()
-    {
-        _writeRepository = Substitute.For<IDungeonWriteRepository>();
-        _handler = new AddFloorCommandHandler(_writeRepository);
-    }
+	[Fact]
+	public async Task HandleAsync_WithExistingDungeon_AddsFloorAndReturnsId()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Test Dungeon");
+		WriteRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
+		// Act
+		var result = await Handler.HandleAsync(new AddFloorCommand(dungeon.Id, "Entry"), CancellationToken.None);
 
-    [Fact]
-    public async Task HandleAsync_WithExistingDungeon_AddsFloorAndReturnsId()
-    {
-        // Arrange
-        var dungeon = new Dungeon("Test Dungeon");
-        _writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
-        _writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+		// Assert
+		result.IsSuccess.Should().BeTrue();
+		result.Value.Should().NotBeEmpty();
+		dungeon.Floors.Should().HaveCount(1);
+	}
 
-        // Act
-        var result = await _handler.HandleAsync(new AddFloorCommand(dungeon.Id, "Entry"), CancellationToken.None);
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
+	{
+		var result = await Handler.HandleAsync(
+			new AddFloorCommand(Guid.NewGuid(), null),
+			CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().NotBeEmpty();
-        dungeon.Floors.Should().HaveCount(1);
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithNonExistentId_ReturnsNotFoundFailure()
-    {
-        // Arrange
-        _writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
-
-        // Act
-        var result = await _handler.HandleAsync(new AddFloorCommand(Guid.NewGuid(), null), CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
-    }
+		return (result.IsSuccess, result.ErrorCategory);
+	}
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="cancellationToken">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
+		Handler.HandleAsync(
+			new AddFloorCommand(Guid.NewGuid(), null),
+			cancellationToken);
 }

@@ -1,0 +1,43 @@
+{
+  "id": "20261117-2333-test-wording-fixes",
+  "name": "test-wording-fixes",
+  "scope": "small",
+  "status": "WRAPPED",
+  "started": "2026-11-17T23:33:40Z",
+  "ended": "2026-11-17T23:51:45Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: In `src/DungeonMaster.App.UnitTests/Theme/DmThemeResolutionTests.cs` the elided `<c>…_IsDeclaredAsTheTypeItIsResolvedAs</c>` (`:93` at a942e8f) is replaced by the full current name qualified as its neighbour on `:92` is, `<c>DmThemeKeysResolveTests.EveryKeyDmThemeResolvesIsDeclaredAsTheTypeItIsResolvedAs</c>` (the method declared at `src/DungeonMaster.Tests/App/Theme/DmThemeKeysResolveTests.cs:149` at a942e8f); the remarks paragraph is rewrapped only as far as the longer name forces, keeping the `///\\t\\t` indent form, and its sentences are otherwise unchanged; `grep -rn -F '…_IsDeclared' src --include=*.cs` prints nothing.",
+    "C2: In the three split guard facts `TheIconOnlyControlScanReachesAtLeastOneControl` (`src/DungeonMaster.Tests/App/Accessibility/SemanticDescriptionTests.cs`), `TheIconTextScanReachesAtLeastOneDmFontIconDeclaration` (`src/DungeonMaster.Tests/App/Theme/IconFontCoverageTests.cs`) and `TheColourTokenScanReachesAtLeastOneToken` (`src/DungeonMaster.Tests/App/Theme/TokenNamingTests.cs`), the `because` string no longer says `this fact` or `the whole fact` of the sibling fact it guards: each names that sibling fact by method name (or, where the sibling is ambiguous, the facts the scan feeds, as read from the file), and the sentence explaining the stale wording (`SemanticDescriptionTests.cs:103-105`, `IconFontCoverageTests.cs:62-63`, `TokenNamingTests.cs:340-341` at a942e8f, each ending `names that one.`) is removed, so `grep -rn -F 'names that one' src --include=*.cs` prints nothing; no assertion's receiver, matcher or condition changes, only string literals and comments.",
+    "C3: The four files in C1 and C2 are the only files under `src` that differ from a942e8f; each stays without a BOM, tab-indented and all-CRLF with no lone CR (Python `b.count(b'\\r\\n')`, `b.count(b'\\n')` and `b.count(b'\\r')` equal; at a942e8f, in the working tree: DmThemeResolutionTests.cs 344, SemanticDescriptionTests.cs 566, IconFontCoverageTests.cs 221, TokenNamingTests.cs 675 each, measured by the orchestrator 2026-11-17).",
+    "C4: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s), quoted from its summary lines, and `dotnet test src/DungeonMaster.sln --no-build` passes every test with each project's Total equal to the implementer's own pre-change run at a942e8f (20261117-1751-drag-nonfinite-guard recorded 217, 1008 and 146 at its tip, which is a942e8f's code); full output of every run saved to scratch before any filtering.",
+    "C5: On approval, the two `.sir/backlog.md` rows from 20261104-1726-test-hygiene-sweep at `:151` (replace the elided old test name) and `:152` (reword the carried `because` strings), at a942e8f, are removed and no other backlog line changes."
+  ],
+  "escalations": [],
+  "amendments": [],
+  "runs": [
+    {
+      "cc": "f08754bb-317d-402d-8f01-6664f722021e",
+      "phase": "small",
+      "sir": "1.0.44",
+      "started": "2026-11-17T23:33:40Z",
+      "ended": "2026-11-17T23:47:33Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "f08754bb-317d-402d-8f01-6664f722021e",
+      "phase": "wrap",
+      "sir": "1.0.44",
+      "started": "2026-11-17T23:51:27Z",
+      "ended": "2026-11-17T23:51:45Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 2,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}

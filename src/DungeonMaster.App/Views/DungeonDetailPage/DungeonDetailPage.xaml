@@ -6,6 +6,9 @@
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
     xmlns:vm="clr-namespace:DungeonMaster.App.ViewModels"
     xmlns:palette="clr-namespace:DungeonMaster.App.Views.DungeonDetail"
+    xmlns:views="clr-namespace:DungeonMaster.App.Views"
+    xmlns:converters="clr-namespace:DungeonMaster.App.Converters"
+    xmlns:presentation="clr-namespace:DungeonMaster.App.Core.Presentation;assembly=DungeonMaster.App.Core"
     x:Class="DungeonMaster.App.Views.DungeonDetailPage"
     x:DataType="vm:DungeonDetailViewModel"
     Shell.NavBarIsVisible="False"
@@ -26,18 +29,62 @@
             <Setter Property="BackgroundColor" Value="Transparent" />
             <Setter Property="StrokeThickness" Value="0" />
         </Style>
+
+        <!-- The floor row template's expanded state is whether the row's floor is the editor
+             state's selected floor (MASTER-098 / UIKIT-011). -->
+        <converters:GuidEqualityConverter x:Key="GuidEquality" />
     </ContentPage.Resources>
+
+    <!-- MASTER-058. The back action is owned by this page, not inferred from platform
+         chrome. Shell.NavBarIsVisible is False above and no code path pops this page, so
+         until now returning to the dungeon list depended entirely on whatever the host's
+         own title-bar arrow chose to do. Binding the behaviour's Command routes that arrow
+         through DungeonDetailViewModel.GoBackCommand, which calls INavigationService
+         .GoBackAsync() — the page states the destination rather than inheriting it.
+
+         Command binds OneTime by design (Microsoft.Maui.Controls.BackButtonBehavior): it
+         resolves when BindingContext is set, which for this page happens once. IsVisible
+         and IsEnabled are left at their true defaults so the arrow is unchanged visually.
+
+         x:DataType={x:Null} OPTS THIS ONE BINDING OUT OF COMPILATION, and is not optional.
+         GoBackCommand is emitted by CommunityToolkit.Mvvm's [RelayCommand] generator, and
+         MAUI's binding generator cannot see another generator's output. With the root
+         x:DataType above in force the build fails, verbatim:
+
+           error MAUIG2045: Binding: Property "GoBackCommand" not found on
+           "global::DungeonMaster.App.ViewModels.DungeonDetailViewModel". The binding will
+           use slower reflection-based binding at runtime.
+
+         under TreatWarningsAsErrors (Directory.Build.props). It is the same cross-generator
+         gap already recorded at CreateDungeonPopup.xaml:15-47 for CreateCommand. The fix there
+         was to drop the root x:DataType, which is not affordable here because every other
+         binding on this page compiles against it; narrowing the opt-out to this one binding
+         keeps all of those compiled and costs one reflective lookup per back press.
+         Revisit when MAUI's generator handles cross-generator members. -->
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior Command="{Binding GoBackCommand, x:DataType={x:Null}}" />
+    </Shell.BackButtonBehavior>
 
     <!-- Page inset with the bottom edge deliberately suppressed: the map canvas and the floor
          sidebar are the last row and run to the window edge, so a bottom inset would leave a
          strip of tavern background under them. Left/right/top are DmPaddingPage's 16,12. -->
-    <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="0" Padding="16,12,16,0">
 
         <!-- Row 0: Top nav bar.
              Column 0 is deliberately empty. It used to hold an in-page "← Back" button, which
              duplicated the Shell's own back arrow in the Windows title bar — that arrow is
              present and working on this page even with Shell.NavBarIsVisible false, and it is
-             what returns to the dungeon list now. Verified by clicking it, not by reading. -->
+             what returns to the dungeon list now. Verified by clicking it, not by reading.
+
+             It stays empty. MASTER-058 asked for the back action to be explicitly owned by
+             the page, and the Shell.BackButtonBehavior declared above does that without
+             reinstating the duplicate control this column lost: the same arrow now invokes
+             the page's own GoBackCommand. Re-adding a button here would restore exactly the
+             duplication that emptied the column.
+
+             The macCatalyst affordance remains UNVERIFIED. net10.0-maccatalyst compiles but
+             cannot be run under ADR-001, so no one has clicked a back arrow on that target;
+             the claim above ("verified by clicking it") is a Windows claim only. -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,12">
             <HorizontalStackLayout
                 Grid.Column="1"
@@ -72,7 +119,13 @@
                      and log nothing. It is deliberately left without a SemanticProperties.Hint:
                      its Text already names it, and a Hint describing what starting a session
                      would do is a promise the control cannot keep. The sibling on
-                     DungeonListPage.xaml carries the same note. Wiring it is a feature. -->
+                     DungeonListPage.xaml carries the same note. Wiring it is a feature.
+
+                     It is therefore disabled unconditionally until sessions exist, whatever the
+                     dungeon's floor count: a local IsEnabled="False" and Opacity="0.35", the same
+                     mechanism UndoButton uses. It used to enable once the dungeon had a floor,
+                     which offered a click that did nothing. Restore a floor-count gate at the same
+                     time as the handler, not before. -->
                 <Button
                     Text="Start Session"
                     AutomationId="StartSessionButton"
@@ -82,17 +135,11 @@
                     BackgroundColor="{StaticResource DmConfirm}"
                     TextColor="{StaticResource DmConfirmText}"
                     CornerRadius="{StaticResource DmRadiusDefault}"
-                    IsEnabled="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}">
+                    IsEnabled="False"
+                    Opacity="0.35">
                     <Button.Behaviors>
                         <behaviors:HandCursorBehavior />
                     </Button.Behaviors>
-                    <Button.Triggers>
-                        <DataTrigger TargetType="Button"
-                            Binding="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}}"
-                            Value="False">
-                            <Setter Property="Opacity" Value="0.35" />
-                        </DataTrigger>
-                    </Button.Triggers>
                 </Button>
                 <!-- Crossed-sword icon overlaid on the left of the button. Decorative: the
                      button it sits on is already labelled "Start Session". -->
@@ -105,27 +152,36 @@
                        Margin="12,0,0,0"
                        AutomationProperties.IsInAccessibleTree="False"
                        InputTransparent="True" />
-                <!-- Transparent overlay carries tooltip when button is disabled -->
+                <!-- Transparent overlay carries tooltip when button is disabled. That is now
+                     always, so the overlay is visible for every floor count. -->
                 <BoxView
                     BackgroundColor="Transparent"
-                    IsVisible="{Binding Dungeon.FloorCount, Converter={StaticResource GreaterThanZeroConverter}, ConverterParameter=Invert}"
-                    ToolTipProperties.Text="Add at least one floor before starting a session"
+                    ToolTipProperties.Text="Sessions are not available yet"
                     InputTransparent="False" />
             </Grid>
         </Grid>
 
-        <!-- Row 1: Full-width DmFlagBanner (display-only — renamed via the sidebar card's notebook) -->
+        <!-- Row 1: failure channel. Collapsed while ErrorMessage is null. -->
+        <Label
+            Grid.Row="1"
+            Text="{Binding ErrorMessage}"
+            FontFamily="{StaticResource DmFontBody}"
+            FontSize="{StaticResource DmFontSizeBody}"
+            TextColor="{StaticResource DmDestructive}"
+            IsVisible="{Binding ErrorMessage, Converter={StaticResource NotNullConverter}}" />
+
+        <!-- Row 2: Full-width DmFlagBanner (display-only — renamed via the sidebar card's notebook) -->
         <controls:DmFlagBanner
             x:Name="TitleBanner"
-            Grid.Row="1"
+            Grid.Row="2"
             Title="{Binding Dungeon.Name}" />
 
-        <!-- Row 2: Decorative divider between the banner and the map -->
+        <!-- Row 3: Decorative divider between the banner and the map -->
         <controls:DmDivider
-            Grid.Row="2"
+            Grid.Row="3"
             Margin="0,6,0,4" />
 
-        <!-- Row 3: map toolbar + canvas (left) | dungeon card + floor list (right).
+        <!-- Row 4: map toolbar + canvas (left) | dungeon card + floor list (right).
 
              Row 0 of THIS grid is shared by the map toolbar and the sidebar dungeon card, and
              that shared Auto row is the entire reason their bottom edges line up: it takes the
@@ -133,7 +189,7 @@
              used to be row 0 of two SEPARATE sub-grids, which is why they needed a hand-measured
              DmToolbarHeight constant to agree — a number read off a screenshot, which went stale
              silently whenever the toolbar's contents grew and clipped the tool tiles. -->
-        <Grid Grid.Row="3"
+        <Grid Grid.Row="4"
               ColumnDefinitions="*,300"
               RowDefinitions="Auto,*"
               ColumnSpacing="{StaticResource DmSpaceXL}">
@@ -268,6 +324,9 @@
             <Grid x:Name="MapOverlay" Grid.Row="1" Grid.Column="0">
                 <GraphicsView
                     x:Name="MapCanvas"
+                    AutomationId="MapCanvas"
+                    SemanticProperties.Description="Dungeon map editing canvas"
+                    SemanticProperties.Hint="Draw, move, select, erase and place tiles and objects on the current floor. The active tool is chosen in the map toolbar above."
                     StartInteraction="OnMapStartInteraction"
                     DragInteraction="OnMapDragInteraction"
                     EndInteraction="OnMapEndInteraction"
@@ -408,9 +467,9 @@
                              migration replaces them and takes the numbers with it. Each is
                              corrected on X because Translation applies AFTER Rotation, in screen
                              space. -->
-                        <Border x:Name="PopupBtnCCW"
+                        <Border x:Name="PopupRotateCounterClockwise"
                                 Style="{StaticResource PopupIconButton}"
-                                AutomationId="PopupBtnCCW"
+                                AutomationId="PopupRotateCounterClockwise"
                                 SemanticProperties.Description="Rotate anticlockwise"
                                 ToolTipProperties.Text="Rotate anticlockwise">
                             <Border.StrokeShape>
@@ -429,9 +488,9 @@
                                    AutomationProperties.IsInAccessibleTree="False"
                                    InputTransparent="True" />
                         </Border>
-                        <Border x:Name="PopupBtnCW"
+                        <Border x:Name="PopupRotateClockwise"
                                 Style="{StaticResource PopupIconButton}"
-                                AutomationId="PopupBtnCW"
+                                AutomationId="PopupRotateClockwise"
                                 SemanticProperties.Description="Rotate clockwise"
                                 ToolTipProperties.Text="Rotate clockwise">
                             <Border.StrokeShape>
@@ -567,6 +626,7 @@
                         HeightRequest="22"
                         MinimumHeightRequest="22"
                         AutomationId="DungeonNotebookButton"
+                        Style="{StaticResource DmIconButton}"
                         SemanticProperties.Description="Open notebook"
                         SemanticProperties.Hint="Opens this dungeon's notes and lets you rename it"
                         ToolTipProperties.Text="Open notebook"
@@ -589,6 +649,7 @@
                     <Label
                         Grid.Column="0"
                         Text="FLOORS"
+                        SemanticProperties.HeadingLevel="Level2"
                         FontFamily="{StaticResource DmFontTitle}"
                         FontSize="{StaticResource DmFontSizeHeading}"
                         CharacterSpacing="1"
@@ -610,9 +671,143 @@
                     </Button>
                 </Grid>
 
-                <!-- Floor list (built in code-behind) -->
+                <!-- Floor list (built in code-behind).
+
+                     THE RIGHT PADDING RESERVES THE WinUI OVERLAY SCROLLBAR GUTTER — MASTER-163.
+                     The bar is an OVERLAY: measured in the running application at 900x640 with
+                     11 floors and the list scrolling, ScrollContentPresenter is the ScrollViewer's
+                     full 300 DIU, and the Grid hosting VerticalScrollBar sits on top of it at 14
+                     DIU wide (the ScrollBar inside that Grid measures 12). So the bar takes no
+                     width from the content and every card ran underneath it. The floor drag
+                     handle, the rightmost thing in a card, occupied x 284-291 of that 300 and the
+                     overlay covered five of its seven units, which is what made it so hard to
+                     grab. Platforms/Windows/App.xaml.cs overrides scrollbar COLOUR only and
+                     reserves nothing, so this is the only reservation there is.
+
+                     14 rather than 12: the reservation clears the whole overlay band the template
+                     lays out, not just the bar drawn inside it. It is a padding on the CONTENT
+                     rather than a margin on the card so everything inside this container sits
+                     clear of the bar; the drop indicator line below is a sibling of the container
+                     rather than a child, so the code-behind insets it by this same padding, read
+                     from the container rather than restated. This is a width change and only a
+                     width change — contract C3 section 2's height invariant is untouched, and it
+                     was re-measured with the same instrument. -->
                 <ScrollView Grid.Row="2">
-                    <VerticalStackLayout x:Name="FloorListContainer" Spacing="0" />
+                    <!-- The Grid exists to stack the drop indicator line over the floor list
+                         without making it one of the list's children: BindableLayout is the only
+                         writer of FloorListContainer's children, and no drag handler adds,
+                         removes or reorders one. The list's right padding below is the
+                         scrollbar-gutter reservation explained above. -->
+                    <Grid>
+                        <VerticalStackLayout
+                            x:Name="FloorListContainer"
+                            Spacing="0"
+                            Padding="0,0,14,0"
+                            BackgroundColor="Transparent"
+                            BindableLayout.ItemsSource="{Binding FloorList.Items}">
+
+                            <!-- THE LIST'S OWN DROP TARGET, AND IT EXISTS TO END A SILENT FAILURE
+                                 (escalation E6). Without it the only drop target was each floor card's
+                                 root Border, so a release on the 4-DIU seam between two cards, on the
+                                 reserved scrollbar strip, or on any space no handler owned, was
+                                 discarded with NO handler, NO error and NO trace. The reorder works
+                                 end to end once the drop lands on a card; what failed was reaching
+                                 one, and it failed silently, which is why the feature read as broken.
+
+                                 This target does not decide what a drop MEANS. It asks
+                                 FloorReorderNearest which card the release meant, then goes through
+                                 the SAME FloorReorderDrop.Decide the card's own target uses, so both
+                                 share one copy of the decision's five rows. A drop landing INSIDE a
+                                 card resolves to ExistingTarget and this handler declines it, so the
+                                 reorder runs exactly once whether or not the platform bubbles the drop
+                                 up to here.
+
+                                 DragOver here and on every card moves the drop indicator line to the
+                                 gap the floor would land in. DragLeave hides it only when the pointer
+                                 has actually left the list; a leave bubbled up from a card while the
+                                 pointer is still over the list keeps it.
+
+                                 THE TRANSPARENT BACKGROUND ABOVE IS PART OF THIS TARGET, not styling.
+                                 WinUI does not hit-test an element whose Background is null, and a
+                                 layout panel has none by default — so without it this recogniser would
+                                 be attached to a surface the pointer passes straight through, and the
+                                 fix would be inert while looking applied. Transparent is a real brush
+                                 and paints nothing, so it costs no pixels and no layout. This is the
+                                 same trap the drag handle has in FloorSidebarItem.xaml. -->
+                            <VerticalStackLayout.GestureRecognizers>
+                                <DropGestureRecognizer
+                                    DragOver="OnFloorListDragOver"
+                                    DragLeave="OnFloorListDragLeave"
+                                    Drop="OnFloorListDrop" />
+                            </VerticalStackLayout.GestureRecognizers>
+
+                            <!-- MASTER-108 / UI-016. One row per floor, generated from FloorList.Items
+                                 (the ItemsSource above) by this template rather than built by hand in
+                                 code-behind. A floor-scoped refresh, which replaces ONE element of
+                                 Items, touches ONE row (it is bound to the replacement) and leaves every
+                                 other row instance alone; a full reload (Clear, then one Add per floor)
+                                 still replaces every row with a new instance. Every per-row event and
+                                 command is declared here, and this template is the only thing that
+                                 adds or removes a child of this container: a drag dims the dragged row
+                                 in place and marks the landing slot with the sibling line below.
+
+                                 Each row is a heading in the sidebar's outline, one level below the
+                                 FLOORS caption above, so a screen reader can jump between floors.
+
+                                 THE EXPANDED STATE IS BOUND, ONE WAY, and nothing else writes it
+                                 (MASTER-098 / UIKIT-011): it is whether this row's floor Id equals
+                                 Editor.SelectedFloorId on the page's DungeonDetailViewModel, so the
+                                 editor state is its one owner and a row built or re-bound by a refresh
+                                 comes up already expanded. FocusedAreaId hands the row Editor.FocusedAreaId for
+                                 its area rows' selected state the same way.
+
+                                 The five area commands are the page's own, read through a RelativeSource
+                                 to the page because a DataTemplate is its own name scope. Each resolves
+                                 the area's floor from FloorList.Items when it runs. -->
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="presentation:FloorItem">
+                                    <controls:FloorSidebarItem
+                                        Floor="{Binding .}"
+                                        SemanticProperties.HeadingLevel="Level3"
+                                        FocusedAreaId="{Binding Editor.FocusedAreaId, Source={RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}}"
+                                        AreaSelectCommand="{Binding AreaSelectCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaHoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaHoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaDeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        AreaNotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type views:DungeonDetailPage}}}"
+                                        DeleteRequested="OnFloorDeleteRequested"
+                                        SelectRequested="OnFloorSelectRequested"
+                                        ReorderRequested="OnFloorReorderRequested"
+                                        DragStarted="OnFloorDragStarted"
+                                        DragEnded="OnFloorDragEnded"
+                                        DragOverReceived="OnFloorCardDragOver"
+                                        DropReceived="OnFloorCardDropReceived"
+                                        AddAreaRequested="OnFloorAddAreaRequested"
+                                        NotebookRequested="OnFloorNotebookRequested">
+                                        <!-- One line on purpose: the whole binding site, open tag to close
+                                             tag, so a line search for the property finds the site once. -->
+                                        <controls:FloorSidebarItem.IsExpanded><MultiBinding Converter="{StaticResource GuidEquality}" Mode="OneWay"><Binding Path="Id" /><Binding Path="Editor.SelectedFloorId" Source="{RelativeSource AncestorType={x:Type vm:DungeonDetailViewModel}}" /></MultiBinding></controls:FloorSidebarItem.IsExpanded>
+                                    </controls:FloorSidebarItem>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <!-- The drop indicator line: a 2-DIU rule marking the gap the dragged floor
+                             would land in. It is declared after FloorListContainer so it paints over
+                             the cards, and it is input-transparent so it never takes a drag-over or a
+                             drop from the card or the list beneath it. During a drag the code-behind
+                             writes only its TranslationY and its Opacity, neither of which
+                             invalidates measure, so moving it re-lays-out nothing under the pointer.
+                             Its right inset is FloorListContainer's right padding, set once in the
+                             page constructor. -->
+                        <BoxView
+                            x:Name="FloorDropIndicatorLine"
+                            HeightRequest="2"
+                            VerticalOptions="Start"
+                            InputTransparent="True"
+                            Opacity="0"
+                            Color="{StaticResource DmDragPlaceholderStroke}" />
+                    </Grid>
                 </ScrollView>
 
             </Grid>
@@ -630,8 +825,9 @@
         -->
         <controls:NotebookView
             x:Name="Notebook"
+            SemanticProperties.Description="Dungeon notebook"
             Grid.Row="0"
-            Grid.RowSpan="4"
+            Grid.RowSpan="5"
             IsVisible="False"
             HorizontalOptions="Start"
             VerticalOptions="Start"

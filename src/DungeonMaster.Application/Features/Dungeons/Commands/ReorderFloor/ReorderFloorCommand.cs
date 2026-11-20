@@ -18,4 +18,4 @@ public record ReorderFloorCommand(
 	Guid DungeonId,
 	Guid FloorId,
 	int NewNumber)
-		: ICommand<bool>;
+		: ICommand;

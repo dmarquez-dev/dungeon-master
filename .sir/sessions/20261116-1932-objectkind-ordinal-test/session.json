@@ -1,0 +1,51 @@
+{
+  "id": "20261116-1932-objectkind-ordinal-test",
+  "name": "objectkind-ordinal-test",
+  "scope": "small",
+  "status": "WRAPPED",
+  "started": "2026-11-16T19:32:26Z",
+  "ended": "2026-11-16T20:06:22Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: The fact `DoorWoodIsOne_DoorIronIsTwo_AndWeaponRackIsThirtySeven` (`src/DungeonMaster.Tests/Domain/Entities/Floor/ObjectKindGuardTests.cs:25-37` at 0ffc4bc, with its `[Fact]` attribute and one adjacent blank line) is removed, and the other six facts in the file are unchanged: `git diff 0ffc4bc -- <file>` shows no added or removed line inside any of them.",
+    "C2: The class `<summary>` gains one sentence, in the file's `///` + two-tab form, saying that only `ObjectKind.None`'s ordinal (0, the default) is relied on and that the other members' ordinals are not persisted, because `PlacedObjectConfiguration` stores `Kind` as its name, so renumbering them is free; the sentence names nothing that does not exist (any `<see cref>` resolves to a real type), and no summary line is longer than the longest at 0ffc4bc (line 8).",
+    "C3: The file keeps no BOM, tab indentation, and all-CRLF line endings with no lone CR (Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`, `b.count(b'\\r')` all equal; 120 each at 0ffc4bc), and it is the only file under `src` that differs from 0ffc4bc.",
+    "C4: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s), quoted from its summary lines, and `dotnet test src/DungeonMaster.sln --no-build` passes every test, with DungeonMaster.Tests' Total one lower than the same command printed at 0ffc4bc before the change and every other project's Total equal to it; both runs' full output saved to scratch before any filtering.",
+    "C5: On approval, the backlog row `2026-11-03 20261103-1654-test-strength Strengthen the ObjectKindGuardTests ordinal test` (`.sir/backlog.md:147` at 0ffc4bc) is removed and no other backlog line changes."
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "The backlog row asks to strengthen ObjectKindGuardTests' ordinal fact (DoorWoodIsOne_DoorIronIsTwo_AndWeaponRackIsThirtySeven, ObjectKindGuardTests.cs:25-37 at 0ffc4bc) so a swap of two middle members is caught, but no production code reads an ObjectKind ordinal: PlacedObjectConfiguration.cs:36 persists Kind with HasConversion<string>(), and a census of (int)/(ObjectKind) casts and Enum.GetValues<ObjectKind> outside test projects found none. Pin every member's ordinal, retire the ordinal fact with the reason recorded, or leave it?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Asked at Gate 1. The user chose the recommended option: retire the ordinal fact and record the reason in the class summary (only None = 0 is relied on; Kind is persisted by name). Not chosen: pin all 38 in order; leave it and drop the row."
+    }
+  ],
+  "amendments": [],
+  "runs": [
+    {
+      "cc": "2d926ebd-5590-4d76-ab9e-c6ee85591e5f",
+      "phase": "small",
+      "sir": "1.0.41",
+      "started": "2026-11-16T19:32:26Z",
+      "ended": "2026-11-16T20:02:44Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "2d926ebd-5590-4d76-ab9e-c6ee85591e5f",
+      "phase": "wrap",
+      "sir": "1.0.41",
+      "started": "2026-11-16T20:05:58Z",
+      "ended": "2026-11-16T20:06:22Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}

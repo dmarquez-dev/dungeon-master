@@ -1,0 +1,202 @@
+{
+  "session": "2026-08-27-give-the-editor-a-seam",
+  "updatedAt": "2026-08-27T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:\\dm-wt\\5b",
+  "branch": "dir/2026-08-27-give-the-editor-a-seam",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "d33ec2395770484ca9774c615d82166bf119be79",
+      "commit": "3d34a69"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "6ba3238",
+      "commit": "2558f77"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "6ba3238",
+      "commit": "c5b5ccf"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "d33ec2395770484ca9774c615d82166bf119be79",
+      "commit": "df8e875"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "c5b5ccf",
+      "commit": "b7c915d"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "b7c915d",
+      "commit": "9ccfb4b"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "d33ec2395770484ca9774c615d82166bf119be79",
+      "commit": "6ba3238"
+    },
+    {
+      "id": "T8",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "d33ec2395770484ca9774c615d82166bf119be79",
+      "commit": "d691c6e7d4b4ca9644e1fb02112839ca8c14f893",
+      "note": "Owns .dir-sdlc/sessions/2026-08-26-settle-the-app-boundaries/manifest.json, which is NOT on the session branch (.dir-sdlc/ is not carried on dir/* branches). This commit stages only FloorMapDrawable.cs; the 5a record correction is committed on the base branch with the Gate 3 artifact commit. Deliberate split, not a dropped file."
+    },
+    {
+      "id": "T9",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "6ba3238",
+      "commit": "18c18f1"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T7",
+      "question": "T7's chip unification moves geometry literals into PaletteThumb.cs, breaking two ratchet guards in src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs \u2014 a path no task owns. Who updates the census, and by moving the allow-list entries or by retiring the literal via a new DmTheme accessor?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Move the allow-list entries to follow the code: add PaletteThumb.cs to StrokePendingMigration, drop the three now-stale entries.",
+          "rationale": "Smallest change and exactly what the guard's self-check asks for \u2014 the census follows the literal. The guard is explicitly a ratchet whose list can only shrink, so this is its designed maintenance path.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:287",
+              "src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs:259"
+            ]
+          }
+        },
+        {
+          "summary": "Retire the literal instead: add a StrokeHairline accessor to DmTheme.cs and use it in CreateShell, plus the three stale removals.",
+          "rationale": "Removes the new offender outright rather than excusing it. The guard's own doc calls the C# entries 'conversions still to do rather than exemptions', and DmTheme's comment says to add an accessor when a C# call site needs one. Requires giving some task ownership of DmTheme.cs.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Theme/DmTheme.cs",
+              "Resources/Theme/Tokens.xaml:566"
+            ]
+          }
+        },
+        {
+          "summary": "Revert T7.",
+          "rationale": "Preserves the guard untouched at the cost of the duplication MASTER-057 exists to remove.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Move the census entries now so the session goes green, and defer retiring the literal (a DmTheme.StrokeHairline accessor used by CreateShell) to sub-session 5c via .dir-sdlc/backlog.md. Manifest amended with approval: T7 gains ownership of src/DungeonMaster.Tests/App/Theme/GeometryScaleTests.cs plus criteria 13 and 14."
+    },
+    {
+      "id": "E2",
+      "taskId": "T3",
+      "question": "IDungeonEditingContext.ReportFailure(Result) as frozen cannot compile: four of the thirteen mutating commands dispatch via SendAsync<Guid> and receive Result<Guid>, an unrelated sealed record with no conversion to Result (CS1503 at four call sites). T3 added void ReportFailure<T>(Result<T>) to the frozen contract. Ratify, or take another route?",
+      "reason": "external-contract",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Ratify the added generic overload, which is what is in the tree.",
+          "rationale": "Purely additive; IDungeonEditingContext has no consumer outside the four types T3 owns, so no peer can improvise differently. It mirrors ResultMessage.ForFailure(Result) / ForFailure<T>(Result<T>) \u2014 the same pairing for the same reason.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Application/Common/Results/ResultOfT.cs:9",
+              "ResultMessage.cs:17",
+              "ResultMessage.cs:37"
+            ]
+          }
+        },
+        {
+          "summary": "Keep the frozen signature and reconstruct a Result at each of the four call sites.",
+          "rationale": "Preserves the contract verbatim, but Result.Failure(error, category) drops ValidationErrors, which ResultMessage.Format reads \u2014 so a validation rejection would lose its per-field text. This trades a compile fix for a silent user-visible regression.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "ResultMessage.cs:57"
+            ]
+          }
+        },
+        {
+          "summary": "Give Result<T> an implicit operator Result.",
+          "rationale": "Cleanest long-term shape, but Result<T> lives in the Application layer, outside every task's owns in this manifest, so it needs a new ownership grant.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Add a public static implicit operator Result(Result<T>) to Result<T> instead of changing the frozen contract. The frozen ReportFailure(Result) signature stands unchanged; T3 removes its generic overload. New task T9 (backend) owns ResultOfT.cs and ResultOfTTests.cs. Orchestrator verified the operator is implementable entirely within ResultOfT.cs via Result's three public factories, preserving ValidationErrors."
+    },
+    {
+      "id": "E3",
+      "taskId": "T3",
+      "question": "Three source-scanning tests under src/DungeonMaster.Tests/App/** now fail as structural consequences of the view-model split. The path belongs to no task. Who updates them, and how?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Grant T3 the three affected test files and have it update the facts to match the new shape.",
+          "rationale": "The facts are still the right facts; only their targets moved. Scan the four view models rather than one file, and accept IDungeonEditingContext.ReportFailure as a second legitimate error channel. Same remedy shape the user already approved for T7's ratchet census at E1.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/App/ViewModels/FailureIsSurfacedTests.cs",
+              "src/DungeonMaster.Tests/App/ViewModels/NavigationLoadIsObservedTests.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Give the files to T2, the test-domain task.",
+          "rationale": "Keeps test edits with the test engineer, but T2 does not depend on T3 and would have to be serialised behind it, and T2's expertise is the App.Core kernel rather than these source scanners.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Defer the scanner updates to 5c and let the three tests stay red through the merge.",
+          "rationale": "Smallest change now, but merges a red suite to the base branch and breaks the session's own zero-failure gate.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Grant T3 the two scanner test files and have it update the three facts to match the split shape, with an added criterion requiring each fact be demonstrated still-strict by defect injection rather than weakened."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 3,
+    "reviewRounds": 0
+  }
+}

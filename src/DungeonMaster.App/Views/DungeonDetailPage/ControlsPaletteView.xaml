@@ -63,7 +63,7 @@
                      them. See docs/superpowers/specs/2026-08-07-designer-icon-font-evaluation.md. -->
                 <HorizontalStackLayout Spacing="{StaticResource DmSpaceXS}">
                     <!-- Measured translation — see the note above. -->
-                    <Border x:Name="BtnCCW"
+                    <Border x:Name="RotateCounterClockwiseButton"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
                             AutomationId="PaletteRotateCounterClockwise"
@@ -87,7 +87,7 @@
                                InputTransparent="True" />
                     </Border>
                     <!-- Measured translation — see the note above. -->
-                    <Border x:Name="BtnCW"
+                    <Border x:Name="RotateClockwiseButton"
                             Style="{StaticResource PaletteButtonStyle}"
                             WidthRequest="32" HeightRequest="32"
                             AutomationId="PaletteRotateClockwise"
@@ -165,7 +165,7 @@
                            FontSize="{StaticResource DmFontSizeMeta}"
                            FontAttributes="Bold"
                            TextColor="{StaticResource DmTextToolPanel}"
-                           MinimumWidthRequest="44"
+                           MinimumWidthRequest="{StaticResource DmTouchTargetMinimum}"
                            HorizontalOptions="Center"
                            VerticalOptions="Center"
                            HorizontalTextAlignment="Center" />

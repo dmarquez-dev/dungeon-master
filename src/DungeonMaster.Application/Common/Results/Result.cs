@@ -1,47 +1,54 @@
 namespace DungeonMaster.Application.Common.Results;
 
 /// <summary>
-///		Represents the outcome of an operation, carrying either a success value or an error.
+///		Represents the outcome of an operation that produces no value.
 /// </summary>
-/// <typeparam name="T">
-///		The type of the value returned on success.
-/// </typeparam>
-public record Result<T>
+public sealed record Result
 {
+	private Result()
+	{
+	}
+
 	/// <summary>
 	///		Gets a value indicating whether the operation succeeded.
 	/// </summary>
-	public bool IsSuccess { get; init; }
+	public bool IsSuccess { get; private init; }
 
 	/// <summary>
-	///		Gets the value returned by the operation, or <see langword="null"/> when the operation failed.
+	///		Gets a value indicating whether the operation failed.
 	/// </summary>
-	public T? Value { get; init; }
+	public bool IsFailure =>
+		!IsSuccess;
 
 	/// <summary>
-	///		Gets the error message, or <see langword="null"/> when the operation succeeded.
+	///		Gets the summary failure message, or <see langword="null"/> when the operation succeeded.
 	/// </summary>
-	public string? Error { get; init; }
+	public string? Error { get; private init; }
 
 	/// <summary>
-	///		Gets the error category, or <see langword="null"/> when the operation succeeded.
+	///		Gets the category of the failure, or <see langword="null"/> when the operation succeeded.
 	/// </summary>
-	public ErrorCategory? ErrorCategory { get; init; }
+	public ErrorCategory? ErrorCategory { get; private init; }
 
 	/// <summary>
-	///		Creates a successful result carrying the given value.
+	///		Gets the individual validation failures. This is never <see langword="null"/>, and is empty unless the operation failed validation.
 	/// </summary>
-	/// <param name="value">
-	///		The value produced by the operation.
-	/// </param>
+	public IReadOnlyList<ValidationError> ValidationErrors { get; private init; } = [];
+
+	/// <summary>
+	///		Creates a successful result.
+	/// </summary>
 	/// <returns>
-	///		A <see cref="Result{T}"/> representing a successful outcome.
+	///		A <see cref="Result"/> representing a successful outcome.
 	/// </returns>
-	public static Result<T> Success(T value) =>
-		new() { IsSuccess = true, Value = value };
+	public static Result Success() =>
+		new()
+		{
+			IsSuccess = true,
+		};
 
 	/// <summary>
-	///		Creates a failed result with an error message and category.
+	///		Creates a failed result carrying a message and a category.
 	/// </summary>
 	/// <param name="error">
 	///		A human-readable description of the failure.
@@ -50,10 +57,37 @@ public record Result<T>
 	///		The category that classifies the type of failure.
 	/// </param>
 	/// <returns>
-	///		A <see cref="Result{T}"/> representing a failed outcome.
+	///		A <see cref="Result"/> representing a failed outcome.
 	/// </returns>
-	public static Result<T> Failure(
+	public static Result Failure(
 		string error,
 		ErrorCategory category) =>
-			new() { IsSuccess = false, Error = error, ErrorCategory = category };
+			new()
+			{
+				IsSuccess = false,
+				Error = error,
+				ErrorCategory = category,
+			};
+
+	/// <summary>
+	///		Creates a failed result carrying every validation failure.
+	/// </summary>
+	/// <param name="errors">
+	///		The individual validation failures produced by the operation.
+	/// </param>
+	/// <returns>
+	///		A <see cref="Result"/> representing a validation failure whose summary message carries every supplied message.
+	/// </returns>
+	public static Result ValidationFailure(
+		IReadOnlyList<ValidationError> errors) =>
+			new()
+			{
+				IsSuccess = false,
+				Error = string.Join(
+					" ",
+					errors.Select(error =>
+						error.Message)),
+				ErrorCategory = Results.ErrorCategory.Validation,
+				ValidationErrors = errors,
+			};
 }

@@ -1,5 +1,5 @@
 using DungeonMaster.Application.Common.Dispatch;
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
 
 namespace DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
 
@@ -13,6 +13,6 @@ public sealed class GetDungeonsQueryHandler(
 	/// <inheritdoc/>
 	public async Task<IReadOnlyList<DungeonSummaryDto>> HandleAsync(
 		GetDungeonsQuery query,
-		CancellationToken ct)
-		=> await readRepository.GetSummariesAsync(ct);
+		CancellationToken cancellationToken)
+		=> await readRepository.GetSummariesAsync(cancellationToken);
 }

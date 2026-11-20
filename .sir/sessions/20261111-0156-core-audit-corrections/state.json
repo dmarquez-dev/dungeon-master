@@ -1,0 +1,36 @@
+{
+  "session": "20261111-0156-core-audit-corrections",
+  "updatedAt": "2026-11-11T17:50:11Z",
+  "worktree": "C:/dm-wt/20261111-0156-core-audit-corrections",
+  "branch": "agent/20261111-0156-core-audit-corrections",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261111-0156-core-audit-corrections/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s), exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261111-0156-core-audit-corrections/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Failed: 0, Passed: 217 (App.UnitTests); Passed: 976 (Tests); Passed: 137 (App.Tests), exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "commit": "c3554cf10ee2b66c1e7d93bd67adaa0e74f62f20",
+      "startRef": "9f9ca6998f057da3dbc3221e4145ae91cb1ffbb6",
+      "model": "opus",
+      "revisionRounds": 0,
+      "redispatches": 0
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}

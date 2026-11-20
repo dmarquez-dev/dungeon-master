@@ -1,57 +1,74 @@
-using DungeonMaster.Domain.Entities.Floor;
+using DungeonMaster.Domain.Entities.Floors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DungeonMaster.Infrastructure.Persistence.Configurations;
 
 /// <summary>
-///     Configures the EF Core entity mapping for <see cref="PlacedObject"/>.
+///		Configures the EF Core entity mapping for <see cref="PlacedObject"/>.
 /// </summary>
 public sealed class PlacedObjectConfiguration
-    : IEntityTypeConfiguration<PlacedObject>
+	: IEntityTypeConfiguration<PlacedObject>
 {
-    /// <inheritdoc/>
-    public void Configure(EntityTypeBuilder<PlacedObject> builder)
-    {
-        builder.ToTable("PlacedObjects");
+	/// <summary>
+	///		Applies the column mappings, constraints, value conversions, and owned-entity configuration for the PlacedObjects table.
+	/// </summary>
+	/// <param name="builder">
+	///		The builder used to configure the <see cref="PlacedObject"/> entity type.
+	/// </param>
+	public void Configure(EntityTypeBuilder<PlacedObject> builder)
+	{
+		builder.ToTable("PlacedObjects");
 
-        builder.HasKey(obj => obj.Id);
+		builder.HasKey(placedObject =>
+			placedObject.Id);
 
-        builder.Property(obj => obj.Id)
-            .ValueGeneratedNever();
+		builder.Property(placedObject =>
+			placedObject.Id)
+			.ValueGeneratedNever();
 
-        builder.Property(obj => obj.FloorId)
-            .IsRequired();
+		builder.Property(placedObject =>
+			placedObject.FloorId)
+			.IsRequired();
 
-        builder.Property(obj => obj.Kind)
-            .IsRequired()
-            .HasConversion<string>();
+		builder.Property(placedObject =>
+			placedObject.Kind)
+			.IsRequired()
+			.HasConversion<string>();
 
-        builder.Property(obj => obj.Rotation)
-            .IsRequired()
-            .HasConversion<string>();
+		builder.Property(placedObject =>
+			placedObject.Rotation)
+			.IsRequired()
+			.HasConversion<string>();
 
-        builder.Property(obj => obj.Scale)
-            .HasColumnType("REAL")
-            .HasDefaultValue(1.0f); // DB default backs existing rows; domain guard prevents 0.0f from ever being written
+		builder.Property(placedObject =>
+			placedObject.Scale)
+			.HasColumnType("REAL");
 
-        builder.Property(obj => obj.CreatedAt)
-            .IsRequired();
+		builder.Property(placedObject =>
+			placedObject.CreatedAt)
+			.IsRequired();
 
-        builder.Property(obj => obj.LastModified)
-            .IsRequired();
+		builder.Property(placedObject =>
+			placedObject.LastModified)
+			.IsRequired();
 
-        builder.OwnsOne(obj => obj.Position, position =>
-        {
-            position.Property(p => p.X)
-                .HasColumnName("Position_X")
-                .HasColumnType("REAL")
-                .IsRequired();
+		builder.OwnsOne(
+			placedObject =>
+				placedObject.Position,
+			position =>
+			{
+				position.Property(point =>
+					point.X)
+					.HasColumnName("Position_X")
+					.HasColumnType("REAL")
+					.IsRequired();
 
-            position.Property(p => p.Y)
-                .HasColumnName("Position_Y")
-                .HasColumnType("REAL")
-                .IsRequired();
-        });
-    }
+				position.Property(point =>
+					point.Y)
+					.HasColumnName("Position_Y")
+					.HasColumnType("REAL")
+					.IsRequired();
+			});
+	}
 }

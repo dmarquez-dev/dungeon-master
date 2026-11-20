@@ -1,0 +1,370 @@
+{
+  "session": "2026-10-09-core-layer-batch",
+  "updatedAt": "2026-10-09T16:55:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xvii",
+  "branch": "dir/2026-10-09-core-layer-batch",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "00a093aab267843e456ebbf914829eb6e752704e",
+      "commit": "9e4de9f7c8550c7ebc6f3d5b7f93c99a12b2c705"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "9e4de9f7c8550c7ebc6f3d5b7f93c99a12b2c705",
+      "commit": "c691b4e6569548fe15c5b28adf5907b74cb44e19"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "00a093aab267843e456ebbf914829eb6e752704e",
+      "commit": "15e11c3d8da4dbee558f6c7d05fb11db4f58d5a4"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "00a093aab267843e456ebbf914829eb6e752704e",
+      "commit": "67896de"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "00a093aab267843e456ebbf914829eb6e752704e",
+      "commit": "7b2586b"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 1,
+      "redispatches": 1,
+      "startRef": "6386c5a",
+      "commit": "417892471612ea008c0b482284fe2005a04d43bf"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "67896de",
+      "commit": "6386c5a"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-130 directs renaming the ObjectRotation members CW90/CW180/CW270, asserting persisted values are unaffected. That assertion is false: the enum is persisted by member name. How should the rename be handled?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "File the rotation-member rename as blocked pending a data migration, mirroring the PathSegmentKind row, and add an explicit backlog follow-up to rename both PathSegmentKind and the ObjectRotation members with real migrations.",
+      "options": [
+        {
+          "summary": "File as blocked pending a data migration, mirroring PathSegmentKind.",
+          "rationale": "Renaming the members rewrites every stored Rotation value, which is a data migration rather than a renaming. The register already parks PathSegmentKind as blocked for exactly this reason, so the precedent and the shape both exist.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs:30-32",
+              "src/DungeonMaster.Infrastructure/Migrations/AppDbContextModelSnapshot.cs:141"
+            ]
+          }
+        },
+        {
+          "summary": "Rename the members and preserve stored values with an explicit EF value converter.",
+          "rationale": "Mapping each new member name to its existing stored string gets the naming fix with no migration and no rewrite of existing rows, at the cost of a permanent name-to-storage indirection.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs:30-32"
+            ]
+          }
+        },
+        {
+          "summary": "Rename the members and add an EF migration that rewrites every stored Rotation value.",
+          "rationale": "Cleanest end state, but it is a schema-touching change against persisted rows inside a batch of XS naming rows, and it is expensive to reverse.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Infrastructure/Migrations/AppDbContextModelSnapshot.cs:141"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-130 cites six files for the ct parameter, but the measured population is 79 declaration sites across four projects. What is the rename scope?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Application plus Infrastructure, 51 sites, with an explicit backlog follow-up to match the remaining layers in a later pass, or to fold that work into other backlog items touching those layers in a similar way.",
+      "options": [
+        {
+          "summary": "Application (44) plus Infrastructure (7), 51 sites.",
+          "rationale": "Covers the whole non-test compile surface of the interfaces and their implementations, so no interface spells the parameter differently from its implementor. Leaves the Tests and App sites, which belong to the TEST and UI register layers this CORE batch did not select.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Application/Common/Dispatch/IQueryHandler.cs",
+              "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs"
+            ]
+          }
+        },
+        {
+          "summary": "All 79 sites across all four projects.",
+          "rationale": "Closes the row completely and leaves no mixed spelling anywhere, but reaches into the TEST and UI layers outside this batch and touches the 890-test assembly.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md"
+            ]
+          }
+        },
+        {
+          "summary": "Application only, 44 sites.",
+          "rationale": "Narrowest defensible reading, since the row's cited locations are all Application-layer. Leaves Infrastructure implementations spelling the parameter ct against interfaces spelling it cancellationToken.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md:1612-1621"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "question": "MASTER-110 offers two remedies with very different cost: accept the third Floor partial and record the deviation, or fold it back and split PlacedObject so all four entities match the conventions' two-file split. Which?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Defer to the cleanest approach, and if it exceeds the row's XS estimate create a backlog item to return to it in a properly-scoped track. Orchestrator applied that rule: the cleanest reading is to conform to the documented two-file split, which means folding 112 lines into a 176-line file and splitting PlacedObject into two partials. That is structural domain work against the 890-test assembly and exceeds XS, so MASTER-110 leaves this batch and becomes a backlog item.",
+      "options": [
+        {
+          "summary": "Accept the third partial and record the deviation in this repository's audit entry.",
+          "rationale": "The entry itself calls FloorObjectMethods.cs a fair example of behaviour clustering. Recording it here rather than in the dm-conventions repository keeps the change inside this session's mandate, at zero code cost.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md:1572-1575"
+            ]
+          }
+        },
+        {
+          "summary": "Fold FloorObjectMethods.cs into FloorMethods.cs and split PlacedObject into two partials.",
+          "rationale": "Conforms to the documented split so all four entities read alike, but it is structural domain work against an 890-test assembly and well beyond the row's XS estimate.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "C:/Users/dmarq/Development/Repos/dm-conventions/backend/dotnet-format.md:556-563"
+            ]
+          }
+        },
+        {
+          "summary": "Exclude MASTER-110 from this batch and leave it open.",
+          "rationale": "Keeps the batch to rows whose remedy is unambiguous and whose cost matches their estimate.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "question": "MASTER-145 reports both query handlers wrapping a passthrough in async/await, and the entry explicitly declines to prescribe either form. Change it or close it unchanged?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Leave both handlers as they are and close the row as deliberately unchanged, recording the reasoning.",
+      "options": [
+        {
+          "summary": "Leave as-is and close the row as deliberately unchanged, recording the entry's own reasoning.",
+          "rationale": "Eliding async moves exceptions from the await point to the call point and worsens stack traces, and the command handlers must stay async regardless, so the current form is the consistent one.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/01-domain-application.md:1914-1919"
+            ]
+          }
+        },
+        {
+          "summary": "Elide async/await in both query handlers and return the task directly.",
+          "rationale": "Removes one state machine and one allocation per query with no behavioural difference, since neither method holds a using or a try.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeons/GetDungeonsQueryHandler.cs:14-17",
+              "src/DungeonMaster.Application/Features/Dungeons/Queries/GetDungeonDetail/GetDungeonDetailQueryHandler.cs:14-19"
+            ]
+          }
+        },
+        {
+          "summary": "Exclude MASTER-145 from this batch and leave it open.",
+          "rationale": "Defers the performance question to a session that wants to take it on its own terms.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "taskId": "T5",
+      "question": "T5's criterion 2 requires zero `param name=\"ct\"` across all of src, but criterion 6 requires the 28 `CancellationToken ct` parameters in Tests and App to be preserved. All 15 remaining tags sit in DungeonMaster.Tests over live `ct` parameters, so the two criteria cannot both hold. How should criterion 2 be recorded?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Re-scope criterion 2 to DungeonMaster.Application plus DungeonMaster.Infrastructure and record it as met at 0. The 15 Tests tags travel to the backlog alongside the 28 parameters they document.",
+      "options": [
+        {
+          "summary": "Re-scope criterion 2 to Application plus Infrastructure and record it met at 0.",
+          "rationale": "It then tests exactly the defect class it exists for, over exactly the files the task owns. The 15 tags document parameters that still exist and are correct today; renaming them would point 15 tags at nothing.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests",
+              "src/DungeonMaster.Application/Common/Dispatch/IQueryHandler.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Keep criterion 2 src-wide and record it not met.",
+          "rationale": "Faithful to what was signed, but leaves a criterion no task can ever close, because the work it demands was scoped out by escalation E2.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Widen T5's ownership to the 15 Tests files and rename both tags and parameters.",
+          "rationale": "Satisfies the criterion as written but reverses the E2 scope decision mid-session and expands the session's largest-blast-radius task into an 890-test assembly.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "taskId": "T4",
+      "question": "The rung-4 remedy fixed for MASTER-114 -- a readonly wrapper field assigned in the constructor -- was measured infeasible at Area.Outline, because EF replaces the backing list after construction and Outline then reads back empty forever. How should it be recorded?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Keep the lazily-initialised field at Area.Outline and amend criteria 6 and 8 to carve out that one site, recording the measurement and why. The other four sites keep the criterion as written.",
+      "options": [
+        {
+          "summary": "Keep the lazy field and amend criteria 6 and 8 to carve out Area.Outline.",
+          "rationale": "First read necessarily follows EF materialisation, so the wrapper pairs with whichever list EF installed, still at most one per Area. Stays XS, no mapping change, no public type change.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Domain/Entities/Areas/Area.cs:25",
+              "src/DungeonMaster.Domain/Entities/Areas/Area.cs:76"
+            ]
+          }
+        },
+        {
+          "summary": "Close MASTER-114 part done and file a new row for Area.Outline.",
+          "rationale": "Keeps criteria 6 and 8 met as written on the four sites, but adds a sixth part-done row to the register's worst-residue category.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/00-master-index.md"
+            ]
+          }
+        },
+        {
+          "summary": "Route storage through a private setter so the readonly form works at all five sites.",
+          "rationale": "Satisfies the criteria everywhere but rewrites the exact mapping lines criterion 9 names as the hazard mechanism, and is well beyond the row's XS estimate.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "taskId": "T4",
+      "question": "T4's criteria 1 to 5 require the caching to be proven by a test, but no task in the frozen manifest owns a test file and there is no test-authoring task. The only proof is an uncommitted scratch harness. How should that evidence be handled?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Add a dir-test-engineer task now, before Gate 3, owning a new test file carrying the five reference-equality assertions plus a positive control that must fail.",
+      "options": [
+        {
+          "summary": "Add a test task now, before Gate 3.",
+          "rationale": "Gives the caching durable committed proof instead of evidence that disappears with the scratch directory.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests"
+            ]
+          }
+        },
+        {
+          "summary": "Accept the harness evidence and backlog the committed tests.",
+          "rationale": "Cheapest and honest in the record, but the caching ships with no regression guard and a future edit could revert it silently.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        },
+        {
+          "summary": "Record criteria 1 to 5 as not met.",
+          "rationale": "Literal to the wording, but records a failure that misdescribes demonstrably correct code.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 6,
+    "escalationsRaised": 7,
+    "reviewRounds": 1
+  },
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E5",
+      "artifact": "manifest.json",
+      "before": "T5 criterion 2 required `grep -rn 'param name=\"ct\"' src --include=*.cs` to return 0 lines across all of src.",
+      "after": "T5 criterion 2 requires 0 lines across src/DungeonMaster.Application and src/DungeonMaster.Infrastructure only, and records why the src-wide form was unsatisfiable alongside criterion 6.",
+      "inFlight": [
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "id": "A2",
+      "escalation": "E6",
+      "artifact": "manifest.json",
+      "before": "T4 criteria 6 and 8 required a readonly wrapper field assigned beside the backing list at all five sites, and criterion 12 attributed the comparer's necessity to CommitAsync_AfterAGenuineOutlineEdit_StillWritesTheArea.",
+      "after": "T4 criteria 6 and 8 carve out Area.Outline, where the readonly form was measured to fail, and criterion 12 attributes the comparer's necessity to LoadAsync_AfterAnOutlineEdit_ReturnsTheEditedOutline instead.",
+      "inFlight": [
+        "T4",
+        "T5"
+      ]
+    },
+    {
+      "id": "A3",
+      "escalation": "E7",
+      "artifact": "manifest.json",
+      "before": "The manifest held six tasks, none owning a test file, and T6 depended on T1 through T5.",
+      "after": "A seventh task T7 (dir-test-engineer, domain test) owns a new test file pinning the five cached wrappers, and T6 now depends on T1 through T5 plus T7.",
+      "inFlight": [
+        "T4",
+        "T5"
+      ]
+    }
+  ]
+}

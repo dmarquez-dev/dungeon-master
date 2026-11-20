@@ -1,0 +1,177 @@
+{
+  "session": "20261118-0114-backlog-triage",
+  "updatedAt": "2026-11-18T20:54:13Z",
+  "worktree": "C:/dm-wt/20261118-0114-backlog-triage",
+  "branch": "agent/20261118-0114-backlog-triage",
+  "verification": [
+    {
+      "command": "dotnet build src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s) Time Elapsed 00:00:30.28, exit=0"
+    },
+    {
+      "command": "dotnet test src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Failed 0 Passed 217 (App.UnitTests); Passed 1008 (DungeonMaster.Tests); Passed 146 (App.Tests); exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "4d874be48dae2c853e8f564eed5f065cc00cc9f2",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "13f06d2f628a7c931f37f59b23efb503973967b2"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "4d874be48dae2c853e8f564eed5f065cc00cc9f2",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "4ac8937d0c0373ee8e75da8c0ea1b52b5d3abe12"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 2,
+      "startRef": "4d874be48dae2c853e8f564eed5f065cc00cc9f2",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "d9c59dbd56e4556a22a64b66beef6e597e3ce69a"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "4d874be48dae2c853e8f564eed5f065cc00cc9f2",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "e39f6000e6325254740cbc100c605503a8391f63"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "4d874be48dae2c853e8f564eed5f065cc00cc9f2",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "167eed6ea6cada1795a0affa2f241129f2c13751"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "4d874be48dae2c853e8f564eed5f065cc00cc9f2",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "203dbdf935f253461f8a8c975abe33cc917c43d8"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 1,
+      "startRef": "1efea91a4040f2ef5612e1b00a6b48a45e75e23a",
+      "model": "opus",
+      "redispatches": 0,
+      "commit": "e0c782a463b380e1eaf69ecfe7d7e0e426e79b8d"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "Which open backlog rows does the triage cover: all 132, the 63 Decide/Process/Instrument rows, or the 44 Process and Instrument rows?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "All 132 open rows (Gate 1)."
+    },
+    {
+      "id": "E2",
+      "question": "Where does a Process or Measurement instruments row go when it is a standing rule rather than work?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "One tagged line in .sir/lessons.md citing its backlog source, row removed; a row whose rule an existing lessons.md line already states is removed with that line cited (Gate 1)."
+    },
+    {
+      "id": "E3",
+      "question": "The Gate 3 fix-now round revises T2-T6 records, but T2-T6 criterion 9 pins the worktree .sir/backlog.md and .sir/lessons.md to their 4d874be sha256 (5cfbfb9d... and 6d185c70...), which T7's committed output (27132f9) has replaced, so the criterion cannot be met by any revision. How should criterion 9 read for the revision round?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Re-anchor criterion 9 to 27132f9's hashes",
+          "rationale": "Keeps the criterion a byte-exact preservation check against the file state the revision starts from; T7's re-apply afterwards is checked by its own criteria.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "C:/dm-wt/20261118-0114-backlog-triage/.sir/backlog.md",
+              "C:/dm-wt/20261118-0114-backlog-triage/.sir/lessons.md"
+            ]
+          }
+        },
+        {
+          "summary": "Replace the hash with a reviewer check that the revision's diff touches neither file",
+          "rationale": "States the intent directly (the task reaches neither governed file) without pinning bytes, but is a git read rather than a hash.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Re-anchor criterion 9 (T2, T6) and criterion 8 (T3, T4, T5), the PRESERVATION criteria, to the 27132f9 hashes for the Gate 3 revision round (A1). T1 is not revised and keeps its text. Raised by the Gate 3 fix-now answers, not by a task."
+    },
+    {
+      "id": "E4",
+      "taskId": "T2",
+      "question": "T2's re-review found row 55's remove evidence (`grep -n EnsurePlacementOutcome .sir/backlog.md`, recorded as lines 55 and 69 at 4d874be) now prints only line 62 in the worktree, because T7's output is there; criterion 3 says the first command is re-run 'as the worktree stands' and must match. How is criterion 3 read for a remove whose first command reads a file T7 has rewritten?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Amend criterion 3 of T1-T6 so a first command reading .sir/backlog.md or .sir/lessons.md is re-run against `git show 4d874be:<path>`",
+          "rationale": "Every row fence and anchor in the records is a 4d874be fact, and A1 already accepted that the worktree moved past them for those two files; the reviewer reproduced the rest in W.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "C:/Users/dmarq/Development/Repos/dungeon-master/.sir/sessions/20261118-0114-backlog-triage/manifest.json",
+              "C:/dm-wt/20261118-0114-backlog-triage/.sir/sessions/20261118-0114-backlog-triage/triage/rows-0034-0058.md"
+            ]
+          }
+        },
+        {
+          "summary": "Send T2 back to put row 55's src grep (`PlaceVertex(`) first",
+          "rationale": "Meets the letter without an amendment, but edits a block outside the Gate 3 answers only to suit the instrument, and the backlog grep still mismatches when re-run in W.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Amend criterion 3 of T1-T6 (A2): a remove whose first command reads .sir/backlog.md or .sir/lessons.md is re-run against git show 4d874be:<path>. T2 row 55 then reproduces lines 55 and 69, so T2 passes as reviewed."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 4,
+    "reviewRounds": 8
+  },
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E3",
+      "artifact": "manifest.json",
+      "before": "PRESERVATION criterion of T2 (9), T3 (8), T4 (8), T5 (8), T6 (9): keeps sha256 `5cfbfb9d8e76ed0dc26182f7b9772adc4c27794dd6a3592092905e24f0a3fe84` and `C:/dm-wt/20261118-0114-backlog-triage/.sir/lessons.md` keeps sha256 `6d185c70424d4b7dfbe60b6eff571447f80ac08bb81b849235e431664420adbe`",
+      "after": "keeps sha256 `3fbf835095b5d7fefedd4b575601a4f77b46d50fe747ed149af4ee3fbb875d51` and `C:/dm-wt/20261118-0114-backlog-triage/.sir/lessons.md` keeps sha256 `8ad1579fd5e98205fc1fd18d98ac79bf803b45d5ac8384bee0411e1934384a72` (amended by A1 under E3 for the Gate 3 revision round: T7's output at 27132f9, measured by the orchestrator with Python `hashlib`; the 4d874be hashes held for round 1)",
+      "inFlight": []
+    },
+    {
+      "id": "A2",
+      "escalation": "E4",
+      "artifact": "manifest.json",
+      "before": "criterion 3 of T1-T6, ending: ...confirms its output matches the recorded output (allowing only C1 section 4's marked elisions) and supports the summary. ...",
+      "after": "the same, followed by: (Amended by A2 under E4 for the Gate 3 revision round: where that first command reads `.sir/backlog.md` or `.sir/lessons.md`, which T7 has rewritten in the worktree, it is re-run against `git show 4d874be:<path>` instead and judged there.)",
+      "inFlight": []
+    }
+  ]
+}

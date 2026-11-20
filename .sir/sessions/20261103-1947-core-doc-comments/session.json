@@ -1,0 +1,59 @@
+{
+  "id": "20261103-1947-core-doc-comments",
+  "name": "core-doc-comments",
+  "scope": "standard",
+  "status": "WRAPPED",
+  "started": "2026-11-03T19:47:00Z",
+  "ended": "2026-11-03T21:32:03Z",
+  "parent": null,
+  "children": [],
+  "pushed": true,
+  "runs": [
+    {
+      "cc": "a47729c0-081f-41e0-bd9c-9cc7f7c0d227",
+      "phase": "discuss",
+      "sir": "1.0.15",
+      "started": "2026-11-03T19:47:00Z",
+      "ended": "2026-11-03T19:52:40Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "380fce6f-1919-4588-9074-2464012e7a90",
+      "phase": "spec",
+      "sir": "1.0.15",
+      "started": "2026-11-03T19:55:33Z",
+      "ended": "2026-11-03T20:29:24Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8d4d802c-a3de-40fc-884a-bd278de96a5d",
+      "phase": "implement",
+      "sir": "1.0.15",
+      "started": "2026-11-03T20:30:42Z",
+      "ended": "2026-11-03T20:55:45Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8723cf8a-825c-4741-bfd6-8c3601ac81fc",
+      "phase": "review",
+      "sir": "1.0.15",
+      "started": "2026-11-03T21:19:30Z",
+      "ended": "2026-11-03T21:28:19Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8723cf8a-825c-4741-bfd6-8c3601ac81fc",
+      "phase": "wrap",
+      "sir": "1.0.15",
+      "started": "2026-11-03T21:31:09Z",
+      "ended": "2026-11-03T21:32:03Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 0,
+    "reviewRounds": 1
+  },
+  "brief": "Correct six comments and XML doc blocks recorded in .sir/backlog.md as false or incomplete, in Domain, Application and App.Core, changing no executable code. D1 re-breaks /// lines that split sentences mid-clause in CanvasPoint, PlacedObject and ObjectKind (CORE-036, plus CanvasPoint:19 that its predicate missed). D2 scopes Result<T>.Value's 'only closed construction' claim to production code. D3 removes CanvasPoint's unreachable commit-time DbUpdateException description while keeping the ADO-provider attribution. D4 qualifies Area's once-only Outline-wrapper claim, which ??= does not guarantee under concurrent first reads. D6 documents Translate's ArgumentOutOfRangeException. D5 was re-measured as already fixed and is closed with evidence. An optional task closes MASTER-180 in the audit register and corrects CORE-036. Every edit keeps CRLF, words outside rewritten paragraphs, and non-comment lines byte-identical, proven by the instruments in contracts/C1-measurement.md."
+}

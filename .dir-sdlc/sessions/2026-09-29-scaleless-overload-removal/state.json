@@ -1,0 +1,186 @@
+{
+	"session": "2026-09-29-scaleless-overload-removal",
+	"updatedAt": "2026-09-29T21:00:00-07:00",
+	"phase": "merged",
+	"worktree": "C:/dm-wt/6b-xiii",
+	"branch": "dir/2026-09-29-scaleless-overload-removal",
+	"tasks": [
+		{
+			"id": "T1",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "b39a65dbbd4d12f56eda6707e64f76c1ed7e3f54",
+			"commit": "a116b2cd2b0d0089ca5e3b7cd9d9fb0d11d3d5ef"
+		},
+		{
+			"id": "T2",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "a116b2cd2b0d0089ca5e3b7cd9d9fb0d11d3d5ef",
+			"commit": "a9a5935cef0794140d693fad4a20c0d9292c9ead"
+		},
+		{
+			"id": "T3",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "a9a5935cef0794140d693fad4a20c0d9292c9ead",
+			"commit": "18db8894e308541ab509313a6f45bdd65fa19945"
+		}
+	],
+	"escalations": [
+		{
+			"id": "E1",
+			"taskId": "T1",
+			"question": "Deleting ObjectKindGuardTests.FourParameterConstructor_WithNoneKind_Throws removes the only assertion in the tree that the thrown ActualValue for the ObjectKind.None case IS None. KindGuardRunsBeforeTheScaleRejection asserts ParamName only; FiveParameterConstructor_WithUndefinedKind_Throws asserts ActualValue == (ObjectKind)999, not None. May T1 add one assertion to a test outside the 22 approved call sites in order to preserve that coverage?",
+			"reason": "ambiguous",
+			"resolved": true,
+			"answer": "Yes. The user approved adding the ActualValue == ObjectKind.None assertion to KindGuardRunsBeforeTheScaleRejection and then deleting the four-parameter test as planned, so the coverage is strictly preserved and no test case is added. Resolved at Gate 2 BEFORE the approval that froze manifest.json, so it was folded into the draft as T1 criterion A8 and A4 was reconciled against it; there is no amendment record because nothing was frozen when the edit was made.",
+			"options": [
+				{
+					"summary": "Add .Which.ActualValue.Should().Be(ObjectKind.None); to KindGuardRunsBeforeTheScaleRejection, then delete the four-parameter test as planned.",
+					"rationale": "One line, coverage strictly preserved, no test case added so the 850 prediction holds. The file's own PositiveControl_ConstructorAcceptsADefinedKind shows this suite already assumes belt-and-braces assertions.",
+					"evidence": {
+						"kind": "repo",
+						"sources": [
+							"src/DungeonMaster.Tests/Domain/Entities/Floor/ObjectKindGuardTests.cs:59-60",
+							"src/DungeonMaster.Tests/Domain/Entities/Floor/ObjectKindGuardTests.cs:90-91"
+						]
+					}
+				},
+				{
+					"summary": "Delete as measured and accept the loss of the ActualValue assertion.",
+					"rationale": "ActualValue is diagnostic detail rather than behaviour, and the None-specific rejection path remains asserted through ParamName at KindGuardRunsBeforeTheScaleRejection.",
+					"evidence": {
+						"kind": "judgment"
+					}
+				},
+				{
+					"summary": "Convert the four-parameter test to the five-parameter constructor instead of deleting it, renaming it to drop the arity.",
+					"rationale": "Preserves every assertion, but leaves a test that duplicates FiveParameterConstructor_WithUndefinedKind_Throws in all but the input value, and pushes the DungeonMaster.Tests prediction to 851.",
+					"evidence": {
+						"kind": "judgment"
+					}
+				}
+			]
+		},
+		{
+			"id": "E2",
+			"taskId": "T2",
+			"question": "Frozen criteria B1 and C2 cite src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:371-377 for the four-parameter Dungeon.AddPlacedObject. T2 measured the member before deleting it and found it spans :371-381; :371-377 cuts off mid-expression after '=> AddPlacedObject(' and 'floorId,'. The range was authored by the orchestrator at Gate 1 by inferring the span's end from two grep hits rather than reading it, and propagated from measurement.md section 3 into both criteria. C2 requires writing it into CORE-019's locations list, so satisfying C2 as frozen would put a four-line-short citation into the audit register in the session whose subject is repairing stale citations in that same entry. Should T3 write :371-377 as frozen, or :371-381 as measured?",
+			"reason": "ambiguous",
+			"resolved": true,
+			"answer": "Write :371-381, the measured range, and record the correction in the register rather than only in the session artifacts. The user chose to amend B1 and C2 to :371-381, to add a new criterion requiring the C5 amendment block to record that a third stale range was found -- what it is, that the orchestrator authored it at Gate 1 by inferring rather than reading, that T2's implementer caught it by measuring before deleting, and that the other four ranges were verified exact -- and to correct measurement.md section 3 in place with a note. Amendments A1, A2 and A3 below.",
+			"options": [
+				{
+					"summary": "Amend B1 and C2 to :371-381 and require the C5 amendment block to record the third stale citation and its provenance.",
+					"rationale": "The register gets the measured range, and the amendment block -- which exists precisely to record citation repair -- records how the third one was caught and who introduced it. A session that fixed two stale citations while quietly introducing a third would leave the defect it convened to remove.",
+					"evidence": {
+						"kind": "repo",
+						"sources": [
+							"src/DungeonMaster.Domain/Entities/Dungeons/DungeonMethods.cs:371-381 at b39a65d",
+							".dir-sdlc/sessions/2026-09-29-scaleless-overload-removal/measurement.md section 3"
+						]
+					}
+				},
+				{
+					"summary": "Amend B1 and C2 to :371-381 only, without calling the third stale citation out in the amendment block.",
+					"rationale": "The register ends up correct, but the record does not say a third stale range was found or where it came from.",
+					"evidence": {
+						"kind": "judgment"
+					}
+				},
+				{
+					"summary": "Leave the criteria frozen and let T3 write :371-377 as C2 requires.",
+					"rationale": "Every criterion stays literally satisfiable with no amendment, at the cost of knowingly writing a four-line-short citation into the audit register with the discrepancy surfaced only in the Gate 3 report.",
+					"evidence": {
+						"kind": "judgment"
+					}
+				}
+			]
+		},
+		{
+			"id": "E3",
+			"taskId": "T2",
+			"question": "T2's reviewer falsified criterion B6's rationale by injection. measurement.md section 6 claimed PlacedObject.cs's Scale field initializer is 'the only thing setting Scale' on EF Core's materialization path, and B6 restated that as 'removing it would silently give every entity materialized from the database a scale of 0'. Removing it is in fact completely inert -- 975 passed -- because EF assigns Scale from its mapped column after invoking the parameterless constructor. B6's requirement was met; its justification was false, and the orchestrator authored it. T3 was not yet dispatched. Where should the finding land?",
+			"reason": "ambiguous",
+			"resolved": true,
+			"answer": "Both the register and the session artifact. The user chose to amend T3 so the AMENDED 6b-xiii block records both unmeasured claims this session's criteria carried -- the :371-377 range and this EF mechanism -- and to correct measurement.md section 6 in place with a dated note. Amendment A4 adds criterion C15. The reasoning accepted: a reader of CORE-019 is exactly the reader most likely to reach for that initializer, so the register is where the correction does work.",
+			"options": [
+				{
+					"summary": "Amend T3 to record the EF mechanism claim in the amendment block alongside the :371-377 finding, and correct measurement.md section 6 in place.",
+					"rationale": "The precedent A3/C14 just set for the stale citation. Costs no code change, and prevents a future reader treating the initializer as load-bearing on the EF path.",
+					"evidence": {
+						"kind": "repo",
+						"sources": [
+							".dir-sdlc/sessions/2026-09-29-scaleless-overload-removal/measurement.md section 6",
+							"src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs:48",
+							"src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs:63-64"
+						]
+					}
+				},
+				{
+					"summary": "Correct measurement.md section 6 in place only, and present the finding at Gate 3 without extending T3.",
+					"rationale": "The session artifacts carry the correction; CORE-019 does not. No further amendment needed.",
+					"evidence": {
+						"kind": "judgment"
+					}
+				},
+				{
+					"summary": "Correct measurement.md and carry the finding to the project backlog at Gate 3 rather than into CORE-019's amendment block.",
+					"rationale": "It is a fact about this session's criteria rather than about the entry's subject matter, so the backlog is arguably its proper home.",
+					"evidence": {
+						"kind": "judgment"
+					}
+				}
+			]
+		}
+	],
+	"amendments": [
+		{
+			"id": "A1",
+			"escalation": "E2",
+			"artifact": "manifest.json",
+			"before": "T2 criterion B1 located the four-parameter Dungeon.AddPlacedObject at DungeonMethods.cs:371-377.",
+			"after": "B1 locates it at :371-381, with an appended note giving the signature (:371-375), the delegating body (:376-381), the doc comment (:353-370), the cause of the error and who caught it.",
+			"inFlight": [
+				"T2"
+			]
+		},
+		{
+			"id": "A2",
+			"escalation": "E2",
+			"artifact": "manifest.json",
+			"before": "T3 criterion C2 required CORE-019's locations list to name the member at DungeonMethods.cs:371-377, and cited a grep for that string returning 0 across docs/.",
+			"after": "C2 requires :371-381, with the same appended note. The orchestrator verified that a grep for 'DungeonMethods.cs:371-381' also returns 0 across docs/, so the criterion is still unsatisfied at b39a65d.",
+			"inFlight": [
+				"T2"
+			]
+		},
+		{
+			"id": "A3",
+			"escalation": "E2",
+			"artifact": "manifest.json",
+			"before": "T3 had 13 criteria, C1 through C13, none of which required the amendment block to record the third stale citation this session found in its own frozen criteria.",
+			"after": "T3 has 14 criteria; the new C14 requires the AMENDED 6b-xiii block to record the correct range, that the orchestrator authored :371-377 at Gate 1 by inferring a span from grep hits, that T2's implementer caught it by measuring before deleting, and that the other four ranges were verified line-for-line.",
+			"inFlight": [
+				"T2"
+			]
+		},
+		{
+			"id": "A4",
+			"escalation": "E3",
+			"artifact": "manifest.json",
+			"before": "T3 had 14 criteria, C1 through C14, none of which required the amendment block to record that B6's EF-materialization rationale was false.",
+			"after": "T3 has 15 criteria; the new C15 requires the AMENDED 6b-xiii block to record that the Scale field initializer is not the EF setter, that removing it is inert (975 passed, measured by injection), the in-repo proof at PlacedObjectConfigurationTests.cs:48 and :63-64, that the initializer stays as a non-EF-path default with no test covering its removal, and the generalisation that the rule is any claim about a mechanism rather than only claims about tools.",
+			"inFlight": []
+		}
+	],
+	"metrics": {
+		"userInteractions": 5,
+		"escalationsRaised": 3,
+		"reviewRounds": 0
+	}
+}

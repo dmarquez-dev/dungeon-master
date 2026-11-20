@@ -1,0 +1,38 @@
+<Project>
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+		<CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Consumed only by src/DungeonMaster.App.UiTests, which is deliberately not in
+		     src/DungeonMaster.sln (see that folder's README.md).
+
+		     8.3.2 is PROVEN against Appium server 3.7.0 with driver windows@6.1.1 on 2026-09-04:
+		     a session opened, an element resolved by AccessibilityId, Click() was dispatched and
+		     the resulting popup was observed. The Microsoft MAUI UI-testing page pins 8.0.0, which
+		     is the Appium 2.x-era client; that version was NOT carried here, because a client that
+		     cannot talk to the installed server yields a harness that compiles and never connects.
+		     Re-prove this pin against the server before moving it. -->
+		<PackageVersion Include="Appium.WebDriver" Version="8.3.2" />
+		<PackageVersion Include="CommunityToolkit.Maui" Version="14.1.0" />
+		<PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+		<PackageVersion Include="FluentAssertions" Version="8.9.0" />
+		<PackageVersion Include="FluentValidation" Version="12.1.1" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
+		<PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.41" />
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+		<PackageVersion Include="NSubstitute" Version="5.3.0" />
+		<!-- Held at a prerelease deliberately (MASTER-104 / XCUT-011). No stable release of
+		     Plugin.Maui.KeyListener exists: the feed offers only 1.0.0-preview1..preview4.
+		     MauiProgram.cs binds .UseKeyListener() to it. Move to the first stable 1.0.0 the
+		     moment one ships. Whether to keep the dependency at all is a Session 5 question
+		     (XCUT-011's replacement analysis), not this session's. -->
+		<PackageVersion Include="Plugin.Maui.KeyListener" Version="1.0.0-preview4" />
+		<PackageVersion Include="xunit" Version="2.9.3" />
+		<PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+	</ItemGroup>
+</Project>

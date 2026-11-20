@@ -1,0 +1,41 @@
+{
+  "id": "20261112-0031-floor-deselect-disarms-tool",
+  "name": "floor-deselect-disarms-tool",
+  "scope": "small",
+  "status": "WRAPPED",
+  "criteria": [
+    "C1: Collapsing the selected floor by re-tapping its card (the deselect branch of OnFloorSelectRequested in src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs, :931-935 at 7d52ed2) ends with _viewModel.Canvas.ActiveTool == MapTool.Pan through SetActiveTool(MapTool.Pan), so ObjectPalette and ControlsPalette are hidden, the ghost object is cleared and the secondary palette is dismissed, whichever tool was armed.",
+    "C2: Deleting the selected floor (the wasSelected branch of OnFloorDeleteRequested, :883-891 at 7d52ed2) ends in the same Pan state as C1.",
+    "C3: Paths that leave a floor selected are unchanged: selecting a different floor, the re-tap that only clears area focus (:921-925 at 7d52ed2), the reorder routes (which call neither RefreshMap nor SetActiveTool), and deleting a floor that is not the selected one; the existing Pan reset in RefreshMap for a selected floor (:2324-2327 at 7d52ed2) still runs.",
+    "C4: Any comment the change touches or contradicts (the deselect-branch comment saying the result matches the initial no-floor-selected state, and the RefreshMap guard) describes the new behaviour accurately; no new comment cites a line number.",
+    "C5: Only DungeonDetailPage.xaml.cs changes; it keeps CRLF line endings and tab indentation (Python byte count: CRLF count equals LF count); `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s) and `dotnet test src/DungeonMaster.sln` passes with a named test count.",
+    "C6 (human check at Gate 3): launch with `dotnet build C:/Users/dmarq/Development/Repos/dungeon-master/src/DungeonMaster.App/DungeonMaster.App.csproj -t:Run -f net10.0-windows10.0.19041.0`; open a dungeon with at least two floors; 1. click floor A to select it; 2. click the Place tool so the object picker opens; 3. click floor A's card again to collapse it. Pass when the object picker and controls palette are gone and, after clicking floor A again, the Pan tool is the one shown active. Repeat 1-2, then delete floor A: pass on the same condition (picker gone). (Met at Gate 3: the user reported checks 1-5 of report.md passed.)"
+  ],
+  "started": "2026-11-12T00:31:13Z",
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "cc": "239b6fd4-33ec-44c9-ad1e-0f8ff45b6a9e",
+      "phase": "small",
+      "sir": "1.0.32",
+      "started": "2026-11-12T00:31:13Z",
+      "ended": "2026-11-12T00:56:52Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "239b6fd4-33ec-44c9-ad1e-0f8ff45b6a9e",
+      "phase": "wrap",
+      "sir": "1.0.32",
+      "started": "2026-11-12T00:58:47Z",
+      "ended": "2026-11-12T00:59:03Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 2,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  },
+  "ended": "2026-11-12T00:59:03Z"
+}

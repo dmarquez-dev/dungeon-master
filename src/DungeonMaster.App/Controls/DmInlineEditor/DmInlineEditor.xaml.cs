@@ -231,6 +231,12 @@ public partial class DmInlineEditor : ContentView
 	public DmInlineEditor()
 	{
 		InitializeComponent();
+
+		// SyncDisplay is the sole writer of DisplayLabel's Text, TextColor and FontAttributes, so
+		// it has to run once here to put the label in a defined state. It used to be reached only
+		// when Text, Placeholder, TextColor or PlaceholderColor was assigned, and DisplayLabel's
+		// colour came from a XAML binding in the meantime — the double writer MASTER-077 names.
+		SyncDisplay(Text);
 	}
 
 	/// <summary>
@@ -275,8 +281,10 @@ public partial class DmInlineEditor : ContentView
 
 		// The pending Unfocused must not commit a second time for the same edit, and a second
 		// TryCommit before that event arrives must be a no-op rather than a repeat commit.
+		// The order is load-bearing and unchanged: the latch is raised BEFORE the edit session
+		// ends, so nothing between the two can see a finished session with the latch still down.
 		_suppressUnfocusCommit = true;
-		_isEditing = false;
+		EndEditing();
 
 		if (!AcceptsReturn)
 		{
@@ -309,6 +317,11 @@ public partial class DmInlineEditor : ContentView
 		EditEditor.HorizontalTextAlignment = alignment;
 	}
 
+	// The single owner of DisplayLabel's appearance. All three facets are derived from the same
+	// fact — whether the value is empty — and are computed here rather than stored anywhere. The
+	// label carries no TextColor binding: an imperative write wins under MAUI value precedence, so
+	// a binding beside this method would be silently clobbered on the first call. TextColor and
+	// PlaceholderColor both call back into here when they change, which is what the binding gave.
 	private void SyncDisplay(string? value)
 	{
 		var isEmpty = string.IsNullOrWhiteSpace(value);
@@ -341,11 +354,30 @@ public partial class DmInlineEditor : ContentView
 
 	private void OnInputFocused(object? sender, FocusEventArgs e)
 	{
-		_isEditing = true;
-		_suppressUnfocusCommit = false;
+		BeginEditing();
 		EditingStarted?.Invoke(this, EventArgs.Empty);
 		ApplyFocusGlow();
 	}
+
+	// BeginEditing/EndEditing own the edit-session flag; ApplyFocusGlow/ClearFocusGlow own the
+	// painting. The two concerns used to be fused into ClearFocusGlow, which cleared _isEditing
+	// as its first statement while ApplyFocusGlow did not set it — an asymmetric pair in which a
+	// method named for painting silently ended the edit session. Every caller that needs both
+	// now asks for both, in the order the fused version used: state first, then paint.
+	private void BeginEditing()
+	{
+		// Clearing the latch on focus means a swallowed Unfocused cannot leave it set and eat a
+		// later genuine commit. This is the "cleared ... the next time the user starts editing"
+		// half of the contract stated on _suppressUnfocusCommit.
+		_isEditing = true;
+		_suppressUnfocusCommit = false;
+	}
+
+	// The counterpart to BeginEditing. It does NOT touch _suppressUnfocusCommit: that latch is
+	// consumed by TakeSuppressedCommit on the Unfocused it belongs to, and clearing it here would
+	// race the unfocus handlers that read it after ending the session.
+	private void EndEditing() =>
+		_isEditing = false;
 
 	// The hover glow and the focus glow are the same treatment; they were written out twice and
 	// had to be kept in step by hand. ClearFocusGlow is the other half of this pair.
@@ -371,6 +403,9 @@ public partial class DmInlineEditor : ContentView
 
 	private void OnEntryUnfocused(object? sender, FocusEventArgs e)
 	{
+		// State first, then paint — the same order the fused ClearFocusGlow used, and it matters:
+		// TakeSuppressedCommit below runs after the session has ended, exactly as before.
+		EndEditing();
 		ClearFocusGlow();
 
 		if (!TakeSuppressedCommit())
@@ -386,6 +421,8 @@ public partial class DmInlineEditor : ContentView
 
 	private void OnEditorUnfocused(object? sender, FocusEventArgs e)
 	{
+		// State first, then paint, as in OnEntryUnfocused above.
+		EndEditing();
 		ClearFocusGlow();
 
 		if (!TakeSuppressedCommit())
@@ -414,14 +451,28 @@ public partial class DmInlineEditor : ContentView
 
 	private void Commit(string? value)
 	{
-		Text = value;
-		SyncDisplay(value);
+		// Exactly one SyncDisplay runs per commit, on either branch. Assigning Text raises
+		// TextProperty's propertyChanged, which syncs the display — but MAUI does not raise it for
+		// an assignment equal to the current value, so a commit that changed nothing would leave
+		// the display unsynced. That no-op case is the one the explicit call here covers; calling
+		// it on both paths, as this method used to, syncs twice on every real edit.
+		if (string.Equals(Text, value, StringComparison.Ordinal))
+		{
+			SyncDisplay(value);
+		}
+		else
+		{
+			Text = value;
+		}
+
 		TextCommitted?.Invoke(this, value);
 	}
 
+	// Painting only, and the exact counterpart of ApplyFocusGlow. Callers that also need the edit
+	// session to end call EndEditing first; OnPointerExited deliberately does not, because losing
+	// the pointer is not the end of an edit.
 	private void ClearFocusGlow()
 	{
-		_isEditing = false;
 		FocusBorder.Stroke = Colors.Transparent;
 		FocusBorder.ClearValue(VisualElement.BackgroundColorProperty);
 #if !WINDOWS

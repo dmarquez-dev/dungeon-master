@@ -1,0 +1,54 @@
+{
+  "session": "20261110-1618-audit-record-corrections",
+  "createdAt": "2026-11-10T16:44:00Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-register-corrections.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Correct the master index cells for rows 184, 190 and 191",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/00-master-index.md"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "C1-1 (line endings, preserved and newly tested). ARC (C1 section 3) run on docs/audit/00-master-index.md after the last edit prints `CR 691 CRLF 691 LONE_CR 0` and `ADDED_LINES 0`. At startRef c90da08 it prints the same census with `INSERTIONS 0`; this criterion asserts the census is unchanged by insertions that add no line (C1 sections 1 and 2.1).",
+        "C1-2 (insertions, located). ARC on 00 prints `INSERTIONS 4` and exactly these four AT lines, in order: `AT MASTER-081 line 269`, `AT MASTER-119 line 307`, `AT MASTER-130 line 318`, `AT MASTER-178 line 366`, each with `PIPES 0 BACKSLASHES 0` (C1 U3). At startRef c90da08 it prints `INSERTIONS 0`.",
+        "C1-3 (placement). In ARC's output for 00, the AT lines for MASTER-081, MASTER-130 and MASTER-178 each end `NEXT [**Previous status wording, retained unch]`, and the AT line for MASTER-119 ends `NEXT [|]` (C1 section 2.1 anchors).",
+        "C1-4 (no existing byte changed). ARC on 00 prints `BASE_MATCH yes`: with the four spans removed the file's sha256 is d6caf2f99d3667352eb51a7aed4b36c008971e4829fba222806328ac385e1037, its startRef digest. Together with C1-2 this shows the change is the four insertions and nothing else (C1 U1). ARC's must-fail control (one byte appended outside a span prints `BASE_MATCH no`) is recorded in C1 section 3; re-run it on a scratch copy and report its output.",
+        "C1-5 (row 191). ARC on 00 with the needles `01-domain-application.md:2313`, `01-domain-application.md:2560-2567`, `the fifth citation, stale by PROJECT`, `caller inside the Application layer`, `CORE-026`, `as numbered at c90da08`, `Classification:` and `DRIFT` prints an IN list containing `MASTER-119` for each (the span quotes the stale citation verbatim and gives the corrected range with both locating commands, per C1 section 5.6; its classification is DRIFT, per OM-2 in C1 section 6.1). The needle `01-domain-application.md:2313` also prints `OUTSIDE 1` (the original cell text survives). At startRef every needle prints `IN NONE`.",
+        "C1-6 (row 190). ARC on 00 with the needles 'the same `discussion.md` Decisions', `discussion.md:26`, `spec.md:22-24`, `were considered and declined`, `Gate 1 declined them`, `policy layer`, `ERROR (attribution)`, `as numbered at c90da08` and 'block on `CORE-016`' prints an IN list containing `MASTER-081` for each (C1 sections 4.2 and 4.3). At startRef every needle prints `IN NONE`.",
+        "C1-7 (row 184, MASTER-130). ARC on 00 with the needles `a renumbering, not a rename`, `adding a zero member renumbers the persisted ordinals, so it is a renumbering that needs a data migration` (R184, C1 section 4.1), `as numbered at c90da08` and 'block on `CORE-024`' prints an IN list containing `MASTER-130` for each; `a renumbering, not a rename` prints `OUTSIDE 1` (the retained wording at the site survives).",
+        "C1-8 (row 184, MASTER-178). ARC on 00 with the needles `a data migration, not a renumbering`, R184 as in C1-7, `PathSegmentKind.cs`, `AreaConfiguration.cs:16`, `as numbered at c90da08` and 'block on `CORE-035`' prints an IN list containing `MASTER-178` for each; `a data migration, not a renumbering` prints `OUTSIDE 1`.",
+        "C1-9 (row 184, discriminating control). ARC on 00 with the R184 needle prints exactly `IN MASTER-130,MASTER-178` and `OUTSIDE 0`: the shared reading appears in both zero-member cells, in no other span (not MASTER-081, not MASTER-119), and nowhere in the startRef text."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Append correction blocks to CORE-016, CORE-022, CORE-024 and CORE-035",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/01-domain-application.md"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "C2-1 (line endings). ARC (C1 section 3) run on docs/audit/01-domain-application.md after the last edit prints `LONE_CR 0`, the same number after `CR` as after `CRLF`, and a CRLF count equal to 3363 plus the printed `ADDED_LINES` (C1 section 1). At startRef c90da08 it prints `CR 3363 CRLF 3363 LONE_CR 0` and `ADDED_LINES 0`.",
+        "C2-2 (insertions, located). ARC on 01 prints `INSERTIONS 4` and exactly four AT lines, one each for `AT CORE-016`, `AT CORE-022`, `AT CORE-024` and `AT CORE-035`, whose NEXT fields begin `[### CORE-017`, `[### CORE-023`, `[### CORE-025` and `[### CORE-036` respectively (each block is the last thing in its entry, per C1 section 2.2). At startRef it prints `INSERTIONS 0`.",
+        "C2-3 (no existing byte changed). ARC on 01 prints `BASE_MATCH yes`: with the four blocks and the blank line before each removed, the sha256 is 2e5ed635cf536402e2aedd80f749c61a4313610943468fe49ec5c04ba771f1d4, the startRef digest (C1 U1). ARC's must-fail control (one byte appended outside a block prints `BASE_MATCH no`) is re-run on a scratch copy and its output reported.",
+        "C2-4 (house form). ARC on 01 with the needles `**Nothing below deletes any previous wording.**` and `as numbered at c90da08` prints `IN CORE-016,CORE-022,CORE-024,CORE-035` for each; and with the needles 'The register row is `MASTER-081` at `00-master-index.md:269`', 'The register row is `MASTER-110` at `00-master-index.md:298`', 'The register row is `MASTER-130` at `00-master-index.md:318`' and 'The register row is `MASTER-178` at `00-master-index.md:366`' prints `IN CORE-016`, `IN CORE-022`, `IN CORE-024` and `IN CORE-035` respectively (C1 section 2.2).",
+        "C2-5 (row 179). ARC on 01 with the needles `C1 and C2 contracts`, `joined across its line break`, `C1-measurement.md:203-204`, `(176 lines)`, `(94 lines)`, `C3-register.md:64-65`, `C3-register.md:65-66`, `C2-entity-split.md:34`, `FloorObjectMethods.cs. 112`, `grep -nw 288 .sir/sessions/20261105-0106-core-two-row-sweep/contracts/C*.md`, `grep -nw -e 112 -e 288` and `ERROR (attribution)` prints an IN list containing `CORE-022` for each (C1 section 5.1). At startRef every needle prints `IN NONE`.",
+        "C2-6 (row 182). ARC on 01 with the needles `ObjectKindInfo.cs:24-28`, `:2951`, `:3033`, `grep -n GetDefaultAnchor src/DungeonMaster.App/Assets/ObjectAssets/ObjectKindInfo.cs`, `ObjectKindInfo.cs:40`, `return SnapAnchor.Center`, `:58`, `Drifted citations`, `Classification:` and `DRIFT` prints `IN CORE-035` for each (C1 section 5.2; the classification is DRIFT, per OM-1 in C1 section 6.1). At startRef every needle prints `IN NONE`.",
+        "C2-7 (row 183, RotationDirection). ARC on 01 with the needles 'over production `src/` prints only the event declaration', `grep -rn RotationDirection src --include=*.cs --exclude-dir=obj --exclude-dir=bin | grep -v`, `6 lines`, `DungeonDetailPage.xaml.cs:196`, `:207`, `:139`, `:150` and `6b3bd62` prints an IN list containing `CORE-035` for each (C1 section 5.3; the line moves are DRIFT per OM-3, C1 section 6.1, and the block names the commit OM-3 printed). At startRef every needle prints `IN NONE`.",
+        "C2-8 (row 183, ScaleDirection; recorded in the same CORE-035 block, C1 section 5.3). ARC on 01 with the needles `grep -rn ScaleDirection src --include=*.cs --exclude-dir=obj --exclude-dir=bin | grep -v`, `5 lines` and `DungeonDetailPage.xaml.cs:223` prints `IN CORE-035` for each. At startRef every needle prints `IN NONE`.",
+        "C2-9 (row 184). ARC on 01 with the R184 needle `adding a zero member renumbers the persisted ordinals, so it is a renumbering that needs a data migration` prints exactly `IN CORE-024,CORE-035` and `OUTSIDE 0` (C1 section 4.1); with `a renumbering, not a rename` it prints `IN CORE-024`; with `the blocker is a data migration rather than a renumbering` and `data migration on a JSON column, not a renumbering` it prints `IN CORE-035` for each; with `AreaConfiguration.cs:16` it prints an IN list containing `CORE-035`. At startRef every needle prints `IN NONE`.",
+        "C2-10 (row 190). ARC on 01 with the needles `the same Decisions`, `discussion.md:26`, `spec.md:22-24`, `were considered and declined`, `Gate 1 declined them`, `policy layer` and `ERROR (attribution)` prints an IN list containing `CORE-016` for each (C1 section 4.2). At startRef every needle prints `IN NONE`."
+      ]
+    }
+  ]
+}

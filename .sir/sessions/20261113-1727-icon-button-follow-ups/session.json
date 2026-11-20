@@ -1,0 +1,60 @@
+{
+  "id": "20261113-1727-icon-button-follow-ups",
+  "name": "icon-button-follow-ups",
+  "scope": "small",
+  "status": "WRAPPED",
+  "started": "2026-11-13T17:27:20Z",
+  "ended": "2026-11-13T18:15:10Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: `src/DungeonMaster.Tests/App/Theme/IconButtonStyleParityTests.cs` compares, for each of the implicit Button style's CommonStates states (Normal, PointerOver, Pressed), the FULL setter set of DmIconButton's same-named state against the implicit style's: the same set of `Property` names and, per property, equal parsed values. A setter of any property added to, removed from or retuned in one of those states in either style turns a fact red. Shown by injected defects in `src/DungeonMaster.App/Resources/Theme/Controls.Base.xaml`, each reverted: (a) `<Setter Property=\"BackgroundColor\" Value=\"Red\" />` added inside DmIconButton's PointerOver state; (b) DmIconButton's Pressed Opacity changed from 0.7 to 0.6. Each must turn at least one fact red, naming the state.",
+    "C2: The same test pins DmIconButton's Disabled state to exactly one setter, `Opacity` parsing to 0.35. Shown by injected defect (c), reverted: `<Setter Property=\"BackgroundColor\" Value=\"Red\" />` added inside DmIconButton's Disabled state, which must turn a fact red while its Opacity stays 0.35.",
+    "C3: The scan-reach fact still guards against vacuity: it fails if either style yields no CommonStates state, or if any of Normal, PointerOver, Pressed yields no setter in either style. The existing facts' coverage is kept: MinimumWidthRequest 0, direct-setter parity, and the four injections of 20261112-2120-icon-button-padding's C4 ((a) MinimumWidthRequest to `{StaticResource DmTouchTargetMinimum}`, (b) Disabled state removed, (c) PointerOver to 0.9, (d) Disabled Opacity to 0.45) still each turn a fact red; re-run all four and report which fact failed.",
+    "C4: The doc comments and because-strings in `IconButtonStyleParityTests.cs` that describe the DungeonListPage StartSessionButton's local Opacity 0.35 (at c816f38: `:22-23`, `:65`, `:231-232`) state it as removed history, so none reads as if a call site still carries a local Opacity; the mechanism statements (a keyed style's CommonStates setters outrank a local value) stay. No other comment changes meaning.",
+    "C5: The DmIconButton header comment in `src/DungeonMaster.App/Resources/Theme/Controls.Base.xaml` (the paragraph at `:106-110` at c816f38, opening `THE Disabled STATE AT 0.35`) is rewrapped so its lines fill to the paragraph's existing width (95 columns at c816f38) instead of breaking after `The style`; its words are unchanged, and nothing outside that comment changes (instrument: the file with that comment removed is identical before and after, compared by sha256 in Python).",
+    "C6: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s) (quoted from its summary lines), and `dotnet test src/DungeonMaster.sln` passes every test in every test project, with counts named per project (at c816f38 the last session recorded 217, 999 and 143; any change in DungeonMaster.Tests is explained by facts added or removed in this class).",
+    "C7: Both files keep their line endings, BOM state and indentation: at c816f38 `Controls.Base.xaml` is 209/209 CRLF, no BOM, no lone CR, space-indented; `IconButtonStyleParityTests.cs` is 408/408 CRLF, no BOM, no lone CR, tab-indented (counted by Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`, `b.count(b'\\r')`); after the change each is all-CRLF with CR count equal to CRLF count, BOM state unchanged, and every revert of C1-C3's injections restores `Controls.Base.xaml` to a sha256 equal to a scratch copy taken before the first injection, with a control showing the comparison fires on a one-byte change."
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "C5 contradicts itself: filling the DmIconButton header paragraph to its existing 95-column width forces Controls.Base.xaml:108 to break after `which has been` (93 + 9 > 95), which C5 also forbids. Accept the delivered greedy wrap and amend C5 to drop the break clause, let :108 run to 102 columns, or re-break :108 before `which`?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Accept the delivered wrap; amend C5 to drop the break-after-`which has been` clause (A1). Asked at Gate 3 with the advisory dispositions: advisory 1 (unmeasured claim at IconButtonStyleParityTests.cs:25-26) fix now; advisory 2 (implicit-style side not demonstrated) dropped. The approval given in the same prompt is superseded by the fix-now and re-asked over the final diff."
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "criterion": "C5",
+      "before": "is rewrapped so its lines fill to the paragraph's existing width instead of breaking after `which has been` and `The style`; its words",
+      "after": "is rewrapped so its lines fill to the paragraph's existing width (95 columns at c816f38) instead of breaking after `The style`; its words"
+    }
+  ],
+  "runs": [
+    {
+      "cc": "09313821-255a-42ba-9e25-64097cbd057a",
+      "phase": "small",
+      "sir": "1.0.36",
+      "started": "2026-11-13T17:27:20Z",
+      "ended": "2026-11-13T18:13:05Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "09313821-255a-42ba-9e25-64097cbd057a",
+      "phase": "wrap",
+      "sir": "1.0.36",
+      "started": "2026-11-13T18:14:48Z",
+      "ended": "2026-11-13T18:15:10Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 1,
+    "reviewRounds": 1
+  }
+}

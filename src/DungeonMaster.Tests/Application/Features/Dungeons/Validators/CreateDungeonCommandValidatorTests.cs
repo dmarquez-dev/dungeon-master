@@ -1,55 +1,64 @@
 using DungeonMaster.Application.Features.Dungeons.Commands.CreateDungeon;
 using FluentAssertions;
+using FluentValidation;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Validators;
 
-public class CreateDungeonCommandValidatorTests
+/// <summary>
+///		The shared Name-rule behaviour, run against <see cref="CreateDungeonCommandValidator"/>, plus its Description length rule.
+/// </summary>
+public sealed class CreateDungeonCommandValidatorTests
+	: NameOnlyValidatorTestBase<CreateDungeonCommand>
 {
-    private readonly CreateDungeonCommandValidator _validator = new();
+	/// <inheritdoc/>
+	protected override IValidator<CreateDungeonCommand> Validator { get; } = new CreateDungeonCommandValidator();
 
-    [Fact]
-    public void Validate_WithValidCommand_Passes()
-    {
-        // Arrange
-        var command = new CreateDungeonCommand("The Vault", null);
+	/// <inheritdoc/>
+	protected override string NamePropertyName =>
+		nameof(CreateDungeonCommand.Name);
 
-        // Act
-        var result = _validator.Validate(command);
+	/// <inheritdoc/>
+	protected override CreateDungeonCommand CreateCommandWithName(string? name) =>
+		new(name!, null);
 
-        // Assert
-        result.IsValid.Should().BeTrue();
-    }
+	[Fact]
+	public void Validate_WithDescriptionOf2001Characters_FailsWithSingleDescriptionError()
+	{
+		// Arrange
+		var command = new CreateDungeonCommand("Valid Name", new string('A', 2001));
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData(null)]
-    public void Validate_WithEmptyName_Fails(string? name)
-    {
-        // Arrange
-        var command = new CreateDungeonCommand(name!, null);
+		// Act
+		var result = Validator.Validate(command);
 
-        // Act
-        var result = _validator.Validate(command);
+		// Assert
+		result.IsValid.Should().BeFalse();
+		result.Errors.Should().ContainSingle()
+			.Which.PropertyName.Should().Be(nameof(CreateDungeonCommand.Description));
+	}
 
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e =>
-            e.PropertyName == nameof(CreateDungeonCommand.Name));
-    }
+	[Fact]
+	public void Validate_WithDescriptionOfExactly2000Characters_Passes()
+	{
+		// Arrange
+		var command = new CreateDungeonCommand("Valid Name", new string('A', 2000));
 
-    [Fact]
-    public void Validate_WithNameExceedingMaxLength_Fails()
-    {
-        // Arrange
-        var command = new CreateDungeonCommand(new string('A', 101), null);
+		// Act
+		var result = Validator.Validate(command);
 
-        // Act
-        var result = _validator.Validate(command);
+		// Assert
+		result.IsValid.Should().BeTrue();
+	}
 
-        // Assert
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e =>
-            e.PropertyName == nameof(CreateDungeonCommand.Name));
-    }
+	[Fact]
+	public void Validate_WithNullDescription_Passes()
+	{
+		// Arrange
+		var command = new CreateDungeonCommand("Valid Name", null);
+
+		// Act
+		var result = Validator.Validate(command);
+
+		// Assert
+		result.IsValid.Should().BeTrue();
+	}
 }

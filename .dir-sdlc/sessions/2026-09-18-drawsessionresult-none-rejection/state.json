@@ -1,0 +1,73 @@
+{
+  "session": "2026-09-18-drawsessionresult-none-rejection",
+  "updatedAt": "2026-09-18T23:09:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xi",
+  "branch": "dir/2026-09-18-drawsessionresult-none-rejection",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "061b28bf95904206260aa9b45a02e23f62670ddc",
+      "commit": "aadf0c8045a170356b2b3fd5017b10401eba2c64"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "aadf0c8045a170356b2b3fd5017b10401eba2c64",
+      "commit": "4df98c2cdaec4bf1bdd7ffed12fef378b6c5ac95"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T2",
+      "question": "Where does the DrawSessionResult.None rejection live? CA2208 is an error in this solution and fires when nameof() names a local rather than a parameter, so the literal transplant of the MutationOutcomeExtensions shape into the page handler does not compile. That is a build-forced choice the Gate 1 evidence did not consider.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "The user chose the new internal static DrawSessionResultGuard class beside the page, with the call site becoming PlaceVertex(snapped).EnsurePlacementOutcome(). This is what the draft manifest was already written on, so no criterion changed. It is the only option of the three that makes the rejection testable rather than inspectable, and it keeps the n=1 convention the survey counted; the cost the user accepted is a new production file.",
+      "options": [
+        {
+          "summary": "New internal static class DrawSessionResultGuard beside the page, called as PlaceVertex(snapped).EnsurePlacementOutcome(). The manifest is written on this.",
+          "rationale": "Closest transplant of the n=1 precedent, which is itself an extension-method class. Compiles clean, and it is the only option that makes the rejection testable rather than inspectable - it buys criteria B4, B5, B6 and B7, including the injection proving the dedicated None arm is load-bearing rather than decorative. Costs a new production file nobody explicitly asked for.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Application/Common/Handlers/MutationOutcomeExtensions.cs:62-86",
+              "src/DungeonMaster.App/Views/DungeonDetailPage/PaletteThumb.cs:6",
+              "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:13",
+              "src/DungeonMaster.App/AssemblyInfo.cs:3"
+            ]
+          }
+        },
+        {
+          "summary": "Extract a private method on the page holding a switch statement, and reject there.",
+          "rationale": "No new file, and it compiles - the value becomes a parameter, so CA2208 is satisfied. But the rejection stays private and unreachable from any test, so item 1 reverts to inspectable-only and the session loses B4 through B7 entirely. The dedicated None arm would be exactly the decorative arm backlog.md:373 records going undetected at the sibling site.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs:1465-1492"
+            ]
+          }
+        },
+        {
+          "summary": "Leave it inline at the call site and throw InvalidOperationException instead.",
+          "rationale": "Smallest diff - no paramName argument, so no CA2208, and the existing try/catch converts it into a user-visible ErrorMessage. But it abandons the only convention the survey found, on a site whose entire purpose was to follow it, and no production precedent exists for rejecting a never-occurring enum member this way. Debug.Assert is not an alternative either: measurement.md section 2.2 counts 0 in production.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  }
+}

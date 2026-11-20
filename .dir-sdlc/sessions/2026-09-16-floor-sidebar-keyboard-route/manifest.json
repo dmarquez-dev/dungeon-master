@@ -1,0 +1,108 @@
+{
+  "session": "2026-09-16-floor-sidebar-keyboard-route",
+  "createdAt": "2026-09-16",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-keyboard-reorder-route.md",
+    "contracts/C2-editing-build-and-counting-rules.md",
+    "contracts/C3-master-098-closure-evidence.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "The keyboard reorder decision, as a pure function in DungeonMaster.App.Core",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.App.Core/Editor/FloorReorderKeys.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "C:/dm-wt/6b-vi/src/DungeonMaster.App.Core/Editor/FloorReorderKeys.cs exists and declares exactly the public surface frozen in section 4.1 of C:/Users/dmarq/Development/Repos/dungeon-master/.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/contracts/C1-keyboard-reorder-route.md: namespace DungeonMaster.App.Core.Editor; public readonly record struct FloorKeyboardReorderDecision(bool ShouldReorder, int TargetFloorNumber) with public static FloorKeyboardReorderDecision None => default; and public static class FloorReorderKeys with the single method public static FloorKeyboardReorderDecision Decide(int focusedFloorNumber, int floorCount, bool moveUp). Type names, member names, parameter order and parameter types match that section exactly.",
+        "Decide returns FloorKeyboardReorderDecision.None in each of the five rows of that section 4.1 table (floorCount < 2; focusedFloorNumber < 1; focusedFloorNumber > floorCount; moveUp with focusedFloorNumber == 1; !moveUp with focusedFloorNumber == floorCount), and otherwise returns new FloorKeyboardReorderDecision(true, focusedFloorNumber + (moveUp ? -1 : 1)).",
+        "No code path in the file throws: every no-op case is an expected outcome the caller handles, not a defect, which is the backend discipline's rule that expected failure is a value the caller must handle while a defect terminates the operation. grep -c \"throw\" over the file returns 0.",
+        "The file references no MAUI type and no key-listener type: grep -c \"Maui\" over the file returns 0 and grep -c \"KeyListener\" over the file returns 0. This is what keeps the type inside the plain net10.0 project that DungeonMaster.Tests already references at src/DungeonMaster.Tests/DungeonMaster.Tests.csproj:24, so the decision is testable without a MAUI host.",
+        "The XML doc comment on TargetFloorNumber states in its own words that the value is a 1-based floor Number and is neither an index into the floor collection nor an index into a visual-tree child collection, the same distinction the sibling FloorReorderDecision draws at C:/dm-wt/6b-vi/src/DungeonMaster.App.Core/Editor/FloorReorderDrop.cs.",
+        "dotnet build C:/dm-wt/6b-vi/src/DungeonMaster.App.Core/DungeonMaster.App.Core.csproj reports 0 Warning(s), 0 Error(s) under TreatWarningsAsErrors.",
+        "The new file is CRLF, as section 1.1 of C:/Users/dmarq/Development/Repos/dungeon-master/.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/contracts/C2-editing-build-and-counting-rules.md requires: python -c \"b=open(r'<path>','rb').read(); print(b.count(b'\\r\\n'), b.count(b'\\n'))\" prints two equal numbers, and the file ends with a newline. An LF-only file fails IDE0055 on every line under TreatWarningsAsErrors.",
+        "No file other than src/DungeonMaster.App.Core/Editor/FloorReorderKeys.cs is created or modified. In particular no .csproj, no packages.lock.json and no Directory.Packages.props: this task needs no new package. Orchestrator-attested, because a task cannot invoke git."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "MASTER-098 / UIKIT-011 verification artifact, re-derived from the controls themselves",
+      "agent": "dir-architect",
+      "domain": "architecture",
+      "owns": [
+        ".dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/artifacts/MASTER-098-verification.md"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "C:/dm-wt/6b-vi/.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/artifacts/MASTER-098-verification.md exists and is legible to a reader who does not have measurement.md open beside it.",
+        "It carries a row for every claim in docs/audit/04-app-controls-and-theme.md:504-538, at minimum the five listed in section 3.2 of C:/Users/dmarq/Development/Repos/dungeon-master/.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/contracts/C3-master-098-closure-evidence.md, and each row carries four fields: the claim, what is true now, the command that produced that answer, and the file and line it was read from. If reading that source record turns up a further claim, it gets a row too.",
+        "Every file-and-line citation in the artifact resolves and supports its row: for each cited path:line, sed -n '<line>p' <path> run in C:/dm-wt/6b-vi returns a line whose content backs the claim beside it. This is the check against the failure this project has recorded fourteen times across 6b-iv and 6b-v, where a claim about a file was restated from another claim instead of re-derived from the file.",
+        "The artifact records both surviving imperative methods, FloorSidebarItem.FocusNameEditor() and FloorSidebarItem.SetAreaEditing(Guid, bool): what each does now, whether it is a thin wrapper over a bindable property, its external call-site count, and why it cannot be a binding. Each count is given with the command that produced it, and that command is a bare-member-name grep over src/ excluding obj/, bin/ and the declaring file. No qualified single-line Type.Member grep appears anywhere in the artifact, because this codebase splits many calls across two lines and that form misses them.",
+        "The artifact discloses that this session's contract C1 adds IsDragHandleFocused and FocusDragHandle() to FloorSidebarItem, and states why FocusDragHandle does not reopen the entry: UIKIT-011's subject is appearance state driven by imperative setters, and focus is an action rather than appearance state.",
+        "The artifact records AreaSidebarItem.xaml:44-46 and :52-53, which set literal Transparent and 0 rather than tokens, as noted residues and not as defects, with the reason that transparency is the absence of a colour rather than a themeable value.",
+        "The artifact ends with an explicit statement that every claim in it is a static source read, and that whether the bindable properties and visual states actually paint at runtime is not established by it.",
+        "The artifact states no disposition for MASTER-098 (not done, not closed, not part done), contains no commit hash, and contains no sentence of the form 'closed by' or 'fixed in'. Closing the entry cites commits and a DIR task cannot invoke git.",
+        "docs/audit/00-master-index.md and docs/audit/04-app-controls-and-theme.md are unmodified. Both are outside this task's ownership set. Orchestrator-attested, because a task cannot invoke git."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "The floor keyboard reorder route: the handle becomes a focusable Button and the page reorders on Ctrl+Up / Ctrl+Down",
+      "agent": "dir-frontend-engineer",
+      "domain": "frontend",
+      "owns": [
+        "src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml",
+        "src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml.cs",
+        "src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs"
+      ],
+      "dependsOn": ["T1", "T2"],
+      "acceptance": [
+        "In C:/dm-wt/6b-vi/src/DungeonMaster.App/Controls/FloorSidebarItem/FloorSidebarItem.xaml the element carrying AutomationId=\"FloorDragHandle\" is a Button named x:Name=\"DragHandle\", and every row of section 1's frozen table in C:/Users/dmarq/Development/Repos/dungeon-master/.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/contracts/C1-keyboard-reorder-route.md holds: Padding=\"8,0\", BackgroundColor=\"Transparent\", FontFamily=\"{StaticResource DmFontBody}\", FontSize=\"{StaticResource DmIconSizeLarge}\", TextColor=\"{StaticResource DmTextTavernMuted}\", BorderWidth=\"0\", Margin=\"0\", VerticalOptions=\"Fill\", the glyph unchanged, and no HeightRequest and no MinimumHeightRequest attribute.",
+        "Exactly one DragGestureRecognizer remains in that file and it sits on the Button, with DragStarting=\"OnDragStarting\" and DropCompleted=\"OnDropCompleted\" unchanged: grep -c \"DragGestureRecognizer\" over the file returns 1. A second drag source would start a reorder from somewhere the payload contract was never written for.",
+        "The TapGestureRecognizer naming OnDragHandleTapped and the method OnDragHandleTapped are both gone: grep -c \"OnDragHandleTapped\" returns 0 over FloorSidebarItem.xaml and 0 over FloorSidebarItem.xaml.cs. The _suppressCardTap field itself remains and is still set by OnDeleteClicked and OnNotebookClicked. The file's own OnExpandToggleClicked comment records why: a Button's press does not reach the card's TapGestureRecognizer, so a flag left set swallows the next card-body tap.",
+        "The comment block above the handle no longer states that the DragGestureRecognizer stays on a Label; it states that the host is now a Button, why, and that it supersedes the expired 6b-iv contract note that sat at :235-236 at commit 7483b57. Leaving the old sentence would be a false claim about the file.",
+        "FloorSidebarItem.xaml.cs declares public bool IsDragHandleFocused => DragHandle.IsFocused; as a get-only computed expression with no backing field. The frontend discipline requires derived values to be computed and never stored, and a stored copy would be two owners of one fact, which is the defect MASTER-098 removed from this file.",
+        "FloorSidebarItem.xaml.cs declares public void FocusDragHandle(), taking no parameters and returning void, which binds DragHandle to a Button-typed local before calling Focus(). The typed local is a revert guard: reverting the markup to a Label must fail as CS0029 rather than compile, exactly as ApplyExpanded guards ExpandToggle.",
+        "The handle's SemanticProperties.Description is \"Reorder floor\", and its SemanticProperties.Hint and ToolTipProperties.Text are the two strings frozen verbatim in section 5 of the C1 contract. No SemanticProperties.Description stating a position such as \"3 of 7\" is added anywhere.",
+        "OnKeyDown in C:/dm-wt/6b-vi/src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs reorders on Ctrl+UpArrow and Ctrl+DownArrow only, reading e.Key and e.Modifiers rather than e.KeyChar, gated on exactly one FloorSidebarItem child of FloorListContainer reporting IsDragHandleFocused. It routes the decision through FloorReorderKeys.Decide and calls the existing _viewModel.FloorList.ReorderFloorCommand with a ReorderFloorArgs. No new command, no new handler, and no change below the App layer.",
+        "Production App-code call sites of ReorderFloorCommand.ExecuteAsync go from three at commit 7483b57 to four, counted with grep -rn \"ReorderFloorCommand\" over src/ excluding obj/ and bin/. The three existing sites at DungeonDetailPage.xaml.cs :861, :2306 and :2426 at 7483b57 are unchanged in behaviour.",
+        "The reorder branch sits after the existing IsPageInteractive() and IsTextInputActive() guards, inside the existing try, and before the switch (char.ToLower(e.KeyChar)) — an arrow key carries no meaningful KeyChar so the switch cannot see it. No second catch is added to OnKeyDown, and failures still reach _viewModel.ErrorMessage through the existing one.",
+        "After the reorder completes, the page re-finds the FloorSidebarItem in FloorListContainer.Children whose Floor?.Id equals the moved floor's id and calls FocusDragHandle() on it. Without this the route works exactly once, because RebuildFloorList() clears the container and destroys the Button that held focus; the frontend discipline requires focus to move predictably after an action that changes what is on screen.",
+        "A Ctrl+arrow with no drag handle focused, a Ctrl+Up on the top floor, a Ctrl+Down on the bottom floor, and any Ctrl+arrow with fewer than two floors, each do nothing and set no ErrorMessage. These are silent no-ops, not failures.",
+        "No KeyboardBehavior is constructed or attached anywhere beyond the single existing one at DungeonDetailPage.xaml.cs:238-243 at commit 7483b57: grep -rc \"new KeyboardBehavior\" over src/DungeonMaster.App excluding obj/ and bin/ totals 1. Section 0 of the C1 contract establishes by three independent readings of the package that a second one would be a second global listener, not a scoped one, because KeyboardBehavior subscribes to XamlRoot.Content.",
+        "The floor drop-placeholder indicator is untouched: ShowDragPlaceholder, the placeholder fields _draggingItem and _currentPlaceholderTarget, and the PlaceholderRequested and PlaceholderCleared events and their handlers, are unchanged in behaviour. The user cut the placeholder from scope at Gate 1 because its design question is unsettled, and it stays in .dir-sdlc/backlog.md. This task owns the two files that contain it, so the fence has to be a criterion rather than an ownership boundary.",
+        "dotnet build C:/dm-wt/6b-vi/src/DungeonMaster.sln reports 0 Warning(s), 0 Error(s) for both App target frameworks under TreatWarningsAsErrors, run after confirming no DungeonMaster.App process is holding DungeonMaster.App.Core.dll, which otherwise fails the build with MSB3026/MSB3027.",
+        "KNOWN AND EXPECTED: after this task dotnet test C:/dm-wt/6b-vi/src/DungeonMaster.Tests/DungeonMaster.Tests.csproj fails exactly one test, FloorDragHandleTests.TheDragHandleStillHostsTheReorderGestureAndNothingElseDoes, which asserts the handle is a Label. That file is T4's and is outside this task's ownership set; this task must not edit it. No other test newly fails.",
+        "Every file this task modified is still CRLF: for each, python -c \"b=open(r'<path>','rb').read(); print(b.count(b'\\r\\n'), b.count(b'\\n'))\" prints two equal numbers. No tracked file was edited with sed -i, a shell redirect, or a whole-file script rewrite — section 1 of the C2 contract overrides the harness's default instruction on this point, and the LF rewrite has failed this build twice before."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Tests for the keyboard reorder decision, and the drag-handle ratchet updated to Button",
+      "agent": "dir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/AppCore/FloorReorderKeysTests.cs",
+        "src/DungeonMaster.Tests/App/Layout/FloorDragHandleTests.cs"
+      ],
+      "dependsOn": ["T1", "T3"],
+      "acceptance": [
+        "C:/dm-wt/6b-vi/src/DungeonMaster.Tests/AppCore/FloorReorderKeysTests.cs exists in namespace DungeonMaster.Tests.AppCore, matching its sibling FloorReorderDropTests.cs, and covers every row of section 4.1's table in C:/Users/dmarq/Development/Repos/dungeon-master/.dir-sdlc/sessions/2026-09-16-floor-sidebar-keyboard-route/contracts/C1-keyboard-reorder-route.md plus both successful directions: fewer than two floors, a focused number below 1, a focused number above the count, up at the top floor, down at the bottom floor, a successful move up, and a successful move down.",
+        "Every test name states its condition and its expected outcome, in the Decide_With...Does... shape FloorReorderDropTests already uses, and no name claims more than its assertions check.",
+        "Each test asserts only on the returned FloorKeyboardReorderDecision — its ShouldReorder and its TargetFloorNumber — and on no private state.",
+        "THE SUITE IS SHOWN ABLE TO FAIL, BY THE SHAPE OF THE REAL DEFECT. With FloorReorderKeys.Decide temporarily changed so a move up returns focusedFloorNumber + 1 instead of focusedFloorNumber - 1, dotnet test on DungeonMaster.Tests fails; and a boundary test that must still pass — up at the top floor, which returns None either way — does still pass in that same run. A direction inversion is the right shape because it is the defect that silently reorders the wrong way while every boundary still behaves, and a wholesale red run would prove only that the tests execute. Both the failing test name and the still-passing control name are named. The injection is made in the worktree file, which T1 and T3 have both finished and no live peer holds, and is reverted before this task reports; the revert is shown by the suite passing again.",
+        "FloorDragHandleTests.TheDragHandleStillHostsTheReorderGestureAndNothingElseDoes is updated: it now asserts the handle's qualified element name is Button rather than Label, its reason strings cite section 1 of this session's C1 contract rather than the expired 6b-iv contract, and the remark claiming OnKeyDown has no reorder key is replaced, because after T3 it has one. Its three DragGestureRecognizer assertions — exactly one in the document, DragStarting=\"OnDragStarting\", DropCompleted=\"OnDropCompleted\" — are kept unchanged, because C1 section 1.1 still freezes all three.",
+        "FloorDragHandleTests.TheHandleIsWidenedByPaddingRatherThanByTheGlyph is unchanged: C1 section 1 preserves every property it asserts — Padding, BackgroundColor, FontSize, and the absence of HeightRequest and MinimumHeightRequest. A change to it would mean T3 moved something that was pinned.",
+        "A new test asserts that the handle carries the exact SemanticProperties.Hint string frozen in section 5 of the C1 contract. That string is the only place a screen-reader user learns the keyboard route exists, and nothing else in the repository guards it.",
+        "The new test file's class doc comment states what these tests do NOT cover: whether WinUI delivers a Ctrl+arrow KeyDown to the page's handler while a Button holds focus is not reachable in process, so the tests cover the decision and the markup and say so, rather than implying coverage of the platform half. FloorReorderDropTests' own doc comment is the precedent.",
+        "dotnet test C:/dm-wt/6b-vi/src/DungeonMaster.Tests/DungeonMaster.Tests.csproj reports 0 failures, and dotnet build C:/dm-wt/6b-vi/src/DungeonMaster.sln reports 0 Warning(s), 0 Error(s) for both App target frameworks, run after confirming no DungeonMaster.App process is holding DungeonMaster.App.Core.dll.",
+        "The new test file is CRLF and ends with a newline, per section 1.1 of the C2 contract, and the edited FloorDragHandleTests.cs is still CRLF: for each, python -c \"b=open(r'<path>','rb').read(); print(b.count(b'\\r\\n'), b.count(b'\\n'))\" prints two equal numbers. FloorDragHandleTests.cs was changed with the Edit tool and not with sed -i or a shell redirect."
+      ]
+    }
+  ]
+}

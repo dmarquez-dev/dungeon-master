@@ -1,55 +1,62 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.UpdateDungeon;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class UpdateDungeonCommandHandlerTests
+public sealed class UpdateDungeonCommandHandlerTests : DungeonNotFoundHandlerTestBase<UpdateDungeonCommandHandler>
 {
-    private readonly IDungeonWriteRepository _writeRepository;
-    private readonly UpdateDungeonCommandHandler _handler;
+	/// <inheritdoc />
+	protected override UpdateDungeonCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
-    public UpdateDungeonCommandHandlerTests()
-    {
-        _writeRepository = Substitute.For<IDungeonWriteRepository>();
-        _handler = new UpdateDungeonCommandHandler(_writeRepository);
-    }
+	[Fact]
+	public async Task HandleAsync_WithExistingDungeon_UpdatesAndReturnsSuccess()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Old Name", "Old Desc");
+		WriteRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
+		var command = new UpdateDungeonCommand(dungeon.Id, "New Name", "New Desc", "My Notes");
 
-    [Fact]
-    public async Task HandleAsync_WithExistingDungeon_UpdatesAndReturnsSuccess()
-    {
-        // Arrange
-        var dungeon = new Dungeon("Old Name", "Old Desc");
-        _writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
-        _writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+		// Act
+		var result = await Handler.HandleAsync(command, CancellationToken.None);
 
-        var command = new UpdateDungeonCommand(dungeon.Id, "New Name", "New Desc", "My Notes");
+		// Assert
+		result.IsSuccess.Should().BeTrue();
+		dungeon.Name.Should().Be("New Name");
+		dungeon.Notes.Should().Be("My Notes");
+		WriteRepository.Received(1).Update(dungeon);
+	}
 
-        // Act
-        var result = await _handler.HandleAsync(command, CancellationToken.None);
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
+	{
+		var result = await Handler.HandleAsync(
+			new UpdateDungeonCommand(Guid.NewGuid(), "Name", null, null),
+			CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        dungeon.Name.Should().Be("New Name");
-        dungeon.Notes.Should().Be("My Notes");
-        await _writeRepository.Received(1).UpdateAsync(dungeon, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task HandleAsync_WithNonExistentId_ReturnsNotFoundFailure()
-    {
-        // Arrange
-        _writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
-
-        // Act
-        var result = await _handler.HandleAsync(
-            new UpdateDungeonCommand(Guid.NewGuid(), "Name", null, null), CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
-    }
+		return (result.IsSuccess, result.ErrorCategory);
+	}
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="cancellationToken">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
+		Handler.HandleAsync(
+			new UpdateDungeonCommand(Guid.NewGuid(), "Name", null, null),
+			cancellationToken);
 }

@@ -24,4 +24,9 @@ public enum ErrorCategory
 	///		The caller is not authenticated and cannot perform this operation.
 	/// </summary>
 	Unauthorized,
+
+	/// <summary>
+	///		The caller is authenticated but is not permitted to perform this operation.
+	/// </summary>
+	Forbidden,
 }

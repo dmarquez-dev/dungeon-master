@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DungeonMaster.App.Services.Navigation;
+using DungeonMaster.Application.Common.Results;
 using AppDispatcher = DungeonMaster.Application.Common.Dispatch.IDispatcher;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 using DungeonMaster.Application.Features.Dungeons.Queries.GetDungeons;
@@ -10,7 +12,9 @@ namespace DungeonMaster.App.ViewModels;
 /// <summary>
 ///		Provides data and commands for the dungeon list page.
 /// </summary>
-public partial class DungeonListViewModel(AppDispatcher dispatcher) : ObservableObject
+public partial class DungeonListViewModel(
+	AppDispatcher dispatcher,
+	INavigationService navigation) : ObservableObject
 {
 	private readonly ObservableCollection<DungeonSummaryDto> _allDungeons = [];
 
@@ -78,7 +82,7 @@ public partial class DungeonListViewModel(AppDispatcher dispatcher) : Observable
 	[RelayCommand]
 	private async Task DeleteDungeonAsync(Guid id)
 	{
-		var result = await dispatcher.SendAsync<bool>(
+		var result = await dispatcher.SendAsync(
 			new DeleteDungeonCommand(id),
 			CancellationToken.None);
 
@@ -88,7 +92,7 @@ public partial class DungeonListViewModel(AppDispatcher dispatcher) : Observable
 		}
 		else
 		{
-			ErrorMessage = result.Error;
+			ErrorMessage = ResultMessage.ForFailure(result);
 		}
 	}
 
@@ -100,5 +104,5 @@ public partial class DungeonListViewModel(AppDispatcher dispatcher) : Observable
 	/// </param>
 	[RelayCommand]
 	private async Task NavigateToDetailAsync(Guid id) =>
-		await Shell.Current.GoToAsync($"dungeondetail?id={id}");
+		await navigation.GoToAsync($"{ShellRoutes.DungeonDetail}?{ShellRoutes.IdQueryKey}={id}");
 }

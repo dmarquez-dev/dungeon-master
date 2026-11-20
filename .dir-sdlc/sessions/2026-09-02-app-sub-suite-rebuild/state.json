@@ -1,0 +1,353 @@
+{
+  "session": "2026-09-02-app-sub-suite-rebuild",
+  "updatedAt": "2026-09-08T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:\\dm-wt\\2026-09-02-app-sub-suite-rebuild",
+  "branch": "dir/2026-09-02-app-sub-suite-rebuild",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "83ba80c18b6592820bf091031dec46bb2456a888",
+      "commit": "573c329"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "83ba80c18b6592820bf091031dec46bb2456a888",
+      "commit": "405f576"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "83ba80c18b6592820bf091031dec46bb2456a888",
+      "commit": "ea06a76"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "405f576",
+      "commit": "8f7e88a"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "1ea5394",
+      "commit": "de371fb"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "ec4ad67",
+      "commit": "0b46510"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 1,
+      "startRef": "ec4ad67",
+      "commit": "3328b05"
+    },
+    {
+      "id": "T8",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "405f576",
+      "commit": "1ea5394"
+    },
+    {
+      "id": "T9",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "1ea5394",
+      "commit": "ec4ad67"
+    },
+    {
+      "id": "T10",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "ea06a76",
+      "commit": "d672cd2"
+    },
+    {
+      "id": "T11",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "3328b05",
+      "commit": "4133a68"
+    },
+    {
+      "id": "T12",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "3328b05",
+      "commit": "ece1bcc"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "Which testing approach should the App sub-suite rebuild be built on: fix the static analysis in place, move to the 6a MAUI host, or take Microsoft's documented plain-net10.0 TFM path?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Measure the documented plain-net10.0 path first rather than choosing on reading. After the measurement came back green, the user chose that path, but with the App-referencing tests in a NEW DungeonMaster.App.UnitTests project rather than referencing App from the existing DungeonMaster.Tests -- which avoids importing 18 MAUI global usings into the 640-test project and the 31 CS0104 errors that came with them. DungeonMaster.Tests is left unchanged; DungeonMaster.App.Tests and its MauiHostFixture are kept as they are."
+    },
+    {
+      "id": "E2",
+      "question": "The Appium end-to-end task the user scoped in has no prerequisites installed on this machine -- no appium CLI and no WinAppDriver, though Node v25.2.1 and npm 11.6.2 are present. Should the user install them so the task can drive a real interaction, should the task stop short of driving one, or should it move to the backlog?",
+      "reason": "external-contract",
+      "resolved": true,
+      "answer": "The user installs the appium CLI, the windows driver and WinAppDriver 1.2.1, and the task then carries acceptance criteria requiring an actually-driven interaction against the running app. The task is therefore blocked until those installs are done."
+    },
+    {
+      "id": "E3",
+      "question": "Is src/DungeonMaster.App.UiTests added to src/DungeonMaster.sln? Every other project is, but its tests cannot pass without an Appium server and a built app, so a solution-wide dotnet test would fail by default everywhere.",
+      "reason": "ambiguous",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "Leave it out of the solution, with a README and the build/run commands in its criteria.",
+          "rationale": "Its tests cannot pass without an Appium server and a built app, so including it makes a solution-wide dotnet test fail by default everywhere. The solution file has one owner (T1) and a second writer would race it. T11 stays the one task droppable at Gate 2 without disturbing anything.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.sln",
+              "manifest.json T1 owns"
+            ]
+          }
+        },
+        {
+          "summary": "Add it, with T1 writing the solution entry and T11 depending on T1 (which it already does).",
+          "rationale": "Every other project is in the solution and consistency has value. Cost: the solution build is broken between T1 and T11 landing.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.sln"
+            ]
+          }
+        },
+        {
+          "summary": "Add it and suppress test discovery with a project property.",
+          "rationale": "Would give consistency without the default-failure cost, but no clean property was confirmed that suppresses VSTest discovery without also suppressing build. Stated as belief, not fact.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ],
+      "answer": "Leave src/DungeonMaster.App.UiTests out of src/DungeonMaster.sln, compensated by a README and by the build and run commands living in T11's acceptance criteria. Its tests cannot pass without a running Appium server, so including it would make a solution-wide dotnet test fail by default for everyone, and T11 stays the one task droppable at Gate 3 without disturbing anything."
+    },
+    {
+      "id": "E4",
+      "question": "Which Appium.WebDriver client version speaks to the installed Appium 3.7.0 server? No version is named in any criterion.",
+      "reason": "external-contract",
+      "resolved": true,
+      "options": [
+        {
+          "summary": "8.3.2, but proven by an opened session before it is pinned.",
+          "rationale": "Latest on nuget.org; depends on Selenium.WebDriver 4.46.0 and System.Drawing.Common 10.0.9, targets netstandard2.0. That it speaks to a 3.7.0 server is believed likely because both sides speak W3C WebDriver over HTTP, but that is judgment and the criterion requires T11 to establish it.",
+          "evidence": {
+            "kind": "external",
+            "sources": [
+              "https://api.nuget.org/v3-flatcontainer/appium.webdriver/index.json"
+            ]
+          }
+        },
+        {
+          "summary": "8.0.0, as Microsoft's page pins.",
+          "rationale": "Cited by the official MAUI UI-testing page, but that page assumes an Appium 2.x server and the installed server is 3.7.0. Ranked below 8.3.2 for that reason.",
+          "evidence": {
+            "kind": "external",
+            "sources": [
+              "https://learn.microsoft.com/dotnet/maui/deployment/ui-testing"
+            ]
+          }
+        }
+      ],
+      "answer": "No Appium.WebDriver version is pinned anywhere. T11 must open a real session against the installed Appium 3.7.0 server and establish the client version before pinning it, escalating if it cannot. 8.3.2 stays in the contract as the candidate to try first, marked explicitly as unproven against a 3.x server."
+    },
+    {
+      "id": "E5",
+      "taskId": "T7",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T7 criterion 7 and contract theme-source.md 3.2/3.3 cite GeometryScaleTests.cs:720-723 and :727-730 for the two comment patterns. The real locations are XmlCommentPattern at :838 and WholeLineCommentPattern at :845; the cited lines are inside a method body.",
+      "answer": "Amend the frozen artifacts now, before T4 and T8 dispatch, marking each correction inline with the finding and the command that showed it. Prefer citing patterns by name rather than by line wherever a contract cites a line that names a member, since a name cannot go stale when a file shifts."
+    },
+    {
+      "id": "E6",
+      "taskId": "T3",
+      "reason": "external-contract",
+      "resolved": true,
+      "question": "T3 added public static string QualifiedElementName(XName), additive and outside frozen contract theme-source.md section 3. It was needed because criterion 6 requires the qualification be asserted against a synthetic document while section 3 exposed the value only as a property over the real tree, giving no injection point.",
+      "answer": "Accept it into section 3 as declared surface. The reviewer judged the addition sound and confirmed it is logic-identical to TokenTypeMatchesTargetPropertyTests.QualifiedName at :471, which T8 may now delete as a duplicate.",
+      "options": [
+        {
+          "summary": "Accept QualifiedElementName into contract section 3 as declared surface.",
+          "rationale": "It is the minimum surface that makes criterion 6 satisfiable; criterion 5 forbids removals from sections 1 and 2, not additions; and it is logic-identical to an existing duplicate T8 could now delete.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "contracts/theme-source.md",
+              "src/DungeonMaster.Tests/App/Theme/TokenTypeMatchesTargetPropertyTests.cs:471"
+            ]
+          }
+        },
+        {
+          "summary": "Keep section 3 closed and narrow the method to internal.",
+          "rationale": "Preserves the frozen surface exactly, but the implementer stated plainly that criterion 6 then cannot be met as written and would need rewording too.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "The git diff --name-only clause used to prove which files a task changed cannot list untracked deliverables, and the shared worktree makes it report files belonging to other tasks. It recurs in T4 criterion 9, T8 criterion 13 and T9 criterion 12.",
+      "answer": "Amend now. Replace with git status --porcelain scoped to the task's owns globs, which lists tracked and untracked alike and scopes away peer work; the architect was also asked to sweep every other task's criteria for the same clause.",
+      "options": [
+        {
+          "summary": "Replace with git status --porcelain scoped to the task's owns globs.",
+          "rationale": "Lists tracked and untracked alike and scopes away peer work. The only form every task in this session can actually run.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "reviews/T3.md advisory A1"
+            ]
+          }
+        },
+        {
+          "summary": "Keep git diff --name-only and pair it with git ls-files --others --exclude-standard.",
+          "rationale": "Preserves the original wording at the cost of two commands.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "contracts/anti-vacuity.md section 1.1 calls itself a full inventory of fourteen helper-assertion sites across eight files and states every one is retired. There are at least sixteen across nine: DmThemeKeysResolveTests.cs:195 and :222 are omitted.",
+      "answer": "Amend to sixteen across nine, adding the two rows against T9 so its report has a row to close rather than an implication to infer. An inventory that calls itself complete and is not is exactly the defect class this contract exists to prevent. The architect was additionally warned that :222 is the assertion currently protecting DmThemeKeysResolveTests from vacuity, so T9's rewrite must not delete it."
+    },
+    {
+      "id": "E9",
+      "taskId": "T4",
+      "reason": "external-contract",
+      "resolved": true,
+      "question": "T4 needed a shared {StaticResource ...} reference scan in two of its files and contract theme-source.md declares no member for it. It declared internal static class ThemeMarkupReferences inside ThemeTokenParityTests.cs because it owned no file the type belonged in, and reported that as a working answer rather than the right one.",
+      "answer": "Move it to ThemeSource as declared section 3 surface, in follow-up work with the ownership to edit ThemeSource.cs. It is a shared XAML-reading primitive, which is what ThemeSource exists to hold -- the same reasoning that put BlankXmlComments and DecodeCharacterEntities there.",
+      "options": [
+        {
+          "summary": "Move it to ThemeSource as declared shared surface.",
+          "rationale": "It is a shared XAML-reading primitive, precisely what ThemeSource exists to hold; its current home is discoverable only by accident.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "contracts/theme-source.md sections 0 and 3"
+            ]
+          }
+        },
+        {
+          "summary": "Leave it where it is, documented.",
+          "rationale": "It works and is a single definition, with a doc comment saying where it belongs. Costs one act of discovery per future reader.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/App/Theme/ThemeTokenParityTests.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Split it into two private copies.",
+          "rationale": "None defensible; listed only because it is what a task under time pressure does. MASTER-138 is the record of this going wrong.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "docs/audit/05-tests.md TEST-028"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "Three theme-source.md members now have no consumer outside their own tests: ThemeFileText has zero external call sites, and KeyDefinitionPattern and LegacyTolerantKeyDefinitionPattern are reached only from T3's own ThemeSourceTests. This is the implementer-with-no-consumer shape the coverage mapping exists to surface.",
+      "answer": "Record it in coverage.md's contract-operation table and present it at Gate 3 with its weight stated plainly, rather than triggering removal work mid-session. Removing them now would need a task sequenced after every remaining consumer lands, and the answer may still change as T5, T6, T7 and T9 complete."
+    },
+    {
+      "id": "E11",
+      "taskId": "T9",
+      "reason": "external-contract",
+      "resolved": true,
+      "question": "T9 criterion 4 requires DmTheme.Resolve<T> to be called for every Dm* key in the live merged dictionaries. Resolve<T> is private at DmTheme.cs:553, ColorByKey is internal at :383, and AssemblyInfo.cs grants InternalsVisibleTo to DungeonMaster.App.Tests only -- not to DungeonMaster.App.UnitTests. The criterion is not implementable from any assembly.",
+      "answer": "Accept the accessor sweep T9 implemented and amend criterion 4 to name it. Accessors() derives the call-site set by reflection over DmTheme's public static properties -- derived, not transcribed -- and reading each executes the real private Resolve<T> with the real key and real T against the live dictionaries. The behavioural claim is fully covered and nothing is tested through a private member.",
+      "options": [
+        {
+          "summary": "Accept the accessor sweep; amend criterion 4 to name it.",
+          "rationale": "The accessor set is every Resolve<T> call site the application actually has, and nothing is tested through a private member.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/Theme/DmTheme.cs:553",
+              "src/DungeonMaster.App/AssemblyInfo.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Make Resolve<T> internal and grant InternalsVisibleTo to DungeonMaster.App.UnitTests.",
+          "rationale": "Enables criterion 4 literally and four projects already use the pattern, but widens an API the author deliberately kept private and touches files outside T9's ownership.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.App/AssemblyInfo.cs"
+            ]
+          }
+        },
+        {
+          "summary": "Reflection-invoke the private Resolve<T>.",
+          "rationale": "Asserts an implementation detail rather than behaviour; commit ff45a45 in this repository removed reflection from a test for that reason.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "reason": "ambiguous",
+      "resolved": true,
+      "question": "T9 measured that a MAUI ResourceDictionary loaded from a Source reports its entries through Count and Keys but yields nothing from its IEnumerable enumerator -- Count 89, Keys.Count 89, foreach 0. Any future task enumerating Application.Current.Resources with foreach will silently examine nothing. Where should the finding be recorded?",
+      "answer": "Both: a note in contracts/app-unit-tests-project.md beside AppFixture, where the next consumer of the live dictionaries will read it, and a dated entry in .dir-sdlc/backlog.md at Gate 3 so it survives the session."
+    }
+  ],
+  "metrics": {
+    "userInteractions": 10,
+    "escalationsRaised": 12,
+    "reviewRounds": 0
+  }
+}

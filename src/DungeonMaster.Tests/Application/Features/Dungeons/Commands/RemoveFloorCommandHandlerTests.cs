@@ -1,52 +1,96 @@
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 using DungeonMaster.Application.Features.Dungeons.Commands.RemoveFloor;
-using DungeonMaster.Domain.Entities.Dungeon;
+using DungeonMaster.Domain.Entities.Dungeons;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
 namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 
-public class RemoveFloorCommandHandlerTests
+public sealed class RemoveFloorCommandHandlerTests : DungeonNotFoundHandlerTestBase<RemoveFloorCommandHandler>
 {
-    private readonly IDungeonWriteRepository _writeRepository;
-    private readonly RemoveFloorCommandHandler _handler;
+	/// <inheritdoc />
+	protected override RemoveFloorCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
-    public RemoveFloorCommandHandlerTests()
-    {
-        _writeRepository = Substitute.For<IDungeonWriteRepository>();
-        _handler = new RemoveFloorCommandHandler(_writeRepository);
-    }
+	[Fact]
+	public async Task HandleAsync_WithExistingFloor_RemovesFloorAndReturnsSuccess()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Test Dungeon");
+		var floor = dungeon.AddFloor("Entry");
+		WriteRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
+		// Act
+		var result = await Handler.HandleAsync(new RemoveFloorCommand(dungeon.Id, floor.Id), CancellationToken.None);
 
-    [Fact]
-    public async Task HandleAsync_WithExistingFloor_RemovesFloorAndReturnsSuccess()
-    {
-        // Arrange
-        var dungeon = new Dungeon("Test Dungeon");
-        var floor = dungeon.AddFloor("Entry");
-        _writeRepository.LoadAsync(dungeon.Id, Arg.Any<CancellationToken>()).Returns(dungeon);
-        _writeRepository.UpdateAsync(Arg.Any<Dungeon>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+		// Assert
+		result.IsSuccess.Should().BeTrue();
+		dungeon.Floors.Should().BeEmpty();
+	}
 
-        // Act
-        var result = await _handler.HandleAsync(new RemoveFloorCommand(dungeon.Id, floor.Id), CancellationToken.None);
+	/// <summary>
+	///		Dispatches this leaf's command for a dungeon identifier the repository will not resolve.
+	/// </summary>
+	/// <returns>
+	///		The success flag and error category of the result the handler returned.
+	/// </returns>
+	protected override async Task<(bool IsSuccess, ErrorCategory? ErrorCategory)> InvokeWithMissingDungeonAsync()
+	{
+		var result = await Handler.HandleAsync(
+			new RemoveFloorCommand(Guid.NewGuid(), Guid.NewGuid()),
+			CancellationToken.None);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        dungeon.Floors.Should().BeEmpty();
-    }
+		return (result.IsSuccess, result.ErrorCategory);
+	}
 
-    [Fact]
-    public async Task HandleAsync_WithNonExistentDungeon_ReturnsNotFoundFailure()
-    {
-        // Arrange
-        _writeRepository.LoadAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns((Dungeon?)null);
+	/// <summary>
+	///		Verifies that an unknown floor identifier reports not-found and does not write the unchanged aggregate back.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownFloorId_ReturnsNotFoundAndDoesNotSave()
+	{
+		// Arrange
+		var dungeon = new Dungeon("Test Dungeon");
+		dungeon.AddFloor("Entry");
 
-        // Act
-        var result = await _handler.HandleAsync(
-            new RemoveFloorCommand(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
+		WriteRepository
+			.LoadAsync(
+				dungeon.Id,
+				Arg.Any<CancellationToken>())
+			.Returns(dungeon);
 
-        // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
-    }
+		var command = new RemoveFloorCommand(
+			dungeon.Id,
+			Guid.NewGuid());
+
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
+
+		// Assert
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+
+		WriteRepository
+			.DidNotReceive()
+			.Update(Arg.Any<Dungeon>());
+
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
+	}
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="cancellationToken">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
+		Handler.HandleAsync(
+			new RemoveFloorCommand(Guid.NewGuid(), Guid.NewGuid()),
+			cancellationToken);
 }

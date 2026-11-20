@@ -1,3 +1,4 @@
+using DungeonMaster.App.Services.Navigation;
 using DungeonMaster.App.Views;
 
 namespace DungeonMaster.App;
@@ -14,7 +15,7 @@ public partial class AppShell : Shell
 	{
 		InitializeComponent();
 		Routing.RegisterRoute(
-			"dungeondetail",
+			ShellRoutes.DungeonDetail,
 			typeof(DungeonDetailPage));
 	}
 }

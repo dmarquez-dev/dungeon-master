@@ -1,0 +1,105 @@
+{
+  "session": "2026-10-09-uikit-layer-batch",
+  "updatedAt": "2026-10-09T00:00:00Z",
+  "phase": "merged",
+  "worktree": "C:/dm-wt/6b-xviii",
+  "branch": "dir/2026-10-09-uikit-layer-batch",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "57b7eba",
+      "commit": "b1b7c606eb6c0855440fdf01541c8d424c2ba834"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "57b7eba",
+      "commit": "11603b39ca81e18b3da847e92056415533421510"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "57b7eba",
+      "commit": "f3fed5c42df24afb1c63e6cd13404889bd283b45"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "57b7eba",
+      "commit": "d09abc6a40b90a90dd6ce72523703d40c4e6e267"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "57b7eba",
+      "commit": "b1ec0d3a1b2fd0eb1aadd362cd894cc850a24cea"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "57b7eba",
+      "commit": "be3522d85a97a29a8982a3ca1180b54d9e5732b1"
+    },
+    {
+      "id": "T7",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "b1b7c60",
+      "commit": "8276168aba9f8cccf88c97715c8694a6ec023c06"
+    },
+    {
+      "id": "T8",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "8276168",
+      "commit": "d75a88c0b9ba2bf8bec5baee7869cef453a9837c"
+    },
+    {
+      "id": "T9",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "d75a88c",
+      "commit": "bbb371869cbe77fd57a0f15114bdc0e3f76eee13"
+    }
+  ],
+  "escalations": [],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "gate3-X1",
+      "artifact": "manifest.json",
+      "before": "T9.acceptance[12] asserted MASTER-148's citation was the ONLY one of the eight whose line numbers survived unchanged.",
+      "after": "It reads 'one of only TWO', naming MASTER-151's exact Controls.Semantic.xaml:35-66, with the propagation path recorded.",
+      "inFlight": []
+    },
+    {
+      "id": "A2",
+      "escalation": "gate3-X2",
+      "artifact": "manifest.json",
+      "before": "T9.acceptance[18] called the 1028 baseline ATTRIBUTED to 6b-xvii and NOT measured by this session.",
+      "after": "It records the baseline as measured by this session's orchestrator in this worktree at 57b7eba, reproducing 6b-xvii's figure exactly.",
+      "inFlight": []
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "id": "20261118-0052-c3-census-citation",
+  "name": "c3-census-citation",
+  "scope": "small",
+  "status": "WRAPPED",
+  "started": "2026-11-18T00:53:54Z",
+  "ended": "2026-11-18T01:08:55Z",
+  "parent": null,
+  "children": [],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "How should the stale `PathSegment.cs:83-85` citation in the wrapped session 20261105-1907-core-heavy-rows's frozen contract `contracts/C3-enum-census.md:182` be corrected: in place with an inline dated note, as an erratum below the table leaving the line untouched, or in place with no note?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "At Gate 1 the user chose the recommended option: correct in place with an inline dated note naming this session and the old figure."
+    }
+  ],
+  "runs": [
+    {
+      "cc": "8757226e-a46b-4cbc-b574-3a0185d46d83",
+      "phase": "small",
+      "sir": "1.0.45",
+      "started": "2026-11-18T00:53:54Z",
+      "ended": "2026-11-18T01:03:28Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "8757226e-a46b-4cbc-b574-3a0185d46d83",
+      "phase": "wrap",
+      "sir": "1.0.45",
+      "started": "2026-11-18T01:08:36Z",
+      "ended": "2026-11-18T01:08:55Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 2,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  },
+  "criteria": [
+    "C1: In `.sir/sessions/20261105-1907-core-heavy-rows/contracts/C3-enum-census.md`, on the row-1 (`PathSegmentKind`) line (`:182` at d8706e5), the text `throwing for an undefined one at `:83-85`` reads `throwing for an undefined one at `:82-85` [corrected from `:83-85` by 20261118-0052-c3-census-citation, 2026-11-18]`, so the citation spans `throw new ArgumentOutOfRangeException(` (`src/DungeonMaster.Domain/ValueObjects/PathSegment.cs:82`, by `grep -n -e throw -e else`) through the statement's end at `:85`; nothing else on that line changes.",
+    "C2: `git diff --numstat -- .sir/sessions/20261105-1907-core-heavy-rows/contracts/C3-enum-census.md` prints `1 1`; the file stays without a BOM and LF-only, with a Python byte count giving 0 `\r` and 206 `\n` (as at d8706e5, measured by the orchestrator 2026-11-18).",
+    "C3: Apart from this session's own directory and `.sir/backlog.md`, no tracked file differs from d8706e5 (`git status --short`).",
+    "C4: On approval, the `.sir/backlog.md` row at `:152` (20261105-1907-core-heavy-rows, correct the undefined-`PathSegmentKind` throw citation) is removed and no other backlog line changes; the file stays all-CRLF with no lone CR (164 CRLF, 164 LF, 164 CR at d8706e5, so 163 of each after)."
+  ],
+  "pushed": true
+}

@@ -1,41 +1,29 @@
 using DungeonMaster.Application.Common.Dispatch;
+using DungeonMaster.Application.Common.Handlers;
+using DungeonMaster.Application.Common.Interfaces;
 using DungeonMaster.Application.Common.Results;
-using DungeonMaster.Application.Features.Dungeons;
 
 namespace DungeonMaster.Application.Features.Dungeons.Commands.RemoveArea;
 
 /// <summary>
 ///		Handles the <see cref="RemoveAreaCommand"/> by removing the specified area from the dungeon aggregate.
-///		Returns a not-found result if no dungeon exists with the given identifier.
+///		Returns a not-found result if no dungeon exists with the given identifier, or if the aggregate has no matching floor or area.
 /// </summary>
 public sealed class RemoveAreaCommandHandler(
-	IDungeonWriteRepository writeRepository)
-		: ICommandHandler<RemoveAreaCommand, bool>
+	IUnitOfWorkFactory unitOfWorkFactory)
+		: ICommandHandler<RemoveAreaCommand>
 {
 	/// <inheritdoc/>
-	public async Task<Result<bool>> HandleAsync(
+	public Task<Result> HandleAsync(
 		RemoveAreaCommand command,
-		CancellationToken ct)
-	{
-		var dungeon = await writeRepository.LoadAsync(
-			command.DungeonId,
-			ct);
-
-		if (dungeon is null)
-		{
-			return Result<bool>.Failure(
-				$"Dungeon {command.DungeonId} not found.",
-				ErrorCategory.NotFound);
-		}
-
-		dungeon.RemoveArea(
-			command.FloorId,
-			command.AreaId);
-
-		await writeRepository.UpdateAsync(
-			dungeon,
-			ct);
-
-		return Result<bool>.Success(true);
-	}
+		CancellationToken cancellationToken) =>
+			unitOfWorkFactory.MutateAsync(
+				command.DungeonId,
+				dungeon =>
+					dungeon
+						.RemoveArea(
+							command.FloorId,
+							command.AreaId)
+						.ToResult($"Area {command.AreaId} not found."),
+				cancellationToken);
 }

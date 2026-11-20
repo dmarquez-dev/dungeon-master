@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\DungeonMaster.Domain\DungeonMaster.Domain.csproj" />
+		<ProjectReference Include="..\DungeonMaster.Application\DungeonMaster.Application.csproj" />
+	</ItemGroup>
+
+</Project>

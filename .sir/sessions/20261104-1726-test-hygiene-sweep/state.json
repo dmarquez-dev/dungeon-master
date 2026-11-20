@@ -1,0 +1,168 @@
+{
+  "session": "20261104-1726-test-hygiene-sweep",
+  "updatedAt": "2026-11-04T20:41:36Z",
+  "worktree": "C:/dm-wt/20261104-1726-test-hygiene-sweep",
+  "branch": "agent/20261104-1726-test-hygiene-sweep",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261104-1726-test-hygiene-sweep/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:32.89"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261104-1726-test-hygiene-sweep/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed:     0, Passed:   187, Skipped:     0, Total:   187 - DungeonMaster.App.UnitTests.dll (net10.0) | Passed!  - Failed:     0, Passed:   943, Skipped:     0, Total:   943 - DungeonMaster.Tests.dll (net10.0) | Passed!  - Failed:     0, Passed:   123, Skipped:     0, Total:   123 - DungeonMaster.App.Tests.dll (net10.0)"
+    }
+  ],
+  "tasks": [
+    { "id": "T1", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "9c931b4abda23eed7c08cb40ec9931382473991b", "commit": "38d7a5a860935806c91b189c219fae7fd44c696d", "model": "opus" },
+    { "id": "T2", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "38d7a5a860935806c91b189c219fae7fd44c696d", "commit": "c7e28780bea49bf54c264e8117b596bf33f78a29", "model": "opus" },
+    { "id": "T3", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "c7e28780bea49bf54c264e8117b596bf33f78a29", "commit": "b254b0bd40ba13018ffb92f2981bf9433ba9c2b3", "model": "opus" },
+    { "id": "T4", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "b254b0bd40ba13018ffb92f2981bf9433ba9c2b3", "commit": "5c39ec63ec741491fb68bd0831638576f18beb6b", "model": "opus" },
+    { "id": "T5", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "5c39ec63ec741491fb68bd0831638576f18beb6b", "commit": "28359e59f21b74ed44c37f1389fd16f70c6a825b", "model": "opus" },
+    { "id": "T6", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "28359e59f21b74ed44c37f1389fd16f70c6a825b", "commit": "2577caab376697de062cb86abd3fbd97f79740a6", "model": "opus" },
+    { "id": "T7", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "9c931b4abda23eed7c08cb40ec9931382473991b", "commit": "4dc348810d3521d101d6f94d9cfa657b6e76b081", "model": "opus" },
+    { "id": "T8", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "2577caab376697de062cb86abd3fbd97f79740a6", "commit": "a0bb22aa720a96e6387ff9dd81dbf5ee61c880c8", "model": "opus" }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T2",
+      "question": "Adding AAA markers (T2 criteria 1-2) leaves 4 pre-Act precondition assertions under // Arrange in AppCore/Editor/MapEditorStateTests.cs (:64, :85, :105, :257-259), so PA (C1 s2) is no longer clean and T8's criterion 'PA prints nothing over every .cs file under src/DungeonMaster.Tests' cannot hold. T2 criterion 2 forbids removing or reordering them. Which gives way? The same rule then binds T3 (Domain) and T4 (Infrastructure).",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Move guards out (the recommended option): delete a precondition assertion that a dedicated fact already covers, move the rest into guard facts of their own; applies to T3 and T4 as well.",
+      "options": [
+        {
+          "summary": "Take the guards out of Arrange, MASTER-128's own remedy: delete the 3 already covered by a dedicated fact (:11, :25, :221) and move the Idle-on-a-new-state guard into a new fact; amend T2 criteria 2, 3, 11 (+3 not +2) and T8's 952 to 953; same rule for T3/T4",
+          "rationale": "The backlog row says to move assertions out of Arrange blocks; PA stays a clean universal and the guarded properties keep their coverage",
+          "evidence": { "kind": "repo", "sources": [".sir/backlog.md:8", "src/DungeonMaster.Tests/AppCore/Editor/MapEditorStateTests.cs:11", "src/DungeonMaster.Tests/AppCore/Editor/MapEditorStateTests.cs:25", "src/DungeonMaster.Tests/AppCore/Editor/MapEditorStateTests.cs:221"] }
+        },
+        {
+          "summary": "Keep the guards in Arrange as precondition checks: amend C1 s2 and T8's PA criterion to exempt an unbound precondition assertion under // Arrange, and record the 4 sites in MASTER-128's cell",
+          "rationale": "The tree already matches; MASTER-128's measured defect was the two assertions bound into a local (.Which), and a precondition guard stops a vacuous pass",
+          "evidence": { "kind": "repo", "sources": ["contracts/C1-measurement.md"] }
+        },
+        {
+          "summary": "Keep the tree as is, leave PA's criterion unamended, and carry the 4 sites to Gate 3 as an unresolved finding and a backlog row",
+          "rationale": "Defers the decision, but T8 would close MASTER-128 with its own post-condition failing",
+          "evidence": { "kind": "judgment" }
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "taskId": "T3",
+      "question": "Criterion 7 (T3) and its T4 counterpart say a renamed method's body is unchanged (C2 s6), but aaa.pl flags all three renamed methods at startRef (Domain ObjectKindGuardTests.cs:66, MutationOutcomeZeroValueTests.cs:19; Infrastructure ConfigureAwaitDisciplineTests.cs:37), so criterion 1's 'aaa.pl prints nothing' cannot hold. May a renamed body take the same AAA edits as its siblings?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Allow AAA edits (the recommended option): a renamed body may take markers, blank lines and Act-value extraction and nothing else; applies to T3 and T4.",
+      "options": [
+        {
+          "summary": "Amend T3 c7 / T4's matching criterion and C2 s6: a renamed body may take the criterion-2 edit classes (markers, blank lines, Act-value extraction) and nothing else",
+          "rationale": "The bodies get exactly what every sibling got; MASTER-137 closes with aaa.pl clean in all three sub-trees; no follow-up needed",
+          "evidence": { "kind": "repo", "sources": ["contracts/C2-naming.md", "contracts/C1-measurement.md"] }
+        },
+        {
+          "summary": "Amend criterion 1 of T3/T4 and T8's closing aaa.pl criterion to exempt the three renamed methods, and carry them to the backlog",
+          "rationale": "Keeps each rename an isolated identifier change in the diff, but leaves MASTER-137 open on 3 methods",
+          "evidence": { "kind": "judgment" }
+        },
+        {
+          "summary": "Commit as is, then give the three bodies their AAA edit in a separate follow-up commit inside this session",
+          "rationale": "Each commit satisfies its own letter; costs an extra task and commit",
+          "evidence": { "kind": "judgment" }
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "taskId": "T8",
+      "question": "C4 s1 requires MASTER-143's cell to state 'no doc comment was added or removed', and C1 s5:311-312 says no task adds or removes a doc comment; T5 added 7 /// <summary> blocks (660 -> 667 over src/DungeonMaster.Tests; DOC unchanged at 18 of 109). T8 wrote the scoped 'to close this row' form and disclosed the 7. Does criterion 14 hold to the literal sentence or the scoped one?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Amend to the scoped claim (the recommended option): C4 s1 MASTER-143 line, T8 criterion 14 and C1 s5 now say no doc comment was added or removed to close this row, with session-added doc comments disclosed.",
+      "options": [
+        {
+          "summary": "Amend C4 s1's MASTER-143 line, T8 criterion 14 and C1 s5:311-312 to the scoped claim; the cell and the TEST-025 block already satisfy it, no rework",
+          "rationale": "Keeps a measured-false universal out of the frozen artifacts the next session reads as authority",
+          "evidence": { "kind": "repo", "sources": ["contracts/C4-register.md", "contracts/C1-measurement.md", "docs/audit/00-master-index.md"] }
+        },
+        {
+          "summary": "Accept the scoped wording as a user ruling with no amendment",
+          "rationale": "Cheapest, but C4 and C1 s5 keep asserting something the session falsified",
+          "evidence": { "kind": "judgment" }
+        },
+        {
+          "summary": "Write the literal sentence into the cell",
+          "rationale": "Matches C4 word for word but puts a measured-false universal in the register",
+          "evidence": { "kind": "repo", "sources": ["contracts/C4-register.md"] }
+        }
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "T2/T3/T4 AAA criterion: no assertion removed or reordered; T2 +2 tests; T3/T4 delta 0; T8 952; MASTER-128 cell silent on preconditions",
+      "after": "T2/T3/T4 may remove a precondition left under // Arrange (covered by a named fact, else moved to a guard fact, red-step shown); new PA-per-subtree criteria; T2 +3; T3/T4 +guard facts; T8 952 + guard facts; MASTER-128 cell records them",
+      "inFlight": ["T2"]
+    },
+    {
+      "id": "A2",
+      "escalation": "E1",
+      "artifact": "contracts/C1-measurement.md",
+      "before": "Section 8: End of session: 943 + 2 + 7 = 952",
+      "after": "Section 8: 952 plus the E1 guard facts (T2 adds 1), with the guard rule stated",
+      "inFlight": ["T2"]
+    },
+    {
+      "id": "A3",
+      "escalation": "E2",
+      "artifact": "manifest.json",
+      "before": "T3 criterion 7 and T4 criterion 7: the renamed method's body is unchanged",
+      "after": "T3 c7 / T4 c7: body unchanged apart from the AAA edit classes criterion 2 allows (markers, blank lines, Act-value extraction)",
+      "inFlight": ["T3"]
+    },
+    {
+      "id": "A4",
+      "escalation": "E2",
+      "artifact": "contracts/C2-naming.md",
+      "before": "Section 6: a renamed method's body is unchanged; only the identifier and references change",
+      "after": "Section 6: same, except a renamed Domain/Infrastructure method flagged by aaa.pl may also take marker, blank-line and Act-value-extraction edits",
+      "inFlight": ["T3"]
+    },
+    {
+      "id": "A5",
+      "escalation": "E3",
+      "artifact": "contracts/C4-register.md",
+      "before": "Section 1 MASTER-143 row: no doc comment was added or removed",
+      "after": "Section 1 MASTER-143 row: no doc comment was added or removed to close this row; session-added summaries disclosed with count and predicate",
+      "inFlight": []
+    },
+    {
+      "id": "A6",
+      "escalation": "E3",
+      "artifact": "contracts/C1-measurement.md",
+      "before": "Section 5: no task in this session adds or removes a *Tests.cs file or a doc comment",
+      "after": "Section 5: no task adds or removes a *Tests.cs file, nor a doc comment to close MASTER-143; T5's split facts added 7 summaries",
+      "inFlight": []
+    },
+    {
+      "id": "A7",
+      "escalation": "E3",
+      "artifact": "manifest.json",
+      "before": "T8 criterion 14: carries what C4 s1 requires, incl. the exemption decision and README location",
+      "after": "T8 criterion 14: same, with the doc-comment statement as the scoped 'to close this row' claim plus disclosure",
+      "inFlight": []
+    }
+  ],
+  "metrics": {
+    "userInteractions": 7,
+    "escalationsRaised": 3,
+    "reviewRounds": 0
+  }
+}

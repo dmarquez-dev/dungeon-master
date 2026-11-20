@@ -1,0 +1,127 @@
+{
+	"session": "2026-09-14-pluralise-entity-namespaces",
+	"updatedAt": "2026-09-16T15:30:00Z",
+	"phase": "merged",
+	"worktree": "C:/dm-wt/6b-v",
+	"branch": "dir/2026-09-14-pluralise-entity-namespaces",
+	"tasks": [
+		{
+			"id": "T1",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "af4c65f86f7ae9c73d97d01ccd63077d8ed9aa65",
+			"commit": "070d535bdcf26ffe6aca0386bdc7b83eed825051"
+		},
+		{
+			"id": "T2",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "070d535bdcf26ffe6aca0386bdc7b83eed825051",
+			"commit": "f8d599f520005884e749021f177fbd704a3e455d"
+		},
+		{
+			"id": "T3",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "f8d599f520005884e749021f177fbd704a3e455d",
+			"commit": "a1f7dde0917211f9261ccdf669b08fe0b4ad85f6"
+		},
+		{
+			"id": "T4",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "734101377b728877729fd70395f132821435db00",
+			"commit": "cff1b3867de312086188e9981666351253cf5f01"
+		},
+		{
+			"id": "T5",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "615aeb9dabfd5b6392647d911812238f867a2fc3",
+			"commit": "d69601c007e6458693e2bd0183be714258ec1b5a"
+		},
+		{
+			"id": "T6",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "cff1b3867de312086188e9981666351253cf5f01",
+			"commit": "615aeb9dabfd5b6392647d911812238f867a2fc3"
+		},
+		{
+			"id": "T7",
+			"status": "done",
+			"revisionRounds": 0,
+			"redispatches": 0,
+			"startRef": "070d535bdcf26ffe6aca0386bdc7b83eed825051",
+			"commit": "734101377b728877729fd70395f132821435db00"
+		}
+	],
+	"escalations": [
+		{
+			"id": "E1",
+			"question": "Does updating the three *.Designer.cs migration snapshots count as editing a released migration, which disciplines/database.md forbids?",
+			"reason": "expensive-to-reverse",
+			"resolved": true,
+			"options": [
+				{
+					"summary": "Disposition U - update all 48 occurrences, snapshot and all three Designers",
+					"rationale": "The edit changes CLR type identity inside model metadata only. It alters no DDL, no ToTable name and no MigrationId, so the discipline's purpose - applied SQL must not change under a recorded identity - is not engaged.",
+					"evidence": "repo"
+				},
+				{
+					"summary": "Disposition S - update AppDbContextModelSnapshot.cs only (12), leave the 36, record a reason in each Designer",
+					"rationale": "Honours the discipline exactly as written. Cost is three historical snapshots naming CLR types that no longer exist.",
+					"evidence": "repo"
+				},
+				{
+					"summary": "Leave all 48 stale and scaffold a new migration",
+					"rationale": "Rejected by the architect - the migration would carry no DDL and would not fix the snapshot.",
+					"evidence": "judgment"
+				}
+			],
+			"answer": "Disposition U - update all 48 occurrences, the snapshot and all three Designers. Chosen at Gate 2 on the evidence that the Designer files contain no DDL, no ToTable name and no MigrationId, so the database discipline's purpose is not engaged. The user was told explicitly that the EF outcome is reasoned rather than measured; T3 still runs the control first and must not predict the result."
+		},
+		{
+			"id": "E2",
+			"question": "Coverage gap G1 - 78 stale folder-path citations across docs/audit/ become dead paths once T1 renames the folders. Fold into T7, take as its own task, or accept and carry to the backlog?",
+			"reason": "ambiguous",
+			"resolved": true,
+			"answer": "Fold G1 into T7. T7 widens to own docs/audit/01-domain-application.md, 00-master-index.md and 04-app-controls-and-theme.md, and fixes the 78 stale folder-path citations on 77 lines plus 04:261. CORE-004's own six-line locations: block stays singular as historical record. 05-tests.md is untouched - its 17 test-folder citations are unaffected because the test folders are not renamed."
+		},
+		{
+			"id": "E3",
+			"question": "A SECOND namespace collision, not covered by contracts/namespace-collision.md: the new Floors namespace is shadowed by the existing Dungeon.Floors property in EXPRESSION position. Floors.ObjectScale.Default at DungeonMethods.cs:381 fails with CS1061 because Floors resolves to IReadOnlyList<Floor> Floors (Dungeon.cs:48), not to the namespace. Type-name contexts are unaffected. How should the one expression-context site be written?",
+			"reason": "external-contract",
+			"resolved": true,
+			"options": [
+				{
+					"summary": "Keep full qualification at that one site: DungeonMaster.Domain.Entities.Floors.ObjectScale.Default",
+					"rationale": "Semantically identical, adds no using, and the fully-qualified shape already exists in the codebase. Confines the exception to one line without weakening the no-new-using rule the other five tasks are working under.",
+					"evidence": "repo"
+				},
+				{
+					"summary": "Add using DungeonMaster.Domain.Entities.Floors; to DungeonMethods.cs and write ObjectScale.Default",
+					"rationale": "Most idiomatic C# and the file already has a using block at line 1, so it is a one-line addition rather than a new block. Cost: it amends a frozen contract rule that five other tasks are currently following.",
+					"evidence": "repo"
+				},
+				{
+					"summary": "global::DungeonMaster.Domain.Entities.Floors.ObjectScale.Default",
+					"rationale": "Immune to any future shadowing. Cost: global:: appears exactly once in the repository (App.xaml.cs:22, MAUI bootstrap) and never in domain code, so it imports an unfamiliar shape.",
+					"evidence": "repo"
+				}
+			],
+			"answer": "Keep full qualification at the single expression-context site: DungeonMaster.Domain.Entities.Floors.ObjectScale.Default at DungeonMethods.cs:381. This is what T1 already wrote, so no rework. The exception is confined to one line; the no-new-using rule in target-namespaces.md section 4 is NOT amended and stays binding on T2-T6. Downstream tasks are told about the mechanism in their dispatch as orchestrator context, not as a contract change."
+		}
+	],
+	"metrics": {
+		"userInteractions": 4,
+		"escalationsRaised": 3,
+		"reviewRounds": 0
+	}
+}

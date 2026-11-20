@@ -1,0 +1,44 @@
+{
+  "id": "20261113-2202-single-line-exception-docs",
+  "name": "single-line-exception-docs",
+  "scope": "small",
+  "status": "WRAPPED",
+  "started": "2026-11-13T22:02:50Z",
+  "ended": "2026-11-13T22:40:00Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: No single-line `<exception>` doc element remains in tracked `src` C# files: `git grep -c -E '///\\s*<exception[^>]*>.*</exception>' -- 'src/*.cs'` prints 17 matches across 11 files at 9f3df4e and prints nothing after the change, with a control showing the same pattern still matches a scratch fixture line `<TAB>/// <exception cref=\"X\">a.</exception>` and does not match `<TAB>/// <exception cref=\"X\">`.",
+    "C2: Each of the 17 elements becomes exactly three `///` lines at the original indentation before `///`: `/// <exception cref=\"...\">` with the cref unchanged, one description line `///<TAB><TAB><text>` whose text is byte-identical to the original element's inner text, and `/// </exception>`. Evidence: `git diff --numstat 9f3df4e -- <file>` for each file shows deletions equal to its site count and additions equal to three times it (17 deleted and 51 added in all), and no line outside those elements changes.",
+    "C3: The I1 program from section 5 of `.sir/sessions/20261105-0106-core-two-row-sweep/contracts/C1-measurement.md`, run once per file over the 11 files (its fixture control printing only lines 2 and 3), prints after the change exactly the bodies it printed at 9f3df4e minus the 17 exception-element bodies, compared by body text since line numbers shift.",
+    "C4: Each of the 11 files keeps no BOM and all-CRLF line endings with no lone CR (Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`, `b.count(b'\\r')` all equal), and grows by exactly two lines per site from its 9f3df4e count: Floor.cs 94, FloorMethods.cs 282, AreaMethods.cs 56 (2 sites), CapturedSubscription.cs 110, ILongPressTimer.cs 42 (2 sites), CanvasLongPressDetector.cs 101, DispatcherLongPressTimer.cs 99, HoverOrLongPressBehavior.cs 159, FloorMapDrawable.cs 898 (5 sites), INavigationService.cs 30, UiTestEnvironment.cs 112.",
+    "C5: `dotnet build src/DungeonMaster.sln` and `dotnet build src/DungeonMaster.App.UiTests/DungeonMaster.App.UiTests.csproj` each report 0 Warning(s) and 0 Error(s), quoted from their summary lines, and `dotnet test src/DungeonMaster.sln --no-build` passes every test, with counts named per project and the full output saved to a scratch file before any filtering.",
+    "C6: On approval, backlog row `20261105-0106-core-two-row-sweep` (`.sir/backlog.md:157` at 9f3df4e, the single-line `<exception>` row) is removed and no other backlog line changes."
+  ],
+  "escalations": [],
+  "amendments": [],
+  "runs": [
+    {
+      "cc": "e768b033-f0e7-48eb-babd-e079c030c1d4",
+      "phase": "small",
+      "sir": "1.0.39",
+      "started": "2026-11-13T22:02:50Z",
+      "ended": "2026-11-13T22:37:21Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "e768b033-f0e7-48eb-babd-e079c030c1d4",
+      "phase": "wrap",
+      "sir": "1.0.39",
+      "started": "2026-11-13T22:40:00Z",
+      "ended": "2026-11-13T22:40:00Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}

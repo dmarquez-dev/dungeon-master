@@ -1,0 +1,155 @@
+{
+  "session": "2026-09-30-canvaspoint-finiteness-guard",
+  "createdAt": "2026-09-30",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Run and pin what SQLite does with a non-finite value in a REAL NOT NULL column",
+      "agent": "dir-database-engineer",
+      "domain": "database",
+      "owns": [
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointNonFinitePersistenceTests.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "The repository contains src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointNonFinitePersistenceTests.cs, a sealed class deriving from SqliteInMemoryTestBase, which persists a PlacedObject whose Position is new CanvasPoint(float.NaN, float.NaN) through the same Dungeon.AddPlacedObject -> IUnitOfWork.CommitAsync path that PlacedObjectConfigurationTests.cs:26-42 uses, and asserts the outcome that was actually observed when the test was run (a completed save, or a thrown exception of a named type).",
+        "The same file covers float.PositiveInfinity and float.NegativeInfinity for Position_X and Position_Y alongside float.NaN, each asserting its own observed outcome rather than one shared expectation.",
+        "Where the save completes, the same file asserts what a reload through DungeonWriteRepository.LoadAsync returns for Position.X and Position.Y. Where the save throws, no reload assertion is present and a comment in the file states which exception type was observed and that reload is therefore unreachable.",
+        "The same file contains a positive control asserting that a PlacedObject whose Position is a finite CanvasPoint saves and reloads with both coordinates intact, so a run in which every case throws cannot be misread as a SQLite rejection result.",
+        "The class-level XML doc comment on CanvasPointNonFinitePersistenceTests states in prose what SQLite was observed to do with a non-finite float written to a REAL NOT NULL column (throw on save, store NULL, or round-trip), names the test method that establishes it, and cites PlacedObjectConfiguration.cs:43-54 as the mapping under test. This is the finding T3 and T5 read.",
+        "Each test added by this task was seen failing before it was made to pass, or was shown to catch its defect by inverting its expected outcome and re-running; the file does not contain a test whose assertion could not have failed.",
+        "dotnet test src/DungeonMaster.sln completes with every test passing. The per-assembly passed/failed/skipped figures read from the three 'Test run for ...' lines match the baseline figures handed to this task at dispatch, except that DungeonMaster.Tests gains exactly the tests added by this task.",
+        "No file outside this task's owns list is created or modified."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Run and pin whether InclusiveBetween rejects non-finite scale, and whether a production path can produce a non-finite CanvasPoint",
+      "agent": "dir-test-engineer",
+      "domain": "test",
+      "owns": [
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/NonFiniteScaleRejectionTests.cs",
+        "src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs"
+      ],
+      "dependsOn": ["T1"],
+      "acceptance": [
+        "The repository contains src/DungeonMaster.Tests/Application/Features/Dungeons/Validators/NonFiniteScaleRejectionTests.cs, which executes AddPlacedObjectCommandValidator and UpdatePlacedObjectCommandValidator against Scale values float.NaN, float.PositiveInfinity and float.NegativeInfinity and asserts, for each, the verdict FluentValidation's InclusiveBetween(ObjectScale.Min, ObjectScale.Max) actually returned when the test was run, not the verdict measurement.md section 2(e) reasons it should return.",
+        "The same file contains a positive control asserting that a command carrying Scale = ObjectScale.Default is valid on both validators, so a run in which every case reports invalid cannot be misread as a rejection result.",
+        "The class-level XML doc comment on NonFiniteScaleRejectionTests states whether InclusiveBetween was observed to reject each of NaN, +Infinity and -Infinity, and names the test method establishing each answer.",
+        "The repository contains src/DungeonMaster.App.Tests/Graphics/FloorMapDrawableNonFiniteTests.cs, which constructs a FloorMapDrawable directly (as FloorMapDrawableExecutionTests.cs already does, with no MAUI host) and asserts what ScreenToCanvas returns when ZoomLevel is 0f -- the division at FloorMapDrawable.cs:629-630 being the one arithmetic operation in the chain that ends in a persisted CanvasPoint.",
+        "The same file asserts what ScreenToCanvas returns when PanOffset carries float.NaN.",
+        "The same file contains a positive control asserting that a finite PanOffset with ZoomLevel 1f yields a finite result from ScreenToCanvas, so a run in which every case reports non-finite cannot be misread.",
+        "The class-level XML doc comment on FloorMapDrawableNonFiniteTests states whether any input reachable from DungeonDetailPage.xaml.cs:1437 -- whose ScreenToCanvas result becomes the persisted CanvasPoint at :1442 -- can leave ZoomLevel or PanOffset non-finite, and names every assignment site to FloorMapDrawable.ZoomLevel and FloorMapDrawable.PanOffset it checked in reaching that answer, each with its file and line. This is the finding T3 and T5 read for measurement.md section 5 item 3.",
+        "Each test added by this task was seen failing before it was made to pass, or was shown to catch its defect by inverting its expected outcome and re-running; the file does not contain a test whose assertion could not have failed.",
+        "A test name added by this task states the condition and the expected outcome and claims no more than its assertions check, per test.md section Naming.",
+        "dotnet test src/DungeonMaster.sln completes with every test passing. The per-assembly figures read from the three 'Test run for ...' lines match the baseline handed at dispatch plus the tests added by T1 and by this task; the DungeonMaster.App.Tests line is read for its TFM rather than inferred from the Passed! line.",
+        "No file outside this task's owns list is created or modified."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Guard CanvasPoint against non-finite coordinates",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs",
+        "src/DungeonMaster.Tests/Domain/ValueObjects/CanvasPointTests.cs",
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointGuardMaterializationTests.cs"
+      ],
+      "dependsOn": ["T1", "T2"],
+      "acceptance": [
+        "new CanvasPoint(float.NaN, 0f) throws ArgumentOutOfRangeException whose ParamName is \"X\", asserted in src/DungeonMaster.Tests/Domain/ValueObjects/CanvasPointTests.cs. The ParamName assertion is required and not merely the exception type: nothing downstream rejects a non-finite Position (AddPlacedObjectCommandValidator.cs:30-32 constrains Position with .NotNull() and nothing else), so a type-only assertion would not distinguish the X coordinate from the Y.",
+        "new CanvasPoint(0f, float.NaN) throws ArgumentOutOfRangeException whose ParamName is \"Y\", asserted in the same file.",
+        "float.PositiveInfinity and float.NegativeInfinity in either coordinate each throw ArgumentOutOfRangeException with the ParamName of the offending coordinate; CanvasPointTests.cs covers all four combinations.",
+        "The thrown ArgumentOutOfRangeException carries the rejected coordinate as its ActualValue, asserted for at least one case in CanvasPointTests.cs.",
+        "existing with { X = float.NaN } throws ArgumentOutOfRangeException whose ParamName is \"X\", asserted in CanvasPointTests.cs. At 75e80ee a with-expression can set either coordinate non-finite, and a guard written only as a property initializer does not run on the record's copy constructor, so this criterion is what distinguishes a guard that closes the type from one that closes only the constructor.",
+        "new CanvasPoint(0f, 0f), new CanvasPoint(float.MaxValue, float.MinValue) and a with-expression setting a finite coordinate each succeed and carry the given values, asserted in CanvasPointTests.cs. This is a preserved-behaviour criterion: it holds at 75e80ee by design and exists to exclude a guard that is too broad.",
+        "The XML doc comment on CanvasPoint states that a non-finite coordinate is a defect rather than an expected failure and that the type therefore throws rather than returning a result value, citing backend.md section Error handling (\"Distinguish expected failure from defect ... a defect terminates the operation\"). This criterion encodes that discipline rule; the reviewer is not handed the discipline and the citation is how the rule is visible to it.",
+        "The XML doc comment on CanvasPoint names MASTER-081 / CORE-016 and states the SQLite behaviour T1 observed for a non-finite value in a REAL NOT NULL column, naming T1's test file, so that a later reader can see which observed behaviour this guard was designed against.",
+        "AMENDED A1 (escalation E1): The repository contains src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointGuardMaterializationTests.cs, which writes float.PositiveInfinity or float.NegativeInfinity -- NOT float.NaN -- into Position_X directly through SQL, bypassing the domain guard, attempts a load through DungeonWriteRepository.LoadAsync, and asserts the observed outcome; EF binds this owned record through its constructor, so the guard fires on materialization. The value must be an infinity because T1 established (commit 3cef4dd) that NaN cannot be written at all: Microsoft.Data.Sqlite's ADO layer refuses to bind a NaN parameter, so a NaN-based materialization test could never be constructed. A comment in CanvasPoint.cs additionally records that NaN specifically cannot reach materialization, citing T1's file. The original wording made this conditional on T1 observing either storage or a throw; T1 observed BOTH -- infinities round-trip with typeof() = real while NaN throws -- so both branches fired and required mutually exclusive outcomes, and the second branch's required comment (that materialization cannot encounter a non-finite value) is now known false.",
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/PlacedObjectConfigurationTests.cs passes unmodified, so a PlacedObject with a finite Position still round-trips through EF with the guard in place. Preserved-behaviour criterion.",
+        "Each test added by this task was seen failing before it was made to pass, or was shown to catch its defect by injecting the defect and re-running; specifically, a run in which the guard's throw is removed must fail CanvasPointTests.cs, and the command and the observed failure are named.",
+        "No Policies/ directory, PolicyResult type, DomainException type or ObjectScale value object is introduced, and no change is made to the EF mapping of PlacedObject.Scale. find src/DungeonMaster.Domain -type d -name Policies returns no lines and grep -rn -E \"PolicyResult|DomainException\" --include=*.cs src/ | grep -v -E '/obj/|/bin/' returns no lines. The second grep needs -E: without it the alternation is literal and the filter silently matches nothing, which was verified by running both forms against a two-line fixture. Scope-fence criterion: it holds at 75e80ee by design, and exists because CORE-016's own suggested direction is exactly what an implementer would otherwise drift toward.",
+        "dotnet test src/DungeonMaster.sln completes with every test passing. Any pre-existing test that this guard newly breaks is an escalation to the orchestrator, not a file this task edits: at 75e80ee no test constructs a non-finite CanvasPoint (grep -rn \"new CanvasPoint(\" --include=*.cs src/ | grep -v -E '/obj/|/bin/' | grep -E \"NaN|Infinity\" returns no lines, verified by the orchestrator; the census is 78 sites, 5 of them production), so a break would mean something this task did not foresee. The -E on the filtering grep is required for the same reason as in the criterion above.",
+        "No file outside this task's owns list is created or modified."
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Collapse the two duplicated PlacedObject scale guards into one private helper",
+      "agent": "dir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs",
+        "src/DungeonMaster.Tests/Domain/Entities/Floor/PlacedObjectTests.cs"
+      ],
+      "dependsOn": ["T3"],
+      "acceptance": [
+        "grep -c -F \"float.IsNaN(\" src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs returns 1. It returns 2 at 75e80ee (the guards at :28 and :76). -F is required: an unescaped pattern would let . match any character.",
+        "grep -c -F \"Scale must be between\" src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs returns 1. It returns 2 at 75e80ee (the byte-identical messages at :33 and :81).",
+        "The surviving condition and message live in a single private static member of PlacedObject, and no new file is added under src/DungeonMaster.Domain/.",
+        "new PlacedObject(..., scale: float.NaN) throws ArgumentOutOfRangeException whose ParamName is \"scale\", asserted in PlacedObjectTests.cs. At 75e80ee that file contains zero ParamName assertions (grep -c \"ParamName\" src/DungeonMaster.Tests/Domain/Entities/Floor/PlacedObjectTests.cs returns 0), so the existing Constructor_InvalidScale_Throws would pass unchanged against a helper that reports its own parameter name instead -- which is the specific defect extracting this guard risks.",
+        "obj.Update(..., newScale: float.NaN) throws ArgumentOutOfRangeException whose ParamName is \"newScale\", asserted in PlacedObjectTests.cs. The two ParamNames must differ, and a single helper reporting one name for both would fail this criterion or the one above it.",
+        "The thrown ArgumentOutOfRangeException still carries the rejected scale as its ActualValue, asserted for at least one constructor case and referenced by the message, so the three-argument ArgumentOutOfRangeException(paramName, actualValue, message) shape survives the extraction.",
+        "Update_InvalidScale_Throws covers float.NegativeInfinity. At 75e80ee its Theory carries NaN, PositiveInfinity, 0.1f and 5.0f while Constructor_InvalidScale_Throws carries those four plus NegativeInfinity; this closes that asymmetry.",
+        "Every test method present in PlacedObjectTests.cs at 75e80ee is still present, and no assertion in them is removed or weakened -- assertions may be strengthened with ParamName and ActualValue, and cases may be added. Preserved-behaviour criterion, judged from the diff.",
+        "The extraction is shown able to fail its own tests: with the helper's paramName argument replaced by a single hard-coded name, the command named in the report produces a failure in PlacedObjectTests.cs.",
+        "No Policies/ directory, PolicyResult type, DomainException type or ObjectScale value object is introduced, and ObjectScale.cs is not modified. Scope-fence criterion: it holds at 75e80ee by design, and exists because CORE-016's suggested direction proposes exactly these.",
+        "dotnet test src/DungeonMaster.sln completes with every test passing, and dotnet build src/DungeonMaster.sln emits no warning or error -- measured with grep -cE \"(warning|error) [A-Z]+[0-9]+\" over the build output returning 0, never with grep -icE \"warning|error\", which returns 2 over any dotnet build output.",
+        "PlacedObject.cs is still tab-indented and CRLF-terminated throughout, matching every other tracked source file; no line-ending or whitespace change appears in the diff outside the lines this task edited.",
+        "No file outside this task's owns list is created or modified."
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Correct MASTER-081's Status cell and CORE-016's falsified assertions",
+      "agent": "dir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/00-master-index.md",
+        "docs/audit/01-domain-application.md"
+      ],
+      "dependsOn": ["T1", "T2", "T3", "T4"],
+      "acceptance": [
+        "The MASTER-081 row at docs/audit/00-master-index.md:269 has a non-empty Status cell recording the entry as part done, not done, naming this session and the date, and following the shape the table already uses for a partial close at :282 and :296 (`part done (<session>) -- <what was and was not done>`, unbolded) rather than the bolded `**done**` a fully closed row carries. The cell is empty at 75e80ee.",
+        "The Status cell states that the policy layer, PolicyResult, DomainException and an ObjectScale value object were deliberately not built by this session and that this is why the entry is not closed.",
+        "CORE-016's locations: block in docs/audit/01-domain-application.md cites the PlacedObject.cs scale guard at the line range it occupies after T4, re-derived by reading src/DungeonMaster.Domain/Entities/Floors/PlacedObject.cs in the worktree rather than copied from measurement.md or from the entry. The block cites :80-86 at 75e80ee, which was already stale by four lines before T4 moved it again.",
+        "CORE-016's locations: block cites src/DungeonMaster.Domain/ValueObjects/PathSegment.cs at the record declaration's actual range rather than :18-22, which lands on the `<param name=\"Ctrl2\">` doc block. The replacement range is read from the file, not copied from measurement.md.",
+        "The `**Why it matters.**` paragraph no longer asserts that AddPlacedObjectCommand has no validator. It states that AddPlacedObjectCommandValidator and UpdatePlacedObjectCommandValidator both bound Scale with InclusiveBetween(ObjectScale.Min, ObjectScale.Max), citing both file paths with the line ranges read from the files, and that MASTER-079 / CORE-009 is closed.",
+        "The `**What.**` paragraph no longer asserts that the three ValueObjects/ records are plain positional records accepting any input. It records that PathSegment validates its control points (MASTER-170) and that CanvasPoint now carries a finiteness guard, citing CanvasPoint.cs.",
+        "The `**What.**` paragraph's claim that the scale rule is written twice `verbatim` is corrected: the two conditions differed in their identifier (scale and newScale) while the message string was byte-identical, and after T4 there is one copy.",
+        "The entry records what T1 observed SQLite does with a non-finite value in a REAL NOT NULL column, citing T1's test file by path.",
+        "The entry records what T2 observed about whether InclusiveBetween rejects NaN and the two infinities, citing T2's validator test file by path, and marks measurement.md section 2(e)'s reasoned claim as now run.",
+        "The entry records what T2 observed about whether a production path can produce a non-finite CanvasPoint, citing T2's FloorMapDrawableNonFiniteTests.cs by path, so that CORE-016's severity rests on a run result rather than on the type merely permitting one.",
+        "Every source path and line range this task writes into either document was read from the file in the worktree during this task; no range is carried over from measurement.md, from the entry's existing text, or from another task's report.",
+        "No file under src/ is modified: the diff for this task touches only docs/audit/00-master-index.md and docs/audit/01-domain-application.md.",
+        "Both documents keep their existing line endings and no line outside the edited regions changes."
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "AMENDED A2 (escalation E4): Rewrite T1's store-behaviour tests to reach the store beneath the domain guard",
+      "agent": "dir-database-engineer",
+      "domain": "database",
+      "owns": [
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointNonFinitePersistenceTests.cs"
+      ],
+      "dependsOn": ["T1", "T2", "T3"],
+      "acceptance": [
+        "src/DungeonMaster.Tests/Infrastructure/Persistence/Configurations/CanvasPointNonFinitePersistenceTests.cs no longer constructs a non-finite CanvasPoint through the domain constructor or a with-expression, because T3's guard makes that impossible. Verified by reading the file: no [InlineData] row and no inline argument supplies float.NaN, float.PositiveInfinity or float.NegativeInfinity to a CanvasPoint construction.",
+        "T1's INFINITY finding is preserved and still re-measured: the file writes float.PositiveInfinity and float.NegativeInfinity into Position_X and Position_Y through raw SQL, reads them back with a direct SELECT through context.Database.GetDbConnection(), and asserts both that the stored value round-trips and that SELECT typeof(Position_X) returns 'real' -- the storage-layer evidence T1's reviewer established, which a reload assertion alone does not reach.",
+        "T1's NaN finding is preserved and still re-measured: the file asserts that a direct Microsoft.Data.Sqlite parameter bind of float.NaN is refused, naming the observed exception type and asserting its message, so that a provider upgrade which started accepting NaN would fail this suite rather than pass silently.",
+        "The file contains a positive control asserting that a FINITE value written and read through the identical raw-SQL route succeeds, so a run in which every case fails cannot be misread as a provider rejection result.",
+        "The class-level XML doc comment states both observed behaviours with the precise attribution: the NaN refusal is the ADO provider (Microsoft.Data.Sqlite) refusing to bind a NaN parameter, NOT a SQLite constraint and NOT the IsRequired() mapping, while the REAL column type is nonetheless why EF attempts a floating-point bind at all. It must not say that SQLite rejects non-finite floats, which is false for two of the three values.",
+        "The class-level XML doc comment records WHY these tests no longer route through Dungeon.AddPlacedObject and IUnitOfWork.CommitAsync -- T3's CanvasPoint finiteness guard rejects the input before EF sees it -- citing CanvasPoint.cs, so that a later reader does not read the rewrite as weakened coverage.",
+        "The class-level XML doc comment states which part of T1's original observation is NO LONGER REACHABLE and why: EF Core's wrapping of the ADO refusal in a DbUpdateException cannot be observed any more, because the domain type can no longer hold a non-finite value for EF to attempt to persist. Recording the lost observation is required; silently dropping it is not acceptable.",
+        "Each test in the file was seen failing before it was made to pass, or was shown to catch its defect by inverting its expected outcome and re-running; the file contains no test whose assertion could not have failed. Reverts are performed by re-editing content, never by restoring a copy, and each is verified by digest.",
+        "dotnet test src/DungeonMaster.sln completes with every test passing, exit 0. The per-assembly passed/failed/skipped figures are read from the three 'Test run for ...' lines rather than from the Passed! lines. This criterion is the one that clears the 7 failures T3's guard introduced.",
+        "No file outside this task's owns list is created or modified. In particular src/DungeonMaster.Domain/ValueObjects/CanvasPoint.cs is NOT edited: weakening or bypassing the guard to make these tests pass is explicitly forbidden, and was the option rejected at escalation E4."
+      ]
+    }
+  ]
+}

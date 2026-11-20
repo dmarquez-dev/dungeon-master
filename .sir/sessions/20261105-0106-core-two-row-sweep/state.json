@@ -1,0 +1,59 @@
+{
+  "session": "20261105-0106-core-two-row-sweep",
+  "updatedAt": "2026-11-05T18:06:03Z",
+  "worktree": "C:/dm-wt/20261105-0106-core-two-row-sweep",
+  "branch": "agent/20261105-0106-core-two-row-sweep",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:30.13"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261105-0106-core-two-row-sweep/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed:     0, Passed:   187, Skipped:     0, Total:   187 - DungeonMaster.App.UnitTests.dll (net10.0) | Passed!  - Failed:     0, Passed:   953, Skipped:     0, Total:   953 - DungeonMaster.Tests.dll (net10.0) | Passed!  - Failed:     0, Passed:   123, Skipped:     0, Total:   123 - DungeonMaster.App.Tests.dll (net10.0)"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "11f9562ce0f60577abc41911984a5dbeb6cb4c10",
+      "model": "opus",
+      "commit": "e4fb1ab3d388d08a47efc24588eec8b8815c2a10"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "e4fb1ab3d388d08a47efc24588eec8b8815c2a10",
+      "model": "opus",
+      "commit": "ab940e974d1bdae375cec53a55ec66f83f2c9437"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "ab940e974d1bdae375cec53a55ec66f83f2c9437",
+      "model": "opus",
+      "commit": "c63cd8973dbf50d1eb7d082869d87749f266247a"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "e4fb1ab3d388d08a47efc24588eec8b8815c2a10",
+      "model": "opus",
+      "commit": "97b8be8e7b9d58e2429bc8a4affabf10e69516f9"
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}

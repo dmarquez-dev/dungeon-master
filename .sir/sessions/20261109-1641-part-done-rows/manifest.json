@@ -1,0 +1,120 @@
+{
+  "session": "20261109-1641-part-done-rows",
+  "createdAt": "2026-11-09T17:12:03Z",
+  "track": "standard",
+  "baseBranch": "chore/repo-audit",
+  "contracts": [
+    "contracts/C1-measurement.md",
+    "contracts/C2-register.md"
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "MASTER-130 EXCLUSION 2: rename every remaining ct parameter in DungeonMaster.Tests and DungeonMaster.App to cancellationToken, with its 15 <param> tags and every use, as an exact word rename (C1 sections 4.1, 4.2, 4.4)",
+      "agent": "sir-backend-engineer",
+      "domain": "backend",
+      "owns": [
+        "src/DungeonMaster.App/Assets/ObjectAssets/ObjectPackRegistry.cs",
+        "src/DungeonMaster.Tests/Application/Common/Dispatch/DispatcherCancellationTests.cs",
+        "src/DungeonMaster.Tests/Application/Common/Dispatch/DispatcherTests.cs",
+        "src/DungeonMaster.Tests/Application/Common/Handlers/CommandHandlerTestBase.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddAreaCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddFloorCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddPlacedObjectCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/CreateDungeonCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/DeleteDungeonCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveAreaCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemoveFloorCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/RemovePlacedObjectCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/ReorderFloorCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateAreaCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateAreaOutlineCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateDungeonCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdateFloorCommandHandlerTests.cs",
+        "src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/UpdatePlacedObjectCommandHandlerTests.cs"
+      ],
+      "dependsOn": [],
+      "acceptance": [
+        "Preconditions, run before the first edit and reported: the C1 section 4.0 fixture control prints the results that section states; B (C1 section 1) on each of the 18 owned files prints CR = LF = CRLF = its C1 section 1 line count and loneCR=0. If any owned file fails B or differs from what C1 records, stop, copy it into your scratch directory and report rather than edit.",
+        "No ct parameter remains (dotnet-format.md:36, parameter example 'cancellationToken'): CT-DECL (C1 section 4.1) prints 0 lines. At startRef it prints 28 lines in 18 files. Quote the command and its (empty) output beside the fixture control's 3-line output.",
+        "Every former ct parameter is named cancellationToken: CT-NEW (C1 section 4.1) prints exactly 28 lines, in the same 18 files (grep -rlwE with the same arguments prints 18). At startRef it prints 0.",
+        "No <param name=\"ct\"> tag remains: TAG (C1 section 4.2) prints 0 lines. At startRef it prints 15. The build cannot catch a stale tag (C1 section 3, GenerateDocumentationFile is set nowhere), so this census is the tag's only instrument; quote it beside the fixture tag-control output.",
+        "Each renamed tag documents a live parameter of that name (Gate 1: 'update its <param name=\"ct\"> tag in the same task so no tag goes stale'): TAG-NEW (C1 section 4.2) prints exactly 15 lines, and the section 4.2 pairing check prints 1 and 1 in each of those 15 files. At startRef TAG-NEW prints 0. Report the 15 file-level pairs.",
+        "The only ct word left in src is the deliberate residue: CT-WORD (C1 section 4.1) prints exactly one line, src/DungeonMaster.App/Controls/NotebookView/NotebookView.xaml.cs:151, the comment '// Created once and restarted on every keystroke instead of a Task.Delay(ct) per keystroke:'. It is out of scope by decision (C1 section 4.1: prose naming the argument of a rejected alternative, not a parameter or identifier). At startRef CT-WORD prints 63 lines in 19 files.",
+        "The change is exactly the word rename ct -> cancellationToken and nothing else: for each of the 18 owned files, 'tr -d \"\\r\" < <file> | sha256sum' prints that file's expected digest in C1 section 4.4. Run it as one loop over the 18 files that prints OK or MISMATCH per file and report 18 OK. Control, run before the first edit: the same loop prints 18 MISMATCH at startRef.",
+        "Every owned file keeps its bytes' shape: after the last edit, B (C1 section 1) prints CR = LF = CRLF = its C1 section 1 line count and loneCR=0 for each of the 18 files, and 'head -c 3 <file> | od -An -tx1' prints 75 73 69 for each. Quote B per file.",
+        "Files outside this task's ownership are unchanged: 'tr -d \"\\r\" < src/DungeonMaster.App/Controls/NotebookView/NotebookView.xaml.cs | sha256sum' prints cfc65e9c2e1f97172b3c671490530657246230f504fbfe7346d13b1db0725131, and the three Infrastructure files of C1 section 4.4 print their startRef digests. This deliberately asserts preserved state, re-measured.",
+        "Demonstrated discrimination, J1 (the compiler guards a half-done rename of a code use): after the rename, at src/DungeonMaster.Tests/Application/Features/Dungeons/Commands/AddAreaCommandHandlerTests.cs:95 -- the one line in that file reading exactly '\t\t\tcancellationToken);' -- replace 'cancellationToken);' with 'ct);'. Run 'dotnet build C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.Tests/DungeonMaster.Tests.csproj' and report that it fails with error CS0103 naming 'ct' at that file and line. Revert, then confirm the file prints its C1 section 4.4 expected digest before running any other command. Report the injection site, the text injected, the command run under it, its error line, and the revert check.",
+        "'dotnet build C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.sln', run after J1 is reverted, ends 'Build succeeded.' with '0 Warning(s)' and '0 Error(s)' (startRef: the same, C1 section 3). Quote the three summary lines.",
+        "Preserved behaviour, re-measured: 'dotnet test C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.sln --no-build', run after that build, reports DungeonMaster.App.UnitTests Passed 217, DungeonMaster.Tests Passed 976 and DungeonMaster.App.Tests Passed 137, each Failed 0 and Skipped 0 -- the startRef totals (C1 section 3), so the rename added, removed and skipped no test. Quote each assembly's summary line.",
+        "The report states the order in which the preconditions, the edits, J1's injection, its revert and revert check, the build and the test run were made, and confirms no command other than the J1 build ran while the injection was in place."
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "MASTER-130 EXCLUSION 3: rename the eleven obj lambda parameters in FloorConfiguration, PlacedObjectConfiguration and DungeonReadRepository to placedObject, with the two DungeonReadRepository comments that name them, as an exact word rename that changes no EF model (C1 sections 4.3, 4.4)",
+      "agent": "sir-database-engineer",
+      "domain": "database",
+      "owns": [
+        "src/DungeonMaster.Infrastructure/Persistence/Configurations/FloorConfiguration.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Configurations/PlacedObjectConfiguration.cs",
+        "src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs"
+      ],
+      "dependsOn": ["T1"],
+      "acceptance": [
+        "Preconditions, run before the first edit and reported: the C1 section 4.0 fixture control prints the results that section states; B (C1 section 1) on each of the 3 owned files prints CR = LF = CRLF = its C1 section 1 line count (141, 74, 146) and loneCR=0; and 'tr -d \"\\r\" < <file> | sha256sum' prints each file's startRef digest in C1 section 4.4. If any differs, stop, copy the file into your scratch directory and report rather than edit.",
+        "No obj lambda parameter remains (dotnet-format.md:42, descriptive lambda names): OBJ-HEAD (C1 section 4.3) prints 0 lines. At startRef it prints 11, all in the three owned files.",
+        "The recorded population is cleared to its exemption: OBJ-WORD (C1 section 4.3) prints exactly 4 lines, src/DungeonMaster.Domain/Entities/Entity.cs:65, :69, :71 and :72 (the Equals(object? obj) override and its tags). At startRef it prints 32 lines in 4 files.",
+        "Each former lambda is named for its subject, PlacedObject, with the name CORE-024's Suggested direction gives (docs/audit/01-domain-application.md:1685, 'rename `obj` to `placedObject`'; dotnet-format.md:42): 'grep -nwE \"placedObject =>\"' over the three owned files prints exactly 11 lines, at the eleven startRef OBJ-HEAD positions listed in C1 section 4.3 (PlacedObjectConfiguration.cs :23, :26, :30, :34, :39, :44, :48, :52, :57; FloorConfiguration.cs :132; DungeonReadRepository.cs :41). At startRef it prints 0.",
+        "The two comments that name the parameter move with it: 'grep -n \"Position: placedObject.Position\" src/DungeonMaster.Infrastructure/Persistence/Repositories/DungeonReadRepository.cs' prints exactly three lines, :45 (the projection member) and the comments at :91 and :133. At startRef it prints 0, and 'grep -n \"Position: obj.Position\"' on the file prints :45, :91 and :133.",
+        "The change is exactly the word rename obj -> placedObject and nothing else: for each of the 3 owned files, 'tr -d \"\\r\" < <file> | sha256sum' prints its expected digest in C1 section 4.4 (FloorConfiguration f8c4434b..., PlacedObjectConfiguration 32007d8e..., DungeonReadRepository 7aeb3063...). Quote the three full digests.",
+        "Every owned file keeps its bytes' shape: after the last edit, B (C1 section 1) prints CR = LF = CRLF = 141, 74 and 146 respectively and loneCR=0, and 'head -c 3 <file> | od -An -tx1' prints 75 73 69 for each. Quote B per file.",
+        "The EF model is unchanged, so no migration is owed (database.md, Migrations: forward-only; a rename of a lambda parameter must not need one). Preserved, newly tested: after the rename and 'dotnet build C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.Infrastructure/DungeonMaster.Infrastructure.csproj', the C1 section 3 EF command prints 'No changes have been made to the model since the last migration.' and exits 0, the startRef result (orchestrator probe). Quote the output and the exit code. J1 below is the instrument's must-fail control.",
+        "Demonstrated discrimination, J1 (the EF instrument can fail): in PlacedObjectConfiguration.cs at :46, the one line in the file reading '\t\t\t.HasColumnType(\"REAL\");' (with the semicolon; the two '.HasColumnType(\"REAL\")' lines at :64 and :70 are different sites and are not touched), replace the literal \"REAL\" with \"TEXT\". Build the Infrastructure project (command above), run the C1 section 3 EF command, and report that it exits non-zero and does not print the 'No changes have been made' line; quote its output. Revert; confirm the file prints its C1 section 4.4 expected digest; rebuild the Infrastructure project and confirm the EF command again prints the no-changes line and exits 0. Report site, text, commands run under the injection, and the revert checks.",
+        "Demonstrated discrimination, J2 (the compiler guards a missed code use, and no outer obj shadows one): after the rename, in DungeonReadRepository.cs at :47, the one line reading '\t\t\t\t\t\t\tScale: placedObject.Scale))', replace 'placedObject.Scale' with 'obj.Scale'. Run the Infrastructure build and report that it fails with error CS0103 naming 'obj' at that file and line. Revert and confirm the file prints its expected digest before any other command. Comments have no compiler guard, which is why the comment criterion and the RENAME digest above exist.",
+        "'dotnet build C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.sln', run after J1 and J2 are reverted, ends 'Build succeeded.' with '0 Warning(s)' and '0 Error(s)'. Quote the three summary lines.",
+        "Preserved behaviour, re-measured: 'dotnet test C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.sln --no-build', run after that build, reports DungeonMaster.App.UnitTests Passed 217, DungeonMaster.Tests Passed 976 and DungeonMaster.App.Tests Passed 137, each Failed 0 and Skipped 0 (C1 section 3). This run includes the existing DungeonReadRepository tests, which read the renamed projection end to end. Quote each assembly's summary line.",
+        "Files outside this task's ownership are unchanged: the 18 T1 files of C1 section 4.4 each still print their expected digest (one loop, 18 OK), and OBJ-WORD's out-of-population figures (C1 section 4.3) are unchanged: src/DungeonMaster.App 32 lines in 2 files, src/DungeonMaster.Tests 46 lines in 7 files, src/DungeonMaster.App.Tests 1 line. This deliberately asserts preserved state, re-measured.",
+        "The report states the order of the preconditions, the edits, each injection with its commands and its revert check, the final build and the test run, and confirms that no command other than the ones named for J1 and J2 ran while either injection was in place."
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Close MASTER-130 done and MASTER-081 DELIBERATELY UNCHANGED in the register, and insert the matching amendment blocks on CORE-024 and CORE-016, recording the line citations the insertions move (C2)",
+      "agent": "sir-architect",
+      "domain": "architecture",
+      "owns": [
+        "docs/audit/00-master-index.md",
+        "docs/audit/01-domain-application.md"
+      ],
+      "dependsOn": ["T1", "T2"],
+      "acceptance": [
+        "Preconditions, run before the first edit and reported: B (C1 section 1) prints CR=LF=CRLF=691, loneCR=0 on 00-master-index.md and CR=LF=CRLF=3214, loneCR=0 on 01-domain-application.md; OC (C1 section 5) on rows 269 and 318 prints the digests and byte counts C1 section 5 records; U prints 97a020fc...; ID01 prints 183cf722...; AO prints 18; CITE-IN prints 24 and CITE-X 18 (C1 section 6). If any differs, stop, copy the file into your scratch directory and report rather than edit.",
+        "Row 269 (MASTER-081): with '*' stripped, the status cell's leading token is 'DELIBERATELY UNCHANGED' and its first text is exactly '**DELIBERATELY UNCHANGED** (20261109-1641-part-done-rows, 2026-11-09) -- ' (C2 section 0). Evidence: read the line.",
+        "Row 269's cell carries items 1-7 of C2 section 2.1 in that order, including the Gate 1 reasoning (the duplicated scale rule was already removed by 6b-xv's ValidateScale; a policy layer, PolicyResult, DomainException and an ObjectScale value object were considered and declined), with the told items labelled as told. Evidence: read the cell and map each item to its sentence in the report.",
+        "Row 269's figures are measured by T3 during its run: the ValidateScale census (3 lines, each cited by file:line), the Policies, PolicyResult and DomainException absences, the ObjectScale declaration line, and the two validator InclusiveBetween lines, each quoted in the report with its command beside the value the cell states.",
+        "Row 318 (MASTER-130): with '*' stripped, the status cell's leading token is 'done' and its first text is exactly '**done** (20261109-1641-part-done-rows, 2026-11-09) -- ' (C2 section 0). Evidence: read the line.",
+        "Row 318's cell carries items 1-10 of C2 section 1.1 in that order, with item 6 stating that the out-of-population obj figures are outside the row and are carried to .sir/backlog.md as a new item added by the orchestrator at Gate 3, citing no backlog line number. Evidence: read the cell and map each item to its sentence in the report.",
+        "Row 318's figures are measured by T3 during its run: CT-DECL, CT-NEW, TAG, TAG-NEW, CT-WORD, OBJ-WORD, OBJ-HEAD and the out-of-population OBJ-WORD figures (C1 sections 4.1-4.3), each re-run after the C1 section 4.0 fixture control and quoted in the report with the value the cell states.",
+        "Every build, test and EF figure in either cell or either block is labelled told and attributed to .sir/sessions/20261109-1641-part-done-rows/reviews/T1.md or reviews/T2.md (C2 section 4); T3 runs no dotnet command. Evidence: the report lists each told figure with its source.",
+        "Row 269 retains its previous wording: V (C1 section 5, the first-marker script) on line 269 prints 50f83e900e5b785f27764b42e84127a58d82c8d5145ea82111a152134d5f8e7e 303 markers=1. Run V's three controls (row 366, row 345, the two-marker fixture) first and report their outputs.",
+        "Row 318 retains its previous wording whole, including the 20261105-1907 text and its own nested retained wording: V on line 318 prints e91744ef0830fac6a0d7b544627bd59102514bcfa1540af6db02d116e5520823 11846 markers=2.",
+        "R (C1 section 5) prints 11 on line 269 after the edit. Re-run R's two controls first and do not use the failing 'sed s/\\\\|//g' form.",
+        "R prints 11 on line 318 after the edit.",
+        "Nothing else in the master index changes: U (C1 section 5) prints 97a020fcbd248fd0373b3fdbc86a9a4b7b6020d4a713dd7c66da69821bdff6cc and 'grep -c \"\" docs/audit/00-master-index.md' prints 691, the startRef values.",
+        "Neither cell names a hash for this session's commit, and each says why (tasks have no git; the orchestrator commits; row 269 also that no code changed for it), citing MASTER-051 at :239 (C1 section 2 item 6). Evidence: read both cells.",
+        "The CORE-024 block is inserted per C2 section 1.2: after the line ending 'category, effort and risk are unchanged.**]**' that closes the AMENDED 20261105-1907-core-heavy-rows block on CORE-024, and before the heading '### CORE-025 -- Six public Domain types carry no XML documentation', with one empty line before and after; its first line begins '**[AMENDED 20261109-1641-part-done-rows, 2026-11-09 -- ' and its last line ends '.**]**'. Evidence: quote the first and last lines with their numbers and the heading line after it.",
+        "The CORE-024 block carries items 1-6 of C2 section 1.2; item 2 quotes PlacedObjectConfiguration.cs:39 and :40 as T3 reads them after T2 (each with 'placedObject'), and states that the earlier blocks' obj quotations are records and are not edited. Evidence: read the block and map each item.",
+        "The CORE-016 block is inserted per C2 section 2.2: after the line '**OPEN as part done**.**]**' that closes the AMENDED 6b-xv block on CORE-016, and before the heading '### CORE-017 -- ObjectKind has no zero value, so default(ObjectKind) silently means DoorWood', with one empty line before and after; same opener and closer form. Evidence: quote the first and last lines with their numbers and the heading line after it.",
+        "The CORE-016 block carries items 1-7 of C2 section 2.2, including the verbatim quotation of the 6b-xv block's 'stays **OPEN as part done**' sentence and the current ValidateScale positions as measured. Evidence: read the block and map each item.",
+        "The moved-citation paragraph (C2 section 2.2 item 6) lists every citation of C1 section 6's table and CITE-X that was live and correct at startRef and whose target the two insertions moved, each with its startRef and post-T3 position; T3 reads each post-T3 position and reports that it holds the text the citation named at startRef (for example, the AMENDED 6b-xiv opener on CORE-019 for the ':1293' citations). The paragraph states the count, names the already-stale and dated citations by count, and edits none. Report CITE-IN's and CITE-X's outputs before the first edit and after the last.",
+        "Every in-file reference the two new blocks and two new cells make to a position in 01-domain-application.md is by entry or block name, except the moved-citation paragraph (C2 section 0). Evidence: CITE-IN after the last edit, with every match that falls inside the two new blocks listed and shown to belong to the moved-citation paragraph.",
+        "Nothing in 01-domain-application.md changes except the two inserted blocks: ID01 (C1 section 5) with the two inserted ranges deleted prints 183cf7221a8fcc5799d0876ca25768eb8fb08a8d59c00bf21a61e16f8b13a53e; the same pipeline with no deletion prints a different digest; and 'grep -c \"\" docs/audit/01-domain-application.md' prints 3214 plus the inserted line count. Report both ranges, the inserted line count and the three outputs.",
+        "AO (C1 section 5) prints 20 on 01-domain-application.md (startRef 18).",
+        "B (C1 section 1) after the last edit: 00-master-index.md CR=LF=CRLF=691 and loneCR=0; 01-domain-application.md CR=LF=CRLF=3214 plus the inserted line count and loneCR=0; first 3 bytes of each unchanged (23 20 44). Quote B and the byte check for each file.",
+        "No cell or block cites a scratch path: 'grep -c AppData' prints 0 on each of the two files after the last edit, the startRef value (C1 section 5).",
+        "Files this task does not own are unchanged: UNOWNED (C1 section 5) prints the startRef digests of 02-infrastructure.md, 03-app-shell-and-views.md and 04-app-controls-and-theme.md, and QOBJ (C1 section 4.5) prints 6 lines on 02-infrastructure.md and 5 on 01-domain-application.md outside the two new blocks. .sir/ and .dir-sdlc/ are untouched by this task; the report says so and names the backlog lines the orchestrator removes at Gate 3 (C2 section 5)."
+      ]
+    }
+  ]
+}

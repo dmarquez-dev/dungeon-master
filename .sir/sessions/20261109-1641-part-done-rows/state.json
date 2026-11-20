@@ -1,0 +1,31 @@
+{
+  "session": "20261109-1641-part-done-rows",
+  "updatedAt": "2026-11-09T19:08:32Z",
+  "worktree": "C:/dm-wt/20261109-1641-part-done-rows",
+  "branch": "agent/20261109-1641-part-done-rows",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded.    0 Warning(s)    0 Error(s)    Time Elapsed 00:00:33.08"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed!  - Failed:     0, Passed:   217, Skipped:     0, Total:   217 - DungeonMaster.App.UnitTests.dll (net10.0) | Passed!  - Failed:     0, Passed:   976, Skipped:     0, Total:   976 - DungeonMaster.Tests.dll (net10.0) | Passed!  - Failed:     0, Passed:   137, Skipped:     0, Total:   137 - DungeonMaster.App.Tests.dll (net10.0)"
+    },
+    {
+      "command": "dotnet ef migrations has-pending-model-changes --project C:/dm-wt/20261109-1641-part-done-rows/src/DungeonMaster.Infrastructure --no-build",
+      "runnable": true,
+      "probe": "No changes have been made to the model since the last migration. exit=0 (tools 10.0.3 warn older than runtime 10.0.11)"
+    }
+  ],
+  "tasks": [
+    { "id": "T1", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "91bbbf4d323286e912c2239137e0444159646980", "model": "opus", "commit": "0f9ac6407976d636c3c53810e506b45526f0a558" },
+    { "id": "T2", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "0f9ac6407976d636c3c53810e506b45526f0a558", "model": "opus", "commit": "a22bec8513e164e65921e2e7f96b73ba55150640" },
+    { "id": "T3", "status": "done", "revisionRounds": 0, "redispatches": 0, "startRef": "a22bec8513e164e65921e2e7f96b73ba55150640", "model": "opus", "commit": "c9326ba796f4bc24ecb91eb070d5133732a3db95" }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": { "userInteractions": 4, "escalationsRaised": 0, "reviewRounds": 0 }
+}

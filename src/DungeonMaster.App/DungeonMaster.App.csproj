@@ -1,7 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-windows10.0.19041.0;net10.0-maccatalyst</TargetFrameworks>
+		<!-- The plain net10.0 TFM carries no platform. It exists so a platform-less test project
+		     (src/DungeonMaster.App.UnitTests) can reference this project and construct MAUI types
+		     without a WinUI host: on a platform-less TFM the WinUI handler assembly is not in play
+		     and the Element static constructor that walls off net10.0-windows never fires. It is
+		     never shipped and never run — see the conditional OutputType below. -->
+		<TargetFrameworks>net10.0;net10.0-windows10.0.19041.0;net10.0-maccatalyst</TargetFrameworks>
 
 		<!-- Note for MacCatalyst:
 		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -10,12 +15,26 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
-		<OutputType>Exe</OutputType>
+		<!-- The two platform TFMs still emit DungeonMaster.App.exe. The plain net10.0 TFM emits a
+		     library only: it has no platform entry point to be an executable for, and asking for
+		     one produces an app host that nothing can run. -->
+		<OutputType Condition="'$(TargetFramework)' != 'net10.0'">Exe</OutputType>
+
+		<!-- CA1416 on the plain net10.0 TFM only. CommunityToolkit.Maui ships a net10.0 lib, but
+		     its members carry SupportedOSPlatform attributes, so the single unguarded
+		     UseMauiCommunityToolkit() call in MauiProgram.cs is CA1416 from a platform-neutral
+		     TFM — and TreatWarningsAsErrors makes that an error.
+
+		     COST, stated because it is real: this suppresses CA1416 project-wide for the plain
+		     TFM, so a future unguarded platform call will not be reported on it. The two shipping
+		     TFMs keep the rule at full strength, which is where a real platform mistake matters.
+		     A narrower alternative — an #if / SupportedOSPlatform guard at that one MauiProgram.cs
+		     call site — exists and was not taken; it would put platform conditionals into the app
+		     entry point to serve a TFM that only tests use. -->
+		<NoWarn Condition="'$(TargetFramework)' == 'net10.0'">$(NoWarn);CA1416</NoWarn>
 		<RootNamespace>DungeonMaster.App</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
 
 		<!-- Enable XAML source generation for faster build times and improved performance.
 		     This generates C# code from XAML at compile time instead of runtime inflation.
@@ -25,23 +44,39 @@
 		       <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
+		<!-- Compile a {Binding} that carries an explicit Source against THAT source's type
+		     instead of against the enclosing x:DataType. Without it the binding generator
+		     applies the ambient DataType to every binding in scope, so
+		     `{Binding ButtonRowSpacing, Source={x:Reference Chrome}}` is compiled against the
+		     view model, which has no such property. See CreateDungeonPopup.xaml. -->
+		<MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+
 		<!-- Display name -->
-		<ApplicationTitle>DungeonMaster.App</ApplicationTitle>
+		<ApplicationTitle>Dungeon Master</ApplicationTitle>
+
+		<!-- The unpackaged Windows build (WindowsPackageType None) names its taskbar entry from
+		     the exe's file description, which AssemblyTitle sets and which otherwise defaults to
+		     the assembly name (DungeonMaster.App). Product is set alongside it for the same
+		     reason. Both follow ApplicationTitle so the display name stays in one place. -->
+		<AssemblyTitle>$(ApplicationTitle)</AssemblyTitle>
+		<Product>$(ApplicationTitle)</Product>
 
 		<!-- App Identifier. Was the .NET template's com.companyname.dungeonmaster.app.
 		     "companyname" is not a defensible identity for a shipped app, so it is replaced
 		     with the reverse-DNS form of the GitHub owner (dmarquez-dev; hyphens are not legal
 		     in every platform's package identifier, hence dmarquezdev).
 
-		     THIS IS AN IDENTITY DECISION AND MAY WANT TO BE SOMETHING ELSE. Changing it after
-		     a build has been installed makes the next one a DIFFERENT application to Windows,
-		     which gets its own local app-data folder — and the SQLite database lives there, so
-		     an existing install stops seeing its dungeons. Nothing has shipped yet, so the cost
-		     is zero today and rises the moment it does. -->
+		     This id is SETTLED (MASTER-142, 2026-11-06), together with the shipping identity in
+		     Platforms/Windows/Package.appxmanifest. Do not change it casually: once the app ships
+		     as a packaged (MSIX) build, changing the id makes it a DIFFERENT application to
+		     Windows, with its own package-virtualised app-data folder, so an existing install
+		     would stop seeing its dungeons. Today's unpackaged build (WindowsPackageType None)
+		     stores the SQLite database at a fixed LocalApplicationData\DungeonMaster path
+		     (MauiProgram.cs), so the id does not move it yet. -->
 		<ApplicationId>com.dmarquezdev.dungeonmaster</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
@@ -89,15 +124,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="14.1.0" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.41" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
-		<PackageReference Include="Plugin.Maui.KeyListener" Version="1.0.0-preview4" />
+		<PackageReference Include="CommunityToolkit.Maui" />
+		<PackageReference Include="CommunityToolkit.Mvvm" />
+		<PackageReference Include="Microsoft.Maui.Controls" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+		<PackageReference Include="Plugin.Maui.KeyListener" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\DungeonMaster.Application\DungeonMaster.Application.csproj" />
+	  <ProjectReference Include="..\DungeonMaster.App.Core\DungeonMaster.App.Core.csproj" />
 	  <ProjectReference Include="..\DungeonMaster.Infrastructure\DungeonMaster.Infrastructure.csproj" />
 	</ItemGroup>
 

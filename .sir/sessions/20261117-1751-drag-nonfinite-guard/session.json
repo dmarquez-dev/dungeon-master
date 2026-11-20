@@ -1,0 +1,51 @@
+{
+  "id": "20261117-1751-drag-nonfinite-guard",
+  "name": "drag-nonfinite-guard",
+  "scope": "small",
+  "status": "WRAPPED",
+  "started": "2026-11-17T17:51:49Z",
+  "ended": "2026-11-17T18:37:21Z",
+  "parent": null,
+  "children": [],
+  "criteria": [
+    "C1: `src/DungeonMaster.Tests/AppCore/Map/TileCoordinateHelperTests.cs` gains facts pinning what `TileCoordinateHelper.SnapToGrid` returns for a non-finite coordinate: NaN in x, NaN in y, positive infinity and negative infinity, each asserting the exact `Col` and `Row` that a run measured (the values are whatever the run prints, not the prediction), and each test's name or `because` says it pins current behaviour that callers must guard against rather than a desired result; `src/DungeonMaster.App.Core/Map/TileCoordinateHelper.cs` is unchanged from 834c543.",
+    "C2: `OnMapDragInteraction` in `src/DungeonMaster.App/Views/DungeonDetailPage/DungeonDetailPage.xaml.cs` (`:1754` at 834c543) returns early, before its first branch, when the first touch's X or Y is not finite (`float.IsFinite`), so none of the object-drag (`:1766`), Pan (`:1790-1793`), Move (`:1803`) or Draw (`:1814`) statements runs on a non-finite touch; the guard does not index an empty `e.Touches` (an empty touch list reaches the branches exactly as at 834c543); a comment above it, in the file's `//` style, says why (the handler has no try, a non-finite point throws at `CanvasPoint` and a NaN snaps to a real tile); and no other line of the file changes (`git diff 834c543 -- <file>` shows additions only, all inside that handler before its first `if`).",
+    "C3: The two files in C1 and C2 are the only files under `src` that differ from 834c543; each keeps no BOM, tab indentation and all-CRLF line endings with no lone CR (Python `b.count(b'\\r\\n')`, `b.count(b'\\n')`, `b.count(b'\\r')` all equal; at 834c543 the test file is 40 each and the page 2748 each).",
+    "C4: `dotnet build src/DungeonMaster.sln` reports 0 Warning(s) and 0 Error(s), quoted from its summary lines, and `dotnet test src/DungeonMaster.sln --no-build` passes every test, with DungeonMaster.Tests' Total equal to 1004 (measured at 834c543 by the orchestrator, 2026-11-17) plus the number of test cases C1 added, and App.UnitTests 217 and App.Tests 146 unchanged; full output of both runs saved to scratch before any filtering.",
+    "C5: On approval, the two backlog rows dated 2026-11-16 from 20261116-2027-nonfinite-test-citations (`.sir/backlog.md:167` PanAnchorScreen guard and `:168` SnapToGrid NaN test, at 834c543) are removed and no other backlog line changes."
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "OnMapDragInteraction (DungeonDetailPage.xaml.cs:1754 at 834c543) has no try and no finiteness guard: a non-finite touch coordinate throws unhandled at the object-drag CanvasPoint (:1766) and the Pan anchor CanvasPoint (:1793, after the PanOffset write lands), and in the Move branch reaches TileCoordinateHelper.SnapToGrid (:1803), whose (int)MathF.Floor cast turns NaN into a real tile. Guard the whole handler with one early return, guard only the two sites the backlog rows name, or only pin SnapToGrid with a test?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Asked at Gate 1. The user chose the recommended option: one early return at the top of OnMapDragInteraction when the first touch's X or Y is not finite, covering all four branches including the :1766 object-drag throw. Not chosen: guard only the two named sites; pin SnapToGrid only."
+    }
+  ],
+  "amendments": [],
+  "runs": [
+    {
+      "cc": "06a41062-ab24-491a-a062-84c9d595daa3",
+      "phase": "small",
+      "sir": "1.0.43",
+      "started": "2026-11-17T17:51:49Z",
+      "ended": "2026-11-17T18:25:32Z",
+      "outcome": "complete"
+    },
+    {
+      "cc": "06a41062-ab24-491a-a062-84c9d595daa3",
+      "phase": "wrap",
+      "sir": "1.0.43",
+      "started": "2026-11-17T18:37:20Z",
+      "ended": "2026-11-17T18:37:21Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 2,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}

@@ -1,0 +1,74 @@
+{
+  "session": "2026-09-18-dispatcher-test-gaps",
+  "updatedAt": "2026-09-18T06:00:00Z",
+  "phase": "merged",
+  "worktree": "C:\\dm-wt\\6b-x",
+  "branch": "dir/2026-09-18-dispatcher-test-gaps",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "506cbba3bbd2847103b323e531108eed2a0740ba",
+      "commit": "b0fa532cb9d79b58e0c8587a02bbf934bfc830a7"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "taskId": "T1",
+      "question": "A15 requires every declared type to be immediately preceded by a doc comment ending in '/// </summary>', citing DispatcherTests.cs as the convention. A census across the three test projects returns 20 type declarations immediately preceded by '</typeparam>' or '</param>' across 13 files, 16 of them pre-existing, including DispatcherTests.cs:231-243 itself. A15's prose is therefore false about the repository, while its own falsifiability command, scoped to [Fact] lines, encodes the true convention. Amend the criterion, accept it on its command alone, or reorder the four doc blocks to satisfy the letter?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Amend A15 to match the measured convention: scope the '</summary>' requirement to [Fact] methods and to type declarations carrying neither type parameters nor primary-constructor parameters, and require the remaining types to open with a '<summary>' block. Both new files accepted unchanged. Chosen over accepting on the command alone so the correction is on the record rather than left as false prose in a signed artifact. No deferred action: the amendment was performed in-session, so nothing from this escalation reaches the backlog.",
+      "options": [
+        {
+          "summary": "Amend A15 to match the real convention; accept both files unchanged.",
+          "rationale": "The criterion's own falsifiability command already encodes this scope, and the census shows 16 pre-existing declarations across 12 files that the unamended prose would condemn.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              "src/DungeonMaster.Tests/Application/Common/Dispatch/DispatcherTests.cs:231-243",
+              "census: 20 declarations preceded by </typeparam> or </param> across 13 files in the three test projects"
+            ]
+          }
+        },
+        {
+          "summary": "Accept A15 as met on its falsifiability command alone, treating the prose as loose.",
+          "rationale": "Identical outcome for the code with no amendment record, but it lets a criterion's prose and its command diverge silently and leaves measurably false prose on the record.",
+          "evidence": {
+            "kind": "repo",
+            "sources": [
+              ".dir-sdlc/sessions/2026-09-18-dispatcher-test-gaps/manifest.json A15 falsifiability clause"
+            ]
+          }
+        },
+        {
+          "summary": "Reorder the four doc blocks so <summary> follows <typeparam>, satisfying the letter.",
+          "rationale": "Satisfies A15 exactly as written, but contradicts 16 pre-existing declarations and reads as malformed to a documentation generator, since <summary> conventionally leads.",
+          "evidence": {
+            "kind": "judgment"
+          }
+        }
+      ]
+    }
+  ],
+  "amendments": [
+    {
+      "id": "A1",
+      "escalation": "E1",
+      "artifact": "manifest.json",
+      "before": "A15 required every [Fact] AND every declared type in the two new files to be immediately preceded by a doc comment ending in '/// </summary>', citing DispatcherTests.cs as the convention.",
+      "after": "A15 scopes that requirement to [Fact] methods and to types carrying neither type parameters nor primary-constructor parameters; remaining types must open with a '<summary>' block, matching the measured convention, with the 20-declaration census recorded in the criterion.",
+      "inFlight": [
+        "T1"
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 4,
+    "escalationsRaised": 1,
+    "reviewRounds": 0
+  }
+}

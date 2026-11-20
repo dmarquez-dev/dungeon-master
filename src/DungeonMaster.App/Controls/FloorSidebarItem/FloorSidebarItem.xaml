@@ -4,14 +4,20 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:controls="clr-namespace:DungeonMaster.App.Controls"
     xmlns:behaviors="clr-namespace:DungeonMaster.App.Behaviors"
-    x:Class="DungeonMaster.App.Controls.FloorSidebarItem">
+    xmlns:presentation="clr-namespace:DungeonMaster.App.Core.Presentation;assembly=DungeonMaster.App.Core"
+    xmlns:converters="clr-namespace:DungeonMaster.App.Converters"
+    x:Class="DungeonMaster.App.Controls.FloorSidebarItem"
+    x:Name="Root">
+
+    <ContentView.Resources>
+        <converters:GuidEqualityConverter x:Key="GuidEquality" />
+    </ContentView.Resources>
 
     <!-- DmBorderTavernStyle supplies the hairline stroke, the tavern border brush and the
          DmRadiusDefault corner. BackgroundColor is restated because the style inherits
-         BackgroundColor="Transparent" from DmBorderBase. Both Stroke and BackgroundColor are
-         then rewritten imperatively by the hover, active and drag-over handlers below; an
-         assignment is a local value and outranks a Style setter, so the style is the first
-         frame's appearance and the resting state the handlers return to. -->
+         BackgroundColor="Transparent" from DmBorderBase. Both Stroke and BackgroundColor are the
+         FIRST FRAME only: from the first GoToState on, the FloorStates group below owns them, and
+         a visual-state setter outranks both a style setter and a local value. -->
     <Border
         x:Name="FloorBorder"
         Style="{StaticResource DmBorderTavernStyle}"
@@ -19,12 +25,68 @@
         Padding="{StaticResource DmPaddingCompact}"
         Margin="0,0,0,4">
 
-        <!-- This layout, not the toggle glyph, is the tap target that expands and collapses the
-             floor — and expanding is the only route to a floor's areas. ExpandToggle below tells
-             the user to "tap the floor card", so the card has to be in the accessibility tree
-             and has to say what it is; without a description it was an unlabelled target that
-             another control pointed at. The description is static because the toggle beside it
-             already carries the expanded/collapsed state, rewritten in SetExpanded. -->
+        <!-- THE RESTING, HOVER, EXPANDED AND DROP-TARGET APPEARANCE LIVES HERE AND NOWHERE ELSE
+             (MASTER-098). It was five imperative writes to BackgroundColor and Stroke, one inside
+             SetExpanded and four outside it in the pointer and drag handlers, so two mechanisms
+             drove one property and no theme dictionary could reach either.
+
+             The group is named FloorStates rather than CommonStates on purpose: MAUI drives
+             CommonStates itself, and its automatic PointerOver would outrank Expanded whenever the
+             pointer rested on an open floor. UpdateVisualState in the code-behind is the single
+             owner of the transition and states the precedence once: Expanded, then DragOver, then
+             Hovered, then Normal. That is what the four "if (!_isExpanded)" and
+             "_isExpanded ? ... : ..." guards used to say four times over.
+
+             Every state sets BOTH properties. A state naming only Stroke would let MAUI restore
+             BackgroundColor to the attribute above on entry, and the expanded surface would drop
+             back to the resting one the moment a drag passed over an open floor. -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="FloorStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Hovered">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaisedHover}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Expanded">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaisedActive}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernHoverBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="DragOver">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="{StaticResource DmSurfaceTavernRaised}" />
+                            <Setter Property="Stroke" Value="{StaticResource DmBorderTavernHoverBrush}" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </VisualStateManager.VisualStateGroups>
+
+        <!-- This layout is the LARGE tap target that expands and collapses the floor, and
+             expanding is the only route to a floor's areas. Since MASTER-164 it is no longer the
+             ONLY such target — ExpandToggle below is a real Button and does the same job from the
+             keyboard — but IT MUST NOT BE REMOVED (contract C3 section 4). The chevron's visual
+             is allowed to sit under Microsoft's 23x23 touch minimum only by their redundancy
+             carve-out, and THIS gesture is the redundancy that earns it. Delete this recognizer
+             and the carve-out no longer applies.
+
+             The card has to be in the accessibility tree and has to say what it is; without a
+             description it was an unlabelled target that another control pointed at. The
+             description is static because the toggle beside it already carries the
+             expanded/collapsed state, rewritten in ApplyExpanded.
+
+             MASTER-161: the behavior gives the pointer the hand cursor over the card body. The
+             three Buttons in this file already carried one; the largest clickable surface in the
+             sidebar, and the only route to a floor's areas, did not. -->
         <VerticalStackLayout
             Spacing="{StaticResource DmSpaceXS}"
             AutomationId="FloorCard"
@@ -33,27 +95,86 @@
             <VerticalStackLayout.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCardTapped" />
             </VerticalStackLayout.GestureRecognizers>
+            <VerticalStackLayout.Behaviors>
+                <behaviors:HandCursorBehavior />
+            </VerticalStackLayout.Behaviors>
 
             <!-- Header row -->
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource DmSpaceXXS}">
 
-                <!-- Expand toggle (visual indicator only — card tap handles expand). The glyph
-                     flips between ▸ and ▾ in SetExpanded, so the description is rewritten there
-                     alongside it; the value here is the collapsed state the glyph starts in. -->
-                <Label
+                <!-- Expand toggle. THIS IS A Button AND NOT A Label, AND THAT IS THE WHOLE POINT
+                     (MASTER-164). As a Label it took no keyboard focus on WinUI — only
+                     Control-derived classes do — and the card body it pointed at is a
+                     VerticalStackLayout, which takes no focus either and cannot be made to:
+                     IsTabStop/TabIndex/ITabStopElement are absent from .NET MAUI 10's public API
+                     and MAUI 9 removed layout focus deliberately. Expanding is the ONLY route to
+                     a floor's areas, so the whole sidebar below this row was keyboard-unreachable.
+                     A real Button is what Microsoft's keyboard-accessibility guidance prescribes
+                     for exactly this shape, and it is what WinUI's own Expander uses.
+
+                     THE FOOTPRINT'S HEIGHT IS PINNED — contract C3. The user declined this remedy
+                     once, at sub-session 5c's escalation E5, because a Button grows the header
+                     row. So the glyph keeps the Label's FontFamily and FontSize and the visible
+                     chevron is unchanged; Transparent + BorderWidth 0 leave nothing of the button
+                     drawn; and Margin is 0, because a margin adds space outside the target. The
+                     button's SIZE is not set by its padding: the implicit Button style in
+                     Implicit.xaml gives every Button a 44x44 minimum (DmTouchTargetMinimum), and
+                     that minimum is what sized this one. Measured at 1920x1080 with 11 floors,
+                     the button was as tall as the notebook and delete Buttons beside it, so the
+                     header row's height did not change; the style's 44 minimum height is what
+                     keeps it so, and this button leaves that minimum alone.
+
+                     MinimumWidthRequest is 0 on THIS BUTTON ONLY, AT THE USER'S CHOICE: the 44
+                     minimum width left visible space around the chevron, both from the card's
+                     left edge and before the floor name. With it zeroed, the width is the glyph
+                     plus the 2 + 2 of horizontal padding, below Microsoft's 23-DIU minimum, which
+                     the user accepted; the card-body tap above remains the larger target for the
+                     same action. Top and bottom padding stay 4, as DmPaddingCompact has them, and
+                     the whole inset comes from DmPaddingIconToggle.
+
+                     The glyph flips between ▸ and ▾ in ApplyExpanded, so the description is
+                     rewritten there alongside it; the value here is the collapsed state the glyph
+                     starts in. The Hint no longer sends the user to the card — the chevron itself
+                     does the job now. -->
+                <Button
                     x:Name="ExpandToggle"
                     Grid.Column="0"
                     AutomationId="FloorExpandToggle"
+                    Padding="{StaticResource DmPaddingIconToggle}"
+                    MinimumWidthRequest="0"
                     Text="&#x25B8;"
                     FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeSmall}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    BackgroundColor="Transparent"
+                    BorderWidth="0"
+                    Margin="0"
+                    CornerRadius="{StaticResource DmRadiusTight}"
                     SemanticProperties.Description="Collapsed"
-                    SemanticProperties.Hint="Tap the floor card to expand or collapse its areas."
-                    VerticalOptions="Center" />
+                    SemanticProperties.Hint="Expands or collapses this floor's areas."
+                    Clicked="OnExpandToggleClicked"
+                    VerticalOptions="Center"
+                    ToolTipProperties.Text="Expand or collapse floor">
+                    <Button.Behaviors>
+                        <behaviors:HandCursorBehavior />
+                    </Button.Behaviors>
+                </Button>
 
                 <!-- Floor name (or a "Floor N" placeholder when unnamed). Right margin keeps the
-                     name clear of the action buttons now that the row is on the tightest spacing step. -->
+                     name clear of the action buttons now that the row is on the tightest spacing step.
+
+                     TailTruncation IS WHAT KEEPS CONTRACT C3 SECTION 2 TRUE FOR EVERY NAME, and it
+                     was added because MASTER-163's remedy made the column narrower. A MAUI Label
+                     defaults to WordWrap, so this column's height is a function of the name's
+                     length: measured at 900x640 with 11 floors, reserving the 14-DIU scrollbar
+                     gutter and widening the drag handle to the 23-DIU touch minimum took this
+                     column from 129 to 99, and "Main Tavern" — which needs 107 — went from one
+                     22-DIU line to two. Two lines still measure 44 and the row is 44 because of
+                     its three sibling Buttons, so the card did NOT grow; but a name needing three
+                     lines would have measured 66 and the row would have followed it. Pinning the
+                     label to one line makes the invariant hold for any name rather than for the
+                     eleven that happen to be in the database. The cost is stated rather than
+                     hidden: a name longer than the column is now truncated instead of wrapped. -->
                 <Label
                     x:Name="FloorNameLabel"
                     Grid.Column="1"
@@ -61,6 +182,8 @@
                     FontSize="{StaticResource DmFontSizeSubheading}"
                     TextColor="{StaticResource DmAccentGoldLight}"
                     Margin="0,0,6,0"
+                    LineBreakMode="TailTruncation"
+                    MaxLines="1"
                     VerticalOptions="Center" />
 
                 <!-- Always-visible notebook button — colour reflects whether this floor has
@@ -71,6 +194,7 @@
                     x:Name="NotebookButton"
                     Grid.Column="2"
                     AutomationId="FloorNotebookButton"
+                    Style="{StaticResource DmIconButton}"
                     SemanticProperties.Description="Notebook, empty"
                     SemanticProperties.Hint="Opens the notebook for this floor."
                     Text="&#xEA8F;"
@@ -91,6 +215,7 @@
                 <Button
                     Grid.Column="3"
                     AutomationId="FloorDeleteButton"
+                    Style="{StaticResource DmIconButton}"
                     SemanticProperties.Description="Delete floor"
                     SemanticProperties.Hint="Asks for confirmation, then removes this floor and its areas."
                     Text="&#xE9FC;"
@@ -107,28 +232,88 @@
                     </Button.Behaviors>
                 </Button>
 
-                <!-- Drag handle -->
+                <!-- Drag handle. MASTER-163, AND THE THREE ATTRIBUTES BELOW ARE THE REMEDY, all
+                     of them width or hit-area only: contract C3 section 5 permits a width change
+                     and forbids a height one, so nothing here adds a row or wraps the handle.
+
+                     MEASURED at 900x640 with 11 floors, the sidebar scrolling and the WinUI
+                     overlay scrollbar rendered: the bar's host Grid in the ScrollViewer template
+                     is 14 DIU wide (the ScrollBar inside it is 12) and it paints OVER the
+                     content, because ScrollContentPresenter stays the ScrollViewer's full 300.
+                     The glyph Label was 7 DIU wide at x 284-291 of a 300-wide viewport, so the
+                     overlay covered five of its seven units. The gutter is now reserved once, on
+                     FloorListContainer in DungeonDetailPage.xaml, which moves the whole card in.
+
+                     What is left here is the target itself, which at 7x24 was too small to hit
+                     reliably even with the bar gone. The padding widens the GRAB AREA without
+                     touching the glyph, Fill takes the row's full height instead of 24 of its 44,
+                     and the transparent background is load-bearing rather than cosmetic: WinUI
+                     does not hit-test a null Background, so without it the padding would be
+                     inert and only the glyph itself would take the press.
+
+                     THIS IS A Label, AND A Button WAS TRIED HERE AND REVERTED. Do not convert it
+                     again without reading this paragraph. Sub-session 6b-vi made it a Button so
+                     it could take keyboard focus for the Ctrl+Up / Ctrl+Down reorder route
+                     (MASTER-176), exactly as ExpandToggle above is a Button for MASTER-164. The
+                     human observation pass O1, run against that build on 2026-09-16, found that
+                     it BROKE THE POINTER DRAG: a WinUI Button consumes the press, so MAUI's drag
+                     gesture recogniser never started a drag from it, and clicking and holding the
+                     handle produced no behaviour at all. Microsoft's own drag-and-drop guidance
+                     attaches that recogniser only to non-interactive elements — Image, Rectangle,
+                     Path — and exposes no property that makes a Button a drag source, so there is
+                     no documented fix that keeps the Button. The same pass
+                     also found the Button's wider footprint squeezing the floor name beside it
+                     (MAIN TAV… became MAIN TA…). Contract C1 amendment A1 reverted this element
+                     to the Label below, which is the exact element 6b-iv observed starting a drag
+                     on 2026-09-11.
+
+                     THE KEYBOARD ROUTE DID NOT GO WITH IT. It now gates on focus being anywhere
+                     WITHIN the floor card rather than on this handle — FloorSidebarItem's
+                     ContainsKeyboardFocus, read by DungeonDetailPage.OnKeyDown — because
+                     MASTER-164 already made every card keyboard-reachable through ExpandToggle.
+                     The cost is disclosed in A1: this handle is no longer its own tab stop, so a
+                     screen-reader user meets its Hint as static text, and the Hint below is
+                     worded accordingly.
+
+                     THE DRAG GESTURE IS ON THIS Label, with both handler names unchanged, and
+                     this file declares exactly ONE drag source: OnDragStarting is the payload
+                     contract's only writer, so a second one would start a reorder from somewhere
+                     that payload was never written for.
+
+                     THE TAP RECOGNISER THAT SAT HERE STAYS GONE. Its handler set _suppressCardTap
+                     to stop the card expanding when the handle was pressed; it was removed with
+                     the Button conversion because a Button press does not reach the card's
+                     VerticalStackLayout tap recogniser, and it is NOT restored, because its only
+                     purpose was compensating for that Button. _suppressCardTap itself stays:
+                     OnDeleteClicked and OnNotebookClicked still set it. -->
                 <Label
                     Grid.Column="4"
+                    Padding="8,0"
+                    BackgroundColor="Transparent"
                     AutomationId="FloorDragHandle"
                     Text="&#x22EE;"
                     FontFamily="{StaticResource DmFontBody}"
                     FontSize="{StaticResource DmIconSizeLarge}"
                     TextColor="{StaticResource DmTextTavernMuted}"
+                    HorizontalTextAlignment="Center"
+                    VerticalTextAlignment="Center"
                     SemanticProperties.Description="Reorder floor"
-                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order."
-                    VerticalOptions="Center">
+                    SemanticProperties.Hint="Drag this handle onto another floor card to change the floor order. With a floor card focused, press Control plus Up Arrow or Control plus Down Arrow to move it."
+                    ToolTipProperties.Text="Reorder floor (Ctrl+Up / Ctrl+Down)"
+                    VerticalOptions="Fill">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnDragHandleTapped" />
                         <DragGestureRecognizer DragStarting="OnDragStarting" DropCompleted="OnDropCompleted" />
                     </Label.GestureRecognizers>
                 </Label>
             </Grid>
 
-            <!-- Separator between the floor's own row and its area list; visible only while expanded -->
+            <!-- Separator between the floor's own row and its area list; visible only while
+                 expanded. The three IsVisible bindings below read IsExpanded straight off this
+                 control, so the expanded/collapsed fact has exactly one owner and no handler
+                 restates it. -->
             <BoxView
                 x:Name="AreaSeparator"
-                IsVisible="False"
+                IsVisible="{Binding IsExpanded, Source={x:Reference Root}}"
                 Color="{StaticResource DmHairline}"
                 HeightRequest="1" />
 
@@ -137,9 +322,45 @@
                  button sits tight beneath the last area and the rows run to the card edge. -->
             <VerticalStackLayout
                 x:Name="AreaContainer"
-                IsVisible="False"
+                IsVisible="{Binding IsExpanded, Source={x:Reference Root}}"
                 Spacing="0"
-                Padding="8,4,0,0" />
+                Padding="8,4,0,0"
+                BindableLayout.ItemsSource="{Binding Floor.Areas, Source={x:Reference Root}}">
+
+                <!-- MASTER-099. The rows are generated from the bound collection rather than
+                     built by hand in RebuildAreas, and each one takes this control's five area
+                     commands DIRECTLY. That is what removes the Middle Man: the five Area*
+                     events this control used to declare existed only to re-raise the child's
+                     five identically-shaped events, and re-wire five closures per child on every
+                     Floor assignment. The command travels down a binding now, so nothing in
+                     between re-raises anything.
+
+                     RelativeSource rather than x:Reference: a DataTemplate is its own name scope
+                     and cannot see the Root name declared outside it.
+
+                     MASTER-098 / UIKIT-011: the selected appearance is BOUND, one way, to whether
+                     this row's area is the one the editor state has focused. FocusedAreaId is what
+                     the page's floor row template hands this control from Editor.FocusedAreaId, so
+                     the editor state is the one owner of the fact and nothing pushes it into a row.
+                     An area row built or re-bound after the focus was set, by a floor refresh or a
+                     full reload, therefore comes up already selected without anything re-applying
+                     it. -->
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="presentation:AreaItem">
+                        <controls:AreaSidebarItem
+                            Area="{Binding .}"
+                            SelectCommand="{Binding AreaSelectCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            HoverStartedCommand="{Binding AreaHoverStartedCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            HoverEndedCommand="{Binding AreaHoverEndedCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            DeleteCommand="{Binding AreaDeleteCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}"
+                            NotebookCommand="{Binding AreaNotebookCommand, Source={RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}}">
+                            <!-- One line on purpose: the whole binding site, open tag to close
+                                 tag, so a line search for the property finds the site once. -->
+                            <controls:AreaSidebarItem.IsSelected><MultiBinding Converter="{StaticResource GuidEquality}" Mode="OneWay"><Binding Path="Id" /><Binding Path="FocusedAreaId" Source="{RelativeSource AncestorType={x:Type controls:FloorSidebarItem}}" /></MultiBinding></controls:AreaSidebarItem.IsSelected>
+                        </controls:AreaSidebarItem>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
             <!-- Add area row (visible when expanded) -->
             <Button
@@ -152,7 +373,7 @@
                 BackgroundColor="Transparent"
                 Padding="{StaticResource DmPaddingCompact}"
                 HorizontalOptions="Start"
-                IsVisible="False"
+                IsVisible="{Binding IsExpanded, Source={x:Reference Root}}"
                 Clicked="OnAddAreaClicked">
                 <Button.Behaviors>
                     <behaviors:HandCursorBehavior />

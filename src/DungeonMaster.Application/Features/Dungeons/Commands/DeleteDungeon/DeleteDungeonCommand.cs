@@ -10,4 +10,4 @@ namespace DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
 /// </param>
 public record DeleteDungeonCommand(
 	Guid Id)
-		: ICommand<bool>;
+		: ICommand;

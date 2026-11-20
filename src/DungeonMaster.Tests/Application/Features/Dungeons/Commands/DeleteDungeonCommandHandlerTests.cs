@@ -1,5 +1,7 @@
-using DungeonMaster.Application.Features.Dungeons;
+using DungeonMaster.Application.Common.Interfaces;
+using DungeonMaster.Application.Common.Results;
 using DungeonMaster.Application.Features.Dungeons.Commands.DeleteDungeon;
+using DungeonMaster.Tests.Application.Common.Handlers;
 using FluentAssertions;
 using NSubstitute;
 
@@ -8,78 +10,146 @@ namespace DungeonMaster.Tests.Application.Features.Dungeons.Commands;
 /// <summary>
 ///		Unit tests for <see cref="DeleteDungeonCommandHandler"/>.
 /// </summary>
-public class DeleteDungeonCommandHandlerTests
+public sealed class DeleteDungeonCommandHandlerTests : CommandHandlerTestBase<DeleteDungeonCommandHandler>
 {
-    private readonly IDungeonWriteRepository _writeRepository;
-    private readonly DeleteDungeonCommandHandler _handler;
+	/// <inheritdoc />
+	protected override DeleteDungeonCommandHandler CreateHandler(IUnitOfWorkFactory factory) =>
+		new(factory);
 
-    /// <summary>
-    ///		Initializes the test class with a substituted repository and a real handler instance.
-    /// </summary>
-    public DeleteDungeonCommandHandlerTests()
-    {
-        _writeRepository = Substitute.For<IDungeonWriteRepository>();
-        _handler = new DeleteDungeonCommandHandler(_writeRepository);
-    }
+	/// <summary>
+	///		Verifies that a valid identifier produces a successful result and that <see cref="IDungeonWriteRepository.RemoveAsync"/> is called exactly once.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithValidId_ReturnsSuccess()
+	{
+		// Arrange
+		var id = Guid.NewGuid();
 
-    /// <summary>
-    ///		Verifies that a valid identifier produces a successful result with a value of <see langword="true"/> and that <see cref="IDungeonWriteRepository.DeleteAsync"/> is called exactly once.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_WithValidId_ReturnsSuccess()
-    {
-        // Arrange
-        var id = Guid.NewGuid();
+		WriteRepository
+			.RemoveAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
 
-        _writeRepository
-            .DeleteAsync(
-                Arg.Any<Guid>(),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+		var command = new DeleteDungeonCommand(id);
 
-        var command = new DeleteDungeonCommand(id);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Act
-        var result = await _handler.HandleAsync(
-            command,
-            CancellationToken.None);
+		// Assert
+		result.IsSuccess.Should().BeTrue();
 
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeTrue();
+		await WriteRepository
+			.Received(1)
+			.RemoveAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>());
+	}
 
-        await _writeRepository
-            .Received(1)
-            .DeleteAsync(
-                Arg.Any<Guid>(),
-                Arg.Any<CancellationToken>());
-    }
+	/// <summary>
+	///		Verifies that an identifier the repository could not delete produces a not-found failure naming the dungeon.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithUnknownId_ReturnsNotFound()
+	{
+		// Arrange
+		var id = Guid.NewGuid();
 
-    /// <summary>
-    ///		Verifies that the identifier passed to the repository matches the one on the command.
-    /// </summary>
-    [Fact]
-    public async Task HandleAsync_WhenCalled_PassesCorrectIdToRepository()
-    {
-        // Arrange
-        var expectedId = Guid.NewGuid();
-        Guid capturedId = Guid.Empty;
+		WriteRepository
+			.RemoveAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
+			.Returns(false);
 
-        _writeRepository
-            .DeleteAsync(
-                Arg.Do<Guid>(id =>
-                    capturedId = id),
-                Arg.Any<CancellationToken>())
-            .Returns(Task.CompletedTask);
+		var command = new DeleteDungeonCommand(id);
 
-        var command = new DeleteDungeonCommand(expectedId);
+		// Act
+		var result = await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
 
-        // Act
-        await _handler.HandleAsync(
-            command,
-            CancellationToken.None);
+		// Assert
+		result.IsFailure.Should().BeTrue();
+		result.ErrorCategory.Should().Be(ErrorCategory.NotFound);
+		result.Error.Should().Contain(id.ToString());
 
-        // Assert
-        capturedId.Should().Be(expectedId);
-    }
+		await UnitOfWork
+			.DidNotReceive()
+			.CommitAsync(Arg.Any<CancellationToken>());
+	}
+
+	/// <summary>
+	///		Verifies that the identifier passed to the repository matches the one on the command.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WhenCalled_PassesCorrectIdToRepository()
+	{
+		// Arrange
+		var expectedId = Guid.NewGuid();
+		Guid capturedId = Guid.Empty;
+
+		WriteRepository
+			.RemoveAsync(
+				Arg.Do<Guid>(id =>
+					capturedId = id),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		var command = new DeleteDungeonCommand(expectedId);
+
+		// Act
+		await Handler.HandleAsync(
+			command,
+			CancellationToken.None);
+
+		// Assert
+		capturedId.Should().Be(expectedId);
+	}
+	/// <summary>
+	///		Verifies that the exact token handed to the handler is the token the write repository is asked to remove with.
+	///		This is the only handler that reaches <see cref="IDungeonWriteRepository.RemoveAsync"/>, so the removal boundary needs a test here rather than on a shared base.
+	/// </summary>
+	[Fact]
+	public async Task HandleAsync_WithACancellationToken_PassesThatSameTokenToWriteRepositoryRemoveAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var token = cts.Token;
+
+		var id = Guid.NewGuid();
+
+		WriteRepository
+			.RemoveAsync(
+				Arg.Any<Guid>(),
+				Arg.Any<CancellationToken>())
+			.Returns(true);
+
+		// Act
+		await Handler.HandleAsync(
+			new DeleteDungeonCommand(id),
+			token);
+
+		// Assert
+		await WriteRepository
+			.Received(1)
+			.RemoveAsync(
+				id,
+				token);
+	}
+
+	/// <summary>
+	///		Dispatches this leaf's command with the supplied token, for the base-level tests that assert which token crossed each port.
+	/// </summary>
+	/// <param name="cancellationToken">
+	///		The token to hand to the handler.
+	/// </param>
+	/// <returns>
+	///		A task that completes when the handler returns.
+	/// </returns>
+	protected override Task InvokeWithTokenAsync(CancellationToken cancellationToken) =>
+		Handler.HandleAsync(
+			new DeleteDungeonCommand(Guid.NewGuid()),
+			cancellationToken);
 }

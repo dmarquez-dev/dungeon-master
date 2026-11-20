@@ -1,0 +1,120 @@
+{
+  "session": "2026-08-26-settle-the-app-boundaries",
+  "updatedAt": "2026-08-26T04:40:00Z",
+  "phase": "merged",
+  "worktree": "C:\\Users\\dmarq\\Development\\Repos\\dungeon-master\\.claude-worktrees\\dir\\2026-08-26-settle-the-app-boundaries",
+  "branch": "dir/2026-08-26-settle-the-app-boundaries",
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "702ff76bd73e71f115600406855a2c6bb0821e4a",
+      "commit": "828327aa3677cb5ccd19a3774432cfefc417b03b"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "8eded17a2fbc9b3ada94733271b75a93c715fc07",
+      "commit": "1678d12a2cdbc6dcf84ad866511c6dbf646735e4"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "1678d12a2cdbc6dcf84ad866511c6dbf646735e4",
+      "commit": "36e3b877f2627c4638b126b40c6badf84e7ce416"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "redispatches": 0,
+      "startRef": "702ff76bd73e71f115600406855a2c6bb0821e4a",
+      "commit": "8eded17a2fbc9b3ada94733271b75a93c715fc07"
+    }
+  ],
+  "escalations": [
+    {
+      "id": "E1",
+      "question": "MASTER-030: should net10.0-maccatalyst be implemented fully, dropped, or parked explicitly?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Park it explicitly. Keep the TFM, and write an ADR recording that macCatalyst is build-verified but not run-verified, naming UI-021's five TODO(macOS) paths as a known accepted gap. Chosen because XCUT-004 states the ambiguity is the defect more than either resolution would be, and because nothing on this machine can run a macCatalyst build, so 'implement it fully' could produce no observed evidence for the five input paths.",
+      "options": [
+        {
+          "summary": "Park it explicitly with an ADR",
+          "rationale": "Closes XCUT-004's stated defect (the ambiguity) at the lowest cost, and is the only option whose acceptance criteria are all reachable on this machine.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "Drop the target framework",
+          "rationale": "Closes UI-021, UI-036 and XCUT-004 outright and deletes a fraction of 5b/5c's work, but contradicts two repo design docs and is hardest to reverse.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "Implement it fully",
+          "rationale": "Honours what the design docs commit to, but every criterion would rest on compilation and source inspection rather than observation.",
+          "evidence": "repo"
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "question": "MASTER-026: extract a net10.0 library, multi-target the Tests project, or both?",
+      "reason": "ambiguous",
+      "resolved": true,
+      "answer": "Both. Extract map geometry and the control kit's presentation contracts into a net10.0 DungeonMaster.App.Core that DungeonMaster.Tests already reaches, closing MASTER-082 and MASTER-087 in the same move; and add a separate test project referencing DungeonMaster.App, run on Windows only. Chosen because the extraction library alone reaches nothing MAUI-typed, leaving Session 6's rescheduled entries (MASTER-006, 013, 055, 062) and MASTER-159 with no evidence path. At Gate 2 the user additionally approved a deviation from the literal 'multi-targeted' wording: DungeonMaster.App.Tests is single-targeted to net10.0-windows10.0.19041.0, because adding net10.0-maccatalyst produces NU1201 and pinning the platform version produces an empty ResolveFrameworkReference.RuntimePackPath - there is no macCatalyst test runtime pack on this machine.",
+      "options": [
+        {
+          "summary": "Both: net10.0 library plus a Windows-only MAUI-referencing test project",
+          "rationale": "The only option that gives Session 6's rescheduled entries and MASTER-159 an evidence path, while also closing MASTER-082 and MASTER-087.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "net10.0 extraction library only",
+          "rationale": "The audit's preferred shape; cheap and covers UI-017's geometry, but leaves every MAUI-typed defect assertable-only.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "Multi-target the Tests project only",
+          "rationale": "Reaches everything including XAML, but costs a second test host and leaves Common/Map in Application needing a separate answer.",
+          "evidence": "repo"
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "question": "T1's mandated ProjectReference additions rewrote src/DungeonMaster.App/packages.lock.json and src/DungeonMaster.Tests/packages.lock.json, which no task in the frozen manifest owns. How should the commit handle them?",
+      "reason": "expensive-to-reverse",
+      "resolved": true,
+      "answer": "Amend T1's owns globs in the frozen manifest to include both lock files, then commit-task stages them normally. Chosen because both reviewers independently found the glob was drawn one level too narrow and that T1 did nothing wrong: Directory.Build.props:21 sets RestorePackagesWithLockFile=true, so criterion 6's mandated ProjectReference additions and criterion 12's committed lock files cannot both be satisfied while those files stay untouched. Diffs verified as +14 and +7 lines with zero deletions, containing only dungeonmaster.app.core project nodes.",
+      "options": [
+        {
+          "summary": "Amend T1's owns, then commit normally",
+          "rationale": "Makes the manifest match what actually happened; both reviewers said the glob was too narrow.",
+          "evidence": "repo"
+        },
+        {
+          "summary": "Stage them with T1's commit, leave the manifest alone",
+          "rationale": "Preserves the freeze literally, but leaves the manifest asserting an ownership set the commit contradicts.",
+          "evidence": "judgment"
+        },
+        {
+          "summary": "Commit them separately after the merge",
+          "rationale": "Keeps freeze and task commit literally clean, at the cost of intermediate commits that do not restore.",
+          "evidence": "judgment"
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "userInteractions": 5,
+    "escalationsRaised": 3,
+    "reviewRounds": 0
+  }
+}

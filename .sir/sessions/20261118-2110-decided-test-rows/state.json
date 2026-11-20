@@ -1,0 +1,75 @@
+{
+  "session": "20261118-2110-decided-test-rows",
+  "updatedAt": "2026-11-18T23:58:05Z",
+  "worktree": "C:/dm-wt/20261118-2110-decided-test-rows",
+  "branch": "agent/20261118-2110-decided-test-rows",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261118-2110-decided-test-rows/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s), exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261118-2110-decided-test-rows/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Total 217 App.UnitTests, Total 1008 DungeonMaster.Tests, Total 146 App.Tests, 0 failed, exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "f2aead0be6d64a0397bf3c22e87c2e3f57f16cd1",
+      "model": "opus",
+      "commit": "5724b3d"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "5724b3df0e8f6e6aa6c143ce6b8d26d3c13428d4",
+      "model": "opus",
+      "commit": "9b221ba"
+    },
+    {
+      "id": "T3",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "9b221baf60820804c77a51ffbc38fcebb71b1ca5",
+      "model": "opus",
+      "commit": "7fca00d"
+    },
+    {
+      "id": "T4",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "7fca00dd2a4aaee1524649e434e64fec1f79c763",
+      "model": "opus",
+      "commit": "bab0303"
+    },
+    {
+      "id": "T5",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "bab03035244709dd8bcef410eb5b20ed4a81bc67",
+      "model": "opus",
+      "commit": "cbc7e91"
+    },
+    {
+      "id": "T6",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "cbc7e91972734e4ca89930ba3a3c3376c05cf341",
+      "model": "opus",
+      "commit": "9293ae2"
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}
