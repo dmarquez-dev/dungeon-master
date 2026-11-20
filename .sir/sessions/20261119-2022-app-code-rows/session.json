@@ -1,0 +1,51 @@
+{
+  "id": "20261119-2022-app-code-rows",
+  "name": "app-code-rows",
+  "scope": "standard",
+  "status": "MERGED",
+  "started": "2026-11-19T20:22:31Z",
+  "ended": null,
+  "parent": null,
+  "children": [],
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "f9192dcc-e940-46ba-8584-2790b3a084ab",
+      "sir": "1.0.49",
+      "started": "2026-11-19T20:22:31Z",
+      "ended": "2026-11-19T20:28:42Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "1486f6bb-53c9-4288-8204-e17024e5ef27",
+      "sir": "1.0.49",
+      "started": "2026-11-19T20:35:46Z",
+      "ended": "2026-11-19T21:26:04Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "f455c538-a0ad-4fbf-bb2f-afc36384ee77",
+      "sir": "1.0.49",
+      "started": "2026-11-19T21:28:31Z",
+      "ended": "2026-11-19T22:32:09Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "e0723b6c-c88c-43f2-9de9-f15a484c2af6",
+      "sir": "1.0.49",
+      "started": "2026-11-19T22:55:31Z",
+      "ended": "2026-11-20T00:08:07Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 1,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "brief": "Close six App-layer rows of .sir/backlog.md whose action and check an earlier gate or spec already fixed, and remove each row at Gate 3 once its check passes. Row 14: a comment above the if (_editor.IsMoveDragging) guard in DungeonDetailPage.FocusArea names that AbortInProgressDraw has already cleared the flag; the code is not moved. Row 16: an intent comment on AreaOutlineGeometry's n < 3 guard, recording that replacing it with n < 0 changes no answer, and 'documented intent' named on the three small-polygon tests. Row 17: remove DmFlagBanner's unused title editor (IsTitleEditable, ApplyEditability, OnTitleCommitted, TextCommitted, TitleEditor). Row 85: rename the BtnCW/BtnCCW x:Names to RotateClockwiseButton/RotateCounterClockwiseButton in the palette and PopupRotateClockwise/PopupRotateCounterClockwise in the popup. Row 86: rename the obj locals in two App files and five test files after what each holds, keeping RepoPaths' obj directory strings. Row 90: a remark on FloorDropLanding saying default reports HasLanding = true and None means no landing. No behaviour change; one human check of the banner title and both rotate controls.",
+  "pushed": true
+}
