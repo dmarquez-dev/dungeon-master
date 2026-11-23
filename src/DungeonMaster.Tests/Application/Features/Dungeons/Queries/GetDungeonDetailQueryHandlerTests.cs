@@ -21,7 +21,10 @@ public class GetDungeonDetailQueryHandlerTests
 	{
 		// Arrange
 		var id = Guid.NewGuid();
-		var dto = new DungeonDetailDto(id, "The Vault", null, null, 0, DateTime.UtcNow, DateTime.UtcNow, []);
+		var firstFloor = new FloorDto(Guid.NewGuid(), 1, "Upper Hall", null, null, [], []);
+		var secondFloor = new FloorDto(Guid.NewGuid(), 2, "Lower Crypt", null, null, [], []);
+		var floors = new List<FloorDto> { firstFloor, secondFloor };
+		var dto = new DungeonDetailDto(id, "The Vault", null, null, 2, DateTime.UtcNow, DateTime.UtcNow, floors);
 		_readRepository
 			.GetDetailAsync(id, Arg.Any<CancellationToken>())
 			.Returns(dto);
@@ -36,6 +39,9 @@ public class GetDungeonDetailQueryHandlerTests
 		result.Should().BeSameAs(dto);
 		result!.Id.Should().Be(id);
 		result.Name.Should().Be("The Vault");
+		result.Floors.Should().SatisfyRespectively(
+			floor => floor.Should().BeSameAs(firstFloor),
+			floor => floor.Should().BeSameAs(secondFloor));
 	}
 
 	[Fact]
