@@ -8,7 +8,7 @@ namespace DungeonMaster.Tests.Domain.Entities.Dungeons;
 
 public class DungeonLastModifiedOnFailedMutationTests
 {
-	private static readonly TimeSpan ClockAdvanceTimeout = TimeSpan.FromSeconds(1);
+	private static readonly DateTime BackdatedLastModified = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
 	[Fact]
 	public void RemoveArea_WithExistingFloorAndMissingArea_ReturnsNotFoundAndLeavesLastModifiedUnchanged()
@@ -16,7 +16,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
-		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
+		BackdateLastModified(dungeon, BackdatedLastModified);
 
 		// Act
 		var outcome = dungeon.RemoveArea(
@@ -26,7 +26,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
 		dungeon.LastModified.Should().Be(
-			captured,
+			BackdatedLastModified,
 			"a failed inner floor mutation must not advance the dungeon's LastModified");
 	}
 
@@ -36,7 +36,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
-		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
+		BackdateLastModified(dungeon, BackdatedLastModified);
 
 		// Act
 		var outcome = dungeon.UpdateArea(
@@ -49,7 +49,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
 		dungeon.LastModified.Should().Be(
-			captured,
+			BackdatedLastModified,
 			"a failed inner floor mutation must not advance the dungeon's LastModified");
 	}
 
@@ -77,7 +77,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 				null,
 				null),
 		];
-		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
+		BackdateLastModified(dungeon, BackdatedLastModified);
 
 		// Act
 		var outcome = dungeon.UpdateAreaOutline(
@@ -88,7 +88,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
 		dungeon.LastModified.Should().Be(
-			captured,
+			BackdatedLastModified,
 			"a failed inner floor mutation must not advance the dungeon's LastModified");
 	}
 
@@ -98,7 +98,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
-		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
+		BackdateLastModified(dungeon, BackdatedLastModified);
 
 		// Act
 		var outcome = dungeon.RemovePlacedObject(
@@ -108,7 +108,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
 		dungeon.LastModified.Should().Be(
-			captured,
+			BackdatedLastModified,
 			"a failed inner floor mutation must not advance the dungeon's LastModified");
 	}
 
@@ -118,7 +118,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Arrange
 		var dungeon = new Dungeon("Test Dungeon");
 		var floor = dungeon.AddFloor("Entry");
-		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
+		BackdateLastModified(dungeon, BackdatedLastModified);
 
 		// Act
 		var outcome = dungeon.UpdatePlacedObject(
@@ -131,7 +131,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.NotFound);
 		dungeon.LastModified.Should().Be(
-			captured,
+			BackdatedLastModified,
 			"a failed inner floor mutation must not advance the dungeon's LastModified");
 	}
 
@@ -145,7 +145,7 @@ public class DungeonLastModifiedOnFailedMutationTests
 			floor.Id,
 			"Grand Foyer",
 			"A large entrance hall.")!;
-		var captured = CaptureLastModifiedAndWaitForClockToAdvance(dungeon);
+		BackdateLastModified(dungeon, BackdatedLastModified);
 
 		// Act
 		var outcome = dungeon.UpdateArea(
@@ -158,31 +158,22 @@ public class DungeonLastModifiedOnFailedMutationTests
 		// Assert
 		outcome.Should().Be(MutationOutcome.Success);
 		dungeon.LastModified.Should().BeAfter(
-			captured,
+			BackdatedLastModified,
 			"a successful inner floor mutation advances the dungeon's LastModified");
 	}
 
 	/// <summary>
-	///		Captures the dungeon's <see cref="Entity.LastModified"/>, then waits until the UTC clock has moved past it,
-	///		so that any <c>Touch</c> during the act step would produce an observably later value.
+	///		Sets the entity's <see cref="Entity.LastModified"/> to a fixed past instant by reflection,
+	///		so that any <c>Touch</c> during the act step produces an observably later value.
 	/// </summary>
-	/// <param name="dungeon">
-	///		The dungeon whose timestamp to capture.
+	/// <param name="entity">
+	///		The entity whose timestamp to set.
 	/// </param>
-	/// <returns>
-	///		The captured <see cref="Entity.LastModified"/> value.
-	/// </returns>
-	private static DateTime CaptureLastModifiedAndWaitForClockToAdvance(Dungeon dungeon)
-	{
-		var captured = dungeon.LastModified;
-
-		var clockAdvanced = SpinWait.SpinUntil(
-			() =>
-				DateTime.UtcNow > captured,
-			ClockAdvanceTimeout);
-
-		clockAdvanced.Should().BeTrue("the UTC clock must move past the captured LastModified within the timeout");
-
-		return captured;
-	}
+	/// <param name="lastModified">
+	///		The instant to set.
+	/// </param>
+	private static void BackdateLastModified(Entity entity, DateTime lastModified) =>
+		typeof(Entity)
+			.GetProperty(nameof(Entity.LastModified))!
+			.SetValue(entity, lastModified);
 }

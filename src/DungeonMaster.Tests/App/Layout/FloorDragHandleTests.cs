@@ -50,6 +50,8 @@ public class FloorDragHandleTests
 
 	private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2009/xaml";
 
+	private const string MauiNamespace = "http://schemas.microsoft.com/dotnet/2021/maui";
+
 	/// <summary>
 	///		The drag handle is the <c>Label</c> that hosts the reorder gesture, under the
 	///		identifier the out-of-process harness addresses it by.
@@ -91,14 +93,15 @@ public class FloorDragHandleTests
 		var document = ControlDocument();
 		var handle = WithAutomationId(document, HandleAutomationId);
 
-		ThemeSource
-			.QualifiedElementName(handle.Name)
+		handle
+			.Name
 			.Should()
 			.Be(
-				"Label",
-				"contract C1 amendment A1 section 1A freezes this element as a Label: observation "
-				+ "O1 found that a WinUI Button consumes the press, so the DragGestureRecognizer "
-				+ "never starts a drag from one and the pointer reorder is broken outright");
+				XName.Get("Label", MauiNamespace),
+				"contract C1 amendment A1 section 1A freezes this element as a MAUI Label: "
+				+ "observation O1 found that a WinUI Button consumes the press, so the "
+				+ "DragGestureRecognizer never starts a drag from one and the pointer reorder is "
+				+ "broken outright");
 
 		var gestures = handle
 			.Elements()

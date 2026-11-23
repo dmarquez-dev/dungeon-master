@@ -54,6 +54,8 @@ public class FloorExpandToggleTests
 
 	private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2009/xaml";
 
+	private const string MauiNamespace = "http://schemas.microsoft.com/dotnet/2021/maui";
+
 	/// <summary>
 	///		The expand toggle is a <c>Button</c>, and keeps the <c>AutomationId</c> the Appium
 	///		harness addresses it by.
@@ -63,14 +65,14 @@ public class FloorExpandToggleTests
 	{
 		var toggle = Toggle();
 
-		ThemeSource
-			.QualifiedElementName(toggle.Name)
+		toggle
+			.Name
 			.Should()
 			.Be(
-				"Button",
-				"a Label takes no keyboard focus on WinUI, and expanding is the only route to a "
-				+ "floor's areas, so a Label here makes the whole area list keyboard-unreachable "
-				+ "(MASTER-164)");
+				XName.Get("Button", MauiNamespace),
+				"a MAUI Button is the focusable control here: a Label takes no keyboard focus on "
+				+ "WinUI, and expanding is the only route to a floor's areas, so a Label here makes "
+				+ "the whole area list keyboard-unreachable (MASTER-164)");
 
 		Attribute(toggle, "AutomationId")
 			.Should()
