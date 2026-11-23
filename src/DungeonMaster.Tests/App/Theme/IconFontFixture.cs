@@ -1,4 +1,6 @@
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace DungeonMaster.Tests.App.Theme;
 
@@ -49,23 +51,12 @@ public sealed class IconFontFixture
 	private const string IconFontFile = "rpgawesome-webfont.ttf";
 
 	/// <summary>
-	///		Matches the opening tag of any element together with its own attributes.
-	///		<c>[^&gt;]</c> cannot cross into a nested element, so the attribute run belongs to this
-	///		tag and no other.
+	///		Matches a whole <c>FontFamily</c> value naming the icon font, with optional whitespace
+	///		inside the braces.
 	/// </summary>
-	private static readonly Regex ElementTag =
+	private static readonly Regex IconFontValue =
 		new(
-			@"<(?<element>[A-Za-z_][\w.:-]*)\b(?<attributes>[^>]*?)/?>",
-			RegexOptions.Singleline | RegexOptions.Compiled);
-
-	private static readonly Regex IconFontAttribute =
-		new(
-			@"FontFamily\s*=\s*""\{\s*StaticResource\s+DmFontIcon\s*\}""",
-			RegexOptions.Compiled);
-
-	private static readonly Regex TextAttribute =
-		new(
-			@"(?<![A-Za-z.])Text\s*=\s*""(?<value>[^""]*)""",
+			@"^\{\s*StaticResource\s+DmFontIcon\s*\}$",
 			RegexOptions.Compiled);
 
 	/// <summary>
@@ -85,7 +76,15 @@ public sealed class IconFontFixture
 			? TrueTypeCmap.Codepoints(File.ReadAllBytes(IconFontPath))
 			: new HashSet<int>();
 
-		IconTexts = ScanIconTexts();
+		IconTexts = RepoPaths
+			.AppSourceFiles("*.xaml")
+			.SelectMany(path =>
+				ScanIconTexts(
+					File.ReadAllText(path),
+					Path.GetRelativePath(
+						RepoPaths.AppRoot,
+						path)))
+			.ToList();
 	}
 
 	/// <summary>
@@ -108,49 +107,73 @@ public sealed class IconFontFixture
 	/// </summary>
 	public IReadOnlyList<IconTextDeclaration> IconTexts { get; }
 
-	private static IReadOnlyList<IconTextDeclaration> ScanIconTexts()
+	/// <summary>
+	///		Returns every element in one XAML document that declares <c>DmFontIcon</c> as its
+	///		<c>FontFamily</c> together with a literal, unqualified <c>Text</c>, in document order.
+	///		This is the scan the constructor runs once per application <c>.xaml</c> file.
+	/// </summary>
+	/// <remarks>
+	///		The document is parsed rather than pattern-matched, so a comment is never mistaken
+	///		for markup and a <c>&gt;</c> inside an attribute value cannot end an element early.
+	///		Each line comes from the element's own line info, so it is the line its start tag
+	///		begins on in the text as supplied; each value comes from the parser, so its
+	///		character entities are already decoded.
+	/// </remarks>
+	/// <param name="xaml">
+	///		The XAML text to scan.
+	/// </param>
+	/// <param name="label">
+	///		The name each declaration's <see cref="IconTextDeclaration.Where"/> reports the text
+	///		under, ahead of the line number.
+	/// </param>
+	/// <exception cref="XmlException">
+	///		The text is not well-formed XML; the message is prefixed with <paramref name="label"/>.
+	/// </exception>
+	internal static IReadOnlyList<IconTextDeclaration> ScanIconTexts(
+		string xaml,
+		string label)
 	{
-		var declarations = new List<IconTextDeclaration>();
+		XDocument document;
 
-		foreach (var path in RepoPaths.AppSourceFiles("*.xaml"))
+		try
 		{
-			var relative = Path.GetRelativePath(
-				RepoPaths.AppRoot,
-				path);
-
-			// Comments are blanked rather than deleted, so a comment containing something that
-			// looks like markup cannot be matched while every reported line number still counts
-			// against the file as it is on disk. ThemeSource.BlankXmlComments guarantees that
-			// offset preservation; the local copy this replaced did the same thing three files
-			// apart, which is MASTER-138.
-			var text = ThemeSource.BlankXmlComments(File.ReadAllText(path));
-
-			foreach (Match tag in ElementTag.Matches(text))
-			{
-				var attributes = tag.Groups["attributes"].Value;
-
-				if (!IconFontAttribute.IsMatch(attributes))
-				{
-					continue;
-				}
-
-				var declaredText = TextAttribute.Match(attributes);
-
-				if (!declaredText.Success)
-				{
-					continue;
-				}
-
-				declarations.Add(
-					new IconTextDeclaration(
-						$"{relative}:{ThemeSource.LineNumber(
-							text,
-							tag.Index)}",
-						tag.Groups["element"].Value,
-						ThemeSource.DecodeCharacterEntities(declaredText.Groups["value"].Value)));
-			}
+			document = XDocument.Parse(
+				xaml,
+				LoadOptions.SetLineInfo);
+		}
+		catch (XmlException exception)
+		{
+			// The parser's own message names a line and a column but not a file.
+			throw new XmlException(
+				$"{label}: {exception.Message}",
+				exception);
 		}
 
-		return declarations;
+		return document
+			.Descendants()
+			.Where(element =>
+				element.Attribute("FontFamily") is { } fontFamily
+				&& IconFontValue.IsMatch(fontFamily.Value)
+				&& element.Attribute("Text") is not null)
+			.Select(element =>
+				new IconTextDeclaration(
+					$"{label}:{((IXmlLineInfo)element).LineNumber}",
+					ElementNameAsWritten(element),
+					element.Attribute("Text")!.Value))
+			.ToList();
+	}
+
+	/// <summary>
+	///		Returns the element name with the prefix its document declares for its namespace,
+	///		so <c>controls:DmIconButton</c> is reported as written rather than as a bare local
+	///		name.
+	/// </summary>
+	private static string ElementNameAsWritten(XElement element)
+	{
+		var prefix = element.GetPrefixOfNamespace(element.Name.Namespace);
+
+		return string.IsNullOrEmpty(prefix)
+			? element.Name.LocalName
+			: $"{prefix}:{element.Name.LocalName}";
 	}
 }
