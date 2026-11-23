@@ -1,0 +1,53 @@
+{
+  "id": "20261123-0703-test-strength-rows",
+  "name": "test-strength-rows",
+  "scope": "standard",
+  "status": "WRAPPED",
+  "brief": "Close five test-strength backlog rows in src/DungeonMaster.Tests as five serial test-only tasks, each shown able to fail by an injected defect that is reverted and hash-checked. T1 replaces IconFontFixture's ElementTag regex with an XDocument walk and adds two facts for an icon-font element carrying '>' inside an attribute value. T2 feeds TrueTypeCmapTests' combined-cmap fact a format-0 code below 0x41 so a broken format-0 loop turns it red. T3 arranges a non-empty List<FloorDto> in GetDungeonDetailQueryHandlerTests and asserts the instances are untouched by reference. T4 makes the FloorDragHandle Label and FloorExpandToggle Button element-type assertions require the MAUI default namespace, leaving ThemeSource.QualifiedElementName alone. T5 replaces the SpinWait clock wait in DungeonLastModifiedOnFailedMutationTests with a reflection backdate to 2000-01-01 UTC, and verifies the whole solution at the tip (217/1014/146). Gate 3 removes the five rows; the session reaches main by a PR on test/test-strength-rows.",
+  "started": "2026-11-23T07:03:59Z",
+  "ended": "2026-11-23T18:41:02Z",
+  "parent": null,
+  "children": [],
+  "integration": "pr",
+  "branchType": "test",
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "78431124-6881-4934-a40a-0eb6eeca324e",
+      "sir": "1.0.54",
+      "started": "2026-11-23T07:03:59Z",
+      "ended": "2026-11-23T07:10:13Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "3c8849f5-4d9a-4af1-8468-ec92737e4c17",
+      "sir": "1.0.54",
+      "started": "2026-11-23T07:13:06Z",
+      "ended": "2026-11-23T07:56:16Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "de3327d2-eb52-48b2-b609-e3b5fb839204",
+      "sir": "1.0.54",
+      "started": "2026-11-23T07:59:51Z",
+      "ended": "2026-11-23T09:08:40Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "50f4c2d4-227d-4b5c-8353-a7141fc2b4e3",
+      "sir": "1.0.54",
+      "started": "2026-11-23T18:28:30Z",
+      "ended": "2026-11-23T18:41:02Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}
