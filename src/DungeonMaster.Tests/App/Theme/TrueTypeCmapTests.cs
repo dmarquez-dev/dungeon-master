@@ -44,7 +44,7 @@ public class TrueTypeCmapTests
 	private static readonly int[] Format12Expected = [0x1F600, 0x1F601, 0x1F602];
 
 	private static readonly int[] AllFormatsExpected =
-		[0x41, 0x42, 0x43, 0x0100, 0xE000, 0xE002, 0x1F600];
+		[0x20, 0x41, 0x42, 0x43, 0x0100, 0xE000, 0xE002, 0x1F600];
 
 	/// <summary>
 	///		One <c>cmap</c> format 4 segment, as the builder takes it.
@@ -171,8 +171,13 @@ public class TrueTypeCmapTests
 	[Fact]
 	public void EverySubtableFormatInOneCmapIsRead()
 	{
+		// U+0020 is the code only format 0 covers: format 4 starts at U+0041, format 6 at U+0100
+		// and format 12 at U+1F600. Without it, format 0's U+0041 is also covered by format 4, so
+		// a format 0 branch that read nothing would leave the union unchanged and this fact green.
 		var font = Font(
-			Format0(0x41),
+			Format0(
+				0x20,
+				0x41),
 			Format4(Segments()),
 			Format6(
 				0x0100,
