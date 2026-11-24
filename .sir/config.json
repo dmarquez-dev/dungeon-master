@@ -1,6 +1,7 @@
 {
   "$comment": "Overrides sir-sdlc's documented defaults for this repository. Only the keys present here override; everything else uses the documented default. See the Configuration section of the sir-sdlc README.",
   "git": {
-    "worktreeRoot": "C:/dm-wt/"
+    "worktreeRoot": "C:/dm-wt/",
+    "integration": "pr"
   }
 }
