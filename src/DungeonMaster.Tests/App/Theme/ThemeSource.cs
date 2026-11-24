@@ -67,6 +67,12 @@ public sealed record KeyedElement(
 internal static class ThemeSource
 {
 	/// <summary>
+	///		The MAUI default XML namespace, the one every MAUI element in the application's XAML
+	///		is declared in.
+	/// </summary>
+	public const string MauiNamespace = "http://schemas.microsoft.com/dotnet/2021/maui";
+
+	/// <summary>
 	///		The XAML language namespace, whose elements carry the <c>x:</c> prefix.
 	/// </summary>
 	private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2009/xaml";
@@ -274,6 +280,42 @@ internal static class ThemeSource
 		return name.NamespaceName == XamlNamespace
 			? $"x:{name.LocalName}"
 			: name.LocalName;
+	}
+
+	/// <summary>
+	///		Returns true exactly when the supplied element is the named element in the MAUI
+	///		default namespace, <see cref="MauiNamespace"/>, whatever prefix (or none) the document
+	///		used to bind it. The same local name in any other namespace — a <c>clr-namespace:</c>
+	///		namespace, the XAML language namespace, or none — is not a match. The comparison is
+	///		ordinal and case-sensitive on both namespace and local name.
+	///		<para>
+	///		Unlike <see cref="QualifiedElementName(XName)"/>, which strips every namespace but the
+	///		XAML language one, this tells a MAUI element from a same-named element declared in
+	///		any other namespace.
+	///		</para>
+	/// </summary>
+	/// <param name="element">
+	///		The element to test.
+	/// </param>
+	/// <param name="localName">
+	///		The bare local name to match, such as <c>Style</c>. It must be a valid XML name
+	///		without a prefix.
+	/// </param>
+	/// <exception cref="XmlException">
+	///		<paramref name="localName"/> carries a prefix, as the qualified spelling
+	///		<c>x:Style</c> does, so a caller still passing a <see cref="QualifiedElementName(XName)"/>
+	///		spelling fails loudly instead of silently matching nothing.
+	/// </exception>
+	/// <exception cref="ArgumentException">
+	///		<paramref name="localName"/> is the empty string.
+	/// </exception>
+	public static bool IsMauiElement(
+		XElement element,
+		string localName)
+	{
+		return element.Name == XName.Get(
+			localName,
+			MauiNamespace);
 	}
 
 	/// <summary>

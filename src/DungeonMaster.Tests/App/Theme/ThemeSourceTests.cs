@@ -30,6 +30,22 @@ public class ThemeSourceTests
 		""";
 
 	/// <summary>
+	///		A document holding one <c>Style</c> element in each of three namespaces: the MAUI
+	///		default namespace, a <c>clr-namespace:</c> namespace, and the XAML language namespace.
+	///		Same local name in all three, so only the namespace can tell them apart.
+	/// </summary>
+	private const string ThreeNamespaceDocument = """
+		<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			xmlns:local="clr-namespace:DungeonMaster.Synthetic">
+			<Style />
+			<local:Style />
+			<x:Style />
+		</ResourceDictionary>
+		""";
+
+	/// <summary>
 	///		The XAML language namespace is spelled with its prefix and the default MAUI
 	///		namespace is spelled bare, because that is the vocabulary the consuming tables use.
 	/// </summary>
@@ -50,6 +66,60 @@ public class ThemeSourceTests
 			.Equal(
 				"x:Double",
 				"Color");
+	}
+
+	/// <summary>
+	///		<c>IsMauiElement</c> matches the element in the MAUI default namespace and rejects the
+	///		same local name in a <c>clr-namespace:</c> namespace and in the XAML language
+	///		namespace.
+	/// </summary>
+	[Fact]
+	public void IsMauiElementMatchesOnlyTheMauiDefaultNamespace()
+	{
+		var children = XDocument
+			.Parse(ThreeNamespaceDocument)
+			.Root!
+			.Elements()
+			.ToList();
+
+		children
+			.Should()
+			.HaveCount(
+				3,
+				"the synthetic document declares one Style in each of three namespaces");
+
+		children
+			.Select(element =>
+				ThemeSource.IsMauiElement(
+					element,
+					"Style"))
+			.Should()
+			.Equal(
+				[true, false, false],
+				"only the first Style is in the MAUI default namespace; the second is in a "
+				+ "clr-namespace: namespace and the third in the XAML language namespace");
+	}
+
+	/// <summary>
+	///		A qualified spelling such as <c>x:Style</c> is not a local name, and passing one throws
+	///		rather than silently matching nothing.
+	/// </summary>
+	[Fact]
+	public void IsMauiElementThrowsXmlExceptionForAPrefixedName()
+	{
+		var mauiElement = new XElement(
+			XName.Get(
+				"Style",
+				ThemeSource.MauiNamespace));
+
+		var match = () =>
+			ThemeSource.IsMauiElement(
+				mauiElement,
+				"x:Style");
+
+		match
+			.Should()
+			.Throw<System.Xml.XmlException>();
 	}
 
 	/// <summary>

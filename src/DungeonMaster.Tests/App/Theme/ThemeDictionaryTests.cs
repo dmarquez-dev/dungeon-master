@@ -22,6 +22,27 @@ public class ThemeDictionaryTests
 	private const string TokensDictionaryName = "Tokens.xaml";
 
 	/// <summary>
+	///		An application document merging one MAUI-namespace dictionary and holding a same-named
+	///		element in a <c>clr-namespace:</c> namespace. Only the first is a merged dictionary.
+	/// </summary>
+	private const string ForeignMergeDocument =
+		"""
+		<Application
+			xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			xmlns:local="clr-namespace:DungeonMaster.Synthetic">
+			<Application.Resources>
+				<ResourceDictionary>
+					<ResourceDictionary.MergedDictionaries>
+						<ResourceDictionary Source="Resources/Theme/Kept.xaml" />
+						<local:ResourceDictionary Source="Resources/Theme/Foreign.xaml" />
+					</ResourceDictionary.MergedDictionaries>
+				</ResourceDictionary>
+			</Application.Resources>
+		</Application>
+		""";
+
+	/// <summary>
 	///		Gets the resource keys every theme consumer is entitled to resolve.
 	/// </summary>
 	public static TheoryData<string> RequiredKeys =>
@@ -109,6 +130,22 @@ public class ThemeDictionaryTests
 			.NotBeEmpty(
 				"App.xaml must merge theme dictionaries or the merge facts below compare nothing "
 				+ "against nothing");
+	}
+
+	/// <summary>
+	///		Asserts that the merge reader returns the source of a MAUI-namespace
+	///		<c>ResourceDictionary</c> and skips a same-named element declared in a
+	///		<c>clr-namespace:</c> namespace.
+	/// </summary>
+	[Fact]
+	public void MergedThemeSourcesInReadsOnlyMauiNamespaceDictionaries()
+	{
+		MergedThemeSourcesIn(XDocument.Parse(ForeignMergeDocument))
+			.Should()
+			.Equal(
+				["Resources/Theme/Kept.xaml"],
+				"only the MAUI-namespace ResourceDictionary is merged; the clr-namespace: element "
+				+ "of the same local name is a different type");
 	}
 
 	/// <summary>
@@ -399,12 +436,28 @@ public class ThemeDictionaryTests
 			return [];
 		}
 
+		return MergedThemeSourcesIn(appXaml.Document);
+	}
+
+	/// <summary>
+	///		Returns the theme dictionaries the supplied document merges from Resources/Theme, in
+	///		document order. Only a <c>ResourceDictionary</c> element in the MAUI default namespace
+	///		counts; a same-named element in any other namespace is not a merged dictionary.
+	///		Separate from <see cref="MergedThemeSourcesInAppXaml"/> so the same reader can be
+	///		pointed at a synthetic document.
+	/// </summary>
+	/// <param name="document">
+	///		The parsed document to read.
+	/// </param>
+	private static IReadOnlyList<string> MergedThemeSourcesIn(XDocument document)
+	{
 		// Document order is the merge order, and the merge order is load-bearing markup.
-		return appXaml
-			.Document
+		return document
 			.Descendants()
 			.Where(element =>
-				ThemeSource.QualifiedElementName(element.Name) == "ResourceDictionary")
+				ThemeSource.IsMauiElement(
+					element,
+					"ResourceDictionary"))
 			.Select(element =>
 				element.Attribute("Source")?.Value)
 			.Where(source =>

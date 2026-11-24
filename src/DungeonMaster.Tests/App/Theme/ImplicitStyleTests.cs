@@ -54,6 +54,60 @@ public class ImplicitStyleTests
 		""";
 
 	/// <summary>
+	///		A resource dictionary whose one style holds a MAUI-namespace setter and a same-named
+	///		setter in a <c>clr-namespace:</c> namespace. Only the first is a MAUI setter.
+	/// </summary>
+	private const string ForeignSetterDocument =
+		"""
+		<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			xmlns:local="clr-namespace:DungeonMaster.Synthetic">
+			<Style TargetType="Holder">
+				<Setter Property="Kept" Value="1" />
+				<local:Setter Property="Foreign" Value="2" />
+			</Style>
+		</ResourceDictionary>
+		""";
+
+	/// <summary>
+	///		A resource dictionary whose one style holds a MAUI-namespace visual state group and
+	///		state, and a same-named group and state in a <c>clr-namespace:</c> namespace. Only the
+	///		first pair is MAUI.
+	/// </summary>
+	private const string ForeignVisualStateDocument =
+		"""
+		<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			xmlns:local="clr-namespace:DungeonMaster.Synthetic">
+			<Style TargetType="Holder">
+				<VisualStateGroup x:Name="KeptGroup">
+					<VisualState x:Name="KeptState" />
+				</VisualStateGroup>
+				<local:VisualStateGroup x:Name="ForeignGroup">
+					<local:VisualState x:Name="ForeignState" />
+				</local:VisualStateGroup>
+			</Style>
+		</ResourceDictionary>
+		""";
+
+	/// <summary>
+	///		A resource dictionary holding a MAUI-namespace style and a same-named style in a
+	///		<c>clr-namespace:</c> namespace. Only the first is a MAUI style.
+	/// </summary>
+	private const string ForeignStyleDocument =
+		"""
+		<ResourceDictionary
+			xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			xmlns:local="clr-namespace:DungeonMaster.Synthetic">
+			<Style TargetType="Kept" />
+			<local:Style TargetType="Foreign" />
+		</ResourceDictionary>
+		""";
+
+	/// <summary>
 	///		The control-level properties Implicit.xaml must NOT set. This is the invariant the file
 	///		states at the top of itself: colour and font belong exclusively to the keyed Dm* styles
 	///		in Controls.Base.xaml and its derivatives, and setting either here as well would give
@@ -324,6 +378,66 @@ public class ImplicitStyleTests
 	}
 
 	/// <summary>
+	///		Asserts that <c>SetterProperties</c> reads a MAUI-namespace <c>Setter</c> and skips a
+	///		same-named element declared in a <c>clr-namespace:</c> namespace.
+	/// </summary>
+	[Fact]
+	public void SetterPropertiesReadsOnlyMauiNamespaceSetters()
+	{
+		var style = SyntheticStyle(ForeignSetterDocument);
+
+		SetterProperties(style)
+			.Should()
+			.Equal(
+				["Kept"],
+				"only the MAUI-namespace Setter is a setter; the clr-namespace: element of the "
+				+ "same local name is a different type");
+	}
+
+	/// <summary>
+	///		Asserts that <c>XamlNames</c> reads the <c>x:Name</c> of MAUI-namespace visual state
+	///		groups and states and skips same-named elements declared in a <c>clr-namespace:</c>
+	///		namespace, for both element names its callers pass.
+	/// </summary>
+	[Fact]
+	public void XamlNamesReadsOnlyMauiNamespaceElements()
+	{
+		var style = SyntheticStyle(ForeignVisualStateDocument);
+
+		XamlNames(
+			style,
+			"VisualStateGroup")
+			.Should()
+			.Equal(
+				["KeptGroup"],
+				"only the MAUI-namespace VisualStateGroup is a visual state group");
+
+		XamlNames(
+			style,
+			"VisualState")
+			.Should()
+			.Equal(
+				["KeptState"],
+				"only the MAUI-namespace VisualState is a visual state");
+	}
+
+	/// <summary>
+	///		Asserts that <c>StylesIn</c> returns a MAUI-namespace <c>Style</c> and skips a
+	///		same-named element declared in a <c>clr-namespace:</c> namespace.
+	/// </summary>
+	[Fact]
+	public void StylesInReadsOnlyMauiNamespaceStyles()
+	{
+		StylesIn(XDocument.Parse(ForeignStyleDocument))
+			.Keys
+			.Should()
+			.Equal(
+				["Kept"],
+				"only the MAUI-namespace Style is a style; the clr-namespace: element of the same "
+				+ "local name is a different type");
+	}
+
+	/// <summary>
 	///		Returns every style declared by the dictionary this class scans, keyed by
 	///		<c>TargetType</c>. Asserts nothing and returns an empty dictionary when the scan reaches
 	///		no such dictionary; <see cref="TheImplicitStyleScanFindsAtLeastOneStyle"/> is the guard.
@@ -366,10 +480,30 @@ public class ImplicitStyleTests
 	}
 
 	/// <summary>
+	///		Returns the first MAUI-namespace <c>Style</c> directly under the root of the supplied
+	///		synthetic document. Reads the element by its expanded name rather than through
+	///		<see cref="IsStyle"/>, so a fact about one filter does not also depend on another.
+	/// </summary>
+	/// <param name="xaml">
+	///		The synthetic resource dictionary to parse.
+	/// </param>
+	private static XElement SyntheticStyle(string xaml)
+	{
+		return XDocument
+			.Parse(xaml)
+			.Root!
+			.Element(
+				XName.Get(
+					"Style",
+					ThemeSource.MauiNamespace))!;
+	}
+
+	/// <summary>
 	///		Returns the properties the supplied style sets, including those set inside its visual
 	///		states, and EXCLUDING those belonging to a style nested inside it. "Belonging" is
 	///		decided by the nearest enclosing style, which is exactly the thing the regular
-	///		expression this replaces could not determine.
+	///		expression this replaces could not determine. Only a <c>Setter</c> element in the MAUI
+	///		default namespace counts; a same-named element in any other namespace is not a setter.
 	/// </summary>
 	/// <param name="style">
 	///		The style element to read.
@@ -379,7 +513,9 @@ public class ImplicitStyleTests
 		return style
 			.Descendants()
 			.Where(element =>
-				ThemeSource.QualifiedElementName(element.Name) == "Setter")
+				ThemeSource.IsMauiElement(
+					element,
+					"Setter"))
 			.Where(element =>
 				NearestStyle(element) == style)
 			.Select(element =>
@@ -392,24 +528,27 @@ public class ImplicitStyleTests
 	}
 
 	/// <summary>
-	///		Returns the <c>x:Name</c> of every descendant of the supplied style whose element name
-	///		matches.
+	///		Returns the <c>x:Name</c> of every descendant of the supplied style that is the named
+	///		element in the MAUI default namespace. A same-named element in any other namespace is
+	///		not read.
 	/// </summary>
 	/// <param name="style">
 	///		The style element to read.
 	/// </param>
-	/// <param name="qualifiedElementName">
-	///		The element name to match, qualified as
-	///		<see cref="ThemeSource.QualifiedElementName(XName)"/> spells it.
+	/// <param name="localName">
+	///		The bare local name of the element to match, such as <c>VisualState</c>; the element
+	///		must be in the MAUI default namespace, <see cref="ThemeSource.MauiNamespace"/>.
 	/// </param>
 	private static IReadOnlyList<string> XamlNames(
 		XElement style,
-		string qualifiedElementName)
+		string localName)
 	{
 		return style
 			.Descendants()
 			.Where(element =>
-				ThemeSource.QualifiedElementName(element.Name) == qualifiedElementName)
+				ThemeSource.IsMauiElement(
+					element,
+					localName))
 			.Select(element =>
 				element
 					.Attributes()
@@ -438,13 +577,16 @@ public class ImplicitStyleTests
 	}
 
 	/// <summary>
-	///		Returns true when the supplied element is a <c>Style</c>.
+	///		Returns true when the supplied element is a <c>Style</c> in the MAUI default namespace.
+	///		A same-named element in any other namespace is not a style.
 	/// </summary>
 	/// <param name="element">
 	///		The element to test.
 	/// </param>
 	private static bool IsStyle(XElement element)
 	{
-		return ThemeSource.QualifiedElementName(element.Name) == "Style";
+		return ThemeSource.IsMauiElement(
+			element,
+			"Style");
 	}
 }
