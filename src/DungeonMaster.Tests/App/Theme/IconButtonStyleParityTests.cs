@@ -285,6 +285,52 @@ public class IconButtonStyleParityTests
 	}
 
 	/// <summary>
+	///		Asserts that <see cref="IsNamed"/> accepts, for each element name the scan below
+	///		passes it, the element in the MAUI default namespace and not the same-named element
+	///		in a <c>clr-namespace:</c> namespace.
+	/// </summary>
+	[Fact]
+	public void IsNamedMatchesOnlyTheMauiDefaultNamespace()
+	{
+		var document = XDocument.Parse(
+			string.Join(
+				'\n',
+				$@"<ResourceDictionary xmlns=""{ThemeSource.MauiNamespace}""",
+				@"	xmlns:local=""clr-namespace:DungeonMaster.Synthetic"">",
+				@"	<Style />",
+				@"	<local:Style />",
+				@"	<Setter />",
+				@"	<local:Setter />",
+				@"	<VisualStateGroup />",
+				@"	<local:VisualStateGroup />",
+				@"	<VisualState />",
+				@"	<local:VisualState />",
+				@"</ResourceDictionary>"));
+
+		foreach (var localName in new[] { "Style", "Setter", "VisualStateGroup", "VisualState" })
+		{
+			document
+				.Descendants()
+				.Where(element =>
+					IsNamed(
+						element,
+						localName))
+				.Select(element =>
+					element.Name)
+				.Should()
+				.Equal(
+					new[]
+					{
+						XName.Get(
+							localName,
+							ThemeSource.MauiNamespace),
+					},
+					$"IsNamed must accept only the MAUI {localName}, not the clr-namespace one "
+					+ "that shares its local name");
+		}
+	}
+
+	/// <summary>
 	///		Returns the keyed <c>DmIconButton</c> style, or <c>null</c> when it is not declared.
 	/// </summary>
 	private static XElement? IconStyle()
@@ -434,14 +480,23 @@ public class IconButtonStyleParityTests
 	}
 
 	/// <summary>
-	///		Returns whether the element's name, with its XAML prefix restored, is the supplied
-	///		qualified name.
+	///		Returns whether the element is the named element in the MAUI default namespace,
+	///		through <see cref="ThemeSource.IsMauiElement"/>. The same local name in any other
+	///		namespace, such as a <c>clr-namespace:</c> one, is not a match.
 	/// </summary>
+	/// <param name="element">
+	///		The element to test.
+	/// </param>
+	/// <param name="localName">
+	///		The bare local name to match, for example "Style".
+	/// </param>
 	private static bool IsNamed(
 		XElement element,
-		string qualifiedElementName)
+		string localName)
 	{
-		return ThemeSource.QualifiedElementName(element.Name) == qualifiedElementName;
+		return ThemeSource.IsMauiElement(
+			element,
+			localName);
 	}
 
 	/// <summary>

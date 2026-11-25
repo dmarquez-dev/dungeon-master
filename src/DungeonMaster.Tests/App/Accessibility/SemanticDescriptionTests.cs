@@ -35,9 +35,10 @@ namespace DungeonMaster.Tests.App.Accessibility;
 public class SemanticDescriptionTests
 {
 	/// <summary>
-	///		The element names this ratchet applies to, compared against
-	///		<see cref="ThemeSource.QualifiedElementName(XName)"/> so that a hypothetical
-	///		<c>x:Label</c> in the XAML namespace is not swept up with the MAUI control.
+	///		The local names of the elements this ratchet applies to. An element matches only when
+	///		it is in the MAUI default namespace, through <see cref="ThemeSource.IsMauiElement"/>,
+	///		so a same-named element in a <c>clr-namespace:</c> namespace or the XAML namespace is
+	///		not swept up with the MAUI control.
 	/// </summary>
 	private static readonly IReadOnlySet<string> ControlElements =
 		new HashSet<string>(StringComparer.Ordinal)
@@ -327,6 +328,36 @@ public class SemanticDescriptionTests
 	}
 
 	/// <summary>
+	///		Only a <c>Label</c> or <c>Button</c> in the MAUI default namespace is scanned; the
+	///		same-named controls in a <c>clr-namespace:</c> namespace are not.
+	/// </summary>
+	[Fact]
+	public void OnlyMauiNamespaceControlsAreScanned()
+	{
+		var document = SyntheticDocument(
+			$@"<ContentView xmlns=""{MauiNamespace}""",
+			@"	xmlns:local=""clr-namespace:DungeonMaster.Synthetic"">",
+			@"	<Label Text=""&#xE9FC;"" />",
+			@"	<Button Text=""&#xE9FC;"" />",
+			@"	<local:Label Text=""&#xE9FC;"" />",
+			@"	<local:Button Text=""&#xE9FC;"" />",
+			@"</ContentView>");
+		var mauiControlLines = new[] { 3, 4 };
+
+		IconOnlyControls(
+				document,
+				"Synthetic.xaml")
+			.Select(control =>
+				control.LineNumber)
+			.Should()
+			.Equal(
+				mauiControlLines,
+				"only the MAUI Label and Button, declared on lines 3 and 4, are controls this "
+				+ "ratchet applies to; the clr-namespace Label and Button share their local names "
+				+ "and nothing else");
+	}
+
+	/// <summary>
 	///		An icon-only control the scan reaches, with the line it was declared on.
 	/// </summary>
 	/// <param name="RelativePath">
@@ -396,7 +427,10 @@ public class SemanticDescriptionTests
 		{
 			var elementName = ThemeSource.QualifiedElementName(element.Name);
 
-			if (!ControlElements.Contains(elementName))
+			if (!ControlElements.Any(name =>
+					ThemeSource.IsMauiElement(
+						element,
+						name)))
 			{
 				continue;
 			}

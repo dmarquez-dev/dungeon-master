@@ -1,0 +1,43 @@
+{
+  "session": "20261124-0126-maui-namespace-filters",
+  "updatedAt": "2026-11-24T20:27:36Z",
+  "worktree": "C:/dm-wt/20261124-0126-maui-namespace-filters",
+  "branch": "test/maui-namespace-filters",
+  "verification": [
+    {
+      "command": "dotnet build C:/dm-wt/20261124-0126-maui-namespace-filters/src/DungeonMaster.sln",
+      "runnable": true,
+      "probe": "Build succeeded. 0 Warning(s) 0 Error(s), exit=0"
+    },
+    {
+      "command": "dotnet test C:/dm-wt/20261124-0126-maui-namespace-filters/src/DungeonMaster.sln --no-build",
+      "runnable": true,
+      "probe": "Passed! Total 217 App.UnitTests, Total 1014 DungeonMaster.Tests, Total 146 App.Tests, 0 failed, exit=0"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T1",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "452b18f056150cf0197c117b88ead6229b4fe990",
+      "model": "opus",
+      "commit": "a58dbd001f3d918cab155af32c0584ccd2c38e65"
+    },
+    {
+      "id": "T2",
+      "status": "done",
+      "revisionRounds": 0,
+      "startRef": "a58dbd001f3d918cab155af32c0584ccd2c38e65",
+      "model": "opus",
+      "commit": "87d00902a9ee0229a2976a37d162a22f5df9e34f"
+    }
+  ],
+  "escalations": [],
+  "amendments": [],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  }
+}
