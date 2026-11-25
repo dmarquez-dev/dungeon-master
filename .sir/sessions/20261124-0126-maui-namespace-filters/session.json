@@ -1,0 +1,53 @@
+{
+  "id": "20261124-0126-maui-namespace-filters",
+  "name": "maui-namespace-filters",
+  "scope": "standard",
+  "status": "WRAPPED",
+  "brief": "Make the seven element-selection filters in src/DungeonMaster.Tests that compare ThemeSource.QualifiedElementName with a bare MAUI name (SemanticDescriptionTests.IconOnlyControls, the IsNamed helpers in ConfirmButtonStateParityTests and IconButtonStyleParityTests, ImplicitStyleTests SetterProperties, XamlNames and IsStyle, and ThemeDictionaryTests.MergedThemeSourcesInAppXaml) select only elements in the MAUI default namespace. T1 adds ThemeSource.MauiNamespace and ThemeSource.IsMauiElement (contract C1) with two facts, and fixes the four ImplicitStyleTests and ThemeDictionaryTests sites, the latter through a new document-taking seam. T2 fixes the other three sites through the same predicate. Each site gets a synthetic clr-namespace control, shown red under an injected revert and green after it (contract C2). Test-only: DungeonMaster.Tests goes from 1014 to 1023 facts, other suites unchanged. Gate 3 removes the 20261123-0703-test-strength-rows backlog row and records that its ThemeSource.cs:639 claim was wrong.",
+  "started": "2026-11-24T01:26:54Z",
+  "ended": "2026-11-25T17:18:12Z",
+  "parent": null,
+  "children": [],
+  "integration": "pr",
+  "branchType": "test",
+  "runs": [
+    {
+      "phase": "discuss",
+      "cc": "26a0deb4-0b57-4f7e-bb2f-27bd1a59f262",
+      "sir": "1.0.55",
+      "started": "2026-11-24T01:26:54Z",
+      "ended": "2026-11-24T01:41:44Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "spec",
+      "cc": "05e133b7-9833-4425-86ec-59790f7d50e2",
+      "sir": "1.0.55",
+      "started": "2026-11-24T01:45:03Z",
+      "ended": "2026-11-24T18:57:46Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "implement",
+      "cc": "3cbff3a8-505c-4976-8430-f82aa3c9610c",
+      "sir": "1.0.55",
+      "started": "2026-11-24T19:02:56Z",
+      "ended": "2026-11-24T20:08:45Z",
+      "outcome": "complete"
+    },
+    {
+      "phase": "review",
+      "cc": "1b9529c5-b369-45d9-9fb9-b7953d1fe9c0",
+      "sir": "1.0.55",
+      "started": "2026-11-24T20:21:15Z",
+      "ended": "2026-11-25T17:18:12Z",
+      "outcome": "complete"
+    }
+  ],
+  "metrics": {
+    "userInteractions": 3,
+    "escalationsRaised": 0,
+    "reviewRounds": 0
+  },
+  "pushed": true
+}
